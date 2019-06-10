@@ -1,0 +1,43 @@
+version: '3.4'
+
+services:
+  classtranscribeserver:
+    image: ${DOCKER_REGISTRY-}classtranscribeserver
+    build:
+      context: ./ClassTranscribeServer
+      dockerfile: Dockerfile
+    volumes:
+      - ./ClassTranscribeServer:/ClassTranscribeServer
+    container_name: "CTServer"
+    ports:
+        - "42043:443"
+        - "42080:80"
+    depends_on:
+      - db
+    env_file:
+      - "ctserver-env.list"
+    command: sh -c "dotnet build /ClassTranscribeServer/ClassTranscribeServer.csproj -c Release -o /app &&
+                    dotnet /app/ClassTranscribeServer.dll"
+  db:
+    image: crunchydata/crunchy-postgres:centos7-10.4-2.0.0
+    volumes:
+      - "pgvolume:/pgdata"
+    env_file:
+      - "pg-env.list"
+    ports:
+      - "5432:5432"
+    container_name: "CT2019db"
+
+  pgadmin:
+    image: crunchydata/crunchy-pgadmin4:centos7-10.4-2.0.0
+    ports:
+      - "5050:5050"
+    volumes:
+      - "pga4volume:/var/lib/pgadmin"
+    env_file:
+      - "pgadmin-env.list"
+    container_name: "pgadmin"
+    
+volumes:
+  pga4volume:
+  pgvolume:
