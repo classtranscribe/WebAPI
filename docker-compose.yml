@@ -4,10 +4,15 @@ services:
   classtranscribeserver:
     image: ${DOCKER_REGISTRY-}classtranscribeserver
     build:
-      context: ./ClassTranscribeServer
+      context: .
       dockerfile: Dockerfile
     volumes:
-      - ./ClassTranscribeServer:/ClassTranscribeServer
+      - type: bind
+        source: ./ClassTranscribeServer
+        target: /ClassTranscribeServer
+      - type: bind
+        source: ./ClassTranscribeDatabase
+        target: /ClassTranscribeDatabase
     container_name: "CTServer"
     ports:
         - "4443:443"

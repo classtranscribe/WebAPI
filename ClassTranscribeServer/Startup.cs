@@ -1,6 +1,4 @@
-﻿using ClassTranscribeServer.Data;
-using ClassTranscribeServer.Models;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
@@ -12,6 +10,9 @@ using Microsoft.IdentityModel.Tokens;
 using System;
 using System.IdentityModel.Tokens.Jwt;
 using System.Text;
+using ClassTranscribeDatabase;
+using ClassTranscribeDatabase.Models;
+using Microsoft.AspNetCore.Http;
 
 namespace ClassTranscribeServer
 {
@@ -22,12 +23,19 @@ namespace ClassTranscribeServer
             Configuration = configuration;
         }
 
+        readonly string MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
         public IConfiguration Configuration { get; }
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddDbContext<ApplicationDbContext>(options =>
+            services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+            services.AddCors(options =>
+            {
+                options.AddPolicy(MyAllowSpecificOrigins,
+                builder => builder.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
+            });
+            services.AddDbContext<CTDbContext>(options =>
                 options.UseNpgsql(
                     Configuration.GetConnectionString("POSTGRES")));
 
@@ -39,7 +47,7 @@ namespace ClassTranscribeServer
                 options.Password.RequireUppercase = false;
                 options.Password.RequireLowercase = false;
             })
-                .AddEntityFrameworkStores<ApplicationDbContext>()
+                .AddEntityFrameworkStores<CTDbContext>()
                 .AddDefaultTokenProviders();
             // ===== Add Jwt Authentication ========
             JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear(); // => remove default claims
@@ -68,7 +76,7 @@ namespace ClassTranscribeServer
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env, ApplicationDbContext dbContext)
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env, CTDbContext dbContext)
         {
             if (env.IsDevelopment())
             {
@@ -80,9 +88,10 @@ namespace ClassTranscribeServer
                 app.UseHsts();
             }
 
+            app.UseCors(MyAllowSpecificOrigins);
             app.UseHttpsRedirection();
             app.UseAuthentication();
-            app.UseMvc();
+            app.UseMvc();            
             dbContext.Database.EnsureCreated();
         }
     }
