@@ -75,6 +75,19 @@ namespace ClassTranscribeDatabase
                 .HasOne(pt => pt.Media)
                 .WithMany(t => t.OfferingMedias)
                 .HasForeignKey(pt => pt.MediaId);
+
+            builder.Entity<UserOffering>()
+            .HasKey(t => new { t.ApplicationUserId, t.OfferingId});
+
+            builder.Entity<UserOffering>()
+                .HasOne(pt => pt.Offering)
+                .WithMany(p => p.OfferingUsers)
+                .HasForeignKey(pt => pt.OfferingId);
+
+            builder.Entity<UserOffering>()
+                .HasOne(pt => pt.ApplicationUser)
+                .WithMany(t => t.UserOfferings)
+                .HasForeignKey(pt => pt.ApplicationUserId);
         }
         public override int SaveChanges(bool acceptAllChangesOnSuccess)
         {
@@ -173,12 +186,21 @@ namespace ClassTranscribeDatabase
         public List<Offering> Offerings { get; set; }
     }
 
+    public enum AccessTypes
+    {
+        Public,
+        AuthenticatedOnly,
+        StudentsOnly,
+        UniversityOnly,
+    }
     public class Offering : Entity
     {
         public string SectionName { get; set; }
         public Term Term { get; set; }
         public List<CourseOffering> CourseOfferings { get; set; }
         public List<OfferingMedia> OfferingMedias { get; set; }
+        public List<UserOffering> OfferingUsers { get; set; }
+        public AccessTypes AccessType { get; set; }
     }
 
     public class Media : Entity
@@ -223,5 +245,14 @@ namespace ClassTranscribeDatabase
         public Media Media { get; set; }
     }
 
+    public class UserOffering : Entity
+    {
+        public string OfferingId { get; set; }
+        public string ApplicationUserId { get; set; }
+        public Offering Offering { get; set; }
+        public ApplicationUser ApplicationUser { get; set; }
+        public string RoleId { get; set; }
+        
+    }
 
 }

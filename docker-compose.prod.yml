@@ -1,0 +1,10 @@
+version: '3.4'
+
+services:
+  classtranscribeserver:
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=https://+:443;http://+:80
+      - ASPNETCORE_HTTPS_PORT=44371    
+    command: sh -c "dotnet build /ClassTranscribeServer/ClassTranscribeServer.csproj -c Release -o /app &&
+                    dotnet /app/ClassTranscribeServer.dll"

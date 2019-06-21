@@ -6,9 +6,6 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=https://+:443;http://+:80
       - ASPNETCORE_HTTPS_PORT=44371
-    ports:
-      - "50884:80"
-      - "44371:443"
-    # volumes:
-    #   - ${APPDATA}/Microsoft/UserSecrets:/root/.microsoft/usersecrets:ro
-    #   - ${APPDATA}/ASP.NET/Https:/root/.aspnet/https:ro
+    stdin_open: true
+    tty: true
+    command: tail -f /dev/null

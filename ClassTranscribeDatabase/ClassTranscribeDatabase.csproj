@@ -1,7 +1,17 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netcoreapp2.2</TargetFramework>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <OutputPath>../ClassTranscribeDatabaseDebug/bin</OutputPath>
+    <IntermediateOutputPath>../ClassTranscribeDatabaseDebug/obj</IntermediateOutputPath>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <OutputPath>../ClassTranscribeDatabaseRelease/bin</OutputPath>
+    <IntermediateOutputPath>../ClassTranscribeDatabaseRelease/obj</IntermediateOutputPath>
   </PropertyGroup>
 
   <ItemGroup>

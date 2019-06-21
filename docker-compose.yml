@@ -20,9 +20,7 @@ services:
     depends_on:
       - db
     env_file:
-      - "ctserver-env.list"
-    command: sh -c "dotnet build /ClassTranscribeServer/ClassTranscribeServer.csproj -c Release -o /app &&
-                    dotnet /app/ClassTranscribeServer.dll"
+      - "ctserver-env.list"    
   db:
     image: crunchydata/crunchy-postgres:centos7-10.4-2.0.0
     volumes:
