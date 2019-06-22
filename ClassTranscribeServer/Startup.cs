@@ -24,7 +24,7 @@ namespace ClassTranscribeServer
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
-            if(configuration.GetValue<string>("DEV_ENV", "NULL") != "DOCKER")
+            if (configuration.GetValue<string>("DEV_ENV", "NULL") != "DOCKER")
             {
                 Configuration = new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory()).AddJsonFile("vs_appsettings.json").Build();
             }
@@ -43,10 +43,11 @@ namespace ClassTranscribeServer
                 builder => builder.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
             });
             services.AddDbContext<CTDbContext>(options =>
-                options.UseNpgsql(Configuration["POSTGRES"]));
+                options.UseLazyLoadingProxies().UseNpgsql(Configuration["POSTGRES"]));
 
             //// ===== Add Identity ========
-            services.AddIdentity<ApplicationUser, IdentityRole>(options => {
+            services.AddIdentity<ApplicationUser, IdentityRole>(options =>
+            {
                 options.Password.RequireDigit = false;
                 options.Password.RequiredLength = 4;
                 options.Password.RequireNonAlphanumeric = false;
@@ -86,7 +87,7 @@ namespace ClassTranscribeServer
                 c.SwaggerDoc("v1", new OpenApiInfo
                 {
                     Version = "v1",
-                    Title = "ClassTranscribeServer API"                    
+                    Title = "ClassTranscribeServer API"
                 });
             });
         }
@@ -118,7 +119,7 @@ namespace ClassTranscribeServer
                 c.RoutePrefix = string.Empty;
             });
 
-            app.UseMvc();            
+            app.UseMvc();
             dbContext.Database.EnsureCreated();
         }
     }

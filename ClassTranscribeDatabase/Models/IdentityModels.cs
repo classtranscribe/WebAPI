@@ -7,7 +7,7 @@ namespace ClassTranscribeDatabase.Models
     {
         public string FirstName { get; set; }
         public string LastName { get; set; }
-        public List<UserOffering> UserOfferings { get; set; }
-        public University University { get; set; }
+        public virtual List<UserOffering> UserOfferings { get; set; }
+        public virtual University University { get; set; }
     }
 }

@@ -169,16 +169,16 @@ namespace ClassTranscribeDatabase
     {
         public string Name { get; set; }
         public string Domain { get; set; }
-        public List<Department> Departments { get; set; }
+        public virtual List<Department> Departments { get; set; }
     }
 
     public class Department : Entity
     {
         public string Name { get; set; }
         public string Acronym { get; set; }
-        public List<Course> Courses { get; set; }
+        public virtual List<Course> Courses { get; set; }
         public string UniversityId { get; set; }
-        public University University { get; set; }
+        public virtual University University { get; set; }
     }
 
     public class Course : Entity
@@ -186,15 +186,15 @@ namespace ClassTranscribeDatabase
         public string CourseNumber { get; set; }
         public string Description { get; set; }
         public string DepartmentId { get; set; }
-        public Department Department { get; set; }
-        public List<CourseOffering> CourseOfferings { get; set; }
+        public virtual Department Department { get; set; }
+        public virtual List<CourseOffering> CourseOfferings { get; set; }
     }
 
     public class Term : Entity
     {
         public string Name { get; set; }
         public DateTime StartDate { get; set; }
-        public List<Offering> Offerings { get; set; }
+        public virtual List<Offering> Offerings { get; set; }
     }
 
     public enum AccessTypes
@@ -208,10 +208,10 @@ namespace ClassTranscribeDatabase
     {
         public string SectionName { get; set; }
         public string TermId { get; set; }
-        public Term Term { get; set; }
-        public List<CourseOffering> CourseOfferings { get; set; }
-        public List<OfferingMedia> OfferingMedias { get; set; }
-        public List<UserOffering> OfferingUsers { get; set; }
+        public virtual Term Term { get; set; }
+        public virtual List<CourseOffering> CourseOfferings { get; set; }
+        public virtual List<OfferingMedia> OfferingMedias { get; set; }
+        public virtual List<UserOffering> OfferingUsers { get; set; }
         public AccessTypes AccessType { get; set; }
     }
 
@@ -221,9 +221,9 @@ namespace ClassTranscribeDatabase
         public string MediaUrl { get; set; }
         // TODO: convert to JSON Object
         public string JsonMetadata { get; set; }
-        public List<Transcription> Transcriptions { get; set; }
-        public List<Video> Videos { get; set; }
-        public List<OfferingMedia> OfferingMedias { get; set; }
+        public virtual List<Transcription> Transcriptions { get; set; }
+        public virtual List<Video> Videos { get; set; }
+        public virtual List<OfferingMedia> OfferingMedias { get; set; }
     }
 
     public class Transcription : Entity
@@ -231,7 +231,7 @@ namespace ClassTranscribeDatabase
         public string Path { get; set; }
         public string Description { get; set; }
         public string MediaId { get; set; }
-        public Media Media { get; set; }
+        public virtual Media Media { get; set; }
     }
 
     public class Video : Entity
@@ -239,15 +239,15 @@ namespace ClassTranscribeDatabase
         public string Path { get; set; }
         public string Description { get; set; }
         public string MediaId { get; set; }
-        public Media Media { get; set; }
+        public virtual Media Media { get; set; }
     }
 
     public class CourseOffering : Entity
     {
         public string CourseId { get; set; }
         public string OfferingId { get; set; }
-        public Course Course { get; set; }
-        public Offering Offering { get; set; }
+        public virtual Course Course { get; set; }
+        public virtual Offering Offering { get; set; }
 
     }
 
@@ -255,18 +255,18 @@ namespace ClassTranscribeDatabase
     {
         public string OfferingId { get; set; }
         public string MediaId { get; set; }
-        public Offering Offering { get; set; }
-        public Media Media { get; set; }
+        public virtual Offering Offering { get; set; }
+        public virtual Media Media { get; set; }
     }
 
     public class UserOffering : Entity
     {
         public string OfferingId { get; set; }
         public string ApplicationUserId { get; set; }
-        public Offering Offering { get; set; }
-        public ApplicationUser ApplicationUser { get; set; }
+        public virtual Offering Offering { get; set; }
+        public virtual ApplicationUser ApplicationUser { get; set; }
         public string IdentityRoleId { get; set; }
-        public IdentityRole IdentityRole { get; set; }
+        public virtual IdentityRole IdentityRole { get; set; }
 
     }
 

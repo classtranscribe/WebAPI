@@ -4,7 +4,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace ClassTranscribeDatabase.Migrations
 {
-    public partial class first : Migration
+    public partial class One : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -340,7 +340,7 @@ namespace ClassTranscribeDatabase.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "UserOffering",
+                name: "UserOfferings",
                 columns: table => new
                 {
                     OfferingId = table.Column<string>(nullable: false),
@@ -350,19 +350,25 @@ namespace ClassTranscribeDatabase.Migrations
                     CreatedBy = table.Column<string>(nullable: true),
                     LastUpdatedAt = table.Column<DateTime>(nullable: false),
                     LastUpdatedBy = table.Column<string>(nullable: true),
-                    RoleId = table.Column<string>(nullable: true)
+                    IdentityRoleId = table.Column<string>(nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_UserOffering", x => new { x.ApplicationUserId, x.OfferingId });
+                    table.PrimaryKey("PK_UserOfferings", x => new { x.ApplicationUserId, x.OfferingId });
                     table.ForeignKey(
-                        name: "FK_UserOffering_AspNetUsers_ApplicationUserId",
+                        name: "FK_UserOfferings_AspNetUsers_ApplicationUserId",
                         column: x => x.ApplicationUserId,
                         principalTable: "AspNetUsers",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_UserOffering_Offerings_OfferingId",
+                        name: "FK_UserOfferings_AspNetRoles_IdentityRoleId",
+                        column: x => x.IdentityRoleId,
+                        principalTable: "AspNetRoles",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_UserOfferings_Offerings_OfferingId",
                         column: x => x.OfferingId,
                         principalTable: "Offerings",
                         principalColumn: "Id",
@@ -495,8 +501,13 @@ namespace ClassTranscribeDatabase.Migrations
                 column: "MediaId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_UserOffering_OfferingId",
-                table: "UserOffering",
+                name: "IX_UserOfferings_IdentityRoleId",
+                table: "UserOfferings",
+                column: "IdentityRoleId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_UserOfferings_OfferingId",
+                table: "UserOfferings",
                 column: "OfferingId");
 
             migrationBuilder.CreateIndex(
@@ -532,19 +543,19 @@ namespace ClassTranscribeDatabase.Migrations
                 name: "Transcriptions");
 
             migrationBuilder.DropTable(
-                name: "UserOffering");
+                name: "UserOfferings");
 
             migrationBuilder.DropTable(
                 name: "Videos");
-
-            migrationBuilder.DropTable(
-                name: "AspNetRoles");
 
             migrationBuilder.DropTable(
                 name: "Courses");
 
             migrationBuilder.DropTable(
                 name: "AspNetUsers");
+
+            migrationBuilder.DropTable(
+                name: "AspNetRoles");
 
             migrationBuilder.DropTable(
                 name: "Offerings");
