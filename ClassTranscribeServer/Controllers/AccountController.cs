@@ -49,6 +49,7 @@ namespace ClassTranscribeServer.Controllers
             throw new ApplicationException("INVALID_LOGIN_ATTEMPT");
         }
 
+        [NonAction]
         public async Task<string> Register(ApplicationUser user)
         {
             var result = await _userManager.CreateAsync(user, user.Email);
@@ -88,6 +89,7 @@ namespace ClassTranscribeServer.Controllers
             return Ok(jwtToken);
         }
 
+        [NonAction]
         private async Task<string> GenerateJwtToken(string email, ApplicationUser user)
         {
             var claims = new List<Claim>
@@ -112,6 +114,7 @@ namespace ClassTranscribeServer.Controllers
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
 
+        [NonAction]
         public ApplicationUser Validate(string token)
         {
             string stsDiscoveryEndpoint = "https://" + _configuration["AZURE_B2C_DOMAIN"] +"/" + _configuration["AZURE_B2C_DIRECTORY"] + "/v2.0/.well-known/openid-configuration?p=" + _configuration["AZURE_B2C_SIGNIN_POLICY"];

@@ -21,15 +21,26 @@ namespace ClassTranscribeServer.Controllers
             _context = context;
         }
 
-        // GET: api/Courses
+        /// <summary>
+        /// Gets all Courses.
+        /// </summary>
+        /// <remarks>
+        /// Sample request:
+        ///
+        ///     GET /api/Courses
+        ///
+        /// </remarks>
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Course>>> GetCourses()
         {
             return await _context.Courses.ToListAsync();
         }
 
-        // GET: api/Courses
-        [HttpGet("{userId}")]
+        // GET: api/Courses/
+        /// <summary>
+        /// Gets all Courses by Instructors for userId.
+        /// </summary>
+        [HttpGet("ByInstructor/{userId}")]
         public async Task<ActionResult<IEnumerable<Course>>> GetCoursesByInstructor(string userId)
         {
             return await (from c in _context.Courses
@@ -41,6 +52,9 @@ namespace ClassTranscribeServer.Controllers
         }
 
         // GET: api/Courses/5
+        /// <summary>
+        /// Get course for id.
+        /// </summary>
         [HttpGet("{id}")]
         public async Task<ActionResult<Course>> GetCourse(string id)
         {

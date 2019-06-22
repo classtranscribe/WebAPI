@@ -43,3 +43,4 @@ bld/
 # NUNIT
 *.VisualState.xml
 TestResult.xml
+/ClassTranscribeServer/vs_appsettings.json

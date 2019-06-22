@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
+using System.IO;
 
 namespace ClassTranscribeDatabase
 {
@@ -19,8 +20,12 @@ namespace ClassTranscribeDatabase
         public CTDbContext CreateDbContext(string[] args)
         {
             var configuration = new ConfigurationBuilder().AddEnvironmentVariables().Build();
+            if(configuration.GetValue<string>("DEV_ENV", "NULL") != "DOCKER")
+            {
+                configuration = new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory()).AddJsonFile("vs_appsettings.json").Build();
+            }
             var optionsBuilder = new DbContextOptionsBuilder<CTDbContext>();
-            optionsBuilder.UseNpgsql(configuration.GetConnectionString("POSTGRES"));
+            optionsBuilder.UseNpgsql(configuration["POSTGRES"]);
             return new CTDbContext(optionsBuilder.Options, null);
         }
     }

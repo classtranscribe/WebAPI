@@ -14,6 +14,8 @@ using ClassTranscribeDatabase;
 using ClassTranscribeDatabase.Models;
 using Microsoft.AspNetCore.Http;
 using Swashbuckle.AspNetCore.Swagger;
+using Microsoft.OpenApi.Models;
+using System.IO;
 
 namespace ClassTranscribeServer
 {
@@ -22,6 +24,10 @@ namespace ClassTranscribeServer
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
+            if(configuration.GetValue<string>("DEV_ENV", "NULL") != "DOCKER")
+            {
+                Configuration = new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory()).AddJsonFile("vs_appsettings.json").Build();
+            }
         }
 
         readonly string MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
@@ -37,8 +43,7 @@ namespace ClassTranscribeServer
                 builder => builder.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
             });
             services.AddDbContext<CTDbContext>(options =>
-                options.UseNpgsql(
-                    Configuration.GetConnectionString("POSTGRES")));
+                options.UseNpgsql(Configuration["POSTGRES"]));
 
             //// ===== Add Identity ========
             services.AddIdentity<ApplicationUser, IdentityRole>(options => {
@@ -78,7 +83,11 @@ namespace ClassTranscribeServer
             // Register the Swagger generator, defining 1 or more Swagger documents
             services.AddSwaggerGen(c =>
             {
-                c.SwaggerDoc("v1", new Info { Title = "My API", Version = "v1" });
+                c.SwaggerDoc("v1", new OpenApiInfo
+                {
+                    Version = "v1",
+                    Title = "ClassTranscribeServer API"                    
+                });
             });
         }
 
