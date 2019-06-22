@@ -307,17 +307,19 @@ namespace ClassTranscribeDatabase.Migrations
 
                     b.Property<string>("Id");
 
+                    b.Property<string>("IdentityRoleId");
+
                     b.Property<DateTime>("LastUpdatedAt");
 
                     b.Property<string>("LastUpdatedBy");
 
-                    b.Property<string>("RoleId");
-
                     b.HasKey("ApplicationUserId", "OfferingId");
+
+                    b.HasIndex("IdentityRoleId");
 
                     b.HasIndex("OfferingId");
 
-                    b.ToTable("UserOffering");
+                    b.ToTable("UserOfferings");
                 });
 
             modelBuilder.Entity("ClassTranscribeDatabase.Video", b =>
@@ -520,6 +522,10 @@ namespace ClassTranscribeDatabase.Migrations
                         .WithMany("UserOfferings")
                         .HasForeignKey("ApplicationUserId")
                         .OnDelete(DeleteBehavior.Cascade);
+
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", "IdentityRole")
+                        .WithMany()
+                        .HasForeignKey("IdentityRoleId");
 
                     b.HasOne("ClassTranscribeDatabase.Offering", "Offering")
                         .WithMany("OfferingUsers")

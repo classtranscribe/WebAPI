@@ -10,8 +10,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ClassTranscribeDatabase.Migrations
 {
     [DbContext(typeof(CTDbContext))]
-    [Migration("20190618221815_First")]
-    partial class First
+    [Migration("20190622162618_three")]
+    partial class three
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -159,6 +159,8 @@ namespace ClassTranscribeDatabase.Migrations
 
                     b.Property<bool>("TwoFactorEnabled");
 
+                    b.Property<string>("UniversityId");
+
                     b.Property<string>("UserName")
                         .HasMaxLength(256);
 
@@ -171,6 +173,8 @@ namespace ClassTranscribeDatabase.Migrations
                         .IsUnique()
                         .HasName("UserNameIndex");
 
+                    b.HasIndex("UniversityId");
+
                     b.ToTable("AspNetUsers");
                 });
 
@@ -178,6 +182,8 @@ namespace ClassTranscribeDatabase.Migrations
                 {
                     b.Property<string>("Id")
                         .ValueGeneratedOnAdd();
+
+                    b.Property<int>("AccessType");
 
                     b.Property<DateTime>("CreatedAt");
 
@@ -289,6 +295,33 @@ namespace ClassTranscribeDatabase.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Universities");
+                });
+
+            modelBuilder.Entity("ClassTranscribeDatabase.UserOffering", b =>
+                {
+                    b.Property<string>("ApplicationUserId");
+
+                    b.Property<string>("OfferingId");
+
+                    b.Property<DateTime>("CreatedAt");
+
+                    b.Property<string>("CreatedBy");
+
+                    b.Property<string>("Id");
+
+                    b.Property<string>("IdentityRoleId");
+
+                    b.Property<DateTime>("LastUpdatedAt");
+
+                    b.Property<string>("LastUpdatedBy");
+
+                    b.HasKey("ApplicationUserId", "OfferingId");
+
+                    b.HasIndex("IdentityRoleId");
+
+                    b.HasIndex("OfferingId");
+
+                    b.ToTable("UserOfferings");
                 });
 
             modelBuilder.Entity("ClassTranscribeDatabase.Video", b =>
@@ -451,6 +484,13 @@ namespace ClassTranscribeDatabase.Migrations
                         .HasForeignKey("UniversityId");
                 });
 
+            modelBuilder.Entity("ClassTranscribeDatabase.Models.ApplicationUser", b =>
+                {
+                    b.HasOne("ClassTranscribeDatabase.University", "University")
+                        .WithMany()
+                        .HasForeignKey("UniversityId");
+                });
+
             modelBuilder.Entity("ClassTranscribeDatabase.Offering", b =>
                 {
                     b.HasOne("ClassTranscribeDatabase.Term", "Term")
@@ -476,6 +516,23 @@ namespace ClassTranscribeDatabase.Migrations
                     b.HasOne("ClassTranscribeDatabase.Media", "Media")
                         .WithMany("Transcriptions")
                         .HasForeignKey("MediaId");
+                });
+
+            modelBuilder.Entity("ClassTranscribeDatabase.UserOffering", b =>
+                {
+                    b.HasOne("ClassTranscribeDatabase.Models.ApplicationUser", "ApplicationUser")
+                        .WithMany("UserOfferings")
+                        .HasForeignKey("ApplicationUserId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", "IdentityRole")
+                        .WithMany()
+                        .HasForeignKey("IdentityRoleId");
+
+                    b.HasOne("ClassTranscribeDatabase.Offering", "Offering")
+                        .WithMany("OfferingUsers")
+                        .HasForeignKey("OfferingId")
+                        .OnDelete(DeleteBehavior.Cascade);
                 });
 
             modelBuilder.Entity("ClassTranscribeDatabase.Video", b =>

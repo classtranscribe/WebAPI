@@ -1,5 +1,6 @@
 ﻿using ClassTranscribeDatabase.Models;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
@@ -38,6 +39,7 @@ namespace ClassTranscribeDatabase
         public DbSet<Video> Videos { get; set; }
         public DbSet<CourseOffering> CourseOfferings { get; set; }
         public DbSet<OfferingMedia> OfferingMedias { get; set; }
+        public DbSet<UserOffering> UserOfferings { get; set; }
 
 
         public CTDbContext(DbContextOptions<CTDbContext> options, IHttpContextAccessor httpContextAccessor)
@@ -77,7 +79,7 @@ namespace ClassTranscribeDatabase
                 .HasForeignKey(pt => pt.MediaId);
 
             builder.Entity<UserOffering>()
-            .HasKey(t => new { t.ApplicationUserId, t.OfferingId});
+            .HasKey(t => new { t.ApplicationUserId, t.OfferingId });
 
             builder.Entity<UserOffering>()
                 .HasOne(pt => pt.Offering)
@@ -130,14 +132,16 @@ namespace ClassTranscribeDatabase
 
         private string GetCurrentUser()
         {
+            // TODO: Fix this
+            return null;
             var httpContextAccessor = _httpContextAccessor;
-            if (httpContextAccessor != null)
+            if (httpContextAccessor.HttpContext.User != null)
             {
                 var httpContext = httpContextAccessor.HttpContext;
                 var authenticatedUserName = httpContext.User.Identity.Name;
 
                 // If it returns null, even when the user was authenticated, you may try to get the value of a specific claim 
-                var authenticatedUserId = _httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value;
+                var authenticatedUserId = _httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value ?? "";
                 // var authenticatedUserId = _httpContextAccessor.HttpContext.User.FindFirst("sub").Value
 
                 // TODO use name to set the shadow property value like in the following post: https://www.meziantou.net/2017/07/03/entity-framework-core-generate-tracking-columns
@@ -168,6 +172,7 @@ namespace ClassTranscribeDatabase
         public string Name { get; set; }
         public string Acronym { get; set; }
         public List<Course> Courses { get; set; }
+        public string UniversityId { get; set; }
         public University University { get; set; }
     }
 
@@ -175,6 +180,7 @@ namespace ClassTranscribeDatabase
     {
         public string CourseNumber { get; set; }
         public string Description { get; set; }
+        public string DepartmentId { get; set; }
         public Department Department { get; set; }
         public List<CourseOffering> CourseOfferings { get; set; }
     }
@@ -196,6 +202,7 @@ namespace ClassTranscribeDatabase
     public class Offering : Entity
     {
         public string SectionName { get; set; }
+        public string TermId { get; set; }
         public Term Term { get; set; }
         public List<CourseOffering> CourseOfferings { get; set; }
         public List<OfferingMedia> OfferingMedias { get; set; }
@@ -218,6 +225,7 @@ namespace ClassTranscribeDatabase
     {
         public string Path { get; set; }
         public string Description { get; set; }
+        public string MediaId { get; set; }
         public Media Media { get; set; }
     }
 
@@ -225,6 +233,7 @@ namespace ClassTranscribeDatabase
     {
         public string Path { get; set; }
         public string Description { get; set; }
+        public string MediaId { get; set; }
         public Media Media { get; set; }
     }
 
@@ -251,8 +260,9 @@ namespace ClassTranscribeDatabase
         public string ApplicationUserId { get; set; }
         public Offering Offering { get; set; }
         public ApplicationUser ApplicationUser { get; set; }
-        public string RoleId { get; set; }
-        
+        public string IdentityRoleId { get; set; }
+        public IdentityRole IdentityRole { get; set; }
+
     }
 
 }

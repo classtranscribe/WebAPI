@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ClassTranscribeDatabase;
+using Microsoft.AspNetCore.Identity;
 
 namespace ClassTranscribeServer.Controllers
 {
@@ -25,6 +26,18 @@ namespace ClassTranscribeServer.Controllers
         public async Task<ActionResult<IEnumerable<Course>>> GetCourses()
         {
             return await _context.Courses.ToListAsync();
+        }
+
+        // GET: api/Courses
+        [HttpGet("{userId}")]
+        public async Task<ActionResult<IEnumerable<Course>>> GetCoursesByInstructor(string userId)
+        {
+            return await (from c in _context.Courses
+                          join co in _context.CourseOfferings on c.Id equals co.CourseId
+                          join o in _context.Offerings on co.OfferingId equals o.Id
+                          join uo in _context.UserOfferings on o.Id equals uo.OfferingId
+                          where uo.IdentityRole.Name == "Instructor" && uo.ApplicationUserId == userId
+                          select c).ToListAsync();
         }
 
         // GET: api/Courses/5
