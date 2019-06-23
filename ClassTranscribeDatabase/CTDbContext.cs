@@ -1,16 +1,14 @@
 ﻿using ClassTranscribeDatabase.Models;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.Configuration;
 using System;
-using System.Collections.Generic;
+using System.IO;
 using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
-using System.IO;
 
 namespace ClassTranscribeDatabase
 {
@@ -155,119 +153,4 @@ namespace ClassTranscribeDatabase
             return null;
         }
     }
-
-    public class Entity
-    {
-        public string Id { get; set; }
-        public DateTime CreatedAt { get; set; }
-        public string CreatedBy { get; set; }
-        public DateTime LastUpdatedAt { get; set; }
-        public string LastUpdatedBy { get; set; }
-    }
-
-    public class University : Entity
-    {
-        public string Name { get; set; }
-        public string Domain { get; set; }
-        public virtual List<Department> Departments { get; set; }
-    }
-
-    public class Department : Entity
-    {
-        public string Name { get; set; }
-        public string Acronym { get; set; }
-        public virtual List<Course> Courses { get; set; }
-        public string UniversityId { get; set; }
-        public virtual University University { get; set; }
-    }
-
-    public class Course : Entity
-    {
-        public string CourseNumber { get; set; }
-        public string Description { get; set; }
-        public string DepartmentId { get; set; }
-        public virtual Department Department { get; set; }
-        public virtual List<CourseOffering> CourseOfferings { get; set; }
-    }
-
-    public class Term : Entity
-    {
-        public string Name { get; set; }
-        public DateTime StartDate { get; set; }
-        public virtual List<Offering> Offerings { get; set; }
-    }
-
-    public enum AccessTypes
-    {
-        Public,
-        AuthenticatedOnly,
-        StudentsOnly,
-        UniversityOnly,
-    }
-    public class Offering : Entity
-    {
-        public string SectionName { get; set; }
-        public string TermId { get; set; }
-        public virtual Term Term { get; set; }
-        public virtual List<CourseOffering> CourseOfferings { get; set; }
-        public virtual List<OfferingMedia> OfferingMedias { get; set; }
-        public virtual List<UserOffering> OfferingUsers { get; set; }
-        public AccessTypes AccessType { get; set; }
-    }
-
-    public class Media : Entity
-    {
-        public string MediaSource { get; set; }
-        public string MediaUrl { get; set; }
-        // TODO: convert to JSON Object
-        public string JsonMetadata { get; set; }
-        public virtual List<Transcription> Transcriptions { get; set; }
-        public virtual List<Video> Videos { get; set; }
-        public virtual List<OfferingMedia> OfferingMedias { get; set; }
-    }
-
-    public class Transcription : Entity
-    {
-        public string Path { get; set; }
-        public string Description { get; set; }
-        public string MediaId { get; set; }
-        public virtual Media Media { get; set; }
-    }
-
-    public class Video : Entity
-    {
-        public string Path { get; set; }
-        public string Description { get; set; }
-        public string MediaId { get; set; }
-        public virtual Media Media { get; set; }
-    }
-
-    public class CourseOffering : Entity
-    {
-        public string CourseId { get; set; }
-        public string OfferingId { get; set; }
-        public virtual Course Course { get; set; }
-        public virtual Offering Offering { get; set; }
-
-    }
-
-    public class OfferingMedia : Entity
-    {
-        public string OfferingId { get; set; }
-        public string MediaId { get; set; }
-        public virtual Offering Offering { get; set; }
-        public virtual Media Media { get; set; }
-    }
-
-    public class UserOffering : Entity
-    {
-        public string OfferingId { get; set; }
-        public string ApplicationUserId { get; set; }
-        public virtual Offering Offering { get; set; }
-        public virtual ApplicationUser ApplicationUser { get; set; }
-        public string IdentityRoleId { get; set; }
-        public virtual IdentityRole IdentityRole { get; set; }
-
-    }
-
 }

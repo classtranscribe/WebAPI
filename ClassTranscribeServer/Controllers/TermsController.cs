@@ -1,11 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ClassTranscribeDatabase;
+using ClassTranscribeDatabase.Models;
 
 namespace ClassTranscribeServer.Controllers
 {
@@ -21,6 +20,15 @@ namespace ClassTranscribeServer.Controllers
         }
 
         // GET: api/Terms
+        /// <summary>
+        /// Gets all Terms.
+        /// </summary>
+        /// <remarks>
+        /// Sample request:
+        ///
+        ///     GET /api/Courses    
+        ///
+        /// </remarks>
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Term>>> GetTerms()
         {
