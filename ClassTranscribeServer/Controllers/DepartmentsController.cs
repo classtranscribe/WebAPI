@@ -26,6 +26,15 @@ namespace ClassTranscribeServer.Controllers
             return await _context.Departments.ToListAsync();
         }
 
+        /// <summary>
+        /// Gets all Departments for universityId
+        /// </summary>
+        [HttpGet("ByUniversity/{universityId}")]
+        public async Task<ActionResult<IEnumerable<Department>>> GetDepartments(string universityId)
+        {
+            return await _context.Departments.Where(d => d.UniversityId == universityId).ToListAsync();
+        }
+
         // GET: api/Departments/5
         [HttpGet("{id}")]
         public async Task<ActionResult<Department>> GetDepartment(string id)

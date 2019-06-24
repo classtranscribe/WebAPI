@@ -34,6 +34,15 @@ namespace ClassTranscribeServer.Controllers
             return await _context.Courses.ToListAsync();
         }
 
+        /// <summary>
+        /// Gets all Courses for departmentId
+        /// </summary>
+        [HttpGet("ByDepartment/{departmentId}")]
+        public async Task<ActionResult<IEnumerable<Course>>> GetCourses(string departmentId)
+        {
+            return await _context.Courses.Where(c => c.DepartmentId == departmentId).ToListAsync();
+        }
+
         // GET: api/Courses/
         /// <summary>
         /// Gets all Courses by Instructors for userId.
