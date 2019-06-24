@@ -50,6 +50,7 @@ namespace ClassTranscribeDatabase.Models
     public class Course : Entity
     {
         public string CourseNumber { get; set; }
+        public string CourseName { get; set; }
         public string Description { get; set; }
         public string DepartmentId { get; set; }
         [IgnoreDataMember]
