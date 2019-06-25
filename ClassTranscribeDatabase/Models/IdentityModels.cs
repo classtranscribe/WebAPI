@@ -5,6 +5,19 @@ using System.Runtime.Serialization;
 
 namespace ClassTranscribeDatabase.Models
 {
+    public enum AccessTypes
+    {
+        Public,
+        AuthenticatedOnly,
+        StudentsOnly,
+        UniversityOnly,
+    }
+    public enum Status
+    {
+        Active,
+        Inactive,
+        Deleted
+    }
     public class ApplicationUser : IdentityUser
     {
         public string FirstName { get; set; }
@@ -14,6 +27,7 @@ namespace ClassTranscribeDatabase.Models
         [IgnoreDataMember]
         public virtual University University { get; set; }
     }
+
 
     public class Entity
     {
@@ -26,6 +40,8 @@ namespace ClassTranscribeDatabase.Models
         public DateTime LastUpdatedAt { get; set; }
         [IgnoreDataMember]
         public string LastUpdatedBy { get; set; }
+        public Status Status { get; set; }
+
     }
 
     public class University : Entity
@@ -34,6 +50,7 @@ namespace ClassTranscribeDatabase.Models
         public string Domain { get; set; }
         [IgnoreDataMember]
         public virtual List<Department> Departments { get; set; }
+        public virtual List<Term> Terms { get; set; }
     }
 
     public class Department : Entity
@@ -64,16 +81,10 @@ namespace ClassTranscribeDatabase.Models
         public string Name { get; set; }
         public DateTime StartDate { get; set; }
         [IgnoreDataMember]
+        public string UniversityId { get; set; }
+        public University University { get; set; }
         public virtual List<Offering> Offerings { get; set; }
-    }
-
-    public enum AccessTypes
-    {
-        Public,
-        AuthenticatedOnly,
-        StudentsOnly,
-        UniversityOnly,
-    }
+    }    
     public class Offering : Entity
     {
         public string SectionName { get; set; }

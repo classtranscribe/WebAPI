@@ -35,6 +35,15 @@ namespace ClassTranscribeServer.Controllers
             return await _context.Terms.ToListAsync();
         }
 
+        /// <summary>
+        /// Gets all Terms for universityId
+        /// </summary>
+        [HttpGet("ByUniversity/{universityId}")]
+        public async Task<ActionResult<IEnumerable<Term>>> GetTerms(string universityId)
+        {
+            return await _context.Terms.Where(t => t.UniversityId == universityId).ToListAsync();
+        }
+
         // GET: api/Terms/5
         [HttpGet("{id}")]
         public async Task<ActionResult<Term>> GetTerm(string id)
