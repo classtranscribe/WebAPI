@@ -82,7 +82,7 @@ namespace ClassTranscribeDatabase.Models
         public DateTime StartDate { get; set; }
         [IgnoreDataMember]
         public string UniversityId { get; set; }
-        public University University { get; set; }
+        public virtual University University { get; set; }
         public virtual List<Offering> Offerings { get; set; }
     }    
     public class Offering : Entity
