@@ -5,6 +5,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ClassTranscribeDatabase;
 using ClassTranscribeDatabase.Models;
+using System.Security.Claims;
+using System;
 
 namespace ClassTranscribeServer.Controllers
 {
@@ -24,6 +26,43 @@ namespace ClassTranscribeServer.Controllers
         public async Task<ActionResult<IEnumerable<Offering>>> GetOfferings()
         {
             return await _context.Offerings.ToListAsync();
+        }
+
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<Offering>>> GetOfferingsByStudent(string userId)
+        {
+            // Get the user
+            ApplicationUser user = null;
+            if (_context.Users != null)
+            {
+                var currentUserID = _context.Users.Find(ClaimTypes.NameIdentifier).Id;
+                user = _context.Users.Where(u => u.Id == currentUserID).First();
+            }
+
+            // Store the results
+            List<Offering> offerings = new List<Offering>();
+
+            // Get all the public offerings
+            var public_offerings = await _context.Offerings.Where(offer => offer.AccessType == AccessTypes.Public).ToListAsync();
+            offerings.Concat(public_offerings);
+
+            // Get all offering that need authentication
+            if (user != null)
+            {
+                var authen_offerings = await _context.Offerings.Where(offer => offer.AccessType == AccessTypes.AuthenticatedOnly).ToListAsync();
+                offerings.Concat(authen_offerings);
+            }
+
+            // Get all their university's offerings
+            var university_offerings = await _context.Offerings.Where(offer => offer.AccessType == AccessTypes.UniversityOnly && offer.CourseOfferings.Select(c => c.Course.Department.University).Contains(user.University)).ToListAsync();
+            offerings.Concat(university_offerings);
+
+            // Get all offering that this user is a member
+            var member_offerings = await _context.Offerings.Where(offer => offer.AccessType == AccessTypes.StudentsOnly && offer.OfferingUsers.Select(ou => ou.ApplicationUser).Contains(user)).ToListAsync();
+            offerings.Concat(member_offerings);
+
+            // return the combined result
+            return offerings;
         }
 
         // GET: api/Offerings/5
