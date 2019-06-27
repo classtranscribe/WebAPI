@@ -50,6 +50,7 @@ namespace ClassTranscribeDatabase.Models
         public string Domain { get; set; }
         [IgnoreDataMember]
         public virtual List<Department> Departments { get; set; }
+        [IgnoreDataMember]
         public virtual List<Term> Terms { get; set; }
     }
 
@@ -79,10 +80,11 @@ namespace ClassTranscribeDatabase.Models
     public class Term : Entity
     {
         public string Name { get; set; }
-        public DateTime StartDate { get; set; }
-        [IgnoreDataMember]
+        public DateTime StartDate { get; set; }        
         public string UniversityId { get; set; }
+        [IgnoreDataMember]
         public virtual University University { get; set; }
+        [IgnoreDataMember]
         public virtual List<Offering> Offerings { get; set; }
     }    
     public class Offering : Entity
