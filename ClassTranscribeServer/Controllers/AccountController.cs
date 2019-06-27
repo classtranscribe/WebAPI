@@ -66,18 +66,18 @@ namespace ClassTranscribeServer.Controllers
         [HttpPost]
         public async Task<IActionResult> SignIn([FromBody] LoginDto model)
         {
-            string jwtToken;
+            LoggedInDTO loggedInDTO;
             try
             {
                 ApplicationUser user = Validate(model.b2cToken);
                 ApplicationUser applicationUser = await _userManager.FindByEmailAsync(user.Email);
                 if (applicationUser == null)
                 {
-                    jwtToken = await Register(user);
+                    loggedInDTO = await Register(user);
                 }
                 else
                 {
-                    jwtToken = await Login(user);
+                    loggedInDTO = await Login(user);
                 }
 
             }
@@ -86,7 +86,7 @@ namespace ClassTranscribeServer.Controllers
                 return Unauthorized();
             }
 
-            return Ok(jwtToken);
+            return Ok(loggedInDTO);
         }
 
         [NonAction]
