@@ -35,7 +35,7 @@ namespace ClassTranscribeServer.Controllers
         }
 
         [HttpPost]
-        public async Task<string> Login(ApplicationUser user)
+        public async Task<LoggedInDTO> Login(ApplicationUser user)
         {
 
             var result = await _signInManager.PasswordSignInAsync(user.Email, user.Email, false, false);
@@ -50,7 +50,7 @@ namespace ClassTranscribeServer.Controllers
         }
 
         [NonAction]
-        public async Task<string> Register(ApplicationUser user)
+        public async Task<LoggedInDTO> Register(ApplicationUser user)
         {
             var result = await _userManager.CreateAsync(user, user.Email);
 
@@ -90,7 +90,7 @@ namespace ClassTranscribeServer.Controllers
         }
 
         [NonAction]
-        private async Task<string> GenerateJwtToken(string email, ApplicationUser user)
+        private async Task<LoggedInDTO> GenerateJwtToken(string email, ApplicationUser user)
         {
             var claims = new List<Claim>
             {
@@ -110,8 +110,12 @@ namespace ClassTranscribeServer.Controllers
                 expires: expires,
                 signingCredentials: creds
             );
+            return new LoggedInDTO
+            {
+                AuthToken = new JwtSecurityTokenHandler().WriteToken(token),
+                UserId = user.Id
 
-            return new JwtSecurityTokenHandler().WriteToken(token);
+            };
         }
 
         [NonAction]
@@ -158,5 +162,12 @@ namespace ClassTranscribeServer.Controllers
             [Required]
             public string b2cToken { get; set; }
         }
+
+        public class LoggedInDTO
+        {
+            public string UserId { get; set; }
+            public string AuthToken { get; set; }
+        }
+
     }
 }
