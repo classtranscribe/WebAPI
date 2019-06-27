@@ -34,7 +34,7 @@ namespace ClassTranscribeServer.Controllers
             _configuration = configuration;
         }
 
-        [HttpPost]
+        [NonAction]
         public async Task<LoggedInDTO> Login(ApplicationUser user)
         {
 
@@ -64,7 +64,7 @@ namespace ClassTranscribeServer.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> SignIn([FromBody] LoginDto model)
+        public async Task<ActionResult<LoggedInDTO>> SignIn([FromBody] LoginDto model)
         {
             LoggedInDTO loggedInDTO;
             try
