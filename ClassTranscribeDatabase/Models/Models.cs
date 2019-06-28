@@ -40,6 +40,7 @@ namespace ClassTranscribeDatabase.Models
         public DateTime LastUpdatedAt { get; set; }
         [IgnoreDataMember]
         public string LastUpdatedBy { get; set; }
+        [IgnoreDataMember]
         public Status Status { get; set; }
 
     }

@@ -102,14 +102,27 @@ namespace ClassTranscribeServer.Controllers
             return NoContent();
         }
 
-        // POST: api/Offerings
+        /// <summary>
+        /// Post new Offering for a course for an instructor
+        /// </summary>
         [HttpPost]
-        public async Task<ActionResult<Offering>> PostOffering(Offering offering)
+        public async Task<ActionResult<Offering>> PostNewOffering(NewOfferingDTO newOfferingDTO)
         {
-            _context.Offerings.Add(offering);
+            _context.Offerings.Add(newOfferingDTO.Offering);
             await _context.SaveChangesAsync();
+            _context.CourseOfferings.Add(new CourseOffering
+            {
+                CourseId = newOfferingDTO.CourseId,
+                OfferingId = newOfferingDTO.Offering.Id
+            });
+            _context.UserOfferings.Add(new UserOffering
+            {
+                ApplicationUserId = newOfferingDTO.InstructorId,
+                IdentityRole = _context.Roles.Where(r => r.Name == "Instructor").FirstOrDefault(),
+                OfferingId = newOfferingDTO.Offering.Id
+            });
 
-            return CreatedAtAction("GetOffering", new { id = offering.Id }, offering);
+            return CreatedAtAction("GetOffering", new { id = newOfferingDTO.Offering.Id }, newOfferingDTO.Offering);
         }
 
         // DELETE: api/Offerings/5
@@ -132,5 +145,14 @@ namespace ClassTranscribeServer.Controllers
         {
             return _context.Offerings.Any(e => e.Id == id);
         }
+
+        public class NewOfferingDTO
+        {
+            public Offering Offering { get; set; }
+            public string CourseId { get; set; }
+            public string InstructorId { get; set; }
+
+        }
     }
+
 }
