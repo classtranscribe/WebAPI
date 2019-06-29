@@ -33,9 +33,10 @@ namespace ClassTranscribeServer.Controllers
         [HttpGet("ByInstructor/{userId}")]
         public async Task<ActionResult<IEnumerable<CourseOfferingDTO>>> GetCourseOfferingsByInstructor(string userId)
         {
+
             var courseOfferings = _context.UserOfferings
-                .Where(uo => uo.IdentityRole.Name == "Instructor" && uo.ApplicationUserId == userId)
-                .Select(u => u.Offering).SelectMany(o => o.CourseOfferings);
+                .Where(uo => uo.ApplicationUserId == userId && uo.IdentityRole.Name == "Instructor")
+                .Select(u => u.Offering).SelectMany(u => u.CourseOfferings);
 
             return await courseOfferings.GroupBy(co => co.Course, co => co.Offering).Select(g => new CourseOfferingDTO
             {

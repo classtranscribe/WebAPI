@@ -16,6 +16,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.OpenApi.Models;
 using System.IO;
 using System.Reflection;
+using ClassTranscribeServer.Seed;
 
 namespace ClassTranscribeServer
 {
@@ -97,7 +98,8 @@ namespace ClassTranscribeServer
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env, CTDbContext dbContext)
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env, CTDbContext dbContext, UserManager<ApplicationUser> userManager,
+            SignInManager<ApplicationUser> signInManager, RoleManager<IdentityRole> roleManager)
         {
             if (env.IsDevelopment())
             {
@@ -125,6 +127,8 @@ namespace ClassTranscribeServer
 
             app.UseMvc();
             dbContext.Database.EnsureCreated();
+            Seeder seeder = new Seeder(dbContext, userManager, signInManager, roleManager);
+            Boolean result = seeder.SeedAsync().Result;
         }
     }
 }

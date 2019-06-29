@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.IdentityModel.Tokens.Jwt;
+using System.IO;
 using System.Linq;
 using System.Security.Claims;
 using System.Text;
@@ -32,6 +33,10 @@ namespace ClassTranscribeServer.Controllers
             _userManager = userManager;
             _signInManager = signInManager;
             _configuration = configuration;
+            if (configuration.GetValue<string>("DEV_ENV", "NULL") != "DOCKER")
+            {
+                _configuration = new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory()).AddJsonFile("vs_appsettings.json").Build();
+            }
         }
 
         [NonAction]
@@ -61,6 +66,24 @@ namespace ClassTranscribeServer.Controllers
             }
 
             throw new ApplicationException("UNKNOWN_ERROR");
+        }
+
+        [HttpPost]
+        public async Task<ActionResult<LoggedInDTO>> TestSignIn([FromBody] TestLoginDTO model)
+        {
+            LoggedInDTO loggedInDTO;
+            try
+            {
+                ApplicationUser user = await _userManager.FindByEmailAsync(model.emailId);
+                await _signInManager.SignInAsync(user, false);
+                loggedInDTO = await GenerateJwtToken(user.Email, user);
+            }
+            catch (Exception)
+            {
+                return Unauthorized();
+            }
+
+            return Ok(loggedInDTO);
         }
 
         [HttpPost]
@@ -163,6 +186,10 @@ namespace ClassTranscribeServer.Controllers
             public string b2cToken { get; set; }
         }
 
+        public class TestLoginDTO
+        {
+            public string emailId { get; set; }
+        }
         public class LoggedInDTO
         {
             public string UserId { get; set; }
