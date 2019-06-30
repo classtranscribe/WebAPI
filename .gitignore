@@ -5,7 +5,6 @@
 *.list
 
 # VS Things
-*.sln
 app/
 
 

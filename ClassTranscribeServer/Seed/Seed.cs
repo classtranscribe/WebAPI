@@ -198,7 +198,7 @@ namespace ClassTranscribeServer.Seed
             {
                 Id = "3002",
                 CourseName = "Distributed Systems",
-                CourseNumber = "ECE428",
+                CourseNumber = "428",
                 DepartmentId = department2.Id,
                 //CourseOfferings
             };
