@@ -22,7 +22,21 @@ namespace ClassTranscribeServer.Controllers
             _context = context;
         }
 
+        /// <summary>
+        /// Gets all Offerings 
+        /// </summary>
         [HttpGet]
+        public async Task<ActionResult<IEnumerable<Offering>>> GetOfferings()
+        {
+            return await _context.Offerings.ToListAsync();
+        }
+
+
+        // GET: api/Courses/
+        /// <summary>
+        /// Gets all Offerings for a student by userId
+        /// </summary>
+        [HttpGet("ByStudent/{userId}")]
         public async Task<ActionResult<IEnumerable<Offering>>> GetOfferingsByStudent(string userId)
         {
             // Get the user
