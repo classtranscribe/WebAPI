@@ -92,10 +92,10 @@ namespace ClassTranscribeServer.Seed
             return userIds;
         }
 
-        IdentityRole Instructor = new IdentityRole { Name = "Instructor" };
-        IdentityRole Student = new IdentityRole { Name = "Student" };
-        IdentityRole Admin = new IdentityRole { Name = "Admin" };
-        IdentityRole UniversityAdmin = new IdentityRole { Name = "UniversityAdmin" };
+        IdentityRole Instructor = new IdentityRole { Name = Globals.ROLE_INSTRUCTOR };
+        IdentityRole Student = new IdentityRole { Name = Globals.ROLE_STUDENT };
+        IdentityRole Admin = new IdentityRole { Name = Globals.ROLE_ADMIN };
+        IdentityRole UniversityAdmin = new IdentityRole { Name = Globals.ROLE_UNIVERSITY_ADMIN };
         public async Task<Boolean> CreateRoles()
         {
             List<IdentityRole> roles = new List<IdentityRole> { Instructor, Student, Admin, UniversityAdmin };

@@ -26,54 +26,37 @@ namespace ClassTranscribeServer.Controllers
             return await _context.UserOfferings.ToListAsync();
         }
 
-        // GET: api/UserOfferings/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<UserOffering>> GetUserOffering(string id)
+        // GET: api/Courses/
+        /// <summary>
+        /// Gets all UserOfferings for a userId
+        /// </summary>
+        [HttpGet("ByUserId/{userId}")]
+        public async Task<ActionResult<IEnumerable<UserOffering>>> GetUserOfferingsByUserId(string userId)
         {
-            var userOffering = await _context.UserOfferings.FindAsync(id);
-
-            if (userOffering == null)
-            {
-                return NotFound();
-            }
-
-            return userOffering;
+            return await _context.UserOfferings.Where(uo => uo.ApplicationUserId == userId).ToListAsync();
         }
 
-        // PUT: api/UserOfferings/5
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutUserOffering(string id, UserOffering userOffering)
+        // GET: api/Courses/
+        /// <summary>
+        /// Gets all Offerings per Course per Instructor
+        /// </summary>
+        [HttpGet("ByOfferingId/{offeringId}")]
+        public async Task<ActionResult<IEnumerable<UserOffering>>> GetUserOfferingsByOfferingId(string offeringId)
         {
-            if (id != userOffering.ApplicationUserId)
-            {
-                return BadRequest();
-            }
-
-            _context.Entry(userOffering).State = EntityState.Modified;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!UserOfferingExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
-            return NoContent();
+            return await _context.UserOfferings.Where(uo => uo.OfferingId == offeringId).ToListAsync();
         }
 
         // POST: api/UserOfferings
         [HttpPost]
-        public async Task<ActionResult<UserOffering>> PostUserOffering(UserOffering userOffering)
+        public async Task<ActionResult<UserOffering>> PostUserOffering(UserOfferingDTO userOfferingDTO)
         {
+            UserOffering userOffering = new UserOffering
+            {
+                ApplicationUserId = userOfferingDTO.UserId,
+                OfferingId = userOfferingDTO.OfferingId,
+                IdentityRole = await _context.Roles.Where(r => r.Name == userOfferingDTO.RoleName).FirstAsync()
+            };
+
             _context.UserOfferings.Add(userOffering);
             try
             {
@@ -95,10 +78,10 @@ namespace ClassTranscribeServer.Controllers
         }
 
         // DELETE: api/UserOfferings/5
-        [HttpDelete("{id}")]
-        public async Task<ActionResult<UserOffering>> DeleteUserOffering(string id)
+        [HttpDelete("{offeringId}/{userId}")]
+        public async Task<ActionResult<UserOffering>> DeleteUserOffering(string offeringId, string userId)
         {
-            var userOffering = await _context.UserOfferings.FindAsync(id);
+            var userOffering = await _context.UserOfferings.Where(uo => uo.OfferingId == offeringId && uo.ApplicationUserId == userId).FirstAsync();
             if (userOffering == null)
             {
                 return NotFound();
@@ -113,6 +96,13 @@ namespace ClassTranscribeServer.Controllers
         private bool UserOfferingExists(string id)
         {
             return _context.UserOfferings.Any(e => e.ApplicationUserId == id);
+        }
+
+        public class UserOfferingDTO
+        {
+            public string OfferingId { get; set; }
+            public string UserId { get; set; }
+            public string RoleName { get; set; }
         }
     }
 }

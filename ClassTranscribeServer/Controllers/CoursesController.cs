@@ -54,7 +54,7 @@ namespace ClassTranscribeServer.Controllers
                           join co in _context.CourseOfferings on c.Id equals co.CourseId
                           join o in _context.Offerings on co.OfferingId equals o.Id
                           join uo in _context.UserOfferings on o.Id equals uo.OfferingId
-                          where uo.IdentityRole.Name == "Instructor" && uo.ApplicationUserId == userId
+                          where uo.IdentityRole.Name == Globals.ROLE_INSTRUCTOR && uo.ApplicationUserId == userId
                           select c).ToListAsync();
         }
 

@@ -60,8 +60,9 @@ namespace ClassTranscribeServer.Controllers
 
         // GET: api/Offerings/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Offering>> GetOffering(string id)
+        public async Task<ActionResult<OfferingDTO>> GetOffering(string id)
         {
+            
             var offering = await _context.Offerings.FindAsync(id);
 
             if (offering == null)
@@ -69,7 +70,16 @@ namespace ClassTranscribeServer.Controllers
                 return NotFound();
             }
 
-            return offering;
+            OfferingDTO offeringDTO = new OfferingDTO
+            {
+                Offering = offering,
+                Courses = await _context.CourseOfferings.Where(co => co.OfferingId == offering.Id).Select(co => co.Course).ToListAsync(),
+                InstructorIds = await _context.UserOfferings
+                .Where(uo => uo.OfferingId == offering.Id && uo.IdentityRole.Name == Globals.ROLE_INSTRUCTOR)
+                .Select(uo => uo.ApplicationUserId).ToListAsync()
+            };
+
+            return offeringDTO;
         }
 
         // PUT: api/Offerings/5
@@ -118,7 +128,7 @@ namespace ClassTranscribeServer.Controllers
             _context.UserOfferings.Add(new UserOffering
             {
                 ApplicationUserId = newOfferingDTO.InstructorId,
-                IdentityRole = _context.Roles.Where(r => r.Name == "Instructor").FirstOrDefault(),
+                IdentityRole = _context.Roles.Where(r => r.Name == Globals.ROLE_INSTRUCTOR).FirstOrDefault(),
                 OfferingId = newOfferingDTO.Offering.Id
             });
 
@@ -154,6 +164,13 @@ namespace ClassTranscribeServer.Controllers
             public string CourseId { get; set; }
             public string InstructorId { get; set; }
 
+        }
+
+        public class OfferingDTO
+        {
+            public Offering Offering { get; set; }
+            public List<Course> Courses { get; set; }
+            public List<string> InstructorIds { get; set; }
         }
     }
 

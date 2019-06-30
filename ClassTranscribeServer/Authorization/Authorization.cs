@@ -54,7 +54,7 @@ namespace ClassTranscribeServer.Authorization
             {
                 context.Succeed(requirement);
             }
-            else if (context.User.IsInRole("Admin"))
+            else if (context.User.IsInRole(Globals.ROLE_ADMIN))
             {
                 context.Succeed(requirement);
             }
