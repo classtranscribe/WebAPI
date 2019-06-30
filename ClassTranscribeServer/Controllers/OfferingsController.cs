@@ -7,6 +7,7 @@ using ClassTranscribeDatabase;
 using ClassTranscribeDatabase.Models;
 using System.Security.Claims;
 using System;
+using Microsoft.AspNetCore.Identity;
 
 namespace ClassTranscribeServer.Controllers
 {
@@ -135,6 +136,25 @@ namespace ClassTranscribeServer.Controllers
             await _context.SaveChangesAsync();
 
             return CreatedAtAction("GetOffering", new { id = newOfferingDTO.Offering.Id }, newOfferingDTO.Offering);
+        }
+
+        [HttpPost("AddUsers/{offeringId}/{roleName}")]
+        public async Task<ActionResult<IEnumerable<UserOffering>>> AddUsersToOffering(string offeringId, string roleName, List<string> mailIds)
+        {
+            List<UserOffering> userOfferings = new List<UserOffering>();
+            IdentityRole identityRole = _context.Roles.Where(r => r.Name == roleName).FirstOrDefault();
+            foreach(string mailId in mailIds)
+            {
+                userOfferings.Add(new UserOffering
+                {
+                    ApplicationUserId = _context.Users.Where(u => u.Email == mailId).FirstOrDefault().Id,
+                    IdentityRole = identityRole,
+                    OfferingId = offeringId                    
+                });
+            }
+            await _context.UserOfferings.AddRangeAsync(userOfferings);
+            await _context.SaveChangesAsync();
+            return userOfferings;
         }
 
         // DELETE: api/Offerings/5
