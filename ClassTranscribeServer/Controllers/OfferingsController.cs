@@ -122,6 +122,8 @@ namespace ClassTranscribeServer.Controllers
                 OfferingId = newOfferingDTO.Offering.Id
             });
 
+            await _context.SaveChangesAsync();
+
             return CreatedAtAction("GetOffering", new { id = newOfferingDTO.Offering.Id }, newOfferingDTO.Offering);
         }
 
