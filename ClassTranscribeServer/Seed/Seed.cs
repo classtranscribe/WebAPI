@@ -125,6 +125,7 @@ namespace ClassTranscribeServer.Seed
                 Id = "0001",
                 Name = "Spring 2019",
                 StartDate = new DateTime(2019, 1, 14, 0, 0, 0),
+                EndDate = new DateTime(2019, 5, 14, 0, 0, 0),
                 // Offerings, University, UniversityId
             };
 
@@ -134,6 +135,7 @@ namespace ClassTranscribeServer.Seed
                 Id = "0002",
                 Name = "Fall 2018",
                 StartDate = new DateTime(2018, 8, 27, 0, 0, 0),
+                EndDate = new DateTime(2019, 1, 10, 0, 0, 0),
                 // Offerings, University, UniversityId
             };
 
@@ -143,6 +145,7 @@ namespace ClassTranscribeServer.Seed
                 Id = "0003",
                 Name = "Spring 2018",
                 StartDate = new DateTime(2018, 1, 15, 0, 0, 0),
+                EndDate = new DateTime(2018, 5, 14, 0, 0, 0),
                 // Offerings, University, UniversityId
             };
 
