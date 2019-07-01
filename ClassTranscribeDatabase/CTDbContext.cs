@@ -17,13 +17,8 @@ namespace ClassTranscribeDatabase
     {
         public CTDbContext CreateDbContext(string[] args)
         {
-            var configuration = new ConfigurationBuilder().AddEnvironmentVariables().Build();
-            if(configuration.GetValue<string>("DEV_ENV", "NULL") != "DOCKER")
-            {
-                configuration = new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory()).AddJsonFile("vs_appsettings.json").Build();
-            }
             var optionsBuilder = new DbContextOptionsBuilder<CTDbContext>();
-            optionsBuilder.UseNpgsql(configuration["POSTGRES"]);
+            optionsBuilder.UseNpgsql(CTDbContext.GetConfigurations()["POSTGRES"]);
             return new CTDbContext(optionsBuilder.Options, null);
         }
     }
@@ -41,9 +36,24 @@ namespace ClassTranscribeDatabase
         public DbSet<Transcription> Transcriptions { get; set; }
         public DbSet<Video> Videos { get; set; }
         public DbSet<CourseOffering> CourseOfferings { get; set; }
-        public DbSet<OfferingMedia> OfferingMedias { get; set; }
+        public DbSet<OfferingPlaylist> OfferingPlaylists { get; set; }
         public DbSet<UserOffering> UserOfferings { get; set; }
 
+        public  static IConfiguration GetConfigurations()
+        {
+            var configuration = new ConfigurationBuilder().AddEnvironmentVariables().Build();
+            if (configuration.GetValue<string>("DEV_ENV", "NULL") != "DOCKER")
+            {
+                configuration = new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory()).AddJsonFile("vs_appsettings.json").Build();
+            }
+            return configuration;
+        }
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        {            
+            optionsBuilder.UseNpgsql(GetConfigurations()["POSTGRES"]);
+        }
+
+        public CTDbContext() { }
 
         public CTDbContext(DbContextOptions<CTDbContext> options, IHttpContextAccessor httpContextAccessor)
             : base(options)
@@ -68,18 +78,18 @@ namespace ClassTranscribeDatabase
                 .HasForeignKey(pt => pt.OfferingId);
 
 
-            builder.Entity<OfferingMedia>()
-            .HasKey(t => new { t.OfferingId, t.MediaId });
+            builder.Entity<OfferingPlaylist>()
+            .HasKey(t => new { t.OfferingId, t.PlaylistId });
 
-            builder.Entity<OfferingMedia>()
+            builder.Entity<OfferingPlaylist>()
                 .HasOne(pt => pt.Offering)
-                .WithMany(p => p.OfferingMedias)
+                .WithMany(p => p.OfferingPlaylists)
                 .HasForeignKey(pt => pt.OfferingId);
 
-            builder.Entity<OfferingMedia>()
-                .HasOne(pt => pt.Media)
-                .WithMany(t => t.OfferingMedias)
-                .HasForeignKey(pt => pt.MediaId);
+            builder.Entity<OfferingPlaylist>()
+                .HasOne(pt => pt.Playlist)
+                .WithMany(t => t.OfferingPlaylists)
+                .HasForeignKey(pt => pt.PlaylistId);
 
             builder.Entity<UserOffering>()
             .HasKey(t => new { t.ApplicationUserId, t.OfferingId });

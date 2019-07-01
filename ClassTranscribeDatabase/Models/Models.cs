@@ -18,6 +18,13 @@ namespace ClassTranscribeDatabase.Models
         Inactive,
         Deleted
     }
+
+    public enum SourceType
+    {
+        Echo360,
+        Youtube,
+        Local
+    }
     public class ApplicationUser : IdentityUser
     {
         public string FirstName { get; set; }
@@ -81,13 +88,14 @@ namespace ClassTranscribeDatabase.Models
     public class Term : Entity
     {
         public string Name { get; set; }
-        public DateTime StartDate { get; set; }        
+        public DateTime StartDate { get; set; }
+        public DateTime EndDate { get; set; }
         public string UniversityId { get; set; }
         [IgnoreDataMember]
         public virtual University University { get; set; }
         [IgnoreDataMember]
         public virtual List<Offering> Offerings { get; set; }
-    }    
+    }
     public class Offering : Entity
     {
         public string SectionName { get; set; }
@@ -97,10 +105,20 @@ namespace ClassTranscribeDatabase.Models
         [IgnoreDataMember]
         public virtual List<CourseOffering> CourseOfferings { get; set; }
         [IgnoreDataMember]
-        public virtual List<OfferingMedia> OfferingMedias { get; set; }
+        public virtual List<OfferingPlaylist> OfferingPlaylists { get; set; }
         [IgnoreDataMember]
         public virtual List<UserOffering> OfferingUsers { get; set; }
         public AccessTypes AccessType { get; set; }
+    }
+
+    public class Playlist : Entity
+    {
+        public SourceType SourceType { get; set; }
+        public string PlaylistIdentifier { get; set; }
+        [IgnoreDataMember]
+        public virtual List<Media> Medias { get; set; }
+        [IgnoreDataMember]
+        public virtual List<OfferingPlaylist> OfferingPlaylists { get; set; }
     }
 
     public class Media : Entity
@@ -113,8 +131,8 @@ namespace ClassTranscribeDatabase.Models
         public virtual List<Transcription> Transcriptions { get; set; }
         [IgnoreDataMember]
         public virtual List<Video> Videos { get; set; }
-        [IgnoreDataMember]
-        public virtual List<OfferingMedia> OfferingMedias { get; set; }
+        public string PlaylistId { get; set; }
+        public virtual Playlist Playlist { get; set; }
     }
 
     public class Transcription : Entity
@@ -128,7 +146,9 @@ namespace ClassTranscribeDatabase.Models
 
     public class Video : Entity
     {
-        public string Path { get; set; }
+        public string Video1Path { get; set; }
+        public string Video2Path { get; set; }
+
         public string Description { get; set; }
         public string MediaId { get; set; }
         [IgnoreDataMember]
@@ -146,14 +166,14 @@ namespace ClassTranscribeDatabase.Models
 
     }
 
-    public class OfferingMedia : Entity
+    public class OfferingPlaylist : Entity
     {
         public string OfferingId { get; set; }
-        public string MediaId { get; set; }
+        public string PlaylistId { get; set; }
         [IgnoreDataMember]
         public virtual Offering Offering { get; set; }
         [IgnoreDataMember]
-        public virtual Media Media { get; set; }
+        public virtual Playlist Playlist { get; set; }
     }
 
     public class UserOffering : Entity
