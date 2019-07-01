@@ -72,10 +72,26 @@ namespace ClassTranscribeServer.Seed
             LastName = "TA"
         };
 
+        ApplicationUser shawn = new ApplicationUser
+        {
+            UserName = "ruihua.sui@gmail.com",
+            Email = "ruihua.sui@gmail.com",
+            FirstName = "Ruihua",
+            LastName = "Sui"
+        };
+
+        ApplicationUser chirantan = new ApplicationUser
+        {
+            UserName = "mahipal2@illinois.edu",
+            Email = "mahipal2@illinois.edu",
+            FirstName = "Chirantan",
+            LastName = "Mahipal"
+        };
+
         public async Task<List<string>> CreateUsers()
         {
             List<string> userIds = new List<string>();
-            List<ApplicationUser> users = new List<ApplicationUser> { user1, user2, user3, user4, user5, user6 };
+            List<ApplicationUser> users = new List<ApplicationUser> { user1, user2, user3, user4, user5, user6, shawn, chirantan };
             foreach (ApplicationUser user in users)
             {
                 var query = _userManager.Users.Where(u => u.Email == user.Email);
@@ -444,7 +460,22 @@ namespace ClassTranscribeServer.Seed
                 IdentityRole = Student
             };
 
-            List<UserOffering> userOfferings = new List<UserOffering> { userOffering1, userOffering2, userOffering3, userOffering4, userOffering5, userOffering6 };
+            UserOffering sOffering1 = new UserOffering
+            {
+                OfferingId = offering1.Id,
+                ApplicationUserId = userIds[6],
+                IdentityRole = Instructor
+            };
+
+            UserOffering sOffering2 = new UserOffering
+            {
+                OfferingId = offering2.Id,
+                ApplicationUserId = userIds[6],
+                IdentityRole = Instructor
+            };
+
+
+            List<UserOffering> userOfferings = new List<UserOffering> { userOffering1, userOffering2, userOffering3, userOffering4, userOffering5, userOffering6, sOffering1, sOffering2 };
 
             foreach (var t in userOfferings)
             {
