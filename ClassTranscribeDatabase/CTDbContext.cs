@@ -1,4 +1,5 @@
 ﻿using ClassTranscribeDatabase.Models;
+using Innofactor.EfCoreJsonValueConverter;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -50,7 +51,7 @@ namespace ClassTranscribeDatabase
         }
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {            
-            optionsBuilder.UseNpgsql(GetConfigurations()["POSTGRES"]);
+            optionsBuilder.UseNpgsql(CTDbContext.GetConfigurations()["POSTGRES"]);
         }
 
         public CTDbContext() { }
@@ -103,6 +104,8 @@ namespace ClassTranscribeDatabase
                 .HasOne(pt => pt.ApplicationUser)
                 .WithMany(t => t.UserOfferings)
                 .HasForeignKey(pt => pt.ApplicationUserId);
+            
+            builder.Entity<Media>().Property(m => m.JsonMetadata).HasJsonValueConversion();
         }
         public override int SaveChanges(bool acceptAllChangesOnSuccess)
         {
