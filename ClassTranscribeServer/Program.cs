@@ -1,5 +1,7 @@
-﻿using Microsoft.AspNetCore;
+﻿using ClassTranscribeDatabase;
+using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace ClassTranscribeServer
 {
@@ -10,8 +12,9 @@ namespace ClassTranscribeServer
             CreateWebHostBuilder(args).Build().Run();
         }
 
-        public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
-            WebHost.CreateDefaultBuilder(args)
-                .UseStartup<Startup>();
+        public static IWebHostBuilder CreateWebHostBuilder(string[] args)
+        {
+            return WebHost.CreateDefaultBuilder(args).ConfigureServices(c => c.AddOptions().Configure<AppSettings>(CTDbContext.GetConfigurations())).UseStartup<Startup>();
+        }
     }
 }

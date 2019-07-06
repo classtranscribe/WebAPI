@@ -17,22 +17,19 @@ using Microsoft.OpenApi.Models;
 using System.IO;
 using System.Reflection;
 using ClassTranscribeServer.Seed;
+using Microsoft.Extensions.Options;
 
 namespace ClassTranscribeServer
 {
     public class Startup
     {
-        public Startup(IConfiguration configuration)
+        AppSettings _appSettings;
+        public Startup(IOptions<AppSettings> appSettings)
         {
-            Configuration = configuration;
-            if (configuration.GetValue<string>("DEV_ENV", "NULL") != "DOCKER")
-            {
-                Configuration = new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory()).AddJsonFile("vs_appsettings.json").Build();
-            }
+            _appSettings = appSettings.Value;
         }
 
         readonly string MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
-        public IConfiguration Configuration { get; }
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
@@ -44,7 +41,7 @@ namespace ClassTranscribeServer
                 builder => builder.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
             });
             services.AddDbContext<CTDbContext>(options =>
-                options.UseLazyLoadingProxies().UseNpgsql(Configuration["POSTGRES"]));
+                options.UseLazyLoadingProxies().UseNpgsql(_appSettings.POSTGRES));
 
             //// ===== Add Identity ========
             services.AddIdentity<ApplicationUser, IdentityRole>(options =>
@@ -73,9 +70,9 @@ namespace ClassTranscribeServer
                     cfg.SaveToken = true;
                     cfg.TokenValidationParameters = new TokenValidationParameters
                     {
-                        ValidIssuer = Configuration["JWT_ISSUER"],
-                        ValidAudience = Configuration["JWT_ISSUER"],
-                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration["JWT_KEY"])),
+                        ValidIssuer = _appSettings.JWT_ISSUER,
+                        ValidAudience = _appSettings.JWT_ISSUER,
+                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_appSettings.JWT_KEY)),
                         ClockSkew = TimeSpan.Zero // remove delay of token when expire
                     };
                 });

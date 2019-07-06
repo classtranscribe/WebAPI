@@ -6,7 +6,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.Configuration;
 using System;
+using System.Diagnostics;
 using System.IO;
+using System.Reflection;
 using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
@@ -41,11 +43,12 @@ namespace ClassTranscribeDatabase
         public DbSet<UserOffering> UserOfferings { get; set; }
 
         public  static IConfiguration GetConfigurations()
-        {
+        {            
             var configuration = new ConfigurationBuilder().AddEnvironmentVariables().Build();
             if (configuration.GetValue<string>("DEV_ENV", "NULL") != "DOCKER")
             {
-                configuration = new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory()).AddJsonFile("vs_appsettings.json").Build();
+                string path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+                configuration = new ConfigurationBuilder().SetBasePath(path).AddJsonFile("vs_appsettings.json").Build();
             }
             return configuration;
         }

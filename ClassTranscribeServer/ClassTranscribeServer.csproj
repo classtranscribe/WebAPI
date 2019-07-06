@@ -23,6 +23,12 @@
   <GenerateDocumentationFile>true</GenerateDocumentationFile>
   <NoWarn>$(NoWarn);1591</NoWarn>
 </PropertyGroup>
+  
+  <ItemGroup>
+    <Content Include="..\vs_appsettings.json" Link="vs_appsettings.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.App" />
@@ -40,5 +46,5 @@
   <ItemGroup>
     <ProjectReference Include="..\ClassTranscribeDatabase\ClassTranscribeDatabase.csproj" />
   </ItemGroup>
-
+  
 </Project>

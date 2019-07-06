@@ -191,7 +191,7 @@ namespace ClassTranscribeServer.Seed
             {
                 // department Id begins with 2
                 Id = "2002",
-                Name = "Electronics",
+                Name = "Electrical and Computer Engineering",
                 Acronym = "ECE",
                 UniversityId = university1.Id
             };
