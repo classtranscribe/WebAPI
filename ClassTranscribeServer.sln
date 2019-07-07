@@ -9,7 +9,14 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ClassTranscribeDatabase", "
 EndProject
 Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{99D36946-91B6-4A5F-8C82-F0A82B1491EA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TaskEngine", "..\TaskEngine\TaskEngine.csproj", "{F41D8DB4-4E5F-4F94-A909-A3978D85657A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TaskEngine", "TaskEngine\TaskEngine.csproj", "{F41D8DB4-4E5F-4F94-A909-A3978D85657A}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{7E524246-1DD6-47ED-BE59-C07C5FF0E11F}"
+	ProjectSection(SolutionItems) = preProject
+		.gitignore = .gitignore
+		vs_appsettings.json = vs_appsettings.json
+		ct.proto = ct.proto
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

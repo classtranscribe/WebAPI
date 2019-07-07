@@ -1,0 +1,171 @@
+var rp = require('request-promise');
+var path = require('path');
+var fs  = require('fs-promise');
+const { spawn } = require('child-process-promise');
+const _tempdir = '/Data/temp';
+var utils = require('./utils');
+
+async function requestCookies(publicAccessUrl, playlistId) {
+    console.log("requestCookies");
+    var cookieFile = playlistId + '.txt';
+    const curl = spawn('curl', ['-D', cookieFile, publicAccessUrl]);
+    curl.childProcess.stdout.on('data', (data) => {
+        console.log(`stdout: ${data}`);
+    });
+
+    curl.childProcess.stderr.on('data', (data) => {
+        console.log(`stderr: ${data}`);
+    });
+    await curl;
+    return fs.readFile(cookieFile)
+        .then(f => {
+            var lines = f.toString().split('\n');
+            var Cookies = ['PLAY_SESSION', 'CloudFront-Key-Pair-Id', 'CloudFront-Policy', 'CloudFront-Signature'];
+            var value_Cookies = ['', '', '', ''];
+            for(var i in lines) {
+                let line = lines[i];
+                for(var j in Cookies) {
+                    let index = line.indexOf(Cookies[j]);
+                    if(index != -1) {
+                        value_Cookies[j] = line.substring(index + Cookies[j].length + 1, line.indexOf(';'));
+                        break;
+                    }
+                }
+            }
+            var fullText = f.toString();
+            var sectionId = fullText.substring(fullText.indexOf('section') + 'section'.length + 1, fullText.indexOf('home') - 1);
+
+            return Promise.resolve({
+                PLAY_SESSION: value_Cookies[0],
+                cloudFront_Key_Pair_Id: value_Cookies[1],
+                cloudFront_Policy: value_Cookies[2],
+                cloudFront_Signature: value_Cookies[3],
+                sectionId: sectionId
+            });
+        });
+}
+
+async function get_syllabus(cookiesAndHeader) {
+    var play_session_login = 'PLAY_SESSION' + "=" + cookiesAndHeader.cookieJson['PLAY_SESSION'];
+    var sectionId = cookiesAndHeader.cookieJson.sectionId;
+    var options_syllabus = {
+        method: 'GET',
+        url: 'https://echo360.org/section/' + sectionId + '/syllabus',
+        resolveWithFullResponse: true,
+        headers:
+        {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            Cookie: play_session_login
+        }
+    };
+    var response_syllabus = await rp(options_syllabus);
+    var syllabus = JSON.parse(response_syllabus.body);
+    return Promise.resolve(syllabus);
+}
+
+async function downloadEchoPlaylistInfo(playlist) {
+    var cookiesAndHeader = await requestCookies(playlist.Url, playlist.Id)
+        .then(cookieJson => {
+            let download_header = 'Cookie: CloudFront-Key-Pair-Id=' + cookieJson.cloudFront_Key_Pair_Id;
+            download_header += "; CloudFront-Policy=" + cookieJson.cloudFront_Policy;
+            download_header += "; CloudFront-Signature=" + cookieJson.cloudFront_Signature;
+            return Promise.resolve({
+                cookieJson: cookieJson,
+                download_header: download_header
+            });
+        });
+    var syllabus = await get_syllabus(cookiesAndHeader);
+    var extractedSyllabus = extractSyllabusAndDownload(syllabus, cookiesAndHeader.download_header, playlist.stream);
+    return extractedSyllabus;
+  }
+
+  function extractSyllabusAndDownload(syllabus, download_header, stream = 0) {
+    console.log("Extracting Syllabus");
+    var audio_data_arr = syllabus['data'];
+    var medias = [];
+    for (var j = 0; j < audio_data_arr.length; j++) {
+        var audio_data = audio_data_arr[j];
+        try {            
+            var media = audio_data['lesson']['video']['media'];
+            var sectionId = audio_data['lesson']['video']['published']['sectionId'];
+            var echoMediaId = media['id'];
+            var userId = media['userId'];
+            var institutionId = media['institutionId'];
+            var createdAt = media['createdAt'];
+            var audioUrl = media['media']['current']['audioFiles'][0]['s3Url'];
+            var videoUrl;
+            var altVideoUrl;
+            if (stream == 0) {
+                videoUrl = media['media']['current']['primaryFiles'][1]['s3Url']; // 0 for SD, 1 for HD
+                altVideoUrl = media['media']['current']['secondaryFiles'][1]['s3Url']; // 0 for SD, 1 for HD
+            } else {
+                videoUrl = media['media']['current']['secondaryFiles'][1]['s3Url']; // 0 for SD, 1 for HD
+                altVideoUrl = media['media']['current']['primaryFiles'][1]['s3Url']; // 0 for SD, 1 for HD
+            }
+            var termName = audio_data['lesson']['video']['published']['termName'];
+            var lessonName = audio_data['lesson']['video']['published']['lessonName'];
+            var courseName = audio_data['lesson']['video']['published']['courseName'];
+
+            
+            var mediaJson = {
+                sectionId: sectionId,
+                mediaId: echoMediaId,
+                userId: userId,
+                institutionId: institutionId,
+                createdAt: new Date(createdAt),
+                audioUrl: audioUrl,
+                videoUrl: videoUrl,
+                altVideoUrl: altVideoUrl,
+                download_header: download_header,
+                termName: termName,
+                lessonName: lessonName,
+                courseName: courseName
+            };
+
+            medias.push(mediaJson);
+        } catch (err) {
+            // console.log(err);
+        }
+    }
+    return medias;
+}  
+
+async function downloadFile(url, header, dest) {
+    header = header.replace(';','\;');
+    const curl = spawn("curl", ["-o", dest, "-O", url, "-H", "\"" + header + "\"", "--silent"]);
+    curl.childProcess.stdout.on('data', (data) => {
+        console.log(`stdout: ${data}`);
+    });
+
+    curl.childProcess.stderr.on('data', (data) => {
+        console.log(`stderr: ${data}`);
+    });
+    await curl;
+    return dest;
+}
+
+async function downloadEchoLecture(mediaId, videoUrl, download_header) {
+    console.log("downloadEchoLecture");
+    var dest = _tempdir + '_' + utils.getRandomString() + '_' + mediaId + videoUrl.substring(videoUrl.lastIndexOf('.'));
+    var outputFile = await downloadFile(videoUrl, download_header, dest);
+    console.log("Outputfile " + outputFile);
+    return outputFile;
+}
+
+async function getEchoPlaylist(call, callback) {
+    console.log(call.request);
+    var medias = await downloadEchoPlaylistInfo(call.request);
+  callback(null, {json: JSON.stringify(medias)});
+}
+
+async function getEchoVideo(call, callback) {
+    console.log(call.request);
+    var outputFile = downloadEchoLecture(call.request.Id, call.request.videoUrl, call.request.additionalInfo);
+    callback(null, {path: outputFile});
+}
+
+module.exports = {
+    getEchoPlaylist: getEchoPlaylist,
+    getEchoVideo: getEchoVideo,
+    downloadEchoLecture: downloadEchoLecture
+}

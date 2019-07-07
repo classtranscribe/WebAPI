@@ -38,6 +38,7 @@ namespace ClassTranscribeDatabase
         public DbSet<Media> Medias { get; set; }
         public DbSet<Transcription> Transcriptions { get; set; }
         public DbSet<Video> Videos { get; set; }
+        public DbSet<Playlist> Playlists { get; set; }
         public DbSet<CourseOffering> CourseOfferings { get; set; }
         public DbSet<OfferingPlaylist> OfferingPlaylists { get; set; }
         public DbSet<UserOffering> UserOfferings { get; set; }

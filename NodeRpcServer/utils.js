@@ -1,0 +1,44 @@
+async function asyncForEach(array, callback) {
+	for (let index = 0; index < array.length; index++) {
+		await callback(array[index], index, array);
+	}
+}
+
+function convertMStoTime(duration) {
+    let milliseconds = parseInt((duration % 1000)),
+        seconds = parseInt((duration / 1000) % 60),
+        minutes = parseInt((duration / (1000 * 60)) % 60),
+        hours = parseInt((duration / (1000 * 60 * 60)) % 24);
+
+    hours = (hours < 10) ? "0" + hours : hours;
+    minutes = (minutes < 10) ? "0" + minutes : minutes;
+    seconds = (seconds < 10) ? "0" + seconds : seconds;
+
+    return hours + ":" + minutes + ":" + seconds + "." + milliseconds;
+}
+
+function stringToDate(dateString) {
+    // Require format - yyyy-mm-dd
+    var parts = dateString.split('-');
+    // Please pay attention to the month (parts[1]); JavaScript counts months from 0:
+    // January - 0, February - 1, etc.
+    return new Date(parts[0], parts[1] - 1, parts[2]); 
+}
+
+function runSynchronously(f) {
+    (async () => {
+        await f();
+    })();
+}
+
+function getRandomString() {
+    return Math.random().toString(36).substring(10);
+}
+
+module.exports = {
+    asyncForEach: asyncForEach,
+    convertMStoTime: convertMStoTime,
+    stringToDate: stringToDate,
+    runSynchronously: runSynchronously,
+    getRandomString: getRandomString
+}

@@ -125,9 +125,7 @@ namespace ClassTranscribeDatabase.Models
     public class Media : Entity
     {
         public SourceType SourceType { get; set; }
-        public string MediaSource { get; set; }
-        public string MediaUrl { get; set; }
-        // TODO: convert to JSON Object
+        public string UniqueMediaIdentifier { get; set; }
         public JObject JsonMetadata { get; set; }
         [IgnoreDataMember]
         public virtual List<Transcription> Transcriptions { get; set; }

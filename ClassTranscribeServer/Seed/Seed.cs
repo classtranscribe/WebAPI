@@ -117,7 +117,7 @@ namespace ClassTranscribeServer.Seed
             List<IdentityRole> roles = new List<IdentityRole> { Instructor, Student, Admin, UniversityAdmin };
             for (int i = 0; i < roles.Count(); i++)
             {
-                
+
                 if (!await _roleManager.RoleExistsAsync(roles[i].Name))
                 {
                     await _roleManager.CreateAsync(roles[i]);
@@ -482,6 +482,48 @@ namespace ClassTranscribeServer.Seed
                 if (_context.UserOfferings.Where(u => u.OfferingId == t.OfferingId && u.ApplicationUserId == t.ApplicationUserId && u.IdentityRole.Name == t.IdentityRole.Name).Count() == 0)
                 {
                     _context.UserOfferings.Add(t);
+                }
+            }
+
+            Playlist echoPlaylist = new Playlist
+            {
+                Id = "echo_sample",
+                PlaylistIdentifier = "https://echo360.org/section/9d6e3b31-d3ac-4cfa-b44f-24c1a7c60fd5/public",
+                SourceType = SourceType.Echo360
+            };
+
+            Playlist youtubePlaylist = new Playlist
+            {
+                Id = "youtube_sample",
+                PlaylistIdentifier = "PLLssT5z_DsK8Jk8mpFc_RPzn2obhotfDO",
+                SourceType = SourceType.Youtube
+            };
+
+            List<Playlist> playlists = new List<Playlist> { echoPlaylist, youtubePlaylist };
+
+            foreach (var t in playlists)
+            {
+                if (!_context.Playlists.Contains(t))
+                {
+                    _context.Playlists.Add(t);
+                }
+            }
+
+            List<OfferingPlaylist> offeringPlaylists = new List<OfferingPlaylist> { new OfferingPlaylist
+            {
+                PlaylistId = echoPlaylist.Id,
+                OfferingId = offering1.Id
+            }, new OfferingPlaylist
+            {
+                PlaylistId = youtubePlaylist.Id,
+                OfferingId = offering2.Id
+            } };
+
+            foreach (var t in offeringPlaylists)
+            {
+                if (!_context.OfferingPlaylists.Contains(t))
+                {
+                    _context.OfferingPlaylists.Add(t);
                 }
             }
 

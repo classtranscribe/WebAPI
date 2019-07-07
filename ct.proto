@@ -1,0 +1,34 @@
+﻿syntax = "proto3";
+
+package CTGrpc;
+
+// The greeting service definition.
+service NodeServer {
+  // Sends a greeting
+  rpc GetEchoPlaylist (PlaylistRequest) returns (JsonString) {}
+  rpc GetYoutubePlaylist (PlaylistRequest) returns (JsonString) {}
+  rpc GetYouttubeVideo (MediaRequest) returns (JsonString) {}
+  rpc GetEchoVideo (MediaRequest) returns (JsonString) {}
+}
+
+// The request message containing the user's name.
+message JsonString {
+  string json = 1;
+}
+
+// The response message containing the greetings.
+message PlaylistRequest {
+  string Id = 1;
+  string Url = 2;
+  int32 Stream = 3;  
+}
+
+message MediaRequest {
+	string Id = 1;
+	string videoUrl = 2;
+	string additionalInfo = 3;
+}
+
+message MediaResponse {
+	string path = 1;
+}
