@@ -9,3 +9,7 @@ services:
     stdin_open: true
     tty: true
     command: tail -f /dev/null
+  rpcserver:
+    stdin_open: true
+    tty: true
+    command: tail -f /dev/null

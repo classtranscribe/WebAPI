@@ -5,7 +5,7 @@ services:
     image: ${DOCKER_REGISTRY-}classtranscribeserver
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: ASP.Dockerfile
     volumes:
       - type: bind
         source: ./ClassTranscribeServer
@@ -13,20 +13,25 @@ services:
       - type: bind
         source: ./ClassTranscribeDatabase
         target: /ClassTranscribeDatabase
+      - type: bind
+        source: ./Data
+        target: /Data
     container_name: "CTServer"
     ports:
         - "4443:443"
         - "8080:80"
     depends_on:
       - db
+      - rabbit
+      - rpcserver
     env_file:
       - "ctserver-env.list"    
   db:
     image: crunchydata/crunchy-postgres:centos7-10.4-2.0.0
     volumes:
-      - "pgvolume:/pgdata"
+      - "pgvolume:/pgdata" 
     env_file:
-      - "pg-env.list"
+      - "ctserver-env.list"
     ports:
       - "5432:5432"
     container_name: "CT2019db"
@@ -40,9 +45,42 @@ services:
     volumes:
       - "pga4volume:/var/lib/pgadmin"
     env_file:
-      - "pgadmin-env.list"
+      - "ctserver-env.list"
     container_name: "pgadmin"
+  
+  rabbit:
+    image: rabbitmq:management
+    container_name: rabbit
+    env_file:
+      - "ctserver-env.list"
+    ports:
+      - "15671-15672:15671-15672"
+      - "4369:4369"
+      - "25672:25672"
+      - "5671-5672:5671-5672"
     
+  rpcserver:
+    image: ${DOCKER_REGISTRY-}rpcserver
+    build:
+      context: .
+      dockerfile: rpcserver.Dockerfile
+    env_file:
+      - "ctserver-env.list"
+    volumes:
+        - type: bind
+          source: ./NodeRpcServer
+          target: /NodeRpcServer
+        - type: bind
+          source: ./Data
+          target: /Data
+        - type: bind
+          source: ./ct.proto  
+          target: /NodeRpcServer/ct.proto
+        - /NodeRpcServer/node_modules
+    ports:
+      - "50052:50052"
+
+
 volumes:
   pga4volume:
   pgvolume:
