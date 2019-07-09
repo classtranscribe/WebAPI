@@ -38,7 +38,7 @@ namespace TaskEngine
             Channel.BasicPublish(exchange: "", routingKey: queueName, basicProperties: properties, body: body);
         }
 
-        public void ConsumeTask<T>(string queueName, Func<T, Task> func)
+        public void ConsumeTask<T>(string queueName, Func<T, Task> OnConsume)
         {
 
             Channel.QueueDeclare(queue: queueName,
@@ -46,7 +46,6 @@ namespace TaskEngine
                                  exclusive: false,
                                  autoDelete: false,
                                  arguments: null);
-
             Channel.BasicQos(prefetchSize: 0, prefetchCount: 1, global: false);
 
             Console.WriteLine(" [*] Waiting for messages.");
@@ -57,7 +56,7 @@ namespace TaskEngine
                 var message = BytesToMessage<T>(ea.Body);
                 Console.WriteLine(" [x] Received {0}", message);
 
-                await func(message);
+                await OnConsume(message);
 
                 Console.WriteLine(" [x] Done");
 
@@ -84,21 +83,5 @@ namespace TaskEngine
         {
             return taskType.ToString() + "_" + mod;
         }
-
-        private static void ExecuteCommand(string command)
-        {
-            Process proc = new Process();
-            proc.StartInfo.FileName = "/bin/bash";
-            proc.StartInfo.Arguments = "-c \" " + command + " \"";
-            proc.StartInfo.UseShellExecute = false;
-            proc.StartInfo.RedirectStandardOutput = true;
-            proc.Start();
-
-            while (!proc.StandardOutput.EndOfStream)
-            {
-                Console.WriteLine(proc.StandardOutput.ReadLine());
-            }
-        }
-
     }
 }

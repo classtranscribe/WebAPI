@@ -5,10 +5,11 @@ package CTGrpc;
 // The greeting service definition.
 service NodeServer {
   // Sends a greeting
-  rpc GetEchoPlaylist (PlaylistRequest) returns (JsonString) {}
-  rpc GetYoutubePlaylist (PlaylistRequest) returns (JsonString) {}
-  rpc GetYouttubeVideo (MediaRequest) returns (JsonString) {}
-  rpc GetEchoVideo (MediaRequest) returns (JsonString) {}
+  rpc GetEchoPlaylistRPC (PlaylistRequest) returns (JsonString) {}
+  rpc GetYoutubePlaylistRPC (PlaylistRequest) returns (JsonString) {}
+  rpc DownloadYoutubeVideoRPC (MediaRequest) returns (File) {}
+  rpc DownloadEchoVideoRPC (MediaRequest) returns (File) {}
+  rpc ConvertVideoToWavRPC (File) returns (File) {}
 }
 
 // The request message containing the user's name.
@@ -29,6 +30,6 @@ message MediaRequest {
 	string additionalInfo = 3;
 }
 
-message MediaResponse {
-	string path = 1;
+message File {
+	string filePath = 1;
 }

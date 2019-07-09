@@ -16,6 +16,7 @@ using Quartz;
 using Grpc.Core;
 using CTGrpc;
 using TaskEngine.Grpc;
+using TaskEngine.MSTranscription;
 
 namespace TaskEngine
 {
@@ -32,11 +33,14 @@ namespace TaskEngine
                 .AddSingleton<RabbitMQ>()
                 .AddSingleton<DownloadPlaylistInfoTask>()
                 .AddSingleton<DownloadMediaTask>()
+                .AddSingleton<ConvertVideoToWavTask>()
+                .AddSingleton<TranscriptionTask>()
                 .AddSingleton<RpcClient>()
+                .AddSingleton<MSTranscriptionService>()
                 .BuildServiceProvider();
 
             //configure console logging
-            
+
             serviceProvider
                 .GetService<ILoggerFactory>()
                 .AddConsole(LogLevel.Debug);
@@ -56,9 +60,24 @@ namespace TaskEngine
                 case 1:
                     serviceProvider.GetService<DownloadPlaylistInfoTask>().Consume();
                     break;
+                case 2:
+                    //DownloadMediaTask _downloadMediaTask = serviceProvider.GetService<DownloadMediaTask>();
+                    //CTDbContext _context = serviceProvider.GetService<CTDbContext>();
+                    //(_context.Medias.Where(m => m.Videos.Count() == 0 && m.SourceType == SourceType.Echo360).Take(2).ToList()).ForEach(m => _downloadMediaTask.Publish(m));
+                    serviceProvider.GetService<DownloadMediaTask>().Consume();
+                    break;
+                case 3:
+                    serviceProvider.GetService<ConvertVideoToWavTask>().Consume();
+                    break;
+                case 4:
+                    //TranscriptionTask t = serviceProvider.GetService<TranscriptionTask>();
+                    //CTDbContext _context = serviceProvider.GetService<CTDbContext>();
+                    //_context.Videos.Where(v => v.AudioPath != null).Take(2).ToList().ForEach(v => t.Publish(v));
+                    serviceProvider.GetService<TranscriptionTask>().Consume();
+                    break;
             }
 
-            
+
 
             logger.LogDebug("All done!");
 

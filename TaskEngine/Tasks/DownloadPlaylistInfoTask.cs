@@ -14,11 +14,8 @@ using Newtonsoft.Json.Linq;
 
 namespace TaskEngine.Tasks
 {
-    class DownloadPlaylistInfoTask : IRabbitMQTask<Playlist>, IJob
+    class DownloadPlaylistInfoTask : RabbitMQTask<Playlist>, IJob
     {
-        private RabbitMQ _rabbitMQ;
-        private CTDbContext _context;
-        private string queueName;
         private RpcClient _rpcClient;
         private DownloadMediaTask _downloadMediaTask;
         public DownloadPlaylistInfoTask() { }
@@ -45,28 +42,22 @@ namespace TaskEngine.Tasks
             playlists.ForEach(p => Publish(p));
         }
 
-        public void Publish(Playlist playlist)
+        protected override async Task OnConsume(Playlist p)
         {
-            Console.WriteLine(playlist.Id);
-            _rabbitMQ.PublishTask(queueName, playlist);
-        }
-        public async void Consume()
-        {
-            _rabbitMQ.ConsumeTask<Playlist>(queueName, async (p) => {
-                List<Media> medias = new List<Media>();
-                switch (p.SourceType)
-                {
-                    case SourceType.Echo360: medias = await GetEchoPlaylist(p); break;
-                    case SourceType.Youtube: medias = await GetYoutubePlaylist(p); break;
-                    case SourceType.Local: medias = await GetLocalPlaylist(p); break;
-                }
-                // medias.ForEach(m => _downloadMediaTask.Publish(m));
-            });
+            List<Media> medias = new List<Media>();
+            switch (p.SourceType)
+            {
+                case SourceType.Echo360: medias = await GetEchoPlaylist(p); break;
+                case SourceType.Youtube: medias = await GetYoutubePlaylist(p); break;
+                case SourceType.Local: medias = await GetLocalPlaylist(p); break;
+            }
+            // medias.ForEach(m => _downloadMediaTask.Publish(m));
+            (await _context.Medias.Where(m => m.Videos.Count() == 0).Take(5).ToListAsync()).ForEach(m => _downloadMediaTask.Publish(m));
         }
 
         public async Task<List<Media>> GetEchoPlaylist(Playlist playlist)
         {
-            var jsonString = await _rpcClient.NodeServerClient.GetEchoPlaylistAsync(new CTGrpc.PlaylistRequest
+            var jsonString = await _rpcClient.NodeServerClient.GetEchoPlaylistRPCAsync(new CTGrpc.PlaylistRequest
             {
                 Url = playlist.PlaylistIdentifier,
                 Id = playlist.Id,
@@ -94,7 +85,7 @@ namespace TaskEngine.Tasks
 
         public async Task<List<Media>> GetYoutubePlaylist(Playlist playlist)
         {
-            var jsonString = await _rpcClient.NodeServerClient.GetYoutubePlaylistAsync(new CTGrpc.PlaylistRequest
+            var jsonString = await _rpcClient.NodeServerClient.GetYoutubePlaylistRPCAsync(new CTGrpc.PlaylistRequest
             {
                 Url = playlist.PlaylistIdentifier,
                 Id = playlist.Id,
@@ -121,7 +112,7 @@ namespace TaskEngine.Tasks
 
         public async Task<List<Media>> GetLocalPlaylist(Playlist playlist)
         {
-            return null;
+            throw new NotImplementedException();
         }
 
     }
