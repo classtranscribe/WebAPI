@@ -1,7 +1,6 @@
 var rp = require('request-promise');
 var path = require('path');
 var fs  = require('fs-promise');
-const { spawn } = require('child-process-promise');
 var utils = require('./utils');
 const _tempdir = '/Data/temp';
 var youtube_google_api_key = process.env.YOUTUBE_API_KEY;
@@ -43,6 +42,7 @@ async function downloadYoutubePlaylist(playlist) {
 
 async function downloadYoutubeVideo(mediaId, videoUrl) {
     var outputFile = _tempdir + mediaId + "_" + utils.getRandomString() + '.mp4';
+    const { spawn } = require('child-process-promise');
     const youtubedl = spawn('youtube-dl', [videoUrl, '--format=18', '--output', outputFile]);
 
     youtubedl.childProcess.stdout.on('data', (data) => {
@@ -56,20 +56,24 @@ async function downloadYoutubeVideo(mediaId, videoUrl) {
     return outputFile;
 }
 
-async function getYoutubePlaylist(call, callback) {
+function getYoutubePlaylistRPC(call, callback) {
     console.log(call.request);
-    var medias = await downloadYoutubePlaylist(call.request);
-    callback(null, {json: JSON.stringify(medias)});
+    (async () => {
+        var medias = await downloadYoutubePlaylist(call.request);
+        callback(null, { json: JSON.stringify(medias) });
+    })();        
 }
 
-async function getYoutubeVideo(call, callback) {
+function downloadYoutubeVideoRPC(call, callback) {
     console.log(call.request);
-    var outputFile = downloadYoutubeVideo(call.request.Id, call.request.videoUrl);
-    callback(null, {path: outputFile});
+    (async () => {
+        var outputFile = await downloadYoutubeVideo(call.request.Id, call.request.videoUrl);
+        console.log("youtube output file: ", outputFile);
+        callback(null, { filePath: outputFile });    
+    })();    
 }
 
 module.exports = {
-    getYoutubePlaylist: getYoutubePlaylist,
-    getYoutubeVideo: getYoutubeVideo,
-    downloadYoutubeVideo: downloadYoutubeVideo
+    getYoutubePlaylistRPC: getYoutubePlaylistRPC,
+    downloadYoutubeVideoRPC: downloadYoutubeVideoRPC
 }

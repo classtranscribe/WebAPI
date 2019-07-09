@@ -1,13 +1,13 @@
 var rp = require('request-promise');
 var path = require('path');
 var fs  = require('fs-promise');
-const { spawn } = require('child-process-promise');
 const _tempdir = '/Data/temp';
 var utils = require('./utils');
 
 async function requestCookies(publicAccessUrl, playlistId) {
     console.log("requestCookies");
     var cookieFile = playlistId + '.txt';
+    const { spawn } = require('child-process-promise');
     const curl = spawn('curl', ['-D', cookieFile, publicAccessUrl]);
     curl.childProcess.stdout.on('data', (data) => {
         console.log(`stdout: ${data}`);
@@ -131,8 +131,11 @@ async function downloadEchoPlaylistInfo(playlist) {
 }  
 
 async function downloadFile(url, header, dest) {
+    console.log('downloadFile');
+    console.log(url, header, dest);
+    const { spawn } = require('child-process-promise');
     header = header.replace(';','\;');
-    const curl = spawn("curl", ["-o", dest, "-O", url, "-H", "\"" + header + "\"", "--silent"]);
+    const curl = spawn("curl", ["-o", dest, "-O", url, "-H", header, "--silent"]);
     curl.childProcess.stdout.on('data', (data) => {
         console.log(`stdout: ${data}`);
     });
@@ -152,20 +155,27 @@ async function downloadEchoLecture(mediaId, videoUrl, download_header) {
     return outputFile;
 }
 
-async function getEchoPlaylist(call, callback) {
+function getEchoPlaylistRPC(call, callback) {
     console.log(call.request);
-    var medias = await downloadEchoPlaylistInfo(call.request);
-  callback(null, {json: JSON.stringify(medias)});
+    var medias;
+    (async () => {
+        medias = await downloadEchoPlaylistInfo(call.request);        
+        callback(null, {json: JSON.stringify(medias)});
+    })();
+    
 }
 
-async function getEchoVideo(call, callback) {
+function downloadEchoVideoRPC(call, callback) {
     console.log(call.request);
-    var outputFile = downloadEchoLecture(call.request.Id, call.request.videoUrl, call.request.additionalInfo);
-    callback(null, {path: outputFile});
+    var outputFile;
+    (async () => {
+        outputFile = await downloadEchoLecture(call.request.Id, call.request.videoUrl, call.request.additionalInfo);
+        callback(null, {filePath: outputFile});
+    })();    
 }
 
 module.exports = {
-    getEchoPlaylist: getEchoPlaylist,
-    getEchoVideo: getEchoVideo,
+    getEchoPlaylistRPC: getEchoPlaylistRPC,
+    downloadEchoVideoRPC: downloadEchoVideoRPC,
     downloadEchoLecture: downloadEchoLecture
 }
