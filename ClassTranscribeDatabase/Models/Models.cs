@@ -148,6 +148,7 @@ namespace ClassTranscribeDatabase.Models
     {
         public string Video1Path { get; set; }
         public string Video2Path { get; set; }
+        public string AudioPath { get; set; }
 
         public string Description { get; set; }
         public string MediaId { get; set; }

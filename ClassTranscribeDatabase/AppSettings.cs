@@ -18,5 +18,8 @@ namespace ClassTranscribeDatabase
         public string AzureAdB2CInstance { get; set; }
         public string RabbitMQServer { get; set; }
         public string NODE_RPC_SERVER { get; set; }
+        public string AZURE_REGION { get; set; }
+        public string AZURE_SUBSCRIPTION_KEY { get; set; }
+        public string DATA_DIRECTORY { get; set; }
     }
 }
