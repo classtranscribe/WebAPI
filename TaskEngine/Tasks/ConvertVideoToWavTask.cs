@@ -28,7 +28,6 @@ namespace TaskEngine.Tasks
                 FilePath = video.Video1Path
             });
             video.AudioPath = file.FilePath;
-            _context.Videos.Update(video);
             await _context.SaveChangesAsync();
         }
     }

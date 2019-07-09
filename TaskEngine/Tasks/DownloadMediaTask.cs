@@ -34,6 +34,8 @@ namespace TaskEngine.Tasks
                 case SourceType.Youtube: video = await DownloadYoutubeVideo(media); break;
                 case SourceType.Local: video = await DownloadLocalPlaylist(media); break;
             }
+            await _context.Videos.AddAsync(video);
+            await _context.SaveChangesAsync();
             Console.WriteLine("Downloaded:" + video);
             _convertVideoToWavTask.Publish(video);
         }
@@ -60,8 +62,6 @@ namespace TaskEngine.Tasks
                 Video2Path = mediaResponse2.FilePath,
                 MediaId = media.Id
             };
-            await _context.Videos.AddAsync(video);
-            await _context.SaveChangesAsync();
             return video;
         }
 
@@ -78,8 +78,6 @@ namespace TaskEngine.Tasks
                 Video1Path = mediaResponse.FilePath,
                 MediaId = media.Id
             };
-            await _context.Videos.AddAsync(video);
-            await _context.SaveChangesAsync();
             return video;
         }
 
