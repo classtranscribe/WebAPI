@@ -1,20 +1,12 @@
 ﻿using ClassTranscribeDatabase;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
-using ClassTranscribeDatabase.Models;
-using RabbitMQ.Client;
-using System.Text;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
 using TaskEngine.Tasks;
 using System.Collections.Specialized;
 using Quartz.Impl;
 using Quartz;
-using Grpc.Core;
-using CTGrpc;
 using TaskEngine.Grpc;
 using TaskEngine.MSTranscription;
 

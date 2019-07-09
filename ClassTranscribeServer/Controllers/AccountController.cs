@@ -144,12 +144,12 @@ namespace ClassTranscribeServer.Controllers
         [NonAction]
         public ApplicationUser Validate(string token)
         {
-            string stsDiscoveryEndpoint = "https://" + _configuration["AZURE_B2C_DOMAIN"] +"/" + _configuration["AZURE_B2C_DIRECTORY"] + "/v2.0/.well-known/openid-configuration?p=" + _configuration["AZURE_B2C_SIGNIN_POLICY"];
-            
+            string stsDiscoveryEndpoint = "https://" + _configuration["AZURE_B2C_DOMAIN"] + "/" + _configuration["AZURE_B2C_DIRECTORY"] + "/v2.0/.well-known/openid-configuration?p=" + _configuration["AZURE_B2C_SIGNIN_POLICY"];
+
             ConfigurationManager<OpenIdConnectConfiguration> configManager = new ConfigurationManager<OpenIdConnectConfiguration>(stsDiscoveryEndpoint, new OpenIdConnectConfigurationRetriever());
 
             OpenIdConnectConfiguration config = configManager.GetConfigurationAsync().Result;
-            
+
             TokenValidationParameters validationParameters = new TokenValidationParameters
             {
                 ValidateAudience = true,

@@ -13,7 +13,7 @@ namespace TaskEngine.Grpc
         public RpcClient(IOptions<AppSettings> appSettings)
         {
             _appSettings = appSettings.Value;
-            AppContext.SetSwitch("System.Net.Http.SocketsHttpHandler.Http2UnencryptedSupport",true);
+            AppContext.SetSwitch("System.Net.Http.SocketsHttpHandler.Http2UnencryptedSupport", true);
             var channel = new Channel(_appSettings.NODE_RPC_SERVER, ChannelCredentials.Insecure, new[]{
                       new ChannelOption(ChannelOptions.MaxSendMessageLength , 2*1024*1024),
                       new ChannelOption(ChannelOptions.MaxReceiveMessageLength , 5 *1024*1024)

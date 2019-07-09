@@ -3,7 +3,6 @@ using Microsoft.CognitiveServices.Speech;
 using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace TaskEngine.MSTranscription

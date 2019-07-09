@@ -6,7 +6,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.Configuration;
 using System;
-using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Security.Claims;
@@ -43,8 +42,8 @@ namespace ClassTranscribeDatabase
         public DbSet<OfferingPlaylist> OfferingPlaylists { get; set; }
         public DbSet<UserOffering> UserOfferings { get; set; }
 
-        public  static IConfiguration GetConfigurations()
-        {            
+        public static IConfiguration GetConfigurations()
+        {
             var configuration = new ConfigurationBuilder().AddEnvironmentVariables().Build();
             if (configuration.GetValue<string>("DEV_ENV", "NULL") != "DOCKER")
             {
@@ -54,7 +53,7 @@ namespace ClassTranscribeDatabase
             return configuration;
         }
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        {            
+        {
             optionsBuilder.UseNpgsql(CTDbContext.GetConfigurations()["POSTGRES"]);
         }
 
@@ -108,7 +107,7 @@ namespace ClassTranscribeDatabase
                 .HasOne(pt => pt.ApplicationUser)
                 .WithMany(t => t.UserOfferings)
                 .HasForeignKey(pt => pt.ApplicationUserId);
-            
+
             builder.Entity<Media>().Property(m => m.JsonMetadata).HasJsonValueConversion();
         }
         public override int SaveChanges(bool acceptAllChangesOnSuccess)

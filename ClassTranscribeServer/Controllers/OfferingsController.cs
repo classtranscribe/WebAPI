@@ -77,7 +77,7 @@ namespace ClassTranscribeServer.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<OfferingDTO>> GetOffering(string id)
         {
-            
+
             var offering = await _context.Offerings.FindAsync(id);
 
             if (offering == null)
@@ -157,13 +157,13 @@ namespace ClassTranscribeServer.Controllers
         {
             List<UserOffering> userOfferings = new List<UserOffering>();
             IdentityRole identityRole = _context.Roles.Where(r => r.Name == roleName).FirstOrDefault();
-            foreach(string mailId in mailIds)
+            foreach (string mailId in mailIds)
             {
                 userOfferings.Add(new UserOffering
                 {
                     ApplicationUserId = _context.Users.Where(u => u.Email == mailId).FirstOrDefault().Id,
                     IdentityRole = identityRole,
-                    OfferingId = offeringId                    
+                    OfferingId = offeringId
                 });
             }
             await _context.UserOfferings.AddRangeAsync(userOfferings);

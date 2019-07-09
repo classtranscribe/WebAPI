@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using Quartz;
-using System.Collections.Specialized;
-using Quartz.Impl;
 using System.Threading.Tasks;
 using ClassTranscribeDatabase;
 using System.Linq;
@@ -19,7 +16,7 @@ namespace TaskEngine.Tasks
         private RpcClient _rpcClient;
         private DownloadMediaTask _downloadMediaTask;
         public DownloadPlaylistInfoTask() { }
-        
+
         private void Init(RabbitMQ rabbitMQ, CTDbContext context)
         {
             _rabbitMQ = rabbitMQ;
@@ -65,9 +62,9 @@ namespace TaskEngine.Tasks
             });
             JArray jArray = JArray.Parse(jsonString.Json);
             List<Media> newMedia = new List<Media>();
-            foreach(JObject jObject in jArray)
+            foreach (JObject jObject in jArray)
             {
-                if(await _context.Medias.Where(m => m.UniqueMediaIdentifier == jObject["mediaId"].ToString() && m.SourceType == playlist.SourceType).CountAsync() == 0)
+                if (await _context.Medias.Where(m => m.UniqueMediaIdentifier == jObject["mediaId"].ToString() && m.SourceType == playlist.SourceType).CountAsync() == 0)
                 {
                     newMedia.Add(new Media
                     {
@@ -75,7 +72,7 @@ namespace TaskEngine.Tasks
                         SourceType = playlist.SourceType,
                         PlaylistId = playlist.Id,
                         UniqueMediaIdentifier = jObject["mediaId"].ToString()
-                    });                    
+                    });
                 }
             }
             await _context.Medias.AddRangeAsync(newMedia);
