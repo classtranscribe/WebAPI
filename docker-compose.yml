@@ -14,8 +14,17 @@ services:
         source: ./ClassTranscribeDatabase
         target: /ClassTranscribeDatabase
       - type: bind
+        source: ./TaskEngine
+        target: /TaskEngine
+      - type: bind
         source: ./Data
         target: /Data
+      - type: bind
+        source: ./vs_appsettings.json
+        target: /vs_appsettings.json
+      - type: bind
+        source: ./ct.proto
+        target: /ct.proto
     container_name: "CTServer"
     ports:
         - "4443:443"

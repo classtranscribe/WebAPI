@@ -521,7 +521,7 @@ namespace ClassTranscribeServer.Seed
 
             foreach (var t in offeringPlaylists)
             {
-                if (!_context.OfferingPlaylists.Contains(t))
+                if (_context.OfferingPlaylists.Where(u => u.OfferingId == t.OfferingId && u.PlaylistId == t.PlaylistId).Count() == 0)
                 {
                     _context.OfferingPlaylists.Add(t);
                 }
