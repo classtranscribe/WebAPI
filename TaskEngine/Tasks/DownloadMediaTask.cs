@@ -11,33 +11,35 @@ namespace TaskEngine.Tasks
         private RpcClient _rpcClient;
         private ConvertVideoToWavTask _convertVideoToWavTask;
 
-        private void Init(RabbitMQ rabbitMQ, CTDbContext context)
+        private void Init(RabbitMQ rabbitMQ)
         {
             _rabbitMQ = rabbitMQ;
-            _context = context;
             queueName = RabbitMQ.QueueNameBuilder(TaskType.DownloadMedia, "_1");
         }
-        public DownloadMediaTask(RabbitMQ rabbitMQ, CTDbContext context, RpcClient rpcClient, ConvertVideoToWavTask convertVideoToWavTask)
+        public DownloadMediaTask(RabbitMQ rabbitMQ, RpcClient rpcClient, ConvertVideoToWavTask convertVideoToWavTask)
         {
-            Init(rabbitMQ, context);
+            Init(rabbitMQ);
             _rpcClient = rpcClient;
             _convertVideoToWavTask = convertVideoToWavTask;
         }
 
         protected override async Task OnConsume(Media media)
         {
-            Console.WriteLine("Consuming" + media);
-            Video video = new Video();
-            switch (media.SourceType)
+            using (var _context = CTDbContext.CreateDbContext())
             {
-                case SourceType.Echo360: video = await DownloadEchoVideo(media); break;
-                case SourceType.Youtube: video = await DownloadYoutubeVideo(media); break;
-                case SourceType.Local: video = await DownloadLocalPlaylist(media); break;
-            }
-            await _context.Videos.AddAsync(video);
-            await _context.SaveChangesAsync();
-            Console.WriteLine("Downloaded:" + video);
-            _convertVideoToWavTask.Publish(video);
+                Console.WriteLine("Consuming" + media);
+                Video video = new Video();
+                switch (media.SourceType)
+                {
+                    case SourceType.Echo360: video = await DownloadEchoVideo(media); break;
+                    case SourceType.Youtube: video = await DownloadYoutubeVideo(media); break;
+                    case SourceType.Local: video = await DownloadLocalPlaylist(media); break;
+                }
+                await _context.Videos.AddAsync(video);
+                await _context.SaveChangesAsync();
+                Console.WriteLine("Downloaded:" + video);
+                _convertVideoToWavTask.Publish(video);
+            }                
         }
 
         public async Task<Video> DownloadEchoVideo(Media media)

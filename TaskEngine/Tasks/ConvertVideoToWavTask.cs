@@ -10,28 +10,30 @@ namespace TaskEngine.Tasks
     {
         private RpcClient _rpcClient;
         private TranscriptionTask _transcriptionTask;
-        private void Init(RabbitMQ rabbitMQ, CTDbContext context)
+        private void Init(RabbitMQ rabbitMQ)
         {
             _rabbitMQ = rabbitMQ;
-            _context = context;
             queueName = RabbitMQ.QueueNameBuilder(TaskType.ConvertMedia, "_1");
         }
-        public ConvertVideoToWavTask(RabbitMQ rabbitMQ, CTDbContext context, RpcClient rpcClient, TranscriptionTask transcriptionTask)
+        public ConvertVideoToWavTask(RabbitMQ rabbitMQ, RpcClient rpcClient, TranscriptionTask transcriptionTask)
         {
-            Init(rabbitMQ, context);
+            Init(rabbitMQ);
             _rpcClient = rpcClient;
             _transcriptionTask = transcriptionTask;
         }
         protected async override Task OnConsume(Video video)
         {
-            Console.WriteLine("Consuming" + video);
-            var file = await _rpcClient.NodeServerClient.ConvertVideoToWavRPCAsync(new CTGrpc.File
+            using (var _context = CTDbContext.CreateDbContext())
             {
-                FilePath = video.Video1Path
-            });
-            video.AudioPath = file.FilePath;            
-            await _context.SaveChangesAsync();
-            _transcriptionTask.Publish(video);
+                Console.WriteLine("Consuming" + video);
+                var file = await _rpcClient.NodeServerClient.ConvertVideoToWavRPCAsync(new CTGrpc.File
+                {
+                    FilePath = video.Video1Path
+                });
+                video.AudioPath = file.FilePath;
+                await _context.SaveChangesAsync();
+                _transcriptionTask.Publish(video);
+            }
         }
     }
 }

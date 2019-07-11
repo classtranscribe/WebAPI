@@ -13,30 +13,32 @@ namespace TaskEngine.Tasks
         private RpcClient _rpcClient;
         private MSTranscriptionService _msTranscriptionService;
         private AppSettings _appSettings;
-        private void Init(RabbitMQ rabbitMQ, CTDbContext context)
+        private void Init(RabbitMQ rabbitMQ)
         {
             _rabbitMQ = rabbitMQ;
-            _context = context;
             queueName = RabbitMQ.QueueNameBuilder(TaskType.TranscribeMedia, "_1");
         }
-        public TranscriptionTask(RabbitMQ rabbitMQ, CTDbContext context, RpcClient rpcClient, MSTranscriptionService msTranscriptionService, IOptions<AppSettings> appSettings)
+        public TranscriptionTask(RabbitMQ rabbitMQ, RpcClient rpcClient, MSTranscriptionService msTranscriptionService, IOptions<AppSettings> appSettings)
         {
-            Init(rabbitMQ, context);
+            Init(rabbitMQ);
             _rpcClient = rpcClient;
             _msTranscriptionService = msTranscriptionService;
             _appSettings = appSettings.Value;
         }
         protected async override Task OnConsume(Video video)
         {
-            var audioFilePath = video.AudioPath.Substring(video.AudioPath.IndexOf("Data/") + 5);
-            string path = Path.Combine(_appSettings.DATA_DIRECTORY, audioFilePath);
-            Transcription t = new Transcription
+            using (var _context = CTDbContext.CreateDbContext())
             {
-                Path = await _msTranscriptionService.RecognitionWithAudioStreamAsync(path),
-                MediaId = video.MediaId
-            };
-            await _context.Transcriptions.AddAsync(t);
-            await _context.SaveChangesAsync();
+                var audioFilePath = video.AudioPath.Substring(video.AudioPath.IndexOf("Data/") + 5);
+                string path = Path.Combine(_appSettings.DATA_DIRECTORY, audioFilePath);
+                Transcription t = new Transcription
+                {
+                    Path = await _msTranscriptionService.RecognitionWithAudioStreamAsync(path),
+                    MediaId = video.MediaId
+                };
+                await _context.Transcriptions.AddAsync(t);
+                await _context.SaveChangesAsync();
+            }
         }
     }
 }

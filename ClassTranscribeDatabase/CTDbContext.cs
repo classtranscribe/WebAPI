@@ -19,9 +19,7 @@ namespace ClassTranscribeDatabase
     {
         public CTDbContext CreateDbContext(string[] args)
         {
-            var optionsBuilder = new DbContextOptionsBuilder<CTDbContext>();
-            optionsBuilder.UseNpgsql(CTDbContext.GetConfigurations()["POSTGRES"]);
-            return new CTDbContext(optionsBuilder.Options, null);
+            return CTDbContext.CreateDbContext();
         }
     }
 
@@ -41,6 +39,12 @@ namespace ClassTranscribeDatabase
         public DbSet<CourseOffering> CourseOfferings { get; set; }
         public DbSet<OfferingPlaylist> OfferingPlaylists { get; set; }
         public DbSet<UserOffering> UserOfferings { get; set; }
+        public static CTDbContext CreateDbContext()
+        {
+            var optionsBuilder = new DbContextOptionsBuilder<CTDbContext>();
+            optionsBuilder.UseNpgsql(CTDbContext.GetConfigurations()["POSTGRES"]);
+            return new CTDbContext(optionsBuilder.Options, null);
+        }
 
         public static IConfiguration GetConfigurations()
         {

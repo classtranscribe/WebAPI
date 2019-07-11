@@ -7,7 +7,6 @@ namespace TaskEngine
     public abstract class RabbitMQTask<T>
     {
         protected RabbitMQ _rabbitMQ;
-        protected CTDbContext _context;
         protected string queueName;
         public void Publish(T obj)
         {

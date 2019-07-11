@@ -21,7 +21,6 @@ namespace TaskEngine
                 .AddLogging()
                 .AddOptions()
                 .Configure<AppSettings>(CTDbContext.GetConfigurations())
-                .AddDbContext<CTDbContext>()
                 .AddSingleton<RabbitMQ>()
                 .AddSingleton<DownloadPlaylistInfoTask>()
                 .AddSingleton<DownloadMediaTask>()
