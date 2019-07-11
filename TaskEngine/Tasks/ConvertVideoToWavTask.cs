@@ -9,16 +9,18 @@ namespace TaskEngine.Tasks
     class ConvertVideoToWavTask : RabbitMQTask<Video>
     {
         private RpcClient _rpcClient;
+        private TranscriptionTask _transcriptionTask;
         private void Init(RabbitMQ rabbitMQ, CTDbContext context)
         {
             _rabbitMQ = rabbitMQ;
             _context = context;
             queueName = RabbitMQ.QueueNameBuilder(TaskType.ConvertMedia, "_1");
         }
-        public ConvertVideoToWavTask(RabbitMQ rabbitMQ, CTDbContext context, RpcClient rpcClient)
+        public ConvertVideoToWavTask(RabbitMQ rabbitMQ, CTDbContext context, RpcClient rpcClient, TranscriptionTask transcriptionTask)
         {
             Init(rabbitMQ, context);
             _rpcClient = rpcClient;
+            _transcriptionTask = transcriptionTask;
         }
         protected async override Task OnConsume(Video video)
         {
@@ -27,8 +29,9 @@ namespace TaskEngine.Tasks
             {
                 FilePath = video.Video1Path
             });
-            video.AudioPath = file.FilePath;
+            video.AudioPath = file.FilePath;            
             await _context.SaveChangesAsync();
+            _transcriptionTask.Publish(video);
         }
     }
 }
