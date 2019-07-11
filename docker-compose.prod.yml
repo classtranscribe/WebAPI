@@ -2,6 +2,6 @@ version: '3.4'
 
 services:
   classtranscribeserver:
-    command: sh -c "./launchscript.sh"
+    command: sh -c "chmod a+x launchscript.sh; ./launchscript.sh"
   rpcserver:
     command: sh -c "cd NodeRpcServer; npm install; npm rebuild; npm start"
