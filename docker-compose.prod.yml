@@ -2,9 +2,6 @@ version: '3.4'
 
 services:
   classtranscribeserver:
-    command: sh -c "dotnet build /ClassTranscribeServer/ClassTranscribeServer.csproj -c Release -o /app/ClassTranscribeServer &&
-                    dotnet build /TaskEngine/TaskEngine.csproj -c Release -o /app/TaskEngine &&
-                    screen -dmSL ClassTranscribeServer "dotnet /app/ClassTranscribeServer/ClassTranscribeServer.dll"
-                    screen -dmSL TaskEngine "dotnet /app/TaskEngine/TaskEngine.dll"
+    command: sh -c "./launchscript.sh"
   rpcserver:
     command: sh -c "cd NodeRpcServer; npm install; npm rebuild; npm start"

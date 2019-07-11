@@ -13,6 +13,8 @@ RUN apt-get -y update
 RUN add-apt-repository universe
 RUN apt-get update
 RUN apt-get install -y apt-transport-https
+# Transcription things
+RUN apt-get install -y liblttng-ust0 libcurl3 libssl1.0.0 libkrb5-3 zlib1g libicu60 libasound2
 RUN apt update
 #RUN apt install -y snapd
 
@@ -39,9 +41,9 @@ COPY ["./TaskEngine/TaskEngine.csproj", ""]
 ENV DOTNET_ROOT $BIN_PATH/dotnet
 ENV PATH $PATH:$BIN_PATH/dotnet/
 
-# RUN dotnet restore "ClassTranscribeServer.csproj"
-# RUN dotnet restore "ClassTranscribeDatabase.csproj"
-# RUN dotnet restore "TaskEngine.csproj"
+RUN dotnet restore "ClassTranscribeServer.csproj"
+RUN dotnet restore "ClassTranscribeDatabase.csproj"
+RUN dotnet restore "TaskEngine.csproj"
 #COPY . .
 WORKDIR /
 #RUN dotnet build "ClassTranscribeServer.csproj" -c Release -o /app

@@ -25,6 +25,9 @@ services:
       - type: bind
         source: ./ct.proto
         target: /ct.proto
+      - type: bind
+        source: ./launchscript.sh
+        target: /launchscript.sh
     container_name: "CTServer"
     ports:
         - "4443:443"

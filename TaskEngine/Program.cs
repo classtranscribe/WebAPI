@@ -82,7 +82,10 @@ namespace TaskEngine
             logger.LogDebug("All done!");
 
             Console.WriteLine("Press any key to close the application");
-            Console.ReadKey();
+            
+             while (true) {
+                Console.Read();
+            };
         }
 
         private static async Task RunProgramRunExample(RabbitMQ rabbitMQ, CTDbContext context)
