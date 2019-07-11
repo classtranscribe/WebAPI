@@ -48,8 +48,8 @@ namespace TaskEngine.Tasks
                 case SourceType.Youtube: medias = await GetYoutubePlaylist(p); break;
                 case SourceType.Local: medias = await GetLocalPlaylist(p); break;
             }
-            // medias.ForEach(m => _downloadMediaTask.Publish(m));
-            (await _context.Medias.Where(m => m.Videos.Count() == 0).Take(5).ToListAsync()).ForEach(m => _downloadMediaTask.Publish(m));
+            medias.ForEach(m => _downloadMediaTask.Publish(m));
+            // (await _context.Medias.Where(m => m.Videos.Count() == 0).Take(5).ToListAsync()).ForEach(m => _downloadMediaTask.Publish(m));
         }
 
         public async Task<List<Media>> GetEchoPlaylist(Playlist playlist)
