@@ -16,7 +16,6 @@ namespace ClassTranscribeDatabase.Models
     public enum Status
     {
         Active,
-        Inactive,
         Deleted
     }
 
@@ -33,7 +32,9 @@ namespace ClassTranscribeDatabase.Models
         [IgnoreDataMember]
         public virtual List<UserOffering> UserOfferings { get; set; }
         [IgnoreDataMember]
+        public string UniversityId { get; set; }
         public virtual University University { get; set; }
+        public Status Status { get; set; }
     }
 
 

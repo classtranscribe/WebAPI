@@ -24,90 +24,6 @@ namespace ClassTranscribeServer.Seed
             _roleManager = roleManager;
         }
 
-        ApplicationUser user1 = new ApplicationUser
-        {
-            UserName = "instructor1",
-            Email = "instructor1@test.edu",
-            FirstName = "Instructor1",
-            LastName = "Instructor"
-        };
-
-        ApplicationUser user2 = new ApplicationUser
-        {
-            UserName = "instructor2",
-            Email = "instructor2@test.edu",
-            FirstName = "Instructor2",
-            LastName = "Instructor"
-        };
-
-        ApplicationUser user3 = new ApplicationUser
-        {
-            UserName = "instructor3",
-            Email = "instructor3@test.edu",
-            FirstName = "Instructor3",
-            LastName = "Instructor"
-        };
-
-        ApplicationUser user4 = new ApplicationUser
-        {
-            UserName = "student1",
-            Email = "student1@test.edu",
-            FirstName = "Student1",
-            LastName = "Student"
-        };
-
-        ApplicationUser user5 = new ApplicationUser
-        {
-            UserName = "student2",
-            Email = "student2@test.edu",
-            FirstName = "Student2",
-            LastName = "Student"
-        };
-
-        ApplicationUser user6 = new ApplicationUser
-        {
-            UserName = "ta",
-            Email = "ta1@test.edu",
-            FirstName = "TA1",
-            LastName = "TA"
-        };
-
-        ApplicationUser shawn = new ApplicationUser
-        {
-            UserName = "ruihua.sui@gmail.com",
-            Email = "ruihua.sui@gmail.com",
-            FirstName = "Ruihua",
-            LastName = "Sui"
-        };
-
-        ApplicationUser chirantan = new ApplicationUser
-        {
-            UserName = "mahipal2@illinois.edu",
-            Email = "mahipal2@illinois.edu",
-            FirstName = "Chirantan",
-            LastName = "Mahipal"
-        };
-
-        public async Task<List<string>> CreateUsers()
-        {
-            List<string> userIds = new List<string>();
-            List<ApplicationUser> users = new List<ApplicationUser> { user1, user2, user3, user4, user5, user6, shawn, chirantan };
-            foreach (ApplicationUser user in users)
-            {
-                var query = _userManager.Users.Where(u => u.Email == user.Email);
-                if (query.Count() == 0)
-                {
-                    var result = await _userManager.CreateAsync(user, user.Email);
-                    userIds.Add(user.Id);
-                }
-                else
-                {
-                    userIds.Add(query.First().Id);
-                }
-            }
-            return userIds;
-        }
-
         IdentityRole Instructor = new IdentityRole { Name = Globals.ROLE_INSTRUCTOR };
         IdentityRole Student = new IdentityRole { Name = Globals.ROLE_STUDENT };
         IdentityRole Admin = new IdentityRole { Name = Globals.ROLE_ADMIN };
@@ -132,7 +48,117 @@ namespace ClassTranscribeServer.Seed
 
         public async Task<Boolean> SeedAsync()
         {
-            List<string> userIds = await CreateUsers();
+
+            University university1 = new University
+            {
+                // University Id begins with 1
+                Id = "1001",
+                Name = "UIUC",
+                Domain = "illinois.edu"
+                // Departments = { department1, department2 }
+            };
+
+            List<University> universities = new List<University> { university1 };
+
+            foreach (var t in universities)
+            {
+                if (!_context.Universities.Contains(t))
+                {
+                    _context.Universities.Add(t);
+                }
+            }
+
+            await _context.SaveChangesAsync();
+
+            ApplicationUser user1 = new ApplicationUser
+            {
+                UserName = "instructor1",
+                Email = "instructor1@test.edu",
+                FirstName = "Instructor1",
+                LastName = "Instructor",
+                UniversityId = university1.Id
+            };
+
+            ApplicationUser user2 = new ApplicationUser
+            {
+                UserName = "instructor2",
+                Email = "instructor2@test.edu",
+                FirstName = "Instructor2",
+                LastName = "Instructor",
+                UniversityId = university1.Id
+            };
+
+            ApplicationUser user3 = new ApplicationUser
+            {
+                UserName = "instructor3",
+                Email = "instructor3@test.edu",
+                FirstName = "Instructor3",
+                LastName = "Instructor",
+                UniversityId = university1.Id
+            };
+
+            ApplicationUser user4 = new ApplicationUser
+            {
+                UserName = "student1",
+                Email = "student1@test.edu",
+                FirstName = "Student1",
+                LastName = "Student",
+                UniversityId = university1.Id
+            };
+
+            ApplicationUser user5 = new ApplicationUser
+            {
+                UserName = "student2",
+                Email = "student2@test.edu",
+                FirstName = "Student2",
+                LastName = "Student",
+                UniversityId = university1.Id
+            };
+
+            ApplicationUser user6 = new ApplicationUser
+            {
+                UserName = "ta",
+                Email = "ta1@test.edu",
+                FirstName = "TA1",
+                LastName = "TA",
+                UniversityId = university1.Id
+            };
+
+            ApplicationUser shawn = new ApplicationUser
+            {
+                UserName = "ruihua.sui@gmail.com",
+                Email = "ruihua.sui@gmail.com",
+                FirstName = "Ruihua",
+                LastName = "Sui",
+                UniversityId = university1.Id
+            };
+
+            ApplicationUser chirantan = new ApplicationUser
+            {
+                UserName = "mahipal2@illinois.edu",
+                Email = "mahipal2@illinois.edu",
+                FirstName = "Chirantan",
+                LastName = "Mahipal",
+                UniversityId = university1.Id
+            };
+
+
+            List<string> userIds = new List<string>();
+            List<ApplicationUser> users = new List<ApplicationUser> { user1, user2, user3, user4, user5, user6, shawn, chirantan };
+            foreach (ApplicationUser user in users)
+            {
+                var query = _userManager.Users.Where(u => u.Email == user.Email);
+                if (query.Count() == 0)
+                {
+                    var res = await _userManager.CreateAsync(user, user.Email);
+                    userIds.Add(user.Id);
+                }
+                else
+                {
+                    userIds.Add(query.First().Id);
+                }
+            }
+
             Boolean result = await CreateRoles();
 
             Term term1 = new Term
@@ -163,15 +189,6 @@ namespace ClassTranscribeServer.Seed
                 StartDate = new DateTime(2018, 1, 15, 0, 0, 0),
                 EndDate = new DateTime(2018, 5, 14, 0, 0, 0),
                 // Offerings, University, UniversityId
-            };
-
-            University university1 = new University
-            {
-                // University Id begins with 1
-                Id = "1001",
-                Name = "UIUC",
-                Domain = "illinois.edu"
-                // Departments = { department1, department2 }
             };
 
             term1.UniversityId = university1.Id;
@@ -360,7 +377,6 @@ namespace ClassTranscribeServer.Seed
             };
 
             List<Term> terms = new List<Term> { term1, term2, term3 };
-            List<University> universities = new List<University> { university1 };
             List<Department> departments = new List<Department> { department1, department2, department3 };
             List<Course> courses = new List<Course> { course1, course2, course3, course4, course5, course6 };
             List<Offering> offerings = new List<Offering> { offering1, offering2, offering3, offering4, offering5 };
@@ -372,14 +388,6 @@ namespace ClassTranscribeServer.Seed
                 if (!_context.Terms.Contains(t))
                 {
                     _context.Terms.Add(t);
-                }
-            }
-
-            foreach (var t in universities)
-            {
-                if (!_context.Universities.Contains(t))
-                {
-                    _context.Universities.Add(t);
                 }
             }
 

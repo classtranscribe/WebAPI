@@ -72,6 +72,21 @@ namespace ClassTranscribeDatabase
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
+            builder.Entity<ApplicationUser>().HasQueryFilter(m => m.Status == Status.Active);
+            builder.Entity<University>().HasQueryFilter(m => m.Status == Status.Active);
+            builder.Entity<Department>().HasQueryFilter(m => m.Status == Status.Active);
+            builder.Entity<Course>().HasQueryFilter(m => m.Status == Status.Active);
+            builder.Entity<Term>().HasQueryFilter(m => m.Status == Status.Active);
+            builder.Entity<Offering>().HasQueryFilter(m => m.Status == Status.Active);
+            builder.Entity<Media>().HasQueryFilter(m => m.Status == Status.Active);
+            builder.Entity<Transcription>().HasQueryFilter(m => m.Status == Status.Active);
+            builder.Entity<Video>().HasQueryFilter(m => m.Status == Status.Active);
+            builder.Entity<Playlist>().HasQueryFilter(m => m.Status == Status.Active);
+            builder.Entity<CourseOffering>().HasQueryFilter(m => m.Status == Status.Active);
+            builder.Entity<UserOffering>().HasQueryFilter(m => m.Status == Status.Active);
+            builder.Entity<OfferingPlaylist>().HasQueryFilter(m => m.Status == Status.Active);
+
+
             builder.Entity<CourseOffering>()
             .HasKey(t => new { t.CourseId, t.OfferingId });
 
@@ -143,10 +158,15 @@ namespace ClassTranscribeDatabase
                             break;
 
                         case EntityState.Added:
+                            entity.Status = Status.Active;
                             entity.CreatedAt = now;
                             entity.CreatedBy = user;
                             entity.LastUpdatedAt = now;
                             entity.LastUpdatedBy = user;
+                            break;
+                        case EntityState.Deleted:
+                            entry.State = EntityState.Modified;
+                            entity.Status = Status.Deleted;
                             break;
                     }
                 }

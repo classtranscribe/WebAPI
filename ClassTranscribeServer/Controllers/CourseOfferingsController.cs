@@ -129,6 +129,25 @@ namespace ClassTranscribeServer.Controllers
             return courseOffering;
         }
 
+        // DELETE: api/CourseOfferings/{courseId}/{offeringId}
+        /// <summary>
+        /// Deletes CourseOffering
+        /// </summary>
+        [HttpDelete("{courseId}/{offeringId}")]
+        public async Task<ActionResult<List<CourseOffering>>> DeleteCourseOffering(string courseId, string offeringId)
+        {
+            var courseOfferings = await _context.CourseOfferings.Where(co => co.OfferingId == offeringId && co.CourseId == courseId).ToListAsync();
+            if (courseOfferings == null)
+            {
+                return NotFound();
+            }
+
+            _context.CourseOfferings.RemoveRange(courseOfferings);
+            await _context.SaveChangesAsync();
+
+            return courseOfferings;
+        }
+
         private bool CourseOfferingExists(string id)
         {
             return _context.CourseOfferings.Any(e => e.CourseId == id);

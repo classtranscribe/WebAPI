@@ -33,6 +33,7 @@ namespace ClassTranscribeServer.Controllers
 
 
         // GET: api/Courses/
+        // TODO: Implement Authorization
         /// <summary>
         /// Gets all Offerings for a student by userId
         /// </summary>
@@ -40,11 +41,10 @@ namespace ClassTranscribeServer.Controllers
         public async Task<ActionResult<IEnumerable<Offering>>> GetOfferingsByStudent(string userId)
         {
             // Get the user
-            ApplicationUser user = null;
-            if (_context.Users != null)
+            var user = await _context.Users.FindAsync(userId);
+            if (user == null)
             {
-                var currentUserID = _context.Users.Find(ClaimTypes.NameIdentifier).Id;
-                user = _context.Users.Where(u => u.Id == currentUserID).First();
+                return NotFound();
             }
 
             // Store the results
@@ -52,22 +52,25 @@ namespace ClassTranscribeServer.Controllers
 
             // Get all the public offerings
             var public_offerings = await _context.Offerings.Where(offer => offer.AccessType == AccessTypes.Public).ToListAsync();
-            offerings.Concat(public_offerings);
+            offerings.AddRange(public_offerings);
 
             // Get all offering that need authentication
             if (user != null)
             {
                 var authen_offerings = await _context.Offerings.Where(offer => offer.AccessType == AccessTypes.AuthenticatedOnly).ToListAsync();
-                offerings.Concat(authen_offerings);
+                offerings.AddRange(authen_offerings);
             }
 
             // Get all their university's offerings
-            var university_offerings = await _context.Offerings.Where(offer => offer.AccessType == AccessTypes.UniversityOnly && offer.CourseOfferings.Select(c => c.Course.Department.University).Contains(user.University)).ToListAsync();
-            offerings.Concat(university_offerings);
+            var university_offerings = await _context.Courses.Where(c => c.Department.University == user.University)
+                                                            .SelectMany(c => c.CourseOfferings)
+                                                            .Select(co => co.Offering)
+                                                            .Where(o => o.AccessType == AccessTypes.UniversityOnly).ToListAsync();
+            offerings.AddRange(university_offerings);
 
             // Get all offering that this user is a member
             var member_offerings = await _context.Offerings.Where(offer => offer.AccessType == AccessTypes.StudentsOnly && offer.OfferingUsers.Select(ou => ou.ApplicationUser).Contains(user)).ToListAsync();
-            offerings.Concat(member_offerings);
+            offerings.AddRange(member_offerings);
 
             // return the combined result
             return offerings;
