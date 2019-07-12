@@ -493,12 +493,12 @@ namespace ClassTranscribeServer.Seed
                 }
             }
 
-            Playlist echoPlaylist = new Playlist
-            {
-                Id = "echo_sample",
-                PlaylistIdentifier = "https://echo360.org/section/9d6e3b31-d3ac-4cfa-b44f-24c1a7c60fd5/public",
-                SourceType = SourceType.Echo360
-            };
+            //Playlist echoPlaylist = new Playlist
+            //{
+            //    Id = "echo_sample",
+            //    PlaylistIdentifier = "https://echo360.org/section/9d6e3b31-d3ac-4cfa-b44f-24c1a7c60fd5/public",
+            //    SourceType = SourceType.Echo360
+            //};
 
             Playlist youtubePlaylist = new Playlist
             {
