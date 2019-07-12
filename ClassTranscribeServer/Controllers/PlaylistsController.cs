@@ -28,9 +28,19 @@ namespace ClassTranscribeServer.Controllers
             return await _context.Playlists.ToListAsync();
         }
 
+        // GET: api/Playlists
+        /// <summary>
+        /// Gets all Playlists for offeringId
+        /// </summary>
+        [HttpGet("ByOffering/{offeringId}")]
+        public async Task<ActionResult<IEnumerable<Playlist>>> GetPlaylists(string offeringId)
+        {
+            return await _context.OfferingPlaylists.Where(op => op.OfferingId == offeringId).Select(op => op.Playlist).ToListAsync();
+        }
+
         // GET: api/Playlists/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Playlist>> GetPlaylist(string id)
+        public async Task<ActionResult<PlaylistDTO>> GetPlaylist(string id)
         {
             var playlist = await _context.Playlists.FindAsync(id);
 
@@ -38,8 +48,17 @@ namespace ClassTranscribeServer.Controllers
             {
                 return NotFound();
             }
-
-            return playlist;
+            List<MediaDTO> medias = new List<MediaDTO>();
+            playlist.Medias.ForEach(m => medias.Add(new MediaDTO
+            {
+                Media = m,
+                Videos = m.Videos,
+                Transcriptions = m.Transcriptions
+            }));
+            return new PlaylistDTO {
+                Playlist = playlist,
+                Medias = medias
+            };
         }
 
         // PUT: api/Playlists/5
@@ -101,6 +120,20 @@ namespace ClassTranscribeServer.Controllers
         private bool PlaylistExists(string id)
         {
             return _context.Playlists.Any(e => e.Id == id);
+        }
+
+        public class PlaylistDTO
+        {
+            public Playlist Playlist { get; set; }
+            public List<MediaDTO> Medias { get; set; }
+        }
+
+        public class MediaDTO
+        {
+            public Media Media { get; set; }
+            public List<Video> Videos { get; set; }
+            public List<Transcription> Transcriptions { get; set; }
+
         }
     }
 }
