@@ -17,6 +17,7 @@ using System.IO;
 using System.Reflection;
 using ClassTranscribeServer.Seed;
 using Microsoft.Extensions.Options;
+using Microsoft.Extensions.FileProviders;
 
 namespace ClassTranscribeServer
 {
@@ -112,6 +113,11 @@ namespace ClassTranscribeServer
             app.UseAuthentication();
             // Enable middleware to serve generated Swagger as a JSON endpoint.
             app.UseSwagger();
+            app.UseStaticFiles(new StaticFileOptions
+            {
+                FileProvider = new PhysicalFileProvider(_appSettings.DATA_DIRECTORY),
+                RequestPath = "/Data"
+            });
 
             // Enable middleware to serve swagger-ui (HTML, JS, CSS, etc.), 
             // specifying the Swagger JSON endpoint.
