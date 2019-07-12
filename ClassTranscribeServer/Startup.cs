@@ -115,6 +115,7 @@ namespace ClassTranscribeServer
             app.UseSwagger();
             app.UseStaticFiles(new StaticFileOptions
             {
+                ServeUnknownFileTypes = true,
                 FileProvider = new PhysicalFileProvider(_appSettings.DATA_DIRECTORY),
                 RequestPath = "/Data"
             });
