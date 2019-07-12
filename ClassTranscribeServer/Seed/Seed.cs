@@ -507,7 +507,7 @@ namespace ClassTranscribeServer.Seed
                 SourceType = SourceType.Youtube
             };
 
-            List<Playlist> playlists = new List<Playlist> { echoPlaylist, youtubePlaylist };
+            List<Playlist> playlists = new List<Playlist> { youtubePlaylist };
 
             foreach (var t in playlists)
             {
@@ -517,11 +517,12 @@ namespace ClassTranscribeServer.Seed
                 }
             }
 
-            List<OfferingPlaylist> offeringPlaylists = new List<OfferingPlaylist> { new OfferingPlaylist
-            {
-                PlaylistId = echoPlaylist.Id,
-                OfferingId = offering1.Id
-            }, new OfferingPlaylist
+            List<OfferingPlaylist> offeringPlaylists = new List<OfferingPlaylist> {
+            //    new OfferingPlaylist {
+            //    PlaylistId = echoPlaylist.Id,
+            //    OfferingId = offering1.Id
+            //},
+                new OfferingPlaylist
             {
                 PlaylistId = youtubePlaylist.Id,
                 OfferingId = offering2.Id
