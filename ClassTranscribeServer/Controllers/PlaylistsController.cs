@@ -35,7 +35,7 @@ namespace ClassTranscribeServer.Controllers
         [HttpGet("ByOffering/{offeringId}")]
         public async Task<ActionResult<IEnumerable<Playlist>>> GetPlaylists(string offeringId)
         {
-            return await _context.OfferingPlaylists.Where(op => op.OfferingId == offeringId).Select(op => op.Playlist).ToListAsync();
+            return (await _context.Offerings.FindAsync(offeringId)).Playlists;
         }
 
         // GET: api/Playlists/5

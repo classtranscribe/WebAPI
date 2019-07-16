@@ -50,7 +50,7 @@ namespace ClassTranscribeDatabase.Models
         [IgnoreDataMember]
         public string LastUpdatedBy { get; set; }
         [IgnoreDataMember]
-        public Status Status { get; set; }
+        public Status IsDeletedStatus { get; set; }
 
     }
 
@@ -107,7 +107,7 @@ namespace ClassTranscribeDatabase.Models
         [IgnoreDataMember]
         public virtual List<CourseOffering> CourseOfferings { get; set; }
         [IgnoreDataMember]
-        public virtual List<OfferingPlaylist> OfferingPlaylists { get; set; }
+        public virtual List<Playlist> Playlists { get; set; }
         [IgnoreDataMember]
         public virtual List<UserOffering> OfferingUsers { get; set; }
         public AccessTypes AccessType { get; set; }
@@ -115,12 +115,14 @@ namespace ClassTranscribeDatabase.Models
 
     public class Playlist : Entity
     {
+        public string Name { get; set; }
         public SourceType SourceType { get; set; }
         public string PlaylistIdentifier { get; set; }
         [IgnoreDataMember]
         public virtual List<Media> Medias { get; set; }
+        public string OfferingId { get; set; }
         [IgnoreDataMember]
-        public virtual List<OfferingPlaylist> OfferingPlaylists { get; set; }
+        public virtual Offering Offering { get; set; }
     }
 
     public class Media : Entity
@@ -166,16 +168,6 @@ namespace ClassTranscribeDatabase.Models
         [IgnoreDataMember]
         public virtual Offering Offering { get; set; }
 
-    }
-
-    public class OfferingPlaylist : Entity
-    {
-        public string OfferingId { get; set; }
-        public string PlaylistId { get; set; }
-        [IgnoreDataMember]
-        public virtual Offering Offering { get; set; }
-        [IgnoreDataMember]
-        public virtual Playlist Playlist { get; set; }
     }
 
     public class UserOffering : Entity

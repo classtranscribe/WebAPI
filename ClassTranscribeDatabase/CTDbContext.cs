@@ -37,7 +37,6 @@ namespace ClassTranscribeDatabase
         public DbSet<Video> Videos { get; set; }
         public DbSet<Playlist> Playlists { get; set; }
         public DbSet<CourseOffering> CourseOfferings { get; set; }
-        public DbSet<OfferingPlaylist> OfferingPlaylists { get; set; }
         public DbSet<UserOffering> UserOfferings { get; set; }
         public static CTDbContext CreateDbContext()
         {
@@ -73,18 +72,17 @@ namespace ClassTranscribeDatabase
         {
             base.OnModelCreating(builder);
             builder.Entity<ApplicationUser>().HasQueryFilter(m => m.Status == Status.Active);
-            builder.Entity<University>().HasQueryFilter(m => m.Status == Status.Active);
-            builder.Entity<Department>().HasQueryFilter(m => m.Status == Status.Active);
-            builder.Entity<Course>().HasQueryFilter(m => m.Status == Status.Active);
-            builder.Entity<Term>().HasQueryFilter(m => m.Status == Status.Active);
-            builder.Entity<Offering>().HasQueryFilter(m => m.Status == Status.Active);
-            builder.Entity<Media>().HasQueryFilter(m => m.Status == Status.Active);
-            builder.Entity<Transcription>().HasQueryFilter(m => m.Status == Status.Active);
-            builder.Entity<Video>().HasQueryFilter(m => m.Status == Status.Active);
-            builder.Entity<Playlist>().HasQueryFilter(m => m.Status == Status.Active);
-            builder.Entity<CourseOffering>().HasQueryFilter(m => m.Status == Status.Active);
-            builder.Entity<UserOffering>().HasQueryFilter(m => m.Status == Status.Active);
-            builder.Entity<OfferingPlaylist>().HasQueryFilter(m => m.Status == Status.Active);
+            builder.Entity<University>().HasQueryFilter(m => m.IsDeletedStatus == Status.Active);
+            builder.Entity<Department>().HasQueryFilter(m => m.IsDeletedStatus == Status.Active);
+            builder.Entity<Course>().HasQueryFilter(m => m.IsDeletedStatus == Status.Active);
+            builder.Entity<Term>().HasQueryFilter(m => m.IsDeletedStatus == Status.Active);
+            builder.Entity<Offering>().HasQueryFilter(m => m.IsDeletedStatus == Status.Active);
+            builder.Entity<Media>().HasQueryFilter(m => m.IsDeletedStatus == Status.Active);
+            builder.Entity<Transcription>().HasQueryFilter(m => m.IsDeletedStatus == Status.Active);
+            builder.Entity<Video>().HasQueryFilter(m => m.IsDeletedStatus == Status.Active);
+            builder.Entity<Playlist>().HasQueryFilter(m => m.IsDeletedStatus == Status.Active);
+            builder.Entity<CourseOffering>().HasQueryFilter(m => m.IsDeletedStatus == Status.Active);
+            builder.Entity<UserOffering>().HasQueryFilter(m => m.IsDeletedStatus == Status.Active);
 
 
             builder.Entity<CourseOffering>()
@@ -99,20 +97,6 @@ namespace ClassTranscribeDatabase
                 .HasOne(pt => pt.Offering)
                 .WithMany(t => t.CourseOfferings)
                 .HasForeignKey(pt => pt.OfferingId);
-
-
-            builder.Entity<OfferingPlaylist>()
-            .HasKey(t => new { t.OfferingId, t.PlaylistId });
-
-            builder.Entity<OfferingPlaylist>()
-                .HasOne(pt => pt.Offering)
-                .WithMany(p => p.OfferingPlaylists)
-                .HasForeignKey(pt => pt.OfferingId);
-
-            builder.Entity<OfferingPlaylist>()
-                .HasOne(pt => pt.Playlist)
-                .WithMany(t => t.OfferingPlaylists)
-                .HasForeignKey(pt => pt.PlaylistId);
 
             builder.Entity<UserOffering>()
             .HasKey(t => new { t.ApplicationUserId, t.OfferingId });
@@ -158,7 +142,7 @@ namespace ClassTranscribeDatabase
                             break;
 
                         case EntityState.Added:
-                            entity.Status = Status.Active;
+                            entity.IsDeletedStatus = Status.Active;
                             entity.CreatedAt = now;
                             entity.CreatedBy = user;
                             entity.LastUpdatedAt = now;
@@ -166,7 +150,7 @@ namespace ClassTranscribeDatabase
                             break;
                         case EntityState.Deleted:
                             entry.State = EntityState.Modified;
-                            entity.Status = Status.Deleted;
+                            entity.IsDeletedStatus = Status.Deleted;
                             break;
                     }
                 }

@@ -516,25 +516,7 @@ namespace ClassTranscribeServer.Seed
                     _context.Playlists.Add(t);
                 }
             }
-
-            List<OfferingPlaylist> offeringPlaylists = new List<OfferingPlaylist> {
-            //    new OfferingPlaylist {
-            //    PlaylistId = echoPlaylist.Id,
-            //    OfferingId = offering1.Id
-            //},
-                new OfferingPlaylist
-            {
-                PlaylistId = youtubePlaylist.Id,
-                OfferingId = offering2.Id
-            } };
-
-            foreach (var t in offeringPlaylists)
-            {
-                if (_context.OfferingPlaylists.Where(u => u.OfferingId == t.OfferingId && u.PlaylistId == t.PlaylistId).Count() == 0)
-                {
-                    _context.OfferingPlaylists.Add(t);
-                }
-            }
+            youtubePlaylist.OfferingId = offering2.Id;
 
             await _context.SaveChangesAsync();
             return true;
