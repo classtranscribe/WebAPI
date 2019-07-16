@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using ClassTranscribeDatabase.Models;
 using Microsoft.AspNetCore.Mvc;
+using ClassTranscribeServer.Seed;
 
 namespace ClassTranscribeUnitTesting
 {
@@ -19,7 +20,6 @@ namespace ClassTranscribeUnitTesting
 
         public CoursesControllerTest()
         {
-            
             _context = CTDbContext.CreateDbContext();
             _context.Database.EnsureCreated();
             _controller = new CoursesController(_context);
@@ -28,6 +28,10 @@ namespace ClassTranscribeUnitTesting
         [Fact]
         public async Task Get_All_Courses()
         {
+            //using (var dbContext = new CTDbContext())
+            //{
+            //    dbContext.Database.EnsureDeleted();
+            //}
             var result = await _controller.GetCourses();
             var value = Assert.IsType<List<Course>>(result.Value);
             Assert.Equal(6, value.Count);
@@ -44,7 +48,7 @@ namespace ClassTranscribeUnitTesting
         [Fact]
         public async Task Get_Courses_By_Department_Id_Not_Found()
         {
-            var result = await _controller.GetCourses("9999999");
+            var result = await _controller.GetCourses("1793");
             var value = Assert.IsType<List<Course>>(result.Value);
             Assert.Equal(0, value.Count);
         }
@@ -67,7 +71,8 @@ namespace ClassTranscribeUnitTesting
         [Fact]
         public async Task Get_By_Course_ID_NotFound()
         {
-            var result = await _controller.GetCourse("17931793");
+            // TODO: Failed this test. There might be something wrong with the controller.
+            var result = await _controller.GetCourse("1793");
             Assert.IsType<NotFoundObjectResult>(result);
         }
 
@@ -114,7 +119,7 @@ namespace ClassTranscribeUnitTesting
         {
             Course test_course = new Course()
             {
-                Id = "17931793",
+                Id = "1793",
                 CourseNumber = "425",
                 CourseName = "Distributed Systems",
                 DepartmentId = "2001",
@@ -122,9 +127,64 @@ namespace ClassTranscribeUnitTesting
 
             };
 
-            var result = await _controller.PutCourse("17931793", test_course);
+            var result = await _controller.PutCourse("1793", test_course);
             Assert.IsType<NotFoundResult>(result);
 
         }
+
+        [Fact]
+        public async Task Post_Course()
+        {
+            Course test_course = new Course()
+            {
+                Id = "3007",
+                CourseNumber = "241",
+                CourseName = "System Programming",
+                DepartmentId = "2001",
+                Description = "Basics of system programming, including POSIX processes, process control, inter-process communication, synchronization, signals, simple memory management, file I/O and directories, shell programming, socket network programming, RPC programming in distributed systems, basic security mechanisms, and standard tools for systems programming such as debugging tools."
+
+            };
+
+            var result = await _controller.PostCourse(test_course);
+            var return_course = Assert.IsType<Course>(result.Value);
+
+            Assert.Equal(test_course.Id, return_course.Id);
+            Assert.Equal(test_course.CourseNumber, return_course.CourseNumber);
+            Assert.Equal(test_course.CourseName, return_course.CourseName);
+            Assert.Equal(test_course.DepartmentId, return_course.DepartmentId);
+            Assert.Equal(test_course.Description, return_course.Description);
+        }
+
+        [Fact]
+        public async Task Delete_Course()
+        {
+            Course test_course = new Course()
+            {
+                Id = "3007",
+                CourseNumber = "241",
+                CourseName = "System Programming",
+                DepartmentId = "2001",
+                Description = "Basics of system programming, including POSIX processes, process control, inter-process communication, synchronization, signals, simple memory management, file I/O and directories, shell programming, socket network programming, RPC programming in distributed systems, basic security mechanisms, and standard tools for systems programming such as debugging tools."
+
+            };
+
+            var result = await _controller.DeleteCourse(test_course.Id);
+            var return_course = Assert.IsType<Course>(result.Value);
+
+            Assert.Equal(test_course.Id, return_course.Id);
+            Assert.Equal(test_course.CourseNumber, return_course.CourseNumber);
+            Assert.Equal(test_course.CourseName, return_course.CourseName);
+            Assert.Equal(test_course.DepartmentId, return_course.DepartmentId);
+            Assert.Equal(test_course.Description, return_course.Description);
+        }
+
+        [Fact]
+        public async Task Delete_Course_Not_Found()
+        {
+            // TODO: Failed. Result should be NotFound instead of null?
+            var result = await _controller.DeleteCourse("3009");
+            Assert.IsType<NotFoundResult>(result.Value);
+        }
+
     }
 }
