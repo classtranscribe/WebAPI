@@ -1,11 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
+using System.Linq;
 
 namespace TaskEngine.MSTranscription
 {
+    public class MSTWord
+    {
+        public long Duration { get; set; }
+        public long Offset { get; set; }
+        public string Word { get; set; }
+    }
     public class Sub
     {
+        public static int subLength = 40;
         public TimeSpan Begin { get; set; }
         public TimeSpan End { get; set; }
         public string Caption { get; set; }
@@ -28,9 +37,48 @@ namespace TaskEngine.MSTranscription
             return a;
         }
 
+        public static List<Sub> GetSubs(List<MSTWord> words)
+        {            
+            List<Sub> subs = new List<Sub>();
+            int currLength = 0;
+            StringBuilder currSentence = new StringBuilder();
+            TimeSpan? startTime = null;
+            foreach(MSTWord word in words)
+            {
+                if(startTime == null)
+                {
+                    startTime = new TimeSpan(word.Offset);
+                }
+                currSentence.Append(word.Word + " ");
+                currLength += word.Word.Length;
+
+                if (currLength > subLength)
+                {
+                    subs.Add(new Sub
+                    {
+                        Begin = startTime ?? new TimeSpan(),
+                        End = new TimeSpan(word.Offset + word.Duration),
+                        Caption = currSentence.ToString().Trim()
+                    });
+                    currSentence.Clear();
+                    currLength = 0;
+                    startTime = null;
+                }
+            }
+            if (currLength > 0)
+            {
+                subs.Add(new Sub
+                {
+                    Begin = startTime ?? new TimeSpan(),
+                    End = new TimeSpan(words[words.Count - 1].Offset + words[words.Count - 1].Duration),
+                    Caption = currSentence.ToString().Trim()
+                });
+            }
+            return subs;
+        }
+
         public static List<Sub> GetSubs(Sub sub)
         {
-            int subLength = 75;
             List<Sub> subs = new List<Sub>();
             int length = sub.Caption.Length;
             string tempCaption = sub.Caption;

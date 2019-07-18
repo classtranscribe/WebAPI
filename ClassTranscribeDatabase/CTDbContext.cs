@@ -38,6 +38,8 @@ namespace ClassTranscribeDatabase
         public DbSet<Playlist> Playlists { get; set; }
         public DbSet<CourseOffering> CourseOfferings { get; set; }
         public DbSet<UserOffering> UserOfferings { get; set; }
+        public DbSet<FileRecord> FileRecords { get; set; }
+        public static AppSettings appSettings { get; set; }
         public static CTDbContext CreateDbContext()
         {
             var optionsBuilder = new DbContextOptionsBuilder<CTDbContext>();
@@ -83,6 +85,7 @@ namespace ClassTranscribeDatabase
             builder.Entity<Playlist>().HasQueryFilter(m => m.IsDeletedStatus == Status.Active);
             builder.Entity<CourseOffering>().HasQueryFilter(m => m.IsDeletedStatus == Status.Active);
             builder.Entity<UserOffering>().HasQueryFilter(m => m.IsDeletedStatus == Status.Active);
+            builder.Entity<FileRecord>().HasQueryFilter(m => m.IsDeletedStatus == Status.Active);
 
 
             builder.Entity<CourseOffering>()

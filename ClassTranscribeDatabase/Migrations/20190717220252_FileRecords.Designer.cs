@@ -3,15 +3,17 @@ using System;
 using ClassTranscribeDatabase;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace ClassTranscribeDatabase.Migrations
 {
     [DbContext(typeof(CTDbContext))]
-    partial class CTDbContextModelSnapshot : ModelSnapshot
+    [Migration("20190717220252_FileRecords")]
+    partial class FileRecords
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -408,21 +410,13 @@ namespace ClassTranscribeDatabase.Migrations
 
                     b.Property<string>("MediaId");
 
-                    b.Property<string>("Video1Id");
-
                     b.Property<string>("Video1Path");
-
-                    b.Property<string>("Video2Id");
 
                     b.Property<string>("Video2Path");
 
                     b.HasKey("Id");
 
                     b.HasIndex("MediaId");
-
-                    b.HasIndex("Video1Id");
-
-                    b.HasIndex("Video2Id");
 
                     b.ToTable("Videos");
                 });
@@ -625,14 +619,6 @@ namespace ClassTranscribeDatabase.Migrations
                     b.HasOne("ClassTranscribeDatabase.Models.Media", "Media")
                         .WithMany("Videos")
                         .HasForeignKey("MediaId");
-
-                    b.HasOne("ClassTranscribeDatabase.Models.FileRecord", "Video1")
-                        .WithMany()
-                        .HasForeignKey("Video1Id");
-
-                    b.HasOne("ClassTranscribeDatabase.Models.FileRecord", "Video2")
-                        .WithMany()
-                        .HasForeignKey("Video2Id");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>

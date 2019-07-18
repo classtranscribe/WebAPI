@@ -9,6 +9,7 @@ using Quartz.Impl;
 using Quartz;
 using TaskEngine.Grpc;
 using TaskEngine.MSTranscription;
+using Microsoft.Extensions.Options;
 
 namespace TaskEngine
 {
@@ -35,6 +36,8 @@ namespace TaskEngine
             serviceProvider
                 .GetService<ILoggerFactory>()
                 .AddConsole(LogLevel.Debug);
+
+            CTDbContext.appSettings = serviceProvider.GetService<IOptions<AppSettings>>().Value;
 
             var logger = serviceProvider.GetService<ILoggerFactory>()
                 .CreateLogger<Program>();
@@ -75,8 +78,10 @@ namespace TaskEngine
             CTDbContext context = serviceProvider.GetService<CTDbContext>();
             RunProgramRunExample(rabbitMQ, context).GetAwaiter().GetResult();
 
+            // MSTranscriptionService mSTranscriptionService = serviceProvider.GetService<MSTranscriptionService>();
+            // mSTranscriptionService.RecognitionWithAudioStreamAsync("D:\\CT\\data\\256.wav").GetAwaiter().GetResult();
 
-
+            // FileHasher.ComputeSha256HashForDirectory("C:\\Users\\chira\\Source\\Repos\\ClassTranscribeServer\\Data");
 
             logger.LogDebug("All done!");
 

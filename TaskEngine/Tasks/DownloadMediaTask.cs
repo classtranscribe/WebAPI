@@ -60,8 +60,8 @@ namespace TaskEngine.Tasks
 
             Video video = new Video
             {
-                Video1Path = mediaResponse.FilePath,
-                Video2Path = mediaResponse2.FilePath,
+                Video1 = new FileRecord(mediaResponse.FilePath),
+                Video2 = new FileRecord(mediaResponse2.FilePath),
                 MediaId = media.Id
             };
             return video;
@@ -77,7 +77,7 @@ namespace TaskEngine.Tasks
 
             Video video = new Video
             {
-                Video1Path = mediaResponse.FilePath,
+                Video1 = new FileRecord(mediaResponse.FilePath),
                 MediaId = media.Id
             };
             return video;

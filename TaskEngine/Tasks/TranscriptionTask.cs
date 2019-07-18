@@ -18,22 +18,20 @@ namespace TaskEngine.Tasks
             _rabbitMQ = rabbitMQ;
             queueName = RabbitMQ.QueueNameBuilder(TaskType.TranscribeMedia, "_1");
         }
-        public TranscriptionTask(RabbitMQ rabbitMQ, RpcClient rpcClient, MSTranscriptionService msTranscriptionService, IOptions<AppSettings> appSettings)
+        public TranscriptionTask(RabbitMQ rabbitMQ, RpcClient rpcClient, MSTranscriptionService msTranscriptionService)
         {
             Init(rabbitMQ);
             _rpcClient = rpcClient;
             _msTranscriptionService = msTranscriptionService;
-            _appSettings = appSettings.Value;
+            _appSettings = CTDbContext.appSettings;
         }
         protected async override Task OnConsume(Video video)
         {
             using (var _context = CTDbContext.CreateDbContext())
             {
-                var audioFilePath = video.AudioPath.Substring(video.AudioPath.IndexOf("Data/") + 5);
-                string path = Path.Combine(_appSettings.DATA_DIRECTORY, audioFilePath);
                 Transcription t = new Transcription
                 {
-                    Path = await _msTranscriptionService.RecognitionWithAudioStreamAsync(path),
+                    File = new FileRecord(await _msTranscriptionService.RecognitionWithAudioStreamAsync(video.Audio.Path)),
                     MediaId = video.MediaId
                 };
                 await _context.Transcriptions.AddAsync(t);

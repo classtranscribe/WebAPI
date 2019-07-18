@@ -28,9 +28,9 @@ namespace TaskEngine.Tasks
                 Console.WriteLine("Consuming" + video);
                 var file = await _rpcClient.NodeServerClient.ConvertVideoToWavRPCAsync(new CTGrpc.File
                 {
-                    FilePath = video.Video1Path
+                    FilePath = video.Video1.VMPath
                 });
-                video.AudioPath = file.FilePath;
+                video.Audio = new FileRecord(file.FilePath);
                 await _context.SaveChangesAsync();
                 _transcriptionTask.Publish(video);
             }

@@ -1,8 +1,9 @@
 ﻿using ClassTranscribeDatabase;
 using Microsoft.CognitiveServices.Speech;
-using Microsoft.Extensions.Options;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace TaskEngine.MSTranscription
@@ -11,11 +12,13 @@ namespace TaskEngine.MSTranscription
     {
         private AppSettings _appSettings;
         private SpeechConfig _speechConfig;
-        public MSTranscriptionService(IOptions<AppSettings> appSettings)
+        public MSTranscriptionService()
         {
-            _appSettings = appSettings.Value;
+            _appSettings = CTDbContext.appSettings;
 
             _speechConfig = SpeechConfig.FromSubscription(_appSettings.AZURE_SUBSCRIPTION_KEY, _appSettings.AZURE_REGION);
+            _speechConfig.RequestWordLevelTimestamps();
+            _speechConfig.OutputFormat = OutputFormat.Detailed;
         }
         public async Task<string> RecognitionWithAudioStreamAsync(string file)
         {
@@ -32,28 +35,37 @@ namespace TaskEngine.MSTranscription
                 // Creates a speech recognizer using audio stream input.
                 using (var recognizer = new SpeechRecognizer(_speechConfig, audioInput))
                 {
-                    // Subscribes to events.
+                    //// Subscribes to events.
                     //recognizer.Recognizing += (s, e) =>
                     //{
                     //    Console.WriteLine($"RECOGNIZING: Text={e.Result.Text}");
                     //};
+
+                    List<List<MSTWord>> allWords = new List<List<MSTWord>>();
                     List<Sub> subs = new List<Sub>();
                     recognizer.Recognized += (s, e) =>
                     {
                         if (e.Result.Reason == ResultReason.RecognizedSpeech)
                         {
+                            List<DetailedSpeechRecognitionResult> detailedSpeechRecognitionResults = e.Result.Best().ToList();
+                            JObject jObject = JObject.Parse(e.Result.Properties.GetProperty(PropertyId.SpeechServiceResponse_JsonResult));
+                            var words = jObject["NBest"].OrderByDescending(o => o["Confidence"])
+                            .Take(1)
+                            .Select(o => o["Words"])
+                            .First()
+                            .ToObject<List<MSTWord>>()
+                            .OrderBy(w => w.Offset)
+                            .ToList();
+
+                            allWords.Add(words);
+
                             TimeSpan offset = new TimeSpan(e.Result.OffsetInTicks);
                             Console.WriteLine($"Begin={offset.Minutes}:{offset.Seconds},{offset.Milliseconds}", offset);
                             // Console.WriteLine($"Begin={offset.Minutes}:{offset.Seconds},{offset.Milliseconds}");
                             TimeSpan end = e.Result.Duration.Add(offset);
                             Console.WriteLine($"End={end.Minutes}:{end.Seconds},{end.Milliseconds}");
                             // Console.WriteLine($"Begin={offset.Minutes}:{offset.Seconds},{offset.Milliseconds}");
-                            subs.AddRange(Sub.GetSubs(new Sub
-                            {
-                                Begin = offset,
-                                End = end,
-                                Caption = e.Result.Text
-                            }));
+                            subs.AddRange(Sub.GetSubs(words));
                         }
                         else if (e.Result.Reason == ResultReason.NoMatch)
                         {
