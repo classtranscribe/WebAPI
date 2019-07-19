@@ -129,7 +129,6 @@ namespace ClassTranscribeServer
             });
 
             app.UseMvc();
-            dbContext.Database.EnsureCreated();
             Seeder seeder = new Seeder(dbContext, userManager, signInManager, roleManager);
             Boolean result = seeder.SeedAsync().Result;
         }
