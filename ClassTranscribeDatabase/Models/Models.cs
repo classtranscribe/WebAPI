@@ -64,8 +64,9 @@ namespace ClassTranscribeDatabase.Models
             char separator = System.IO.Path.DirectorySeparatorChar;
             this.Path = path;
             this.FileName = path.Substring(path.LastIndexOf(separator) + 1);
-            this.Hash = ComputeSha256HashForFile(path);
+            this.Hash = ComputeSha256HashForFile(this.Path);
         }
+        [NotMapped]
         public string FileName { get; set; }
         private string path;
         public string Path
