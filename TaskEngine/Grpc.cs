@@ -12,7 +12,7 @@ namespace TaskEngine.Grpc
         public NodeServer.NodeServerClient NodeServerClient;
         public RpcClient()
         {
-            _appSettings = CTDbContext.appSettings;
+            _appSettings = Globals.appSettings;
             AppContext.SetSwitch("System.Net.Http.SocketsHttpHandler.Http2UnencryptedSupport", true);
             var channel = new Channel(_appSettings.NODE_RPC_SERVER, ChannelCredentials.Insecure, new[]{
                       new ChannelOption(ChannelOptions.MaxSendMessageLength , 2*1024*1024),

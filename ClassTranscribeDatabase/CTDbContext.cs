@@ -39,7 +39,6 @@ namespace ClassTranscribeDatabase
         public DbSet<CourseOffering> CourseOfferings { get; set; }
         public DbSet<UserOffering> UserOfferings { get; set; }
         public DbSet<FileRecord> FileRecords { get; set; }
-        public static AppSettings appSettings { get; set; }
         public static CTDbContext CreateDbContext()
         {
             var optionsBuilder = new DbContextOptionsBuilder<CTDbContext>();

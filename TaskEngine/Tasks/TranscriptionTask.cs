@@ -23,7 +23,7 @@ namespace TaskEngine.Tasks
             Init(rabbitMQ);
             _rpcClient = rpcClient;
             _msTranscriptionService = msTranscriptionService;
-            _appSettings = CTDbContext.appSettings;
+            _appSettings = Globals.appSettings;
         }
         protected async override Task OnConsume(Video video)
         {

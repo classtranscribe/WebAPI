@@ -68,6 +68,7 @@ namespace ClassTranscribeDatabase.Models
         }
         public FileRecord() { }
         public string FileName { get; set; }
+        [IgnoreDataMember]
         public string PrivatePath { get; set; }
         [NotMapped]
         public string Path
@@ -81,7 +82,7 @@ namespace ClassTranscribeDatabase.Models
                     p = PrivatePath.Replace('\\', '/');
                 }
                 p = p.Substring(p.LastIndexOf("/Data/") + 6);
-                return System.IO.Path.Combine(CTDbContext.appSettings.DATA_DIRECTORY, p);
+                return System.IO.Path.Combine(Globals.appSettings.DATA_DIRECTORY, p);
             }
             set
             {
@@ -93,6 +94,7 @@ namespace ClassTranscribeDatabase.Models
                 PrivatePath = value.Substring(value.LastIndexOf("/Data/"));
             }
         }
+        [IgnoreDataMember]
         public string VMPath
         {
             get
@@ -100,6 +102,7 @@ namespace ClassTranscribeDatabase.Models
                 return PrivatePath;
             }
         }
+        [IgnoreDataMember]
         public string Hash { get; set; }
 
         public static string ComputeSha256HashForFile(string filePath)
@@ -200,6 +203,7 @@ namespace ClassTranscribeDatabase.Models
         public virtual List<Transcription> Transcriptions { get; set; }
         public virtual List<Video> Videos { get; set; }
         public string PlaylistId { get; set; }
+        [IgnoreDataMember]
         public virtual Playlist Playlist { get; set; }
     }
 

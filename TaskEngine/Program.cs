@@ -37,39 +37,11 @@ namespace TaskEngine
                 .GetService<ILoggerFactory>()
                 .AddConsole(LogLevel.Debug);
 
-            CTDbContext.appSettings = serviceProvider.GetService<IOptions<AppSettings>>().Value;
+            Globals.appSettings = serviceProvider.GetService<IOptions<AppSettings>>().Value;
 
             var logger = serviceProvider.GetService<ILoggerFactory>()
                 .CreateLogger<Program>();
             logger.LogDebug("Starting application");
-
-            //int choice = Convert.ToInt32(Console.ReadLine());
-            //switch (choice)
-            //{
-            //    case 0:
-            //        RabbitMQ rabbitMQ = serviceProvider.GetService<RabbitMQ>();
-            //        CTDbContext context = serviceProvider.GetService<CTDbContext>();
-            //        RunProgramRunExample(rabbitMQ, context).GetAwaiter().GetResult();
-            //        break;
-            //    case 1:
-            //        serviceProvider.GetService<DownloadPlaylistInfoTask>().Consume();
-            //        break;
-            //    case 2:
-            //        //DownloadMediaTask _downloadMediaTask = serviceProvider.GetService<DownloadMediaTask>();
-            //        //CTDbContext _context = serviceProvider.GetService<CTDbContext>();
-            //        //(_context.Medias.Where(m => m.Videos.Count() == 0 && m.SourceType == SourceType.Echo360).Take(2).ToList()).ForEach(m => _downloadMediaTask.Publish(m));
-            //        serviceProvider.GetService<DownloadMediaTask>().Consume();
-            //        break;
-            //    case 3:
-            //        serviceProvider.GetService<ConvertVideoToWavTask>().Consume();
-            //        break;
-            //    case 4:
-            //        //TranscriptionTask t = serviceProvider.GetService<TranscriptionTask>();
-            //        //CTDbContext _context = serviceProvider.GetService<CTDbContext>();
-            //        //_context.Videos.Where(v => v.AudioPath != null).Take(2).ToList().ForEach(v => t.Publish(v));
-            //        serviceProvider.GetService<TranscriptionTask>().Consume();
-            //        break;
-            //}
             serviceProvider.GetService<DownloadPlaylistInfoTask>().Consume();
             serviceProvider.GetService<DownloadMediaTask>().Consume();
             serviceProvider.GetService<ConvertVideoToWavTask>().Consume();

@@ -14,7 +14,7 @@ namespace TaskEngine.MSTranscription
         private SpeechConfig _speechConfig;
         public MSTranscriptionService()
         {
-            _appSettings = CTDbContext.appSettings;
+            _appSettings = Globals.appSettings;
 
             _speechConfig = SpeechConfig.FromSubscription(_appSettings.AZURE_SUBSCRIPTION_KEY, _appSettings.AZURE_REGION);
             _speechConfig.RequestWordLevelTimestamps();

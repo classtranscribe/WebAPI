@@ -15,7 +15,7 @@ namespace TaskEngine
         IModel Channel;
         public RabbitMQ()
         {
-            var factory = new ConnectionFactory() { HostName = CTDbContext.appSettings.RabbitMQServer };
+            var factory = new ConnectionFactory() { HostName = Globals.appSettings.RabbitMQServer };
             Connection = factory.CreateConnection();
             Channel = Connection.CreateModel();
         }

@@ -23,10 +23,9 @@ namespace ClassTranscribeServer
 {
     public class Startup
     {
-        AppSettings _appSettings;
         public Startup(IOptions<AppSettings> appSettings)
         {
-            _appSettings = appSettings.Value;
+            Globals.appSettings = appSettings.Value;
         }
 
         readonly string MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
@@ -41,7 +40,7 @@ namespace ClassTranscribeServer
                 builder => builder.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
             });
             services.AddDbContext<CTDbContext>(options =>
-                options.UseLazyLoadingProxies().UseNpgsql(_appSettings.POSTGRES));
+                options.UseLazyLoadingProxies().UseNpgsql(Globals.appSettings.POSTGRES));
 
             //// ===== Add Identity ========
             services.AddIdentity<ApplicationUser, IdentityRole>(options =>
@@ -70,9 +69,9 @@ namespace ClassTranscribeServer
                     cfg.SaveToken = true;
                     cfg.TokenValidationParameters = new TokenValidationParameters
                     {
-                        ValidIssuer = _appSettings.JWT_ISSUER,
-                        ValidAudience = _appSettings.JWT_ISSUER,
-                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_appSettings.JWT_KEY)),
+                        ValidIssuer = Globals.appSettings.JWT_ISSUER,
+                        ValidAudience = Globals.appSettings.JWT_ISSUER,
+                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Globals.appSettings.JWT_KEY)),
                         ClockSkew = TimeSpan.Zero // remove delay of token when expire
                     };
                 });
@@ -116,7 +115,7 @@ namespace ClassTranscribeServer
             app.UseStaticFiles(new StaticFileOptions
             {
                 ServeUnknownFileTypes = true,
-                FileProvider = new PhysicalFileProvider(_appSettings.DATA_DIRECTORY),
+                FileProvider = new PhysicalFileProvider(Globals.appSettings.DATA_DIRECTORY),
                 RequestPath = "/Data"
             });
 
