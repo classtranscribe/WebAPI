@@ -186,7 +186,6 @@ namespace ClassTranscribeDatabase.Models
         public string Name { get; set; }
         public SourceType SourceType { get; set; }
         public string PlaylistIdentifier { get; set; }
-        [IgnoreDataMember]
         public virtual List<Media> Medias { get; set; }
         public string OfferingId { get; set; }
         [IgnoreDataMember]
@@ -198,9 +197,7 @@ namespace ClassTranscribeDatabase.Models
         public SourceType SourceType { get; set; }
         public string UniqueMediaIdentifier { get; set; }
         public JObject JsonMetadata { get; set; }
-        [IgnoreDataMember]
         public virtual List<Transcription> Transcriptions { get; set; }
-        [IgnoreDataMember]
         public virtual List<Video> Videos { get; set; }
         public string PlaylistId { get; set; }
         public virtual Playlist Playlist { get; set; }

@@ -85,7 +85,7 @@ namespace TaskEngine.MSTranscription
                         if (!fileWritten)
                         {
                             Sub.GenerateSrtFile(subs, file);
-                            Sub.GenerateWebVTTFile(subs, file);
+                            vttFile = Sub.GenerateWebVTTFile(subs, file);
                         }
                         fileWritten = true;
                     };
