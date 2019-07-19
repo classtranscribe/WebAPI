@@ -25,16 +25,17 @@ namespace TaskEngine.Tasks
 
         protected override async Task OnConsume(Media media)
         {
+
+            Console.WriteLine("Consuming" + media);
+            Video video = new Video();
+            switch (media.SourceType)
+            {
+                case SourceType.Echo360: video = await DownloadEchoVideo(media); break;
+                case SourceType.Youtube: video = await DownloadYoutubeVideo(media); break;
+                case SourceType.Local: video = await DownloadLocalPlaylist(media); break;
+            }
             using (var _context = CTDbContext.CreateDbContext())
             {
-                Console.WriteLine("Consuming" + media);
-                Video video = new Video();
-                switch (media.SourceType)
-                {
-                    case SourceType.Echo360: video = await DownloadEchoVideo(media); break;
-                    case SourceType.Youtube: video = await DownloadYoutubeVideo(media); break;
-                    case SourceType.Local: video = await DownloadLocalPlaylist(media); break;
-                }
                 await _context.Videos.AddAsync(video);
                 await _context.SaveChangesAsync();
                 Console.WriteLine("Downloaded:" + video);

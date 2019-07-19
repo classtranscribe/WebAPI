@@ -27,13 +27,13 @@ namespace TaskEngine.Tasks
         }
         protected async override Task OnConsume(Video video)
         {
-            using (var _context = CTDbContext.CreateDbContext())
+            Transcription t = new Transcription
             {
-                Transcription t = new Transcription
-                {
-                    File = new FileRecord(await _msTranscriptionService.RecognitionWithAudioStreamAsync(video.Audio.Path)),
-                    MediaId = video.MediaId
-                };
+                File = new FileRecord(await _msTranscriptionService.RecognitionWithAudioStreamAsync(video.Audio.Path)),
+                MediaId = video.MediaId
+            };
+            using (var _context = CTDbContext.CreateDbContext())
+            {                
                 await _context.Transcriptions.AddAsync(t);
                 await _context.SaveChangesAsync();
             }

@@ -23,13 +23,13 @@ namespace TaskEngine.Tasks
         }
         protected async override Task OnConsume(Video video)
         {
-            using (var _context = CTDbContext.CreateDbContext())
+            Console.WriteLine("Consuming" + video);
+            var file = await _rpcClient.NodeServerClient.ConvertVideoToWavRPCAsync(new CTGrpc.File
             {
-                Console.WriteLine("Consuming" + video);
-                var file = await _rpcClient.NodeServerClient.ConvertVideoToWavRPCAsync(new CTGrpc.File
-                {
-                    FilePath = video.Video1.VMPath
-                });
+                FilePath = video.Video1.VMPath
+            });
+            using (var _context = CTDbContext.CreateDbContext())
+            {                
                 video.Audio = new FileRecord(file.FilePath);
                 await _context.SaveChangesAsync();
                 _transcriptionTask.Publish(video);
