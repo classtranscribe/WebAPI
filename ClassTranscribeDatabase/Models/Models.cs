@@ -66,18 +66,19 @@ namespace ClassTranscribeDatabase.Models
             this.FileName = path.Substring(path.LastIndexOf(separator) + 1);
             this.Hash = ComputeSha256HashForFile(this.Path);
         }
-        [NotMapped]
+        public FileRecord() { }
         public string FileName { get; set; }
-        private string path;
+        public string PrivatePath { get; set; }
+        [NotMapped]
         public string Path
         {
             get
             {
-                string p = path;
+                string p = PrivatePath;
                 // Windows
                 if (System.IO.Path.DirectorySeparatorChar == '\\')
                 {
-                    p = path.Replace('\\', '/');
+                    p = PrivatePath.Replace('\\', '/');
                 }
                 p = p.Substring(p.LastIndexOf("/Data/") + 6);
                 return System.IO.Path.Combine(CTDbContext.appSettings.DATA_DIRECTORY, p);
@@ -89,14 +90,14 @@ namespace ClassTranscribeDatabase.Models
                 {
                     value = value.Replace('\\', '/');
                 }
-                path = value.Substring(value.LastIndexOf("/Data/"));
+                PrivatePath = value.Substring(value.LastIndexOf("/Data/"));
             }
         }
         public string VMPath
         {
             get
             {
-                return path;
+                return PrivatePath;
             }
         }
         public string Hash { get; set; }

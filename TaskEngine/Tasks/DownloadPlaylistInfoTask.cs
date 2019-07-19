@@ -53,6 +53,8 @@ namespace TaskEngine.Tasks
                     case SourceType.Youtube: medias = await GetYoutubePlaylist(p, _context); break;
                     case SourceType.Local: medias = await GetLocalPlaylist(p, _context); break;
                 }
+                await _context.Medias.AddRangeAsync(medias);
+                await _context.SaveChangesAsync();
                 medias.ForEach(m => _downloadMediaTask.Publish(m));
             }
             // (await _context.Medias.Where(m => m.Videos.Count() == 0).Take(5).ToListAsync()).ForEach(m => _downloadMediaTask.Publish(m));
@@ -81,8 +83,6 @@ namespace TaskEngine.Tasks
                     });
                 }
             }
-            await _context.Medias.AddRangeAsync(newMedia);
-            await _context.SaveChangesAsync();
             return newMedia;
         }
 
@@ -108,8 +108,6 @@ namespace TaskEngine.Tasks
                     });
                 }
             }
-            await _context.Medias.AddRangeAsync(newMedia);
-            await _context.SaveChangesAsync();
             return newMedia;
         }
 
