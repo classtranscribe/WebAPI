@@ -212,11 +212,24 @@ namespace ClassTranscribeDatabase.Models
         [ForeignKey("File")]
         public string FileId { get; set; }
         public virtual FileRecord File { get; set; }
-
-        string Description { get; set; }
+        public string Language { get; set; }
+        public string Description { get; set; }
         public string MediaId { get; set; }
         [IgnoreDataMember]
         public virtual Media Media { get; set; }
+        [IgnoreDataMember]
+        public virtual List<Caption> Captions { get; set; }
+    }
+
+    public class Caption : Entity
+    {
+        public int Index { get; set; }
+        public TimeSpan Begin { get; set; }
+        public TimeSpan End { get; set; }
+        public string Text { get; set; }
+        public string TranscriptionId { get; set; }
+        [IgnoreDataMember]
+        public virtual Transcription Transcription { get; set; }
     }
 
     public class Video : Entity

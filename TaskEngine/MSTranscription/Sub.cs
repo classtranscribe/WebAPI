@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Linq;
+using ClassTranscribeDatabase.Models;
 
 namespace TaskEngine.MSTranscription
 {
@@ -36,6 +37,17 @@ namespace TaskEngine.MSTranscription
             a += Caption + "\n\n";
             return a;
         }
+
+        public Caption ToCaption()
+        {
+            return new Caption
+            {
+                Text = this.Caption,
+                Begin = this.Begin,
+                End = this.End
+            };
+        }
+
 
         public static List<Sub> GetSubs(List<MSTWord> words)
         {            
@@ -131,9 +143,9 @@ namespace TaskEngine.MSTranscription
             return subs;
         }
 
-        public static string GenerateSrtFile(List<Sub> subs, String file)
+        public static string GenerateSrtFile(List<Sub> subs, string file, string language)
         {
-            string srtFile = file.Substring(0, file.IndexOf('.')) + ".srt";
+            string srtFile = file.Substring(0, file.IndexOf('.')) + "_" + language + ".srt";
             int Counter = 1;
             String Subtitle = "";
             foreach (Sub sub in subs)
@@ -144,17 +156,17 @@ namespace TaskEngine.MSTranscription
             return srtFile;
         }
 
-        public static string GenerateWebVTTFile(List<Sub> subs, String file)
+        public static string GenerateWebVTTFile(List<Sub> subs, String file, string language)
         {
-            string srtFile = file.Substring(0, file.IndexOf('.')) + ".vtt";
+            string vttFile = file.Substring(0, file.IndexOf('.')) + "_" + language + ".vtt";
             int Counter = 1;
             String Subtitle = "WEBVTT\nKind: subtitles\nLanguage: en\n\n";
             foreach (Sub sub in subs)
             {
                 Subtitle += sub.WebVTTSubtitle(Counter++);
             }
-            WriteSubtitleToFile(Subtitle, srtFile);
-            return srtFile;
+            WriteSubtitleToFile(Subtitle, vttFile);
+            return vttFile;
         }
 
         public static void WriteSubtitleToFile(string Subtitle, string srtFile)

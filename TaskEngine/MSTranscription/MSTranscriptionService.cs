@@ -1,31 +1,50 @@
-﻿using ClassTranscribeDatabase;
+﻿using ClassTranscribeDatabase; 
 using Microsoft.CognitiveServices.Speech;
+using Microsoft.CognitiveServices.Speech.Translation;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace TaskEngine.MSTranscription
 {
     public class MSTranscriptionService
     {
+        public class TranslationLanguages
+        {
+            public static string ENGLISH = "en-US";
+            public static string SIMPLIFIED_CHINESE = "zh-Hans";
+            public static string KOREAN = "ko";
+            public static string SPANISH = "es";
+        }
         private AppSettings _appSettings;
-        private SpeechConfig _speechConfig;
+        private SpeechTranslationConfig _speechConfig;
         public MSTranscriptionService()
         {
             _appSettings = Globals.appSettings;
-
-            _speechConfig = SpeechConfig.FromSubscription(_appSettings.AZURE_SUBSCRIPTION_KEY, _appSettings.AZURE_REGION);
+            _speechConfig = SpeechTranslationConfig.FromSubscription(_appSettings.AZURE_SUBSCRIPTION_KEY, _appSettings.AZURE_REGION);
             _speechConfig.RequestWordLevelTimestamps();
+            // Sets source and target languages.
+            _speechConfig.SpeechRecognitionLanguage = TranslationLanguages.ENGLISH;
+            _speechConfig.AddTargetLanguage(TranslationLanguages.SIMPLIFIED_CHINESE);
+            _speechConfig.AddTargetLanguage(TranslationLanguages.KOREAN);
+            _speechConfig.AddTargetLanguage(TranslationLanguages.SPANISH);
             _speechConfig.OutputFormat = OutputFormat.Detailed;
         }
-        public async Task<string> RecognitionWithAudioStreamAsync(string file)
+        public async Task<Tuple<Dictionary<string, List<Sub>>, Dictionary<string, string>>> RecognitionWithAudioStreamAsync(string file)
         {
-            // <recognitionAudioStream>
-            // Creates an instance of a speech config with specified subscription key and service region.
-            // Replace with your own subscription key and service region (e.g., "westus").
-            string vttFile = "";
+            Console.OutputEncoding = Encoding.Unicode;
+            Dictionary<string, List<Sub>> captions = new Dictionary<string, List<Sub>>();
+            Dictionary<string, string> vttFiles = new Dictionary<string, string>();
+
+            captions.Add(TranslationLanguages.ENGLISH, new List<Sub>());
+            captions.Add(TranslationLanguages.SIMPLIFIED_CHINESE, new List<Sub>());
+            captions.Add(TranslationLanguages.KOREAN, new List<Sub>());
+            captions.Add(TranslationLanguages.SPANISH, new List<Sub>());
+
+
             var stopRecognition = new TaskCompletionSource<int>();
             bool fileWritten = false;
             // Create an audio stream from a wav file.
@@ -33,39 +52,38 @@ namespace TaskEngine.MSTranscription
             using (var audioInput = Helper.OpenWavFile(file))
             {
                 // Creates a speech recognizer using audio stream input.
-                using (var recognizer = new SpeechRecognizer(_speechConfig, audioInput))
+                using (var recognizer = new TranslationRecognizer(_speechConfig, audioInput))
                 {
-                    //// Subscribes to events.
-                    //recognizer.Recognizing += (s, e) =>
-                    //{
-                    //    Console.WriteLine($"RECOGNIZING: Text={e.Result.Text}");
-                    //};
-
-                    List<List<MSTWord>> allWords = new List<List<MSTWord>>();
-                    List<Sub> subs = new List<Sub>();
                     recognizer.Recognized += (s, e) =>
                     {
-                        if (e.Result.Reason == ResultReason.RecognizedSpeech)
+                        if (e.Result.Reason == ResultReason.TranslatedSpeech)
                         {
-                            List<DetailedSpeechRecognitionResult> detailedSpeechRecognitionResults = e.Result.Best().ToList();
                             JObject jObject = JObject.Parse(e.Result.Properties.GetProperty(PropertyId.SpeechServiceResponse_JsonResult));
-                            var words = jObject["NBest"].OrderByDescending(o => o["Confidence"])
-                            .Take(1)
-                            .Select(o => o["Words"])
-                            .First()
+                            var words = jObject["Words"]
                             .ToObject<List<MSTWord>>()
                             .OrderBy(w => w.Offset)
                             .ToList();
 
-                            allWords.Add(words);
-
                             TimeSpan offset = new TimeSpan(e.Result.OffsetInTicks);
                             Console.WriteLine($"Begin={offset.Minutes}:{offset.Seconds},{offset.Milliseconds}", offset);
-                            // Console.WriteLine($"Begin={offset.Minutes}:{offset.Seconds},{offset.Milliseconds}");
                             TimeSpan end = e.Result.Duration.Add(offset);
                             Console.WriteLine($"End={end.Minutes}:{end.Seconds},{end.Milliseconds}");
-                            // Console.WriteLine($"Begin={offset.Minutes}:{offset.Seconds},{offset.Milliseconds}");
-                            subs.AddRange(Sub.GetSubs(words));
+                            List<Sub> englishSubs = Sub.GetSubs(words);
+                            englishSubs.ForEach(s => Console.WriteLine(s.Caption));
+                            captions[TranslationLanguages.ENGLISH].AddRange(englishSubs);
+
+                            foreach (var element in e.Result.Translations)
+                            {
+                                List<Sub> subs = Sub.GetSubs(new Sub
+                                {
+                                    Begin = offset,
+                                    End = end,
+                                    Caption = element.Value
+                                });
+                                captions[element.Key].AddRange(subs);
+                                // subs.ForEach(s => Console.WriteLine(s.Caption));
+                            }
+
                         }
                         else if (e.Result.Reason == ResultReason.NoMatch)
                         {
@@ -84,8 +102,11 @@ namespace TaskEngine.MSTranscription
                         stopRecognition.TrySetResult(0);
                         if (!fileWritten)
                         {
-                            Sub.GenerateSrtFile(subs, file);
-                            vttFile = Sub.GenerateWebVTTFile(subs, file);
+                            foreach (var language in captions.Keys)
+                            {
+                                string vttFile = Sub.GenerateWebVTTFile(captions[language], file, language);
+                                vttFiles.Add(language, vttFile);
+                            }
                         }
                         fileWritten = true;
                     };
@@ -100,8 +121,14 @@ namespace TaskEngine.MSTranscription
                         Console.WriteLine("\nSession stopped event.");
                         Console.WriteLine("\nStop recognition.");
                         stopRecognition.TrySetResult(0);
-                        Sub.GenerateSrtFile(subs, file);
-                        vttFile = Sub.GenerateWebVTTFile(subs, file);
+                        foreach (var language in captions.Keys)
+                        {
+                            string vttFile = Sub.GenerateWebVTTFile(captions[language], file, language);
+                            if (!vttFiles.ContainsKey(language))
+                            {
+                                vttFiles.Add(language, vttFile);
+                            }
+                        }
                         fileWritten = true;
                     };
 
@@ -114,7 +141,7 @@ namespace TaskEngine.MSTranscription
 
                     // Stops recognition.
                     await recognizer.StopContinuousRecognitionAsync().ConfigureAwait(false);
-                    return vttFile;
+                    return new Tuple<Dictionary<string, List<Sub>>, Dictionary<string, string>>(captions, vttFiles);
                 }
             }
             // </recognitionAudioStream>

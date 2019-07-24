@@ -1,7 +1,9 @@
 ﻿using ClassTranscribeDatabase;
 using ClassTranscribeDatabase.Models;
 using Microsoft.Extensions.Options;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using TaskEngine.Grpc;
 using TaskEngine.MSTranscription;
@@ -27,14 +29,24 @@ namespace TaskEngine.Tasks
         }
         protected async override Task OnConsume(Video video)
         {
-            Transcription t = new Transcription
+            var result = await _msTranscriptionService.RecognitionWithAudioStreamAsync(video.Audio.Path);
+            List<Transcription> transcriptions = new List<Transcription>();
+            foreach(var language in result.Item2)
             {
-                File = new FileRecord(await _msTranscriptionService.RecognitionWithAudioStreamAsync(video.Audio.Path)),
-                MediaId = video.MediaId
-            };
+                var captions = result.Item1[language.Key].Select(s => s.ToCaption()).ToList();
+                int i = 1;
+                captions.ForEach(c => c.Index = i++);
+                transcriptions.Add(new Transcription
+                {
+                    File = new FileRecord(language.Value),
+                    Language = language.Key,
+                    MediaId = video.MediaId,
+                    Captions = result.Item1[language.Key].Select(s => s.ToCaption()).ToList()
+                });
+            }
             using (var _context = CTDbContext.CreateDbContext())
             {                
-                await _context.Transcriptions.AddAsync(t);
+                await _context.Transcriptions.AddRangeAsync(transcriptions);
                 await _context.SaveChangesAsync();
             }
         }
