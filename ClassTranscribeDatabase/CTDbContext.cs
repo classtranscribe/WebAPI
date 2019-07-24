@@ -40,11 +40,22 @@ namespace ClassTranscribeDatabase
         public DbSet<UserOffering> UserOfferings { get; set; }
         public DbSet<FileRecord> FileRecords { get; set; }
         public DbSet<Caption> Captions { get; set; }
-        public static CTDbContext CreateDbContext()
+
+        public static DbContextOptionsBuilder<CTDbContext> GetDbContextOptionsBuilder() 
         {
             var optionsBuilder = new DbContextOptionsBuilder<CTDbContext>();
-            optionsBuilder.UseNpgsql(CTDbContext.GetConfigurations()["POSTGRES"]);
-            return new CTDbContext(optionsBuilder.Options, null);
+            optionsBuilder.UseLazyLoadingProxies().UseNpgsql(CTDbContext.GetConfigurations()["POSTGRES"], npgsqlOptionsAction: sqlOptions =>
+            {
+                sqlOptions.EnableRetryOnFailure(
+                        maxRetryCount: 10,
+                        maxRetryDelay: TimeSpan.FromSeconds(30),
+                        errorCodesToAdd: null);
+            });
+            return optionsBuilder;
+        }
+        public static CTDbContext CreateDbContext()
+        {            
+            return new CTDbContext(GetDbContextOptionsBuilder().Options, null);
         }
 
         public static IConfiguration GetConfigurations()

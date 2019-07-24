@@ -40,7 +40,7 @@ namespace ClassTranscribeServer
                 builder => builder.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
             });
             services.AddDbContext<CTDbContext>(options =>
-                options.UseLazyLoadingProxies().UseNpgsql(Globals.appSettings.POSTGRES));
+                CTDbContext.GetDbContextOptionsBuilder());
 
             //// ===== Add Identity ========
             services.AddIdentity<ApplicationUser, IdentityRole>(options =>
