@@ -22,10 +22,10 @@ namespace ClassTranscribeServer.Controllers
         }
 
         // GET: api/Captions/5
-        [HttpGet("ByTranscription/{transcriptionId}")]
+        [HttpGet("ByTranscription/{TranscriptionId}")]
         public async Task<ActionResult<IEnumerable<Caption>>> GetCaptions(string TranscriptionId)
         {
-            return await _context.Captions.Where(c => c.TranscriptionId == TranscriptionId).ToListAsync();
+            return await _context.Captions.Where(c => c.TranscriptionId == TranscriptionId).OrderBy(c => c.Index).ToListAsync();
         }
 
         // GET: api/Captions/5
