@@ -517,6 +517,7 @@ namespace ClassTranscribeServer.Seed
                 }
             }
             youtubePlaylist.OfferingId = offering2.Id;
+            echoPlaylist.OfferingId = offering2.Id;
 
             await _context.SaveChangesAsync();
             return true;
