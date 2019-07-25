@@ -48,13 +48,13 @@ namespace ClassTranscribeServer.Controllers
             {
                 return NotFound();
             }
-            List<MediaDTO> medias = new List<MediaDTO>();
-            playlist.Medias.ForEach(m => medias.Add(new MediaDTO
+            List<MediaDTO> medias = playlist.Medias.Select(m => new MediaDTO
             {
                 Media = m,
                 Videos = m.Videos,
                 Transcriptions = m.Transcriptions
-            }));
+            }).ToList();
+
             return new PlaylistDTO {
                 Playlist = playlist,
                 Medias = medias

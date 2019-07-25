@@ -53,12 +53,20 @@ namespace ClassTranscribeServer.Seed
             {
                 // University Id begins with 1
                 Id = "1001",
-                Name = "UIUC",
+                Name = "University of Illinois at Urbana-Champaign",
                 Domain = "illinois.edu"
                 // Departments = { department1, department2 }
             };
 
-            List<University> universities = new List<University> { university1 };
+            University unknownUniversity = new University
+            {
+                // University Id begins with 1
+                Id = "0000",
+                Name = "Unknown",
+                Domain = "UNK"
+            };
+
+            List<University> universities = new List<University> { university1, unknownUniversity };
 
             foreach (var t in universities)
             {

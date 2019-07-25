@@ -10,10 +10,11 @@ using System.Threading.Tasks;
 using ClassTranscribeDatabase.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Protocols;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
+using ClassTranscribeDatabase;
+using Newtonsoft.Json.Linq;
 
 namespace ClassTranscribeServer.Controllers
 {
@@ -22,21 +23,17 @@ namespace ClassTranscribeServer.Controllers
     {
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly UserManager<ApplicationUser> _userManager;
-        private readonly IConfiguration _configuration;
-
+        private readonly CTDbContext _context;
+        
         public AccountController(
             UserManager<ApplicationUser> userManager,
             SignInManager<ApplicationUser> signInManager,
-            IConfiguration configuration
+            CTDbContext context
             )
         {
             _userManager = userManager;
             _signInManager = signInManager;
-            _configuration = configuration;
-            if (configuration.GetValue<string>("DEV_ENV", "NULL") != "DOCKER")
-            {
-                _configuration = new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory()).AddJsonFile("vs_appsettings.json").Build();
-            }
+            _context = context;
         }
 
         [NonAction]
@@ -58,6 +55,9 @@ namespace ClassTranscribeServer.Controllers
         public async Task<LoggedInDTO> Register(ApplicationUser user)
         {
             var result = await _userManager.CreateAsync(user, user.Email);
+            University university = await GetUniversity(user.Email);
+            user.University = university;
+            await _context.SaveChangesAsync();
 
             if (result.Succeeded)
             {
@@ -122,13 +122,13 @@ namespace ClassTranscribeServer.Controllers
                 new Claim(ClaimTypes.NameIdentifier, user.Id)
             };
 
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JWT_KEY"]));
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Globals.appSettings.JWT_KEY));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-            var expires = DateTime.Now.AddDays(Convert.ToDouble(_configuration["JWT_EXPIRE_DAYS"]));
+            var expires = DateTime.Now.AddDays(Convert.ToDouble(Globals.appSettings.JWT_EXPIRE_DAYS));
 
             var token = new JwtSecurityToken(
-                _configuration["JWT_ISSUER"],
-                _configuration["JWT_ISSUER"],
+                Globals.appSettings.JWT_ISSUER,
+                Globals.appSettings.JWT_ISSUER,
                 claims,
                 expires: expires,
                 signingCredentials: creds
@@ -144,7 +144,7 @@ namespace ClassTranscribeServer.Controllers
         [NonAction]
         public ApplicationUser Validate(string token)
         {
-            string stsDiscoveryEndpoint = "https://" + _configuration["AZURE_B2C_DOMAIN"] + "/" + _configuration["AZURE_B2C_DIRECTORY"] + "/v2.0/.well-known/openid-configuration?p=" + _configuration["AZURE_B2C_SIGNIN_POLICY"];
+            string stsDiscoveryEndpoint = "https://" + Globals.appSettings.AZURE_B2C_DOMAIN + "/" + Globals.appSettings.AZURE_B2C_DIRECTORY + "/v2.0/.well-known/openid-configuration?p=" + Globals.appSettings.AZURE_B2C_SIGNIN_POLICY;
 
             ConfigurationManager<OpenIdConnectConfiguration> configManager = new ConfigurationManager<OpenIdConnectConfiguration>(stsDiscoveryEndpoint, new OpenIdConnectConfigurationRetriever());
 
@@ -153,7 +153,7 @@ namespace ClassTranscribeServer.Controllers
             TokenValidationParameters validationParameters = new TokenValidationParameters
             {
                 ValidateAudience = true,
-                ValidAudience = _configuration["AZURE_B2C_CLIENTID"],
+                ValidAudience = Globals.appSettings.AZURE_B2C_CLIENTID,
                 ValidateIssuer = false,
                 ValidIssuer = config.Issuer,
                 IssuerSigningKeys = config.SigningKeys,
@@ -180,6 +180,55 @@ namespace ClassTranscribeServer.Controllers
             return user;
         }
 
+        [NonAction]
+        public async Task<University> GetUniversity(string mailId)
+        {
+            string domain = mailId.Split('@')[1];
+            University university;
+            if(_context.Universities.Where(u => u.Domain == domain).Any())
+            {
+                university = _context.Universities.Where(u => u.Domain == domain).Single();
+            }
+            else
+            {
+                string universityName = GetUniversityName(domain);
+                if(universityName == "")
+                {
+                    // If domain is unknown return Special University as Unknown
+                    university = await _context.Universities.FindAsync("0000");
+                }
+                else
+                {
+                    university = new University
+                    {
+                        Name = universityName,
+                        Domain = domain
+                    };
+                    await _context.Universities.AddAsync(university);
+                    await _context.SaveChangesAsync();
+                }
+            }
+            return university;
+        }
+        [NonAction]
+        public static string GetUniversityName(string domain)
+        {
+            using (StreamReader r = new StreamReader("world_universities_and_domains.json"))
+            {
+                string json = r.ReadToEnd();
+                JArray allUniversities = JArray.Parse(json);
+                if (allUniversities.Where(u => u["domains"].First().ToString() == domain).Any())
+                {
+                    return allUniversities.Where(u => u["domains"].First().ToString() == domain)
+                    .First()["name"].ToString();
+                }
+                else
+                {
+                    return "";
+                }
+                
+            }
+        }
         public class LoginDto
         {
             [Required]
