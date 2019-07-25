@@ -136,8 +136,9 @@ namespace ClassTranscribeServer.Controllers
             return new LoggedInDTO
             {
                 AuthToken = new JwtSecurityTokenHandler().WriteToken(token),
-                UserId = user.Id
-
+                UserId = user.Id,
+                EmailId = email,
+                UniversityId = user.UniversityId
             };
         }
 
@@ -242,7 +243,9 @@ namespace ClassTranscribeServer.Controllers
         public class LoggedInDTO
         {
             public string UserId { get; set; }
+            public string UniversityId { get; set; }
             public string AuthToken { get; set; }
+            public string EmailId { get; set; }
         }
 
     }
