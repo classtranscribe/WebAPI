@@ -66,23 +66,23 @@ namespace TaskEngine.MSTranscription
             List<Sub> subs = new List<Sub>();
 
             StringBuilder caption = new StringBuilder();
-            int caption_start = 0;
-            int caption_end = 0;
+            long caption_start = 0;
+            long caption_end = 0;
             int num_words = words.Count;
 
             for (int i = 0; i < num_words; i++)
             {
                 MSTWord entry = words[i];
 
-                int duration;
-                int offset;
+                long duration;
+                long offset;
                 string word;
 
                 try
                 {
                 // A tick represents one hundred nanoseconds, so convert to milliseconds
-                duration = (int)(entry.Duration / 1e4);
-                offset = (int)(entry.Offset / 1e4);
+                duration = entry.Duration / 1000;
+                offset = entry.Offset / 1000;
                 word = entry.Word;
                 }
                 catch (RuntimeWrappedException e)
@@ -97,8 +97,8 @@ namespace TaskEngine.MSTranscription
 
                 bool is_last_few_words = (i >= num_words - Constants.END_VIDEO_ORPHAN_COUNT);
 
-                int gap = offset - caption_end;
-                int new_caption_end = offset + duration;
+                long gap = offset - caption_end;
+                long new_caption_end = offset + duration;
 
              // Can we just append the word to an existing caption line?
              if ( (caption.Length > 0) &&
@@ -117,8 +117,8 @@ namespace TaskEngine.MSTranscription
                 {
                     Sub current_sub = new Sub
                     {
-                        Begin = new TimeSpan(caption_end),
-                        End = new TimeSpan(offset),
+                        Begin = new TimeSpan(caption_end * 1000),
+                        End = new TimeSpan(offset * 1000),
                         Caption = "[ Silence / Inaudible ]"
                     };
                     subs.Add(current_sub);
@@ -130,8 +130,8 @@ namespace TaskEngine.MSTranscription
                     // Emit current caption (with original end time)
                     Sub current_sub = new Sub
                     {
-                        Begin = new TimeSpan(caption_start),
-                        End = new TimeSpan(caption_end),
+                        Begin = new TimeSpan(caption_start * 1000),
+                        End = new TimeSpan(caption_end * 1000),
                         Caption = caption.ToString()
                     };
                     subs.Add(current_sub);
@@ -156,8 +156,8 @@ namespace TaskEngine.MSTranscription
                 // Emit current caption (with original end time)
                 Sub current_sub = new Sub
                 {
-                    Begin = new TimeSpan(caption_start),
-                    End = new TimeSpan(caption_end),
+                    Begin = new TimeSpan(caption_start * 1000),
+                    End = new TimeSpan(caption_end * 1000),
                     Caption = caption.ToString()
                 };
                 subs.Add(current_sub);
