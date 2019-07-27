@@ -38,7 +38,8 @@ namespace TaskEngine.Tasks
                 queueName = RabbitMQ.QueueNameBuilder(TaskType.FetchPlaylistData, "_1");
                 var period = DateTime.Now.AddMonths(-12);
                 var playlists = await _context.Offerings.Where(o => o.Term.StartDate >= period).SelectMany(o => o.Playlists).ToListAsync();
-                playlists.ForEach(p => Publish(p));
+                // TEMPORARY CHANGE
+                playlists.Where(p => p.SourceType != SourceType.Local).ToList().ForEach(p => Publish(p));
             }
         }
 
