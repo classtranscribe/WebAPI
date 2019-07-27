@@ -326,60 +326,70 @@ namespace ClassTranscribeServer.Seed
 
             CourseOffering course_offering1 = new CourseOffering
             {
+                Id = "9001",
                 CourseId = course1.Id,
                 OfferingId = offering1.Id
             };
 
             CourseOffering course_offering2 = new CourseOffering
             {
+                Id = "9002",
                 CourseId = course1.Id,
                 OfferingId = offering2.Id
             };
 
             CourseOffering course_offering3 = new CourseOffering
             {
+                Id = "9003",
                 CourseId = course1.Id,
                 OfferingId = offering3.Id
             };
 
             CourseOffering course_offering4 = new CourseOffering
             {
+                Id = "9004",
                 CourseId = course1.Id,
                 OfferingId = offering4.Id
             };
 
             CourseOffering course_offering5 = new CourseOffering
             {
+                Id = "9005",
                 CourseId = course1.Id,
                 OfferingId = offering5.Id
             };
 
             CourseOffering course_offering6 = new CourseOffering
             {
+                Id = "9006",
                 CourseId = course2.Id,
                 OfferingId = offering1.Id
             };
 
             CourseOffering course_offering7 = new CourseOffering
             {
+                Id = "9007",
                 CourseId = course2.Id,
                 OfferingId = offering2.Id
             };
 
             CourseOffering course_offering8 = new CourseOffering
             {
+                Id = "9008",
                 CourseId = course2.Id,
                 OfferingId = offering3.Id
             };
 
             CourseOffering course_offering9 = new CourseOffering
             {
+                Id = "9009",
                 CourseId = course2.Id,
                 OfferingId = offering4.Id
             };
 
             CourseOffering course_offering10 = new CourseOffering
             {
+                Id = "9010",
                 CourseId = course2.Id,
                 OfferingId = offering5.Id
             };
