@@ -41,7 +41,7 @@ namespace TaskEngine.Tasks
                     File = new FileRecord(language.Value),
                     Language = language.Key,
                     MediaId = video.MediaId,
-                    Captions = result.Item1[language.Key].Select(s => s.ToCaption()).ToList()
+                    Captions = captions
                 });
             }
             using (var _context = CTDbContext.CreateDbContext())
