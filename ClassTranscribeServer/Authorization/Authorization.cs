@@ -6,36 +6,80 @@ using ClassTranscribeDatabase;
 using ClassTranscribeDatabase.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 
 namespace ClassTranscribeServer.Authorization
 {
-    public class ViewOfferingRequirement : IAuthorizationRequirement { }
+    public class ReadOfferingRequirement : IAuthorizationRequirement { }
 
-    public class EditOfferingRequirement : IAuthorizationRequirement { }
+    public class UpdateOfferingRequirement : IAuthorizationRequirement { }
+    public class CreateOfferingRequirement : IAuthorizationRequirement { }
 
-    public class ViewOfferingAuthorizationHandler :
-    AuthorizationHandler<ViewOfferingRequirement, Offering>
+    public class UpdateOfferingAuthorizationHandler :
+    AuthorizationHandler<UpdateOfferingRequirement, string>
     {
         CTDbContext _ctDbContext;
         RoleManager<IdentityRole> _roleManager;
         UserManager<ApplicationUser> _userManager;
 
-        public ViewOfferingAuthorizationHandler(CTDbContext ctDbContext, RoleManager<IdentityRole> roleManager, UserManager<ApplicationUser> userManager)
+        public UpdateOfferingAuthorizationHandler(CTDbContext ctDbContext, RoleManager<IdentityRole> roleManager, UserManager<ApplicationUser> userManager)
         {
             _ctDbContext = ctDbContext;
             _roleManager = roleManager;
             _userManager = userManager;
         }
 
-        protected override Task HandleRequirementAsync(AuthorizationHandlerContext context,
-                                                       ViewOfferingRequirement requirement,
-                                                       Offering offering)
+        protected override async Task HandleRequirementAsync(AuthorizationHandlerContext context,
+                                                       UpdateOfferingRequirement requirement,
+                                                       string offeringId)
         {
+            var offering = await _ctDbContext.Offerings.FindAsync(offeringId);
+            ApplicationUser user = null;
+            if (context.User == null)
+            {
+                return;
+            }
+            else
+            {
+                var currentUserID = context.User.FindFirst(ClaimTypes.NameIdentifier).Value;
+                user = _ctDbContext.Users.Where(u => u.Id == currentUserID).First();
+            }
+            var InstructorRoleId = await _roleManager.GetRoleIdAsync(new IdentityRole { Name = Globals.ROLE_INSTRUCTOR });
+            if (context.User.IsInRole(Globals.ROLE_ADMIN))
+            {
+                context.Succeed(requirement);
+            }
+            if (_ctDbContext.UserOfferings.Where( (uo) => uo.ApplicationUserId == user.Id && uo.OfferingId == offering.Id && uo.IdentityRoleId == InstructorRoleId).Any())
+            {
+                context.Succeed(requirement);
+            }
+        }
+
+    }
+
+    public class ReadOfferingAuthorizationHandler :
+    AuthorizationHandler<ReadOfferingRequirement, string>
+    {
+        CTDbContext _ctDbContext;
+        RoleManager<IdentityRole> _roleManager;
+        UserManager<ApplicationUser> _userManager;
+
+        public ReadOfferingAuthorizationHandler(CTDbContext ctDbContext, RoleManager<IdentityRole> roleManager, UserManager<ApplicationUser> userManager)
+        {
+            _ctDbContext = ctDbContext;
+            _roleManager = roleManager;
+            _userManager = userManager;
+        }
+        protected override async Task HandleRequirementAsync(AuthorizationHandlerContext context,
+                                                       ReadOfferingRequirement requirement,
+                                                       string offeringId)
+        {
+            var offering = await _ctDbContext.Offerings.FindAsync(offeringId);
             ApplicationUser user = null;
             if (context.User != null)
             {
                 var currentUserID = context.User.FindFirst(ClaimTypes.NameIdentifier).Value;
-                user = _ctDbContext.Users.Where(u => u.Id == currentUserID).First();
+                user = await _ctDbContext.Users.Where(u => u.Id == currentUserID).FirstAsync();
             }
 
             if (offering.AccessType == AccessTypes.Public)
@@ -58,7 +102,6 @@ namespace ClassTranscribeServer.Authorization
             {
                 context.Succeed(requirement);
             }
-            return Task.CompletedTask;
         }
-    }
+    }    
 }

@@ -18,6 +18,13 @@ using System.Reflection;
 using ClassTranscribeServer.Seed;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.FileProviders;
+using Microsoft.AspNetCore.Authorization;
+using ClassTranscribeServer.Authorization;
+using Microsoft.AspNetCore.HttpOverrides;
+using Swashbuckle.AspNetCore.Filters;
+using System.Collections.Generic;
+using System.Linq;
+using Swashbuckle.AspNetCore.Swagger;
 
 namespace ClassTranscribeServer
 {
@@ -78,10 +85,27 @@ namespace ClassTranscribeServer
 
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
 
+            // Authorization handlers.
+            services.AddScoped<IAuthorizationHandler,
+                                  ReadOfferingAuthorizationHandler>();
+            services.AddScoped<IAuthorizationHandler,
+                                  UpdateOfferingAuthorizationHandler>();
+
+            // Configure your policies
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy(Globals.POLICY_UPDATE_OFFERING, policy =>
+                    policy.Requirements.Add(new UpdateOfferingRequirement()));
+                options.AddPolicy(Globals.POLICY_READ_OFFERING,
+                  policy => policy.AddRequirements(new ReadOfferingRequirement()));
+            });
+
+
             // Register the Swagger generator, defining 1 or more Swagger documents
+            // new ApiKeyScheme { };
             services.AddSwaggerGen(c =>
             {
-                c.SwaggerDoc("v1", new OpenApiInfo
+                c.SwaggerDoc("v1", new Info
                 {
                     Version = "v1",
                     Title = "ClassTranscribeServer API"
@@ -90,6 +114,18 @@ namespace ClassTranscribeServer
                 var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
                 var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
                 c.IncludeXmlComments(xmlPath);
+                c.AddSecurityDefinition("Bearer",
+                new ApiKeyScheme
+                {
+                    In = "header",
+                    Description = "Please enter into field the word 'Bearer' following by space and JWT",
+                    Name = "Authorization",
+                    Type = "apiKey"
+                });
+                c.AddSecurityRequirement(new Dictionary<string, IEnumerable<string>> {
+                { "Bearer", Enumerable.Empty<string>() },
+            });
+
             });
         }
 
@@ -106,7 +142,10 @@ namespace ClassTranscribeServer
                 // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();
             }
-
+            app.UseForwardedHeaders(new ForwardedHeadersOptions
+            {
+                ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+            });
             app.UseCors(MyAllowSpecificOrigins);
             app.UseHttpsRedirection();
             app.UseAuthentication();

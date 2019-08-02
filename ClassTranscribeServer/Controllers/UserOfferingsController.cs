@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ClassTranscribeDatabase;
 using ClassTranscribeDatabase.Models;
+using Microsoft.AspNetCore.Authorization;
 
 namespace ClassTranscribeServer.Controllers
 {
@@ -13,17 +14,12 @@ namespace ClassTranscribeServer.Controllers
     public class UserOfferingsController : ControllerBase
     {
         private readonly CTDbContext _context;
+        private readonly IAuthorizationService _authorizationService;
 
-        public UserOfferingsController(CTDbContext context)
+        public UserOfferingsController(CTDbContext context, IAuthorizationService authorizationService)
         {
+            _authorizationService = authorizationService;
             _context = context;
-        }
-
-        // GET: api/UserOfferings
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<UserOffering>>> GetUserOfferings()
-        {
-            return await _context.UserOfferings.ToListAsync();
         }
 
         // GET: api/Courses/
@@ -48,8 +44,21 @@ namespace ClassTranscribeServer.Controllers
 
         // POST: api/UserOfferings
         [HttpPost]
+        [Authorize]
         public async Task<ActionResult<UserOffering>> PostUserOffering(UserOfferingDTO userOfferingDTO)
         {
+            var authorizationResult = await _authorizationService.AuthorizeAsync(this.User, userOfferingDTO.OfferingId, Globals.POLICY_UPDATE_OFFERING);
+            if (!authorizationResult.Succeeded)
+            {
+                if (User.Identity.IsAuthenticated)
+                {
+                    return new ForbidResult();
+                }
+                else
+                {
+                    return new ChallengeResult();
+                }
+            }
             UserOffering userOffering = new UserOffering
             {
                 ApplicationUserId = userOfferingDTO.UserId,
@@ -79,8 +88,21 @@ namespace ClassTranscribeServer.Controllers
 
         // DELETE: api/UserOfferings/5
         [HttpDelete("{offeringId}/{userId}")]
+        [Authorize]
         public async Task<ActionResult<UserOffering>> DeleteUserOffering(string offeringId, string userId)
         {
+            var authorizationResult = await _authorizationService.AuthorizeAsync(this.User, offeringId, Globals.POLICY_UPDATE_OFFERING);
+            if (!authorizationResult.Succeeded)
+            {
+                if (User.Identity.IsAuthenticated)
+                {
+                    return new ForbidResult();
+                }
+                else
+                {
+                    return new ChallengeResult();
+                }
+            }
             var userOffering = await _context.UserOfferings.Where(uo => uo.OfferingId == offeringId && uo.ApplicationUserId == userId).FirstAsync();
             if (userOffering == null)
             {

@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ClassTranscribeDatabase;
 using ClassTranscribeDatabase.Models;
+using Microsoft.AspNetCore.Authorization;
 
 namespace ClassTranscribeServer.Controllers
 {
@@ -42,6 +43,7 @@ namespace ClassTranscribeServer.Controllers
 
         // PUT: api/Universities/5
         [HttpPut("{id}")]
+        [Authorize(Roles = Globals.ROLE_ADMIN)]
         public async Task<IActionResult> PutUniversity(string id, University university)
         {
             if (id != university.Id)
@@ -72,6 +74,7 @@ namespace ClassTranscribeServer.Controllers
 
         // POST: api/Universities
         [HttpPost]
+        [Authorize(Roles = Globals.ROLE_ADMIN)]
         public async Task<ActionResult<University>> PostUniversity(University university)
         {
             _context.Universities.Add(university);
@@ -82,6 +85,7 @@ namespace ClassTranscribeServer.Controllers
 
         // DELETE: api/Universities/5
         [HttpDelete("{id}")]
+        [Authorize(Roles = Globals.ROLE_ADMIN)]
         public async Task<ActionResult<University>> DeleteUniversity(string id)
         {
             var university = await _context.Universities.FindAsync(id);

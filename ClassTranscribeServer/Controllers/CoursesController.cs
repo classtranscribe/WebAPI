@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ClassTranscribeDatabase;
 using ClassTranscribeDatabase.Models;
+using Microsoft.AspNetCore.Authorization;
 
 namespace ClassTranscribeServer.Controllers
 {
@@ -48,6 +49,7 @@ namespace ClassTranscribeServer.Controllers
         /// Gets all Courses by Instructors for userId.
         /// </summary>
         [HttpGet("ByInstructor/{userId}")]
+        [Authorize]
         public async Task<ActionResult<IEnumerable<Course>>> GetCoursesByInstructor(string userId)
         {
             return await (from c in _context.Courses
@@ -77,6 +79,7 @@ namespace ClassTranscribeServer.Controllers
 
         // PUT: api/Courses/5
         [HttpPut("{id}")]
+        [Authorize(Roles = Globals.ROLE_ADMIN)]
         public async Task<IActionResult> PutCourse(string id, Course course)
         {
             if (id != course.Id)
@@ -107,6 +110,7 @@ namespace ClassTranscribeServer.Controllers
 
         // POST: api/Courses
         [HttpPost]
+        [Authorize(Roles = Globals.ROLE_ADMIN)]
         public async Task<ActionResult<Course>> PostCourse(Course course)
         {
             _context.Courses.Add(course);
@@ -117,6 +121,7 @@ namespace ClassTranscribeServer.Controllers
 
         // DELETE: api/Courses/5
         [HttpDelete("{id}")]
+        [Authorize(Roles = Globals.ROLE_ADMIN)]
         public async Task<ActionResult<Course>> DeleteCourse(string id)
         {
             var course = await _context.Courses.FindAsync(id);

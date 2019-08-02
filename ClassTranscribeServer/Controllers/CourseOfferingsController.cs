@@ -5,6 +5,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ClassTranscribeDatabase;
 using ClassTranscribeDatabase.Models;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
+using System.Security.Claims;
 
 namespace ClassTranscribeServer.Controllers
 {
@@ -13,11 +16,13 @@ namespace ClassTranscribeServer.Controllers
     public class CourseOfferingsController : ControllerBase
     {
         private readonly CTDbContext _context;
+        private readonly IAuthorizationService _authorizationService;
 
-        public CourseOfferingsController(CTDbContext context)
+        public CourseOfferingsController(CTDbContext context, IAuthorizationService authorizationService)
         {
             _context = context;
-        }
+            _authorizationService = authorizationService;
+    }
 
         // GET: api/CourseOfferings
         [HttpGet]
@@ -31,6 +36,7 @@ namespace ClassTranscribeServer.Controllers
         /// Gets all Offerings per Course per Instructor
         /// </summary>
         [HttpGet("ByInstructor/{userId}")]
+        [Authorize]
         public async Task<ActionResult<IEnumerable<CourseOfferingDTO>>> GetCourseOfferingsByInstructor(string userId)
         {
             var courseOfferings = _context.UserOfferings
@@ -45,24 +51,23 @@ namespace ClassTranscribeServer.Controllers
 
         }
 
-        // GET: api/CourseOfferings/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<CourseOffering>> GetCourseOffering(string id)
-        {
-            var courseOffering = await _context.CourseOfferings.FindAsync(id);
-
-            if (courseOffering == null)
-            {
-                return NotFound();
-            }
-
-            return courseOffering;
-        }
-
         // PUT: api/CourseOfferings/5
         [HttpPut("{id}")]
+        [Authorize]
         public async Task<IActionResult> PutCourseOffering(string id, CourseOffering courseOffering)
         {
+            var authorizationResult = await _authorizationService.AuthorizeAsync(this.User, courseOffering.OfferingId, Globals.POLICY_UPDATE_OFFERING);
+            if (!authorizationResult.Succeeded)
+            {
+                if (User.Identity.IsAuthenticated)
+                {
+                    return new ForbidResult();
+                }
+                else
+                {
+                    return new ChallengeResult();
+                }
+            }
             if (id != courseOffering.CourseId)
             {
                 return BadRequest();
@@ -91,6 +96,7 @@ namespace ClassTranscribeServer.Controllers
 
         // POST: api/CourseOfferings
         [HttpPost]
+        [Authorize(Roles = Globals.ROLE_ADMIN + "," + Globals.ROLE_INSTRUCTOR)]
         public async Task<ActionResult<CourseOffering>> PostCourseOffering(CourseOffering courseOffering)
         {
             _context.CourseOfferings.Add(courseOffering);
@@ -113,29 +119,26 @@ namespace ClassTranscribeServer.Controllers
             return CreatedAtAction("GetCourseOffering", new { id = courseOffering.CourseId }, courseOffering);
         }
 
-        // DELETE: api/CourseOfferings/5
-        [HttpDelete("{id}")]
-        public async Task<ActionResult<CourseOffering>> DeleteCourseOffering(string id)
-        {
-            var courseOffering = await _context.CourseOfferings.FindAsync(id);
-            if (courseOffering == null)
-            {
-                return NotFound();
-            }
-
-            _context.CourseOfferings.Remove(courseOffering);
-            await _context.SaveChangesAsync();
-
-            return courseOffering;
-        }
-
         // DELETE: api/CourseOfferings/{courseId}/{offeringId}
         /// <summary>
         /// Deletes CourseOffering
         /// </summary>
         [HttpDelete("{courseId}/{offeringId}")]
+        [Authorize]
         public async Task<ActionResult<List<CourseOffering>>> DeleteCourseOffering(string courseId, string offeringId)
         {
+            var authorizationResult = await _authorizationService.AuthorizeAsync(this.User, offeringId, Globals.POLICY_UPDATE_OFFERING);
+            if (!authorizationResult.Succeeded)
+            {
+                if (User.Identity.IsAuthenticated)
+                {
+                    return new ForbidResult();
+                }
+                else
+                {
+                    return new ChallengeResult();
+                }
+            }        
             var courseOfferings = await _context.CourseOfferings.Where(co => co.OfferingId == offeringId && co.CourseId == courseId).ToListAsync();
             if (courseOfferings == null)
             {

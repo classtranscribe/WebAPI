@@ -8,6 +8,7 @@ using ClassTranscribeDatabase.Models;
 using System.Security.Claims;
 using System;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Authorization;
 
 namespace ClassTranscribeServer.Controllers
 {
@@ -16,35 +17,28 @@ namespace ClassTranscribeServer.Controllers
     public class OfferingsController : ControllerBase
     {
         private readonly CTDbContext _context;
+        private readonly IAuthorizationService _authorizationService;
 
-        public OfferingsController(CTDbContext context)
+        public OfferingsController(CTDbContext context, IAuthorizationService authorizationService)
         {
             _context = context;
+            _authorizationService = authorizationService;
         }
-
-        /// <summary>
-        /// Gets all Offerings 
-        /// </summary>
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<Offering>>> GetOfferings()
-        {
-            return await _context.Offerings.ToListAsync();
-        }
-
 
         // GET: api/Courses/
         // TODO: Implement Authorization
         /// <summary>
         /// Gets all Offerings for a student by userId
         /// </summary>
-        [HttpGet("ByStudent/{userId}")]
-        public async Task<ActionResult<IEnumerable<Offering>>> GetOfferingsByStudent(string userId)
+        [HttpGet("ByStudent")]
+        public async Task<ActionResult<IEnumerable<Offering>>> GetOfferingsByStudent()
         {
             // Get the user
-            var user = await _context.Users.FindAsync(userId);
-            if (user == null)
+            ApplicationUser user = null;
+            if (User.Identity.IsAuthenticated)
             {
-                return NotFound();
+                var userId = this.User.FindFirst(ClaimTypes.NameIdentifier).Value;
+                user = await _context.Users.FindAsync(userId);
             }
 
             // Store the results
@@ -59,18 +53,19 @@ namespace ClassTranscribeServer.Controllers
             {
                 var authen_offerings = await _context.Offerings.Where(offer => offer.AccessType == AccessTypes.AuthenticatedOnly).ToListAsync();
                 offerings.AddRange(authen_offerings);
-            }
 
-            // Get all their university's offerings
-            var university_offerings = await _context.Courses.Where(c => c.Department.University == user.University)
+                // Get all their university's offerings
+                var university_offerings = await _context.Courses.Where(c => c.Department.University == user.University)
                                                             .SelectMany(c => c.CourseOfferings)
                                                             .Select(co => co.Offering)
                                                             .Where(o => o.AccessType == AccessTypes.UniversityOnly).ToListAsync();
-            offerings.AddRange(university_offerings);
+                offerings.AddRange(university_offerings);
 
-            // Get all offering that this user is a member
-            var member_offerings = await _context.Offerings.Where(offer => offer.AccessType == AccessTypes.StudentsOnly && offer.OfferingUsers.Select(ou => ou.ApplicationUser).Contains(user)).ToListAsync();
-            offerings.AddRange(member_offerings);
+                // Get all offering that this user is a member
+                var member_offerings = await _context.UserOfferings.Where(uo => uo.ApplicationUserId == user.Id && uo.Offering.AccessType == AccessTypes.StudentsOnly)
+                    .Select(uo => uo.Offering).ToListAsync();
+                offerings.AddRange(member_offerings);
+            }
 
             // return the combined result
             return offerings;
@@ -94,7 +89,11 @@ namespace ClassTranscribeServer.Controllers
                 Courses = await _context.CourseOfferings.Where(co => co.OfferingId == offering.Id).Select(co => co.Course).ToListAsync(),
                 InstructorIds = await _context.UserOfferings
                 .Where(uo => uo.OfferingId == offering.Id && uo.IdentityRole.Name == Globals.ROLE_INSTRUCTOR)
-                .Select(uo => uo.ApplicationUserId).ToListAsync()
+                .Select(uo => new ApplicationUser
+                {
+                    Id = uo.ApplicationUser.Id,
+                    Email = uo.ApplicationUser.Email
+                }).ToListAsync()
             };
 
             return offeringDTO;
@@ -104,6 +103,18 @@ namespace ClassTranscribeServer.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> PutOffering(string id, Offering offering)
         {
+            var authorizationResult = await _authorizationService.AuthorizeAsync(this.User, id, Globals.POLICY_UPDATE_OFFERING);
+            if (!authorizationResult.Succeeded)
+            {
+                if (User.Identity.IsAuthenticated)
+                {
+                    return new ForbidResult();
+                }
+                else
+                {
+                    return new ChallengeResult();
+                }
+            }
             if (id != offering.Id)
             {
                 return BadRequest();
@@ -134,6 +145,7 @@ namespace ClassTranscribeServer.Controllers
         /// Post new Offering for a course for an instructor
         /// </summary>
         [HttpPost]
+        [Authorize(Roles = Globals.ROLE_ADMIN + "," + Globals.ROLE_INSTRUCTOR)]
         public async Task<ActionResult<Offering>> PostNewOffering(NewOfferingDTO newOfferingDTO)
         {
             _context.Offerings.Add(newOfferingDTO.Offering);
@@ -158,6 +170,18 @@ namespace ClassTranscribeServer.Controllers
         [HttpPost("AddUsers/{offeringId}/{roleName}")]
         public async Task<ActionResult<IEnumerable<UserOffering>>> AddUsersToOffering(string offeringId, string roleName, List<string> mailIds)
         {
+            var authorizationResult = await _authorizationService.AuthorizeAsync(this.User, offeringId, Globals.POLICY_UPDATE_OFFERING);
+            if (!authorizationResult.Succeeded)
+            {
+                if (User.Identity.IsAuthenticated)
+                {
+                    return new ForbidResult();
+                }
+                else
+                {
+                    return new ChallengeResult();
+                }
+            }
             List<UserOffering> userOfferings = new List<UserOffering>();
             IdentityRole identityRole = _context.Roles.Where(r => r.Name == roleName).FirstOrDefault();
             foreach (string mailId in mailIds)
@@ -178,6 +202,18 @@ namespace ClassTranscribeServer.Controllers
         [HttpDelete("{id}")]
         public async Task<ActionResult<Offering>> DeleteOffering(string id)
         {
+            var authorizationResult = await _authorizationService.AuthorizeAsync(this.User, id, Globals.POLICY_UPDATE_OFFERING);
+            if (!authorizationResult.Succeeded)
+            {
+                if (User.Identity.IsAuthenticated)
+                {
+                    return new ForbidResult();
+                }
+                else
+                {
+                    return new ChallengeResult();
+                }
+            }
             var offering = await _context.Offerings.FindAsync(id);
             if (offering == null)
             {
@@ -207,7 +243,7 @@ namespace ClassTranscribeServer.Controllers
         {
             public Offering Offering { get; set; }
             public List<Course> Courses { get; set; }
-            public List<string> InstructorIds { get; set; }
+            public List<ApplicationUser> InstructorIds { get; set; }
         }
     }
 

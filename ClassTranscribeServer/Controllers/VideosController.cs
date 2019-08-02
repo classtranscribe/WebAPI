@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ClassTranscribeDatabase;
 using ClassTranscribeDatabase.Models;
+using Microsoft.AspNetCore.Authorization;
 
 namespace ClassTranscribeServer.Controllers
 {
@@ -42,6 +43,7 @@ namespace ClassTranscribeServer.Controllers
 
         // PUT: api/Videos/5
         [HttpPut("{id}")]
+        [Authorize]
         public async Task<IActionResult> PutVideo(string id, Video video)
         {
             if (id != video.Id)
@@ -72,6 +74,7 @@ namespace ClassTranscribeServer.Controllers
 
         // POST: api/Videos
         [HttpPost]
+        [Authorize]
         public async Task<ActionResult<Video>> PostVideo(Video video)
         {
             _context.Videos.Add(video);
@@ -82,6 +85,7 @@ namespace ClassTranscribeServer.Controllers
 
         // DELETE: api/Videos/5
         [HttpDelete("{id}")]
+        [Authorize]
         public async Task<ActionResult<Video>> DeleteVideo(string id)
         {
             var video = await _context.Videos.FindAsync(id);

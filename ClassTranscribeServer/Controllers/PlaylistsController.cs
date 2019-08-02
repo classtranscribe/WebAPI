@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ClassTranscribeDatabase;
 using ClassTranscribeDatabase.Models;
+using Microsoft.AspNetCore.Authorization;
 
 namespace ClassTranscribeServer.Controllers
 {
@@ -15,10 +16,12 @@ namespace ClassTranscribeServer.Controllers
     public class PlaylistsController : ControllerBase
     {
         private readonly CTDbContext _context;
+        private readonly IAuthorizationService _authorizationService;
 
-        public PlaylistsController(CTDbContext context)
+        public PlaylistsController(CTDbContext context, IAuthorizationService authorizationService)
         {
             _context = context;
+            _authorizationService = authorizationService;
         }
 
         // GET: api/Playlists
@@ -35,6 +38,18 @@ namespace ClassTranscribeServer.Controllers
         [HttpGet("ByOffering/{offeringId}")]
         public async Task<ActionResult<IEnumerable<Playlist>>> GetPlaylists(string offeringId)
         {
+            var authorizationResult = await _authorizationService.AuthorizeAsync(this.User, offeringId, Globals.POLICY_READ_OFFERING);
+            if (!authorizationResult.Succeeded)
+            {
+                if (User.Identity.IsAuthenticated)
+                {
+                    return new ForbidResult();
+                }
+                else
+                {
+                    return new ChallengeResult();
+                }
+            }
             return (await _context.Offerings.FindAsync(offeringId)).Playlists;
         }
 
@@ -63,8 +78,21 @@ namespace ClassTranscribeServer.Controllers
 
         // PUT: api/Playlists/5
         [HttpPut("{id}")]
+        [Authorize]
         public async Task<IActionResult> PutPlaylist(string id, Playlist playlist)
         {
+            var authorizationResult = await _authorizationService.AuthorizeAsync(this.User, playlist.OfferingId, Globals.POLICY_UPDATE_OFFERING);
+            if (!authorizationResult.Succeeded)
+            {
+                if (User.Identity.IsAuthenticated)
+                {
+                    return new ForbidResult();
+                }
+                else
+                {
+                    return new ChallengeResult();
+                }
+            }
             if (id != playlist.Id)
             {
                 return BadRequest();
@@ -93,8 +121,21 @@ namespace ClassTranscribeServer.Controllers
 
         // POST: api/Playlists
         [HttpPost]
+        [Authorize]
         public async Task<ActionResult<Playlist>> PostPlaylist(Playlist playlist)
         {
+            var authorizationResult = await _authorizationService.AuthorizeAsync(this.User, playlist.OfferingId, Globals.POLICY_UPDATE_OFFERING);
+            if (!authorizationResult.Succeeded)
+            {
+                if (User.Identity.IsAuthenticated)
+                {
+                    return new ForbidResult();
+                }
+                else
+                {
+                    return new ChallengeResult();
+                }
+            }
             _context.Playlists.Add(playlist);
             await _context.SaveChangesAsync();
 
@@ -103,9 +144,22 @@ namespace ClassTranscribeServer.Controllers
 
         // DELETE: api/Playlists/5
         [HttpDelete("{id}")]
+        [Authorize]
         public async Task<ActionResult<Playlist>> DeletePlaylist(string id)
         {
             var playlist = await _context.Playlists.FindAsync(id);
+            var authorizationResult = await _authorizationService.AuthorizeAsync(this.User, playlist.OfferingId, Globals.POLICY_UPDATE_OFFERING);
+            if (!authorizationResult.Succeeded)
+            {
+                if (User.Identity.IsAuthenticated)
+                {
+                    return new ForbidResult();
+                }
+                else
+                {
+                    return new ChallengeResult();
+                }
+            }
             if (playlist == null)
             {
                 return NotFound();

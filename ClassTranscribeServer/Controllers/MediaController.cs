@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ClassTranscribeDatabase;
 using ClassTranscribeDatabase.Models;
+using Microsoft.AspNetCore.Authorization;
 
 namespace ClassTranscribeServer.Controllers
 {
@@ -19,13 +20,6 @@ namespace ClassTranscribeServer.Controllers
         public MediaController(CTDbContext context)
         {
             _context = context;
-        }
-
-        // GET: api/Media
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<Media>>> GetMedias()
-        {
-            return await _context.Medias.ToListAsync();
         }
 
         // GET: api/Media/5
@@ -44,6 +38,7 @@ namespace ClassTranscribeServer.Controllers
 
         // PUT: api/Media/5
         [HttpPut("{id}")]
+        [Authorize]
         public async Task<IActionResult> PutMedia(string id, Media media)
         {
             if (id != media.Id)
@@ -74,6 +69,7 @@ namespace ClassTranscribeServer.Controllers
 
         // POST: api/Media
         [HttpPost]
+        [Authorize]
         public async Task<ActionResult<Media>> PostMedia(Media media)
         {
             _context.Medias.Add(media);
@@ -84,6 +80,7 @@ namespace ClassTranscribeServer.Controllers
 
         // DELETE: api/Media/5
         [HttpDelete("{id}")]
+        [Authorize]
         public async Task<ActionResult<Media>> DeleteMedia(string id)
         {
             var media = await _context.Medias.FindAsync(id);

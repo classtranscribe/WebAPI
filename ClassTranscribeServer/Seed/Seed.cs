@@ -1,6 +1,7 @@
 ﻿using ClassTranscribeDatabase;
 using ClassTranscribeDatabase.Models;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -70,7 +71,7 @@ namespace ClassTranscribeServer.Seed
 
             foreach (var t in universities)
             {
-                if (!_context.Universities.Contains(t))
+                if (!_context.Universities.IgnoreQueryFilters().Contains(t))
                 {
                     _context.Universities.Add(t);
                 }
@@ -403,7 +404,7 @@ namespace ClassTranscribeServer.Seed
 
             foreach (var t in terms)
             {
-                if (!_context.Terms.Contains(t))
+                if (!_context.Terms.IgnoreQueryFilters().Contains(t))
                 {
                     _context.Terms.Add(t);
                 }
@@ -411,7 +412,7 @@ namespace ClassTranscribeServer.Seed
 
             foreach (var t in departments)
             {
-                if (!_context.Departments.Contains(t))
+                if (!_context.Departments.IgnoreQueryFilters().Contains(t))
                 {
                     _context.Departments.Add(t);
                 }
@@ -419,7 +420,7 @@ namespace ClassTranscribeServer.Seed
 
             foreach (var t in courses)
             {
-                if (!_context.Courses.Contains(t))
+                if (!_context.Courses.IgnoreQueryFilters().Contains(t))
                 {
                     _context.Courses.Add(t);
                 }
@@ -427,7 +428,7 @@ namespace ClassTranscribeServer.Seed
 
             foreach (var t in offerings)
             {
-                if (!_context.Offerings.Contains(t))
+                if (!_context.Offerings.IgnoreQueryFilters().Contains(t))
                 {
                     _context.Offerings.Add(t);
                 }
@@ -435,7 +436,7 @@ namespace ClassTranscribeServer.Seed
 
             foreach (var t in courseOfferings)
             {
-                if (_context.CourseOfferings.Where(u => u.OfferingId == t.OfferingId && u.CourseId == t.CourseId).Count() == 0)
+                if (_context.CourseOfferings.IgnoreQueryFilters().Where(u => u.OfferingId == t.OfferingId && u.CourseId == t.CourseId).Count() == 0)
                 {
                     _context.CourseOfferings.Add(t);
                 }
@@ -505,7 +506,7 @@ namespace ClassTranscribeServer.Seed
 
             foreach (var t in userOfferings)
             {
-                if (_context.UserOfferings.Where(u => u.OfferingId == t.OfferingId && u.ApplicationUserId == t.ApplicationUserId && u.IdentityRole.Name == t.IdentityRole.Name).Count() == 0)
+                if (_context.UserOfferings.IgnoreQueryFilters().Where(u => u.OfferingId == t.OfferingId && u.ApplicationUserId == t.ApplicationUserId && u.IdentityRole.Name == t.IdentityRole.Name).Count() == 0)
                 {
                     _context.UserOfferings.Add(t);
                 }
@@ -529,7 +530,7 @@ namespace ClassTranscribeServer.Seed
 
             foreach (var t in playlists)
             {
-                if (!_context.Playlists.Contains(t))
+                if (!_context.Playlists.IgnoreQueryFilters().Contains(t))
                 {
                     _context.Playlists.Add(t);
                 }

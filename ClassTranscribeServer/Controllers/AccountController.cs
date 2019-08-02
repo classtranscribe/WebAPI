@@ -45,7 +45,7 @@ namespace ClassTranscribeServer.Controllers
             if (result.Succeeded)
             {
                 var appUser = _userManager.Users.SingleOrDefault(r => r.Email == user.Email);
-                return await GenerateJwtToken(user.Email, appUser);
+                return GenerateJwtToken(user.Email, appUser);
             }
 
             throw new ApplicationException("INVALID_LOGIN_ATTEMPT");
@@ -62,7 +62,7 @@ namespace ClassTranscribeServer.Controllers
             if (result.Succeeded)
             {
                 await _signInManager.SignInAsync(user, false);
-                return await GenerateJwtToken(user.Email, user);
+                return GenerateJwtToken(user.Email, user);
             }
 
             throw new ApplicationException("UNKNOWN_ERROR");
@@ -76,7 +76,7 @@ namespace ClassTranscribeServer.Controllers
             {
                 ApplicationUser user = await _userManager.FindByEmailAsync(model.emailId);
                 await _signInManager.SignInAsync(user, false);
-                loggedInDTO = await GenerateJwtToken(user.Email, user);
+                loggedInDTO = GenerateJwtToken(user.Email, user);
             }
             catch (Exception)
             {
@@ -113,7 +113,7 @@ namespace ClassTranscribeServer.Controllers
         }
 
         [NonAction]
-        private async Task<LoggedInDTO> GenerateJwtToken(string email, ApplicationUser user)
+        private LoggedInDTO GenerateJwtToken(string email, ApplicationUser user)
         {
             var claims = new List<Claim>
             {

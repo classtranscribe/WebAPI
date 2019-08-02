@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ClassTranscribeDatabase;
 using ClassTranscribeDatabase.Models;
+using Microsoft.AspNetCore.Authorization;
 
 namespace ClassTranscribeServer.Controllers
 {
@@ -42,6 +43,7 @@ namespace ClassTranscribeServer.Controllers
 
         // PUT: api/Transcriptions/5
         [HttpPut("{id}")]
+        [Authorize]
         public async Task<IActionResult> PutTranscription(string id, Transcription transcription)
         {
             if (id != transcription.Id)
@@ -72,6 +74,7 @@ namespace ClassTranscribeServer.Controllers
 
         // POST: api/Transcriptions
         [HttpPost]
+        [Authorize]
         public async Task<ActionResult<Transcription>> PostTranscription(Transcription transcription)
         {
             _context.Transcriptions.Add(transcription);
@@ -82,6 +85,7 @@ namespace ClassTranscribeServer.Controllers
 
         // DELETE: api/Transcriptions/5
         [HttpDelete("{id}")]
+        [Authorize]
         public async Task<ActionResult<Transcription>> DeleteTranscription(string id)
         {
             var transcription = await _context.Transcriptions.FindAsync(id);

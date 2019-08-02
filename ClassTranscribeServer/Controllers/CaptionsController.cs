@@ -7,6 +7,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ClassTranscribeDatabase;
 using ClassTranscribeDatabase.Models;
+using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 
 namespace ClassTranscribeServer.Controllers
 {
@@ -44,6 +46,7 @@ namespace ClassTranscribeServer.Controllers
 
         // PUT: api/Captions/5
         [HttpPut("{id}")]
+        [Authorize]
         public async Task<IActionResult> PutCaption(string id, Caption caption)
         {
             if (id != caption.Id)
@@ -74,6 +77,7 @@ namespace ClassTranscribeServer.Controllers
 
         // POST: api/Captions
         [HttpPost]
+        [Authorize]
         public async Task<ActionResult<Caption>> PostCaption(Caption caption)
         {
             _context.Captions.Add(caption);
@@ -84,6 +88,7 @@ namespace ClassTranscribeServer.Controllers
 
         // DELETE: api/Captions/5
         [HttpDelete("{id}")]
+        [Authorize]
         public async Task<ActionResult<Caption>> DeleteCaption(string id)
         {
             var caption = await _context.Captions.FindAsync(id);
