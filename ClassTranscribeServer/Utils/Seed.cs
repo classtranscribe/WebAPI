@@ -516,17 +516,26 @@ namespace ClassTranscribeServer.Seed
             {
                 Id = "echo_sample",
                 PlaylistIdentifier = "https://echo360.org/section/9d6e3b31-d3ac-4cfa-b44f-24c1a7c60fd5/public",
-                SourceType = SourceType.Echo360
+                SourceType = SourceType.Echo360,
+                Name = "Echo Sample"
             };
 
             Playlist youtubePlaylist = new Playlist
             {
                 Id = "youtube_sample",
                 PlaylistIdentifier = "PLLssT5z_DsK8Jk8mpFc_RPzn2obhotfDO",
-                SourceType = SourceType.Youtube
+                SourceType = SourceType.Youtube,
+                Name = "Youtube Sample"
             };
 
-            List<Playlist> playlists = new List<Playlist> { youtubePlaylist, echoPlaylist };
+            Playlist localPlaylist = new Playlist
+            {
+                Id = "local_sample",
+                SourceType = SourceType.Local,
+                Name = "Local Sample"
+            };
+
+            List<Playlist> playlists = new List<Playlist> { youtubePlaylist, echoPlaylist, localPlaylist};
 
             foreach (var t in playlists)
             {
@@ -537,6 +546,7 @@ namespace ClassTranscribeServer.Seed
             }
             youtubePlaylist.OfferingId = offering2.Id;
             echoPlaylist.OfferingId = offering2.Id;
+            localPlaylist.OfferingId = offering2.Id;
 
             await _context.SaveChangesAsync();
             return true;

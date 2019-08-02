@@ -25,6 +25,7 @@ using Swashbuckle.AspNetCore.Filters;
 using System.Collections.Generic;
 using System.Linq;
 using Swashbuckle.AspNetCore.Swagger;
+using ClassTranscribeServer.Utils;
 
 namespace ClassTranscribeServer
 {
@@ -122,10 +123,8 @@ namespace ClassTranscribeServer
                     Name = "Authorization",
                     Type = "apiKey"
                 });
-                c.AddSecurityRequirement(new Dictionary<string, IEnumerable<string>> {
-                { "Bearer", Enumerable.Empty<string>() },
-            });
-
+                c.AddSecurityRequirement(new Dictionary<string, IEnumerable<string>> {{ "Bearer", Enumerable.Empty<string>() }});
+                c.OperationFilter<FileUploadOperation>(); //Register File Upload Operation Filter
             });
         }
 

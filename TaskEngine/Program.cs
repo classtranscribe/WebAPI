@@ -47,13 +47,8 @@ namespace TaskEngine
             serviceProvider.GetService<ConvertVideoToWavTask>().Consume();
             serviceProvider.GetService<TranscriptionTask>().Consume();
             RabbitMQ rabbitMQ = serviceProvider.GetService<RabbitMQ>();
-            CTDbContext context = serviceProvider.GetService<CTDbContext>();
+            CTDbContext context = CTDbContext.CreateDbContext();
             RunProgramRunExample(rabbitMQ, context).GetAwaiter().GetResult();
-
-            // MSTranscriptionService mSTranscriptionService = serviceProvider.GetService<MSTranscriptionService>();
-            // mSTranscriptionService.RecognitionWithAudioStreamAsync("D:\\CT\\data\\256.wav").GetAwaiter().GetResult();
-
-            // FileHasher.ComputeSha256HashForDirectory("C:\\Users\\chira\\Source\\Repos\\ClassTranscribeServer\\Data");
 
             logger.LogDebug("All done!");
 

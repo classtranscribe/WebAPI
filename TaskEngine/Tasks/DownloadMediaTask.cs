@@ -1,6 +1,7 @@
 ﻿using ClassTranscribeDatabase;
 using ClassTranscribeDatabase.Models;
 using System;
+using System.IO;
 using System.Threading.Tasks;
 using TaskEngine.Grpc;
 
@@ -86,7 +87,26 @@ namespace TaskEngine.Tasks
 
         public async Task<Video> DownloadLocalPlaylist(Media media)
         {
-            throw new NotImplementedException();
+            Video video = new Video
+            {
+                MediaId = media.Id
+            };
+            if (media.JsonMetadata.ContainsKey("video1Path"))
+            {
+                var video1Path = media.JsonMetadata["video1Path"].ToString();
+                var newPath = System.IO.Path.Combine(Globals.appSettings.DATA_DIRECTORY, System.Guid.NewGuid().ToString() + ".mp4");
+                File.Copy(video1Path, newPath);
+                video.Video1 = new FileRecord(newPath);
+                
+            }
+            if (media.JsonMetadata.ContainsKey("video2Path"))
+            {
+                var video2Path = media.JsonMetadata["video2Path"].ToString();
+                var newPath = System.IO.Path.Combine(Globals.appSettings.DATA_DIRECTORY, System.Guid.NewGuid().ToString() + ".mp4");
+                File.Copy(video2Path, newPath);
+                video.Video1 = new FileRecord(newPath);
+            }
+            return video;
         }
     }
 }

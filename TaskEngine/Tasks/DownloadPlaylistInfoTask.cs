@@ -39,7 +39,7 @@ namespace TaskEngine.Tasks
                 var period = DateTime.Now.AddMonths(-12);
                 var playlists = await _context.Offerings.Where(o => o.Term.StartDate >= period).SelectMany(o => o.Playlists).ToListAsync();
                 // TEMPORARY CHANGE
-                playlists.Where(p => p.SourceType != SourceType.Local).ToList().ForEach(p => Publish(p));
+                playlists.ForEach(p => Publish(p));
             }
         }
 
@@ -54,11 +54,8 @@ namespace TaskEngine.Tasks
                     case SourceType.Youtube: medias = await GetYoutubePlaylist(p, _context); break;
                     case SourceType.Local: medias = await GetLocalPlaylist(p, _context); break;
                 }
-                await _context.Medias.AddRangeAsync(medias);
-                await _context.SaveChangesAsync();
                 medias.ForEach(m => _downloadMediaTask.Publish(m));
             }
-            // (await _context.Medias.Where(m => m.Videos.Count() == 0).Take(5).ToListAsync()).ForEach(m => _downloadMediaTask.Publish(m));
         }
 
         public async Task<List<Media>> GetEchoPlaylist(Playlist playlist, CTDbContext _context)
@@ -73,7 +70,7 @@ namespace TaskEngine.Tasks
             List<Media> newMedia = new List<Media>();
             foreach (JObject jObject in jArray)
             {
-                if (await _context.Medias.Where(m => m.UniqueMediaIdentifier == jObject["mediaId"].ToString() && m.SourceType == playlist.SourceType).CountAsync() == 0)
+                if (!await _context.Medias.Where(m => m.UniqueMediaIdentifier == jObject["mediaId"].ToString() && m.SourceType == playlist.SourceType).AnyAsync())
                 {
                     newMedia.Add(new Media
                     {
@@ -84,6 +81,8 @@ namespace TaskEngine.Tasks
                     });
                 }
             }
+            await _context.Medias.AddRangeAsync(newMedia);
+            await _context.SaveChangesAsync();
             return newMedia;
         }
 
@@ -98,7 +97,7 @@ namespace TaskEngine.Tasks
             List<Media> newMedia = new List<Media>();
             foreach (JObject jObject in jArray)
             {
-                if (await _context.Medias.Where(m => m.UniqueMediaIdentifier == jObject["videoId"].ToString() && m.SourceType == playlist.SourceType).CountAsync() == 0)
+                if (!await _context.Medias.Where(m => m.UniqueMediaIdentifier == jObject["videoId"].ToString() && m.SourceType == playlist.SourceType).AnyAsync())
                 {
                     newMedia.Add(new Media
                     {
@@ -109,12 +108,14 @@ namespace TaskEngine.Tasks
                     });
                 }
             }
+            await _context.Medias.AddRangeAsync(newMedia);
+            await _context.SaveChangesAsync();
             return newMedia;
         }
 
         public async Task<List<Media>> GetLocalPlaylist(Playlist playlist, CTDbContext _context)
         {
-            throw new NotImplementedException();
+            return _context.Medias.Where(m => m.Videos.Count == 0 && m.PlaylistId == playlist.Id).ToList();
         }
 
     }
