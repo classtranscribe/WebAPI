@@ -30,8 +30,8 @@ services:
         target: /launchscript.sh
     container_name: "CTServer"
     ports:
-        - "4443:443"
-        - "8080:80"
+        - "6060:6060"
+        - "6061:6061"
     depends_on:
       - db
       - rabbit
@@ -91,8 +91,25 @@ services:
         - /NodeRpcServer/node_modules
     ports:
       - "50052:50052"
-
-
+  nginx:
+    # Inspired from https://dev.to/herocod3r/configuring-ssl-on-an-aspnet-core-docker-container-1c9l
+    image: nginx:1.15-alpine
+    ports:
+      - "4442:4442"
+      - "4443:4443"
+    depends_on:
+      - classtranscribeserver
+    env_file:
+      ctserver-env.list
+    volumes:
+      - ./nginx:/etc/nginx/conf.d
+      # Replace with appropriate directory
+      - /home/mahipal2/FrontEnd/certbot/conf:/etc/letsencrypt
+      - /home/mahipal2/FrontEnd/certbot/www:/var/www/certbot
+    # envsubst replaces environment variables in app.conf.template with the actual values to generate app.conf
+    command: /bin/sh -c "envsubst < /etc/nginx/conf.d/app.conf.template > /etc/nginx/conf.d/app.conf && exec nginx -g 'daemon off;'"
+    links:
+      - classtranscribeserver
 volumes:
   pga4volume:
   pgvolume:

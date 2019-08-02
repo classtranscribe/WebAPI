@@ -100,5 +100,7 @@ vs_appsettings.json
 Data/
 /NodeRpcServer/cookies.txt
 *.txt
+nginx/app.conf
+NodeRpcServer/ct.proto
 /NodeRpcServer
 /ClassTranscribeServer/Properties

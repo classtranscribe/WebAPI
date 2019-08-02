@@ -147,7 +147,7 @@ namespace ClassTranscribeServer
                 ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
             });
             app.UseCors(MyAllowSpecificOrigins);
-            app.UseHttpsRedirection();
+            // app.UseHttpsRedirection();
             app.UseAuthentication();
             // Enable middleware to serve generated Swagger as a JSON endpoint.
             app.UseSwagger();

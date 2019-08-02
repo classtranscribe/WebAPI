@@ -5,7 +5,7 @@
 
 FROM ubuntu:18.04 AS build
 RUN apt-get update
-RUN apt-get install -y wget nano
+RUN apt-get install -y wget
 RUN apt-get install -y software-properties-common
 RUN wget -q https://packages.microsoft.com/config/ubuntu/18.04/packages-microsoft-prod.deb
 RUN dpkg -i packages-microsoft-prod.deb
