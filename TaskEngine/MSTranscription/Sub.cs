@@ -11,13 +11,13 @@ namespace TaskEngine.MSTranscription
     {
         public const int FUDGE_START_GAP_MS = 250; // Allow start time of next caption to be a little early, so that endtime-of-last can be exactly starttime of next caption
 
-        public const int NOTABLE_SILENCE_MS = 6000; // A gap of more than this and we'll emit a '[ Silence / Inaudible ]' caption
+        public const int NOTABLE_SILENCE_MS = 16000; // A gap of more than this and we'll emit a '[ Silence / Inaudible ]' caption
 
-        public const int MAX_CAPTION_DURATION_MS = 8000; // One caption should not span more than this number of milliseconds
+        public const int MAX_CAPTION_DURATION_MS = 18000; // One caption should not span more than this number of milliseconds
 
-        public const int MAX_INTERWORD_GAP_MS = 1000; // A silence in speech of  more than this and it's time to start a new caption line
+        public const int MAX_INTERWORD_GAP_MS = 5000; // A silence in speech of  more than this and it's time to start a new caption line
 
-        public const int MAX_CAPTION_WORDS = 6; // Limit the number of words in one caption line (except at the very end of the file)
+        public const int MAX_CAPTION_WORDS = 30; // Limit the number of words in one caption line (except at the very end of the file)
 
         public const int END_VIDEO_ORPHAN_COUNT = 3; // If we are processing the last few words in the file, then ignore MAX_CAPTION_WORDS and allow a longer last caption line
 
@@ -80,10 +80,10 @@ namespace TaskEngine.MSTranscription
 
                 try
                 {
-                // A tick represents one hundred nanoseconds, so convert to milliseconds
-                duration = entry.Duration / 1000;
-                offset = entry.Offset / 1000;
-                word = entry.Word;
+                    // A tick represents one hundred nanoseconds, so convert to ???
+                    duration = entry.Duration / 1000;
+                    offset = entry.Offset / 1000;
+                    word = entry.Word;
                 }
                 catch (RuntimeWrappedException e)
                 {
@@ -98,17 +98,23 @@ namespace TaskEngine.MSTranscription
                 bool is_last_few_words = (i >= num_words - Constants.END_VIDEO_ORPHAN_COUNT);
 
                 long gap = offset - caption_end;
+                // When this is the first caption of a segment, there is no gap.
+                if (caption_end == 0)
+                {
+                    gap = 0;
+                }
+
                 long new_caption_end = offset + duration;
 
-             // Can we just append the word to an existing caption line?
-             if ( (caption.Length > 0) &&
-                  (new_caption_end - caption_start <= Constants.MAX_CAPTION_DURATION_MS) &&
-                  (gap <= Constants.MAX_INTERWORD_GAP_MS) &&
-                  (caption.Length < Constants.MAX_CAPTION_WORDS || is_last_few_words) )
+                // Can we just append the word to an existing caption line?
+                if ((caption.Length > 0) &&
+                     (new_caption_end - caption_start <= Constants.MAX_CAPTION_DURATION_MS) &&
+                     (gap <= Constants.MAX_INTERWORD_GAP_MS) &&
+                     (caption.Length < Constants.MAX_CAPTION_WORDS || is_last_few_words))
                 {
-                    caption.Append(word + " ");
-                    caption_end = new_caption_end;
-                    continue;
+                        caption.Append(word + " ");
+                        caption_end = new_caption_end;
+                        continue;
                 }
 
                 // If we get to here then we WILL be starting a new caption, but first check for a long gap and also emit current caption if it exists
@@ -150,20 +156,20 @@ namespace TaskEngine.MSTranscription
                 caption_end = new_caption_end;
             }
 
-        // Clean up, we might still be building a caption after processing all of the words
-        if (caption.Length > 0)
-            {
-                // Emit current caption (with original end time)
-                Sub current_sub = new Sub
+            // Clean up, we might still be building a caption after processing all of the words
+            if (caption.Length > 0)
                 {
-                    Begin = new TimeSpan(caption_start * 1000),
-                    End = new TimeSpan(caption_end * 1000),
-                    Caption = caption.ToString()
-                };
-                subs.Add(current_sub);
-            }
+                    // Emit current caption (with original end time)
+                    Sub current_sub = new Sub
+                    {
+                        Begin = new TimeSpan(caption_start * 1000),
+                        End = new TimeSpan(caption_end * 1000),
+                        Caption = caption.ToString()
+                    };
+                    subs.Add(current_sub);
+                }
 
-        return subs;
+            return subs;
         }
 
         public static List<Sub> GetSubs(Sub sub)
