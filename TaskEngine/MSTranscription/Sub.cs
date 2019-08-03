@@ -17,7 +17,7 @@ namespace TaskEngine.MSTranscription
 
         public const int MAX_INTERWORD_GAP_MS = 5000; // A silence in speech of  more than this and it's time to start a new caption line
 
-        public const int MAX_CAPTION_WORDS = 30; // Limit the number of words in one caption line (except at the very end of the file)
+        public const int MAX_CAPTION_CHARS = 30; // Limit the number of characters in one caption line (except at the very end of the file)
 
         public const int END_VIDEO_ORPHAN_COUNT = 3; // If we are processing the last few words in the file, then ignore MAX_CAPTION_WORDS and allow a longer last caption line
 
