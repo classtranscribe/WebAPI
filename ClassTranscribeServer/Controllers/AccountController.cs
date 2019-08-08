@@ -18,7 +18,7 @@ using Newtonsoft.Json.Linq;
 
 namespace ClassTranscribeServer.Controllers
 {
-    [Route("[controller]/[action]")]
+    [Route("api/[controller]/[action]")]
     public class AccountController : Controller
     {
         private readonly SignInManager<ApplicationUser> _signInManager;

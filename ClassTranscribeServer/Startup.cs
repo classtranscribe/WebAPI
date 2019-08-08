@@ -162,10 +162,13 @@ namespace ClassTranscribeServer
             app.UseSwaggerUI(c =>
             {
                 c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
-                c.RoutePrefix = string.Empty;
+                c.RoutePrefix = "api";
             });
 
-            app.UseMvc();
+            app.UseMvc(routes =>
+            {
+                routes.MapRoute("default","/api/index.html");
+            });
             Seeder seeder = new Seeder(dbContext, userManager, signInManager, roleManager);
             Boolean result = seeder.SeedAsync().Result;
         }
