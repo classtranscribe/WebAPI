@@ -15,7 +15,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.OpenApi.Models;
 using System.IO;
 using System.Reflection;
-using ClassTranscribeServer.Seed;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.AspNetCore.Authorization;
@@ -58,8 +57,7 @@ namespace ClassTranscribeServer
                 options.Password.RequireNonAlphanumeric = false;
                 options.Password.RequireUppercase = false;
                 options.Password.RequireLowercase = false;
-            })
-                .AddEntityFrameworkStores<CTDbContext>()
+            }).AddEntityFrameworkStores<CTDbContext>()
                 .AddDefaultTokenProviders();
             // ===== Add Jwt Authentication ========
             JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear(); // => remove default claims
@@ -169,8 +167,7 @@ namespace ClassTranscribeServer
             {
                 routes.MapRoute("default","/api/index.html");
             });
-            Seeder seeder = new Seeder(dbContext, userManager, signInManager, roleManager);
-            Boolean result = seeder.SeedAsync().Result;
+            Seeder.Seed(dbContext);
         }
     }
 }

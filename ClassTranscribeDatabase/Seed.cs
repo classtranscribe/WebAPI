@@ -1,54 +1,35 @@
-﻿using ClassTranscribeDatabase;
-using ClassTranscribeDatabase.Models;
+﻿using ClassTranscribeDatabase.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 
-namespace ClassTranscribeServer.Seed
+namespace ClassTranscribeDatabase
 {
-    public class Seeder
+    public static class Seeder
     {
-        private readonly CTDbContext _context;
-        private readonly SignInManager<ApplicationUser> _signInManager;
-        private readonly RoleManager<IdentityRole> _roleManager;
-        private readonly UserManager<ApplicationUser> _userManager;
-
-        public Seeder(CTDbContext context, UserManager<ApplicationUser> userManager,
-            SignInManager<ApplicationUser> signInManager, RoleManager<IdentityRole> roleManager)
+        public static Boolean IsSeeded = false;
+        public static void Seed(CTDbContext _context)
         {
-            _context = context;
-            _signInManager = signInManager;
-            _userManager = userManager;
-            _roleManager = roleManager;
-        }
 
-        IdentityRole Instructor = new IdentityRole { Name = Globals.ROLE_INSTRUCTOR };
-        IdentityRole Student = new IdentityRole { Name = Globals.ROLE_STUDENT };
-        IdentityRole Admin = new IdentityRole { Name = Globals.ROLE_ADMIN };
-        IdentityRole UniversityAdmin = new IdentityRole { Name = Globals.ROLE_UNIVERSITY_ADMIN };
-        public async Task<Boolean> CreateRoles()
-        {
+            if (IsSeeded)
+            {
+                return;
+            }
+            IdentityRole Instructor = new IdentityRole { Name = Globals.ROLE_INSTRUCTOR, Id = "0000", NormalizedName = Globals.ROLE_INSTRUCTOR.ToUpper() };
+            IdentityRole Student = new IdentityRole { Name = Globals.ROLE_STUDENT, Id = "0001", NormalizedName = Globals.ROLE_STUDENT.ToUpper() };
+            IdentityRole Admin = new IdentityRole { Name = Globals.ROLE_ADMIN, Id = "0002", NormalizedName = Globals.ROLE_ADMIN.ToUpper() };
+            IdentityRole UniversityAdmin = new IdentityRole { Name = Globals.ROLE_UNIVERSITY_ADMIN, Id = "0003", NormalizedName = Globals.ROLE_UNIVERSITY_ADMIN.ToUpper() };
+
             List<IdentityRole> roles = new List<IdentityRole> { Instructor, Student, Admin, UniversityAdmin };
             for (int i = 0; i < roles.Count(); i++)
             {
-
-                if (!await _roleManager.RoleExistsAsync(roles[i].Name))
+                if (!_context.Roles.IgnoreQueryFilters().Any(r => r.Name == roles[i].Name))
                 {
-                    await _roleManager.CreateAsync(roles[i]);
-                }
-                else
-                {
-                    roles[i].Id = await _roleManager.GetRoleIdAsync(roles[i]);
+                    _context.Roles.Add(roles[i]);
                 }
             }
-            return true;
-        }
-
-        public async Task<Boolean> SeedAsync()
-        {
 
             University university1 = new University
             {
@@ -77,98 +58,50 @@ namespace ClassTranscribeServer.Seed
                 }
             }
 
-            await _context.SaveChangesAsync();
-
-            ApplicationUser user1 = new ApplicationUser
-            {
-                UserName = "instructor1",
-                Email = "instructor1@test.edu",
-                FirstName = "Instructor1",
-                LastName = "Instructor",
-                UniversityId = university1.Id
-            };
-
-            ApplicationUser user2 = new ApplicationUser
-            {
-                UserName = "instructor2",
-                Email = "instructor2@test.edu",
-                FirstName = "Instructor2",
-                LastName = "Instructor",
-                UniversityId = university1.Id
-            };
-
-            ApplicationUser user3 = new ApplicationUser
-            {
-                UserName = "instructor3",
-                Email = "instructor3@test.edu",
-                FirstName = "Instructor3",
-                LastName = "Instructor",
-                UniversityId = university1.Id
-            };
-
-            ApplicationUser user4 = new ApplicationUser
-            {
-                UserName = "student1",
-                Email = "student1@test.edu",
-                FirstName = "Student1",
-                LastName = "Student",
-                UniversityId = university1.Id
-            };
-
-            ApplicationUser user5 = new ApplicationUser
-            {
-                UserName = "student2",
-                Email = "student2@test.edu",
-                FirstName = "Student2",
-                LastName = "Student",
-                UniversityId = university1.Id
-            };
-
-            ApplicationUser user6 = new ApplicationUser
-            {
-                UserName = "ta",
-                Email = "ta1@test.edu",
-                FirstName = "TA1",
-                LastName = "TA",
-                UniversityId = university1.Id
-            };
-
             ApplicationUser shawn = new ApplicationUser
             {
+                Id = "1",
                 UserName = "ruihua.sui@gmail.com",
                 Email = "ruihua.sui@gmail.com",
                 FirstName = "Ruihua",
                 LastName = "Sui",
-                UniversityId = university1.Id
+                UniversityId = university1.Id,
+                NormalizedEmail = "ruihua.sui@gmail.com",
+                NormalizedUserName = "ruihua.sui@gmail.com",
+                EmailConfirmed = true,
+                LockoutEnabled = false,
+                SecurityStamp = Guid.NewGuid().ToString()
             };
 
             ApplicationUser chirantan = new ApplicationUser
             {
+                Id = "2",
                 UserName = "mahipal2@illinois.edu",
                 Email = "mahipal2@illinois.edu",
                 FirstName = "Chirantan",
                 LastName = "Mahipal",
-                UniversityId = university1.Id
+                UniversityId = university1.Id,
+                NormalizedEmail = "mahipal2@illinois.edu",
+                NormalizedUserName = "mahipal2@illinois.edu",
+                EmailConfirmed = true,
+                LockoutEnabled = false,
+                SecurityStamp = Guid.NewGuid().ToString()
             };
 
+            chirantan.PasswordHash = new PasswordHasher<ApplicationUser>().HashPassword(chirantan, chirantan.Email);
+            shawn.PasswordHash = new PasswordHasher<ApplicationUser>().HashPassword(shawn, shawn.Email);
 
-            List<string> userIds = new List<string>();
-            List<ApplicationUser> users = new List<ApplicationUser> { user1, user2, user3, user4, user5, user6, shawn, chirantan };
+            List<ApplicationUser> users = new List<ApplicationUser> { shawn, chirantan };
             foreach (ApplicationUser user in users)
             {
-                var query = _userManager.Users.Where(u => u.Email == user.Email);
-                if (query.Count() == 0)
+                if (!_context.Users.IgnoreQueryFilters().Any(u => u.Email == user.Email))
                 {
-                    var res = await _userManager.CreateAsync(user, user.Email);
-                    userIds.Add(user.Id);
-                }
-                else
-                {
-                    userIds.Add(query.First().Id);
+                    _context.Users.Add(user);
+                    _context.UserRoles.Add(new IdentityUserRole<string> { RoleId = Instructor.Id, UserId = user.Id });
                 }
             }
 
-            Boolean result = await CreateRoles();
+            _context.SaveChanges();
 
             Term term1 = new Term
             {
@@ -442,12 +375,12 @@ namespace ClassTranscribeServer.Seed
                 }
             }
 
-            await _context.SaveChangesAsync();
+            _context.SaveChanges();
 
             UserOffering userOffering1 = new UserOffering
             {
                 OfferingId = offering1.Id,
-                ApplicationUserId = userIds[0],
+                ApplicationUserId = users[0].Id,
                 IdentityRole = Instructor
 
             };
@@ -455,49 +388,49 @@ namespace ClassTranscribeServer.Seed
             UserOffering userOffering2 = new UserOffering
             {
                 OfferingId = offering2.Id,
-                ApplicationUserId = userIds[0],
+                ApplicationUserId = users[0].Id,
                 IdentityRole = Instructor
             };
 
             UserOffering userOffering3 = new UserOffering
             {
                 OfferingId = offering3.Id,
-                ApplicationUserId = userIds[1],
+                ApplicationUserId = users[1].Id,
                 IdentityRole = Instructor
             };
 
             UserOffering userOffering4 = new UserOffering
             {
                 OfferingId = offering4.Id,
-                ApplicationUserId = userIds[1],
+                ApplicationUserId = users[1].Id,
                 IdentityRole = Instructor
             };
 
             UserOffering userOffering5 = new UserOffering
             {
                 OfferingId = offering1.Id,
-                ApplicationUserId = userIds[3],
+                ApplicationUserId = users[1].Id,
                 IdentityRole = Student
             };
 
             UserOffering userOffering6 = new UserOffering
             {
                 OfferingId = offering2.Id,
-                ApplicationUserId = userIds[4],
+                ApplicationUserId = users[1].Id,
                 IdentityRole = Student
             };
 
             UserOffering sOffering1 = new UserOffering
             {
                 OfferingId = offering1.Id,
-                ApplicationUserId = userIds[6],
+                ApplicationUserId = users[0].Id,
                 IdentityRole = Instructor
             };
 
             UserOffering sOffering2 = new UserOffering
             {
                 OfferingId = offering2.Id,
-                ApplicationUserId = userIds[6],
+                ApplicationUserId = users[1].Id,
                 IdentityRole = Instructor
             };
 
@@ -548,8 +481,8 @@ namespace ClassTranscribeServer.Seed
             echoPlaylist.OfferingId = offering2.Id;
             localPlaylist.OfferingId = offering2.Id;
 
-            await _context.SaveChangesAsync();
-            return true;
+            _context.SaveChanges();
+            IsSeeded = true;
         }
     }
 }
