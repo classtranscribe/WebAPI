@@ -33,8 +33,9 @@ namespace TaskEngine.MSTranscription
             _speechConfig.AddTargetLanguage(TranslationLanguages.SPANISH);
             _speechConfig.OutputFormat = OutputFormat.Detailed;
         }
-        public async Task<Tuple<Dictionary<string, List<Sub>>, Dictionary<string, string>>> RecognitionWithAudioStreamAsync(string file)
+        public async Task<Tuple<Dictionary<string, List<Sub>>, Dictionary<string, string>, string>> RecognitionWithAudioStreamAsync(string file)
         {
+            string errorCode = "";
             Console.OutputEncoding = Encoding.Unicode;
             Dictionary<string, List<Sub>> captions = new Dictionary<string, List<Sub>>();
             Dictionary<string, string> vttFiles = new Dictionary<string, string>();
@@ -93,6 +94,7 @@ namespace TaskEngine.MSTranscription
 
                     recognizer.Canceled += (s, e) =>
                     {
+                        errorCode = e.ErrorCode.ToString();
                         Console.WriteLine($"CANCELED: Reason={e.Reason}");
 
                         if (e.Reason == CancellationReason.Error)
@@ -141,7 +143,7 @@ namespace TaskEngine.MSTranscription
 
                     // Stops recognition.
                     await recognizer.StopContinuousRecognitionAsync().ConfigureAwait(false);
-                    return new Tuple<Dictionary<string, List<Sub>>, Dictionary<string, string>>(captions, vttFiles);
+                    return new Tuple<Dictionary<string, List<Sub>>, Dictionary<string, string>, string>(captions, vttFiles, errorCode);
                 }
             }
             // </recognitionAudioStream>

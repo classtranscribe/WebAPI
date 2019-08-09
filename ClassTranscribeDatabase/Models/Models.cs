@@ -251,6 +251,7 @@ namespace ClassTranscribeDatabase.Models
         public string MediaId { get; set; }
         [IgnoreDataMember]
         public virtual Media Media { get; set; }
+        public string TranscriptionStatus { get; set; }
     }
 
     public class CourseOffering : Entity

@@ -47,6 +47,8 @@ namespace TaskEngine.Tasks
             using (var _context = CTDbContext.CreateDbContext())
             {                
                 await _context.Transcriptions.AddRangeAsync(transcriptions);
+                video.TranscriptionStatus = result.Item3;
+                _context.Videos.Update(video);
                 await _context.SaveChangesAsync();
             }
         }
