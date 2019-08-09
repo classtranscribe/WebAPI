@@ -54,10 +54,8 @@ namespace ClassTranscribeDatabase
             return optionsBuilder;
         }
         public static CTDbContext CreateDbContext()
-        {          
-            CTDbContext context = new CTDbContext(GetDbContextOptionsBuilder().Options, null);
-            Seeder.Seed(context);
-            return context;
+        {
+            return new CTDbContext(GetDbContextOptionsBuilder().Options, null);
         }
 
         public static IConfiguration GetConfigurations()

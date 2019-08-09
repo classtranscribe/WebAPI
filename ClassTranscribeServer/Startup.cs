@@ -160,12 +160,12 @@ namespace ClassTranscribeServer
             app.UseSwaggerUI(c =>
             {
                 c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
-                c.RoutePrefix = "api";
+                c.RoutePrefix = "swag";
             });
 
             app.UseMvc(routes =>
             {
-                routes.MapRoute("default","/api/index.html");
+                routes.MapRoute("default","/swag/index.html");
             });
             Seeder.Seed(dbContext);
         }

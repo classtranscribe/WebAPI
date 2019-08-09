@@ -41,14 +41,16 @@ namespace TaskEngine
 
             var logger = serviceProvider.GetService<ILoggerFactory>()
                 .CreateLogger<Program>();
+
+            RabbitMQ rabbitMQ = serviceProvider.GetService<RabbitMQ>();
+            CTDbContext context = CTDbContext.CreateDbContext();
+            Seeder.Seed(context);
             logger.LogDebug("Starting application");
             serviceProvider.GetService<DownloadPlaylistInfoTask>().Consume();
             serviceProvider.GetService<DownloadMediaTask>().Consume();
             serviceProvider.GetService<ConvertVideoToWavTask>().Consume();
             serviceProvider.GetService<TranscriptionTask>().Consume();
-            RabbitMQ rabbitMQ = serviceProvider.GetService<RabbitMQ>();
-            CTDbContext context = CTDbContext.CreateDbContext();
-            RunProgramRunExample(rabbitMQ, context).GetAwaiter().GetResult();
+            RunProgramRunExample(rabbitMQ).GetAwaiter().GetResult();
 
             logger.LogDebug("All done!");
 
@@ -59,7 +61,7 @@ namespace TaskEngine
             };
         }
 
-        private static async Task RunProgramRunExample(RabbitMQ rabbitMQ, CTDbContext context)
+        private static async Task RunProgramRunExample(RabbitMQ rabbitMQ)
         {
             try
             {
@@ -79,7 +81,6 @@ namespace TaskEngine
                     .WithIdentity("job1", "group1")
                     .Build();
 
-                job.JobDataMap.Put("CTDbContext", context);
                 job.JobDataMap.Put("rabbitMQ", rabbitMQ);
 
                 // Trigger the job to run now, and then repeat every 10 seconds

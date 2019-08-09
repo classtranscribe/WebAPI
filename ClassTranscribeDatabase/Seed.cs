@@ -12,8 +12,10 @@ namespace ClassTranscribeDatabase
         public static Boolean IsSeeded = false;
         public static void Seed(CTDbContext _context)
         {
+            Console.WriteLine("In Seeder");
             if (IsSeeded)
             {
+                Console.WriteLine("Skipping Seeding");
                 return;
             }
             _context.Database.EnsureCreated();
@@ -469,6 +471,7 @@ namespace ClassTranscribeDatabase
 
             _context.SaveChanges();
             IsSeeded = true;
+            Console.WriteLine("Seeded");
         }
     }
 }
