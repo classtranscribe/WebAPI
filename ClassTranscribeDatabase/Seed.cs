@@ -12,11 +12,11 @@ namespace ClassTranscribeDatabase
         public static Boolean IsSeeded = false;
         public static void Seed(CTDbContext _context)
         {
-
             if (IsSeeded)
             {
                 return;
             }
+            _context.Database.EnsureCreated();
             IdentityRole Instructor = new IdentityRole { Name = Globals.ROLE_INSTRUCTOR, Id = "0000", NormalizedName = Globals.ROLE_INSTRUCTOR.ToUpper() };
             IdentityRole Student = new IdentityRole { Name = Globals.ROLE_STUDENT, Id = "0001", NormalizedName = Globals.ROLE_STUDENT.ToUpper() };
             IdentityRole Admin = new IdentityRole { Name = Globals.ROLE_ADMIN, Id = "0002", NormalizedName = Globals.ROLE_ADMIN.ToUpper() };
@@ -381,69 +381,55 @@ namespace ClassTranscribeDatabase
             {
                 OfferingId = offering1.Id,
                 ApplicationUserId = users[0].Id,
-                IdentityRole = Instructor
-
+                IdentityRoleId = Instructor.Id
             };
 
             UserOffering userOffering2 = new UserOffering
             {
                 OfferingId = offering2.Id,
                 ApplicationUserId = users[0].Id,
-                IdentityRole = Instructor
+                IdentityRoleId = Instructor.Id
             };
 
             UserOffering userOffering3 = new UserOffering
             {
                 OfferingId = offering3.Id,
                 ApplicationUserId = users[1].Id,
-                IdentityRole = Instructor
+                IdentityRoleId = Instructor.Id
             };
 
             UserOffering userOffering4 = new UserOffering
             {
                 OfferingId = offering4.Id,
                 ApplicationUserId = users[1].Id,
-                IdentityRole = Instructor
+                IdentityRoleId = Instructor.Id
             };
 
             UserOffering userOffering5 = new UserOffering
             {
                 OfferingId = offering1.Id,
                 ApplicationUserId = users[1].Id,
-                IdentityRole = Student
+                IdentityRoleId = Student.Id
             };
 
             UserOffering userOffering6 = new UserOffering
             {
                 OfferingId = offering2.Id,
                 ApplicationUserId = users[1].Id,
-                IdentityRole = Student
+                IdentityRoleId = Instructor.Id
             };
 
-            UserOffering sOffering1 = new UserOffering
-            {
-                OfferingId = offering1.Id,
-                ApplicationUserId = users[0].Id,
-                IdentityRole = Instructor
-            };
-
-            UserOffering sOffering2 = new UserOffering
-            {
-                OfferingId = offering2.Id,
-                ApplicationUserId = users[1].Id,
-                IdentityRole = Instructor
-            };
-
-
-            List<UserOffering> userOfferings = new List<UserOffering> { userOffering1, userOffering2, userOffering3, userOffering4, userOffering5, userOffering6, sOffering1, sOffering2 };
+            List<UserOffering> userOfferings = new List<UserOffering> { userOffering1, userOffering2, userOffering3, userOffering4, userOffering5, userOffering6 };
 
             foreach (var t in userOfferings)
             {
-                if (_context.UserOfferings.IgnoreQueryFilters().Where(u => u.OfferingId == t.OfferingId && u.ApplicationUserId == t.ApplicationUserId && u.IdentityRole.Name == t.IdentityRole.Name).Count() == 0)
+                if (!_context.UserOfferings.IgnoreQueryFilters().Any(u => u.OfferingId == t.OfferingId && u.ApplicationUserId == t.ApplicationUserId && u.IdentityRoleId == t.IdentityRoleId))
                 {
                     _context.UserOfferings.Add(t);
                 }
             }
+
+            _context.SaveChanges();
 
             Playlist echoPlaylist = new Playlist
             {
