@@ -35,7 +35,7 @@ namespace ClassTranscribeServer.Authorization
         {
             var offering = await _ctDbContext.Offerings.FindAsync(offeringId);
             ApplicationUser user = null;
-            if (context.User == null)
+            if (context.User == null || context.User.FindFirst(ClaimTypes.NameIdentifier) == null)
             {
                 return;
             }
@@ -76,7 +76,7 @@ namespace ClassTranscribeServer.Authorization
         {
             var offering = await _ctDbContext.Offerings.FindAsync(offeringId);
             ApplicationUser user = null;
-            if (context.User != null)
+            if (context.User != null && context.User.FindFirst(ClaimTypes.NameIdentifier) != null)
             {
                 var currentUserID = context.User.FindFirst(ClaimTypes.NameIdentifier).Value;
                 user = await _ctDbContext.Users.Where(u => u.Id == currentUserID).FirstAsync();

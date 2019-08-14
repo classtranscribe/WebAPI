@@ -35,7 +35,7 @@ namespace ClassTranscribeServer.Controllers
         {
             // Get the user
             ApplicationUser user = null;
-            if (User.Identity.IsAuthenticated)
+            if (User.Identity.IsAuthenticated && this.User.FindFirst(ClaimTypes.NameIdentifier) != null)
             {
                 var userId = this.User.FindFirst(ClaimTypes.NameIdentifier).Value;
                 user = await _context.Users.FindAsync(userId);
