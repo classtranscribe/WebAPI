@@ -68,8 +68,8 @@ namespace ClassTranscribeDatabase
                 FirstName = "Ruihua",
                 LastName = "Sui",
                 UniversityId = university1.Id,
-                NormalizedEmail = "ruihua.sui@gmail.com",
-                NormalizedUserName = "ruihua.sui@gmail.com",
+                NormalizedEmail = "RUIHUA.SUI@GMAIL.COM",
+                NormalizedUserName = "RUIHUA.SUI@GMAIL.COM",
                 EmailConfirmed = true,
                 LockoutEnabled = false,
                 SecurityStamp = Guid.NewGuid().ToString()
@@ -83,8 +83,8 @@ namespace ClassTranscribeDatabase
                 FirstName = "Chirantan",
                 LastName = "Mahipal",
                 UniversityId = university1.Id,
-                NormalizedEmail = "mahipal2@illinois.edu",
-                NormalizedUserName = "mahipal2@illinois.edu",
+                NormalizedEmail = "MAHIPAL2@ILLINOIS.EDU",
+                NormalizedUserName = "MAHIPAL2@ILLINOIS.EDU",
                 EmailConfirmed = true,
                 LockoutEnabled = false,
                 SecurityStamp = Guid.NewGuid().ToString()
