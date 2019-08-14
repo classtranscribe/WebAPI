@@ -90,9 +90,6 @@ namespace ClassTranscribeDatabase
                 SecurityStamp = Guid.NewGuid().ToString()
             };
 
-            chirantan.PasswordHash = new PasswordHasher<ApplicationUser>().HashPassword(chirantan, chirantan.Email);
-            shawn.PasswordHash = new PasswordHasher<ApplicationUser>().HashPassword(shawn, shawn.Email);
-
             List<ApplicationUser> users = new List<ApplicationUser> { shawn, chirantan };
             foreach (ApplicationUser user in users)
             {

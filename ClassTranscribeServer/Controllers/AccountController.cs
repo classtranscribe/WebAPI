@@ -39,22 +39,16 @@ namespace ClassTranscribeServer.Controllers
         [NonAction]
         public async Task<LoggedInDTO> Login(ApplicationUser user)
         {
-
-            var result = await _signInManager.PasswordSignInAsync(user.Email, user.Email, false, false);
-
-            if (result.Succeeded)
-            {
-                var appUser = _userManager.Users.SingleOrDefault(r => r.Email == user.Email);
-                return GenerateJwtToken(user.Email, appUser);
-            }
-
+            await _signInManager.SignInAsync(user, false);
+            var appUser = _userManager.Users.SingleOrDefault(r => r.Email == user.Email);
+            return GenerateJwtToken(user.Email, appUser);
             throw new ApplicationException("INVALID_LOGIN_ATTEMPT");
         }
 
         [NonAction]
         public async Task<LoggedInDTO> Register(ApplicationUser user)
         {
-            var result = await _userManager.CreateAsync(user, user.Email);
+            var result = await _userManager.CreateAsync(user);
             University university = await GetUniversity(user.Email);
             user.University = university;
             await _context.SaveChangesAsync();

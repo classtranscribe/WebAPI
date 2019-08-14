@@ -1,4 +1,4 @@
-﻿using ClassTranscribeDatabase; 
+﻿using ClassTranscribeDatabase;
 using Microsoft.CognitiveServices.Speech;
 using Microsoft.CognitiveServices.Speech.Translation;
 using Newtonsoft.Json.Linq;
@@ -12,19 +12,19 @@ namespace TaskEngine.MSTranscription
 {
     public class MSTranscriptionService
     {
-        public class TranslationLanguages
+        public static class TranslationLanguages
         {
             public static string ENGLISH = "en-US";
             public static string SIMPLIFIED_CHINESE = "zh-Hans";
             public static string KOREAN = "ko";
             public static string SPANISH = "es";
         }
-        private AppSettings _appSettings;
-        private SpeechTranslationConfig _speechConfig;
-        public MSTranscriptionService()
+        public async Task<Tuple<Dictionary<string, List<Sub>>, Dictionary<string, string>, string>> RecognitionWithAudioStreamAsync(string file)
         {
-            _appSettings = Globals.appSettings;
-            _speechConfig = SpeechTranslationConfig.FromSubscription(_appSettings.AZURE_SUBSCRIPTION_KEY, _appSettings.AZURE_REGION);
+            AppSettings _appSettings = Globals.appSettings;
+            
+            Key key = TaskEngineGlobals.KeyProvider.GetKey();
+            SpeechTranslationConfig _speechConfig = SpeechTranslationConfig.FromSubscription(key.ApiKey, key.Region);
             _speechConfig.RequestWordLevelTimestamps();
             // Sets source and target languages.
             _speechConfig.SpeechRecognitionLanguage = TranslationLanguages.ENGLISH;
@@ -32,9 +32,7 @@ namespace TaskEngine.MSTranscription
             _speechConfig.AddTargetLanguage(TranslationLanguages.KOREAN);
             _speechConfig.AddTargetLanguage(TranslationLanguages.SPANISH);
             _speechConfig.OutputFormat = OutputFormat.Detailed;
-        }
-        public async Task<Tuple<Dictionary<string, List<Sub>>, Dictionary<string, string>, string>> RecognitionWithAudioStreamAsync(string file)
-        {
+
             string errorCode = "";
             Console.OutputEncoding = Encoding.Unicode;
             Dictionary<string, List<Sub>> captions = new Dictionary<string, List<Sub>>();
@@ -143,6 +141,7 @@ namespace TaskEngine.MSTranscription
 
                     // Stops recognition.
                     await recognizer.StopContinuousRecognitionAsync().ConfigureAwait(false);
+                    TaskEngineGlobals.KeyProvider.ReleaseKey(key);
                     return new Tuple<Dictionary<string, List<Sub>>, Dictionary<string, string>, string>(captions, vttFiles, errorCode);
                 }
             }

@@ -13,6 +13,10 @@ using Microsoft.Extensions.Options;
 
 namespace TaskEngine
 {
+    public static class TaskEngineGlobals
+    {
+        public static KeyProvider KeyProvider { get; set; }
+    }
     class Program
     {
         static void Main(string[] args)
@@ -38,6 +42,7 @@ namespace TaskEngine
                 .AddConsole(LogLevel.Debug);
 
             Globals.appSettings = serviceProvider.GetService<IOptions<AppSettings>>().Value;
+            TaskEngineGlobals.KeyProvider = new KeyProvider(Globals.appSettings);
 
             var logger = serviceProvider.GetService<ILoggerFactory>()
                 .CreateLogger<Program>();
