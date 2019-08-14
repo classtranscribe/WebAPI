@@ -23,6 +23,7 @@ namespace TaskEngine.MSTranscription
         {
             _appSettings = appSettings;
             string subscriptionKeys = _appSettings.AZURE_SUBSCRIPTION_KEYS;
+            Keys = new List<Key>();
             foreach (string subscriptionKey in subscriptionKeys.Split(';'))
             {
                 Keys.Add(new Key
