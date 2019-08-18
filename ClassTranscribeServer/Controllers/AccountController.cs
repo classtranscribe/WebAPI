@@ -15,6 +15,7 @@ using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
 using ClassTranscribeDatabase;
 using Newtonsoft.Json.Linq;
+using System.Threading;
 
 namespace ClassTranscribeServer.Controllers
 {
@@ -92,7 +93,7 @@ namespace ClassTranscribeServer.Controllers
             LoggedInDTO loggedInDTO;
             try
             {
-                ApplicationUser user = Validate(model.b2cToken);
+                ApplicationUser user = await Validate(model.auth0Token);
                 ApplicationUser applicationUser = await _userManager.FindByEmailAsync(user.Email);
                 if (applicationUser == null)
                 {
@@ -143,42 +144,37 @@ namespace ClassTranscribeServer.Controllers
         }
 
         [NonAction]
-        public ApplicationUser Validate(string token)
+        public async Task<ApplicationUser> Validate(string token)
         {
-            string stsDiscoveryEndpoint = "https://" + Globals.appSettings.AZURE_B2C_DOMAIN + "/" + Globals.appSettings.AZURE_B2C_DIRECTORY + "/v2.0/.well-known/openid-configuration?p=" + Globals.appSettings.AZURE_B2C_SIGNIN_POLICY;
+            string auth0Domain = Globals.appSettings.AUTH0_DOMAIN; // Your Auth0 domain
+            string auth0Audience = Globals.appSettings.AUTH0_CLIENT_ID; // Your API Identifier
 
-            ConfigurationManager<OpenIdConnectConfiguration> configManager = new ConfigurationManager<OpenIdConnectConfiguration>(stsDiscoveryEndpoint, new OpenIdConnectConfigurationRetriever());
+            IConfigurationManager<OpenIdConnectConfiguration> configurationManager = new ConfigurationManager<OpenIdConnectConfiguration>($"{auth0Domain}.well-known/openid-configuration", new OpenIdConnectConfigurationRetriever());
+            OpenIdConnectConfiguration openIdConfig = await configurationManager.GetConfigurationAsync(CancellationToken.None);
 
-            OpenIdConnectConfiguration config = configManager.GetConfigurationAsync().Result;
-
-            TokenValidationParameters validationParameters = new TokenValidationParameters
+            TokenValidationParameters validationParameters =
+            new TokenValidationParameters
             {
+                ValidIssuer = auth0Domain,
+                ValidAudiences = new[] { auth0Audience },
+                IssuerSigningKeys = openIdConfig.SigningKeys,
+                ValidateIssuer = true,
                 ValidateAudience = true,
-                ValidAudience = Globals.appSettings.AZURE_B2C_CLIENTID,
-                ValidateIssuer = false,
-                ValidIssuer = config.Issuer,
-                IssuerSigningKeys = config.SigningKeys,
-                ValidateLifetime = false
+                ValidateLifetime = true
             };
+            SecurityToken validatedToken;
+            JwtSecurityTokenHandler handler = new JwtSecurityTokenHandler();
+            var claims = handler.ValidateToken(token, validationParameters, out validatedToken);
 
-
-            JwtSecurityTokenHandler tokendHandler = new JwtSecurityTokenHandler();
-
-            SecurityToken jwt;
-
-            var claims = tokendHandler.ValidateToken(token, validationParameters, out jwt);
-
-            JwtSecurityToken j = jwt as JwtSecurityToken;
-
-            var user = new ApplicationUser
+            var applicationUser = new ApplicationUser
             {
-                UserName = claims.FindFirst("emails")?.Value,
-                Email = claims.FindFirst("emails")?.Value,
-                FirstName = claims.FindFirst("given_name")?.Value,
-                LastName = claims.FindFirst("family_name")?.Value
+                UserName = claims.FindFirstValue("email"),
+                Email = claims.FindFirstValue("email"),
+                FirstName = claims.FindFirstValue("given_name"),
+                LastName = claims.FindFirstValue("family_name")
             };
 
-            return user;
+            return applicationUser;
         }
 
         [NonAction]
@@ -233,7 +229,7 @@ namespace ClassTranscribeServer.Controllers
         public class LoginDto
         {
             [Required]
-            public string b2cToken { get; set; }
+            public string auth0Token { get; set; }
         }
 
         public class TestLoginDTO

@@ -10,14 +10,28 @@ namespace TaskEngine
         protected string queueName;
         public void Publish(T obj)
         {
-            Console.WriteLine(obj);
-            _rabbitMQ.PublishTask(queueName, obj);
+            try
+            {
+                Console.WriteLine(obj);
+                _rabbitMQ.PublishTask(queueName, obj);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.ToString());
+            }
         }
 
         protected abstract Task OnConsume(T obj);
         public void Consume()
         {
-            _rabbitMQ.ConsumeTask<T>(queueName, OnConsume);
+            try
+            {
+                _rabbitMQ.ConsumeTask<T>(queueName, OnConsume);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.ToString());
+            }
         }
     }
 

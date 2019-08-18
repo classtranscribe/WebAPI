@@ -100,6 +100,7 @@ namespace ClassTranscribeDatabase
                 {
                     _context.Users.Add(user);
                     _context.UserRoles.Add(new IdentityUserRole<string> { RoleId = Instructor.Id, UserId = user.Id });
+                    _context.UserRoles.Add(new IdentityUserRole<string> { RoleId = Admin.Id, UserId = user.Id });
                 }
             }
 
