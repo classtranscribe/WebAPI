@@ -81,6 +81,8 @@ namespace TaskEngine.Tasks
                     });
                 }
             }
+            // TEMPORARY CHANGE
+            newMedia = newMedia.OrderBy(m => m.UniqueMediaIdentifier).Take(5).ToList();
             await _context.Medias.AddRangeAsync(newMedia);
             await _context.SaveChangesAsync();
             return newMedia;
@@ -108,6 +110,8 @@ namespace TaskEngine.Tasks
                     });
                 }
             }
+            // TEMPORARY CHANGE
+            newMedia = newMedia.OrderBy(m => m.UniqueMediaIdentifier).Take(5).ToList();
             await _context.Medias.AddRangeAsync(newMedia);
             await _context.SaveChangesAsync();
             return newMedia;
