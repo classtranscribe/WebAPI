@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using ClassTranscribeDatabase;
 using ClassTranscribeDatabase.Models;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
@@ -49,12 +48,12 @@ namespace ClassTranscribeServer.Controllers
         [Authorize(Roles = Globals.ROLE_ADMIN)]
         public async Task<List<ApplicationUser>> GetInstructors(string universityId)
         {
-            var instructorRoleId = await _roleManager.GetRoleIdAsync(new IdentityRole { Name = Globals.ROLE_INSTRUCTOR });
-            var userRoles = _context.UserRoles.Where(ur => ur.RoleId == instructorRoleId);
-            var userIds = _context.Users.Where(u => u.UniversityId == universityId).Join(userRoles, u => u.Id, ur => ur.UserId, (u, ur) => new ApplicationUser
-            {
-                Id = u.Id
-            }).ToList();
+            var instructorRoleId = _context.Roles.Where(r => r.Name == Globals.ROLE_INSTRUCTOR).First().Id;
+
+            var userIds = (from user in _context.Users
+                           join ur in _context.UserRoles on user.Id equals ur.UserId
+                           where user.UniversityId == universityId && ur.RoleId == instructorRoleId
+                            select new ApplicationUser { Id = user.Id, Email = user.Email, FirstName = user.FirstName, LastName = user.LastName }).ToList();
             return userIds; 
         }
     }
