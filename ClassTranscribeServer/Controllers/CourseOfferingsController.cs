@@ -96,7 +96,7 @@ namespace ClassTranscribeServer.Controllers
 
         // POST: api/CourseOfferings
         [HttpPost]
-        [Authorize(Roles = Globals.ROLE_ADMIN + "," + Globals.ROLE_INSTRUCTOR)]
+        [Authorize(Roles = Globals.ROLE_ADMIN + "," + Globals.ROLE_INSTRUCTOR + "," + Globals.ROLE_TEACHING_ASSITANT)]
         public async Task<ActionResult<CourseOffering>> PostCourseOffering(CourseOffering courseOffering)
         {
             _context.CourseOfferings.Add(courseOffering);

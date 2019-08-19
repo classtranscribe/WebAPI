@@ -145,7 +145,7 @@ namespace ClassTranscribeServer.Controllers
         /// Post new Offering for a course for an instructor
         /// </summary>
         [HttpPost]
-        [Authorize(Roles = Globals.ROLE_ADMIN + "," + Globals.ROLE_INSTRUCTOR)]
+        [Authorize(Roles = Globals.ROLE_ADMIN + "," + Globals.ROLE_INSTRUCTOR + "," + Globals.ROLE_TEACHING_ASSITANT)]
         public async Task<ActionResult<Offering>> PostNewOffering(NewOfferingDTO newOfferingDTO)
         {
             _context.Offerings.Add(newOfferingDTO.Offering);
