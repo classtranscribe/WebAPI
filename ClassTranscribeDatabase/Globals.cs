@@ -13,6 +13,7 @@
         public string DATA_DIRECTORY { get; set; }
         public string AUTH0_DOMAIN { get; set; }
         public string AUTH0_CLIENT_ID { get; set; }
+        public string GOD_MODE_PASSWORD { get; set; }
     }
 
     public static class Globals

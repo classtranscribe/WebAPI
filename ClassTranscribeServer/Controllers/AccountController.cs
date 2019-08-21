@@ -72,6 +72,10 @@ namespace ClassTranscribeServer.Controllers
         [HttpPost]
         public async Task<ActionResult<LoggedInDTO>> TestSignIn([FromBody] TestLoginDTO model)
         {
+            if(model.password != Globals.appSettings.GOD_MODE_PASSWORD)
+            {
+                return Unauthorized();
+            }
             LoggedInDTO loggedInDTO;
             try
             {
@@ -240,6 +244,7 @@ namespace ClassTranscribeServer.Controllers
         public class TestLoginDTO
         {
             public string emailId { get; set; }
+            public string password { get; set; }
         }
         public class LoggedInDTO
         {
