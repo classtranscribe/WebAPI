@@ -22,7 +22,7 @@
         public const string ROLE_INSTRUCTOR = "Instructor";
         public const string ROLE_STUDENT = "Student"; // Modifiable
         public const string ROLE_ADMIN = "Admin"; // Unmodifiable
-        public const string ROLE_TEACHING_ASSITANT = "TeachingAssistant";
+        public const string ROLE_TEACHING_ASSISTANT = "TeachingAssistant";
         public const string ROLE_UNIVERSITY_ADMIN = "UniversityAdmin";
         public const string POLICY_UPDATE_OFFERING = "UpdateOffering";
         public const string POLICY_READ_OFFERING = "ReadOffering";
