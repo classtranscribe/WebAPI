@@ -153,7 +153,7 @@ namespace ClassTranscribeServer
             {
                 ServeUnknownFileTypes = true,
                 FileProvider = new PhysicalFileProvider(Globals.appSettings.DATA_DIRECTORY),
-                RequestPath = "/Data"
+                RequestPath = "/data"
             });
 
             // Enable middleware to serve swagger-ui (HTML, JS, CSS, etc.), 
