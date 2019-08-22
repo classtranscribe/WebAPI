@@ -189,7 +189,7 @@ namespace ClassTranscribeDatabase
                 Id = "4002",
                 SectionName = "AB",
                 TermId = term2.Id,
-                AccessType = AccessTypes.AuthenticatedOnly
+                AccessType = AccessTypes.Public
             };
 
             CourseOffering course_offering2 = new CourseOffering
@@ -199,18 +199,11 @@ namespace ClassTranscribeDatabase
                 OfferingId = offering2.Id
             };
 
-            CourseOffering course_offering7 = new CourseOffering
-            {
-                Id = "9007",
-                CourseId = test_course.Id,
-                OfferingId = offering2.Id
-            };
-
             List<Term> terms = new List<Term> { term1, term2, term3 };
             List<Department> departments = new List<Department> { department1, department2};
             List<Course> courses = new List<Course> { course1, course2, test_course};
             List<Offering> offerings = new List<Offering> { offering2};
-            List<CourseOffering> courseOfferings = new List<CourseOffering> { course_offering2, course_offering7};
+            List<CourseOffering> courseOfferings = new List<CourseOffering> { course_offering2 };
 
             foreach (var t in terms)
             {
