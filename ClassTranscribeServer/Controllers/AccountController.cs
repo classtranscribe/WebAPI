@@ -223,7 +223,6 @@ namespace ClassTranscribeServer.Controllers
         {
             string basePath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
             string filePath = Path.Combine(basePath, "world_universities_and_domains.json");
-            Console.WriteLine("PAATH::" + filePath);
             using (StreamReader r = new StreamReader(filePath))
             {
                 string json = r.ReadToEnd();
