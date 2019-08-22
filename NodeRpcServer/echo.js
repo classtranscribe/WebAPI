@@ -1,7 +1,7 @@
 var rp = require('request-promise');
 var path = require('path');
 var fs  = require('fs-promise');
-const _tempdir = '/Data/temp';
+const _tempdir = process.env.TEMP_DIRECTORY;
 var utils = require('./utils');
 
 async function requestCookies(publicAccessUrl, playlistId) {

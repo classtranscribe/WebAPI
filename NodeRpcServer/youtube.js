@@ -2,7 +2,7 @@ var rp = require('request-promise');
 var path = require('path');
 var fs  = require('fs-promise');
 var utils = require('./utils');
-const _tempdir = '/Data/temp';
+const _tempdir = process.env.TEMP_DIRECTORY;
 var youtube_google_api_key = process.env.YOUTUBE_API_KEY;
 
 async function downloadYoutubePlaylist(playlist) {
