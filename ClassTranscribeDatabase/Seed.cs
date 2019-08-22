@@ -159,15 +159,6 @@ namespace ClassTranscribeDatabase
                 UniversityId = university1.Id
             };
 
-            Department department3 = new Department
-            {
-                // department Id begins with 2
-                Id = "2003",
-                Name = "Math",
-                Acronym = "MATH",
-                UniversityId = university1.Id,
-            };
-
             Course course1 = new Course
             {
                 Id = "3001",
@@ -185,49 +176,12 @@ namespace ClassTranscribeDatabase
                 //CourseOfferings
             };
 
-            Course course3 = new Course
+            Course test_course = new Course
             {
-                Id = "3003",
-                CourseName = "Computer Systems",
-                CourseNumber = "233",
-                DepartmentId = department1.Id,
-                //CourseOfferings
-            };
-
-            Course course4 = new Course
-            {
-                Id = "3004",
-                CourseName = "Calculus",
-                CourseNumber = "220",
-                DepartmentId = department3.Id,
-                //CourseOfferings
-            };
-
-            Course course5 = new Course
-            {
-                Id = "3005",
-                CourseName = "Applied Linear Algebra",
-                CourseNumber = "415",
-                DepartmentId = department3.Id,
-                //CourseOfferings
-            };
-
-            Course course6 = new Course
-            {
-                Id = "3006",
-                CourseName = "Numerical Methods",
-                CourseNumber = "357",
-                DepartmentId = department2.Id,
-                //CourseOfferings
-            };
-
-
-            Offering offering1 = new Offering
-            {
-                Id = "4001",
-                SectionName = "XY",
-                TermId = term1.Id,
-                AccessType = AccessTypes.Public
+                Id = "test_course",
+                CourseName = "Test Course",
+                CourseNumber = "000",
+                DepartmentId = department1.Id
             };
 
             Offering offering2 = new Offering
@@ -238,106 +192,25 @@ namespace ClassTranscribeDatabase
                 AccessType = AccessTypes.AuthenticatedOnly
             };
 
-            Offering offering3 = new Offering
-            {
-                Id = "4003",
-                SectionName = "CD",
-                TermId = term3.Id,
-                AccessType = AccessTypes.StudentsOnly
-            };
-
-            Offering offering4 = new Offering
-            {
-                Id = "4004",
-                SectionName = "EF",
-                TermId = term1.Id,
-                AccessType = AccessTypes.UniversityOnly
-            };
-
-            Offering offering5 = new Offering
-            {
-                Id = "4005",
-                SectionName = "GH",
-                TermId = term2.Id,
-                AccessType = AccessTypes.Public
-            };
-
-            CourseOffering course_offering1 = new CourseOffering
-            {
-                Id = "9001",
-                CourseId = course1.Id,
-                OfferingId = offering1.Id
-            };
-
             CourseOffering course_offering2 = new CourseOffering
             {
                 Id = "9002",
-                CourseId = course1.Id,
+                CourseId = test_course.Id,
                 OfferingId = offering2.Id
-            };
-
-            CourseOffering course_offering3 = new CourseOffering
-            {
-                Id = "9003",
-                CourseId = course1.Id,
-                OfferingId = offering3.Id
-            };
-
-            CourseOffering course_offering4 = new CourseOffering
-            {
-                Id = "9004",
-                CourseId = course1.Id,
-                OfferingId = offering4.Id
-            };
-
-            CourseOffering course_offering5 = new CourseOffering
-            {
-                Id = "9005",
-                CourseId = course1.Id,
-                OfferingId = offering5.Id
-            };
-
-            CourseOffering course_offering6 = new CourseOffering
-            {
-                Id = "9006",
-                CourseId = course2.Id,
-                OfferingId = offering1.Id
             };
 
             CourseOffering course_offering7 = new CourseOffering
             {
                 Id = "9007",
-                CourseId = course2.Id,
+                CourseId = test_course.Id,
                 OfferingId = offering2.Id
             };
 
-            CourseOffering course_offering8 = new CourseOffering
-            {
-                Id = "9008",
-                CourseId = course2.Id,
-                OfferingId = offering3.Id
-            };
-
-            CourseOffering course_offering9 = new CourseOffering
-            {
-                Id = "9009",
-                CourseId = course2.Id,
-                OfferingId = offering4.Id
-            };
-
-            CourseOffering course_offering10 = new CourseOffering
-            {
-                Id = "9010",
-                CourseId = course2.Id,
-                OfferingId = offering5.Id
-            };
-
             List<Term> terms = new List<Term> { term1, term2, term3 };
-            List<Department> departments = new List<Department> { department1, department2, department3 };
-            List<Course> courses = new List<Course> { course1, course2, course3, course4, course5, course6 };
-            List<Offering> offerings = new List<Offering> { offering1, offering2, offering3, offering4, offering5 };
-            List<CourseOffering> courseOfferings = new List<CourseOffering> { course_offering1, course_offering2, course_offering3, course_offering4,
-                course_offering5, course_offering6, course_offering7, course_offering8, course_offering9, course_offering10 };
+            List<Department> departments = new List<Department> { department1, department2};
+            List<Course> courses = new List<Course> { course1, course2, test_course};
+            List<Offering> offerings = new List<Offering> { offering2};
+            List<CourseOffering> courseOfferings = new List<CourseOffering> { course_offering2, course_offering7};
 
             foreach (var t in terms)
             {
@@ -381,39 +254,11 @@ namespace ClassTranscribeDatabase
 
             _context.SaveChanges();
 
-            UserOffering userOffering1 = new UserOffering
-            {
-                OfferingId = offering1.Id,
-                ApplicationUserId = users[0].Id,
-                IdentityRoleId = Instructor.Id
-            };
-
             UserOffering userOffering2 = new UserOffering
             {
                 OfferingId = offering2.Id,
                 ApplicationUserId = users[0].Id,
                 IdentityRoleId = Instructor.Id
-            };
-
-            UserOffering userOffering3 = new UserOffering
-            {
-                OfferingId = offering3.Id,
-                ApplicationUserId = users[1].Id,
-                IdentityRoleId = Instructor.Id
-            };
-
-            UserOffering userOffering4 = new UserOffering
-            {
-                OfferingId = offering4.Id,
-                ApplicationUserId = users[1].Id,
-                IdentityRoleId = Instructor.Id
-            };
-
-            UserOffering userOffering5 = new UserOffering
-            {
-                OfferingId = offering1.Id,
-                ApplicationUserId = users[1].Id,
-                IdentityRoleId = Student.Id
             };
 
             UserOffering userOffering6 = new UserOffering
@@ -423,7 +268,7 @@ namespace ClassTranscribeDatabase
                 IdentityRoleId = Instructor.Id
             };
 
-            List<UserOffering> userOfferings = new List<UserOffering> { userOffering1, userOffering2, userOffering3, userOffering4, userOffering5, userOffering6 };
+            List<UserOffering> userOfferings = new List<UserOffering> { userOffering2, userOffering6 };
 
             foreach (var t in userOfferings)
             {
