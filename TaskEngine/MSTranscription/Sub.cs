@@ -122,7 +122,6 @@ namespace TaskEngine.MSTranscription
                     End = curEnd,
                     Caption = caption
                 });
-                Console.WriteLine(caption);
                 curBegin = curEnd;
                 curDuration = sub.End.Subtract(curBegin);
             }
@@ -136,7 +135,6 @@ namespace TaskEngine.MSTranscription
                     End = curEnd,
                     Caption = tempCaption
                 });
-                Console.WriteLine(tempCaption);
                 curBegin = curEnd;
                 curDuration = sub.End.Subtract(curBegin);
             }

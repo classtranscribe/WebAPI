@@ -81,7 +81,7 @@ namespace ClassTranscribeDatabase.Models
                 {
                     p = PrivatePath.Replace('\\', '/');
                 }
-                p = p.Substring(p.LastIndexOf("/Data/") + 6);
+                p = p.Substring(p.LastIndexOf("/data/") + 6);
                 return System.IO.Path.Combine(Globals.appSettings.DATA_DIRECTORY, p);
             }
             set
@@ -91,7 +91,7 @@ namespace ClassTranscribeDatabase.Models
                 {
                     value = value.Replace('\\', '/');
                 }
-                PrivatePath = value.Substring(value.LastIndexOf("/Data/"));
+                PrivatePath = value.Substring(value.LastIndexOf("/data/"));
             }
         }
         [IgnoreDataMember]

@@ -63,6 +63,14 @@ namespace TaskEngine.MSTranscription
                             .OrderBy(w => w.Offset)
                             .ToList();
 
+                            // To fix bug with MS Cognitive Services
+                            if (words.Any())
+                            {
+                                var offsetDifference = e.Result.OffsetInTicks - words.FirstOrDefault().Offset;
+                                words.ForEach(w => w.Offset += offsetDifference);
+                            }
+
+
                             TimeSpan offset = new TimeSpan(e.Result.OffsetInTicks);
                             Console.WriteLine($"Begin={offset.Minutes}:{offset.Seconds},{offset.Milliseconds}", offset);
                             TimeSpan end = e.Result.Duration.Add(offset);
@@ -80,7 +88,7 @@ namespace TaskEngine.MSTranscription
                                     Caption = element.Value
                                 });
                                 captions[element.Key].AddRange(subs);
-                                // subs.ForEach(s => Console.WriteLine(s.Caption));
+                                subs.ForEach(s => Console.WriteLine(s.Caption));
                             }
 
                         }
