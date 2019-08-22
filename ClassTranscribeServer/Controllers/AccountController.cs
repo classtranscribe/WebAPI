@@ -16,6 +16,7 @@ using Microsoft.IdentityModel.Tokens;
 using ClassTranscribeDatabase;
 using Newtonsoft.Json.Linq;
 using System.Threading;
+using System.Reflection;
 
 namespace ClassTranscribeServer.Controllers
 {
@@ -220,7 +221,10 @@ namespace ClassTranscribeServer.Controllers
         [NonAction]
         public static string GetUniversityName(string domain)
         {
-            using (StreamReader r = new StreamReader("world_universities_and_domains.json"))
+            string basePath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            string filePath = Path.Combine(basePath, "world_universities_and_domains.json");
+            Console.WriteLine("PAATH::" + filePath);
+            using (StreamReader r = new StreamReader(filePath))
             {
                 string json = r.ReadToEnd();
                 JArray allUniversities = JArray.Parse(json);
