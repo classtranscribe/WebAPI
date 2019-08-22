@@ -14,8 +14,9 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{7E524246-1DD6-47ED-BE59-C07C5FF0E11F}"
 	ProjectSection(SolutionItems) = preProject
 		.gitignore = .gitignore
-		vs_appsettings.json = vs_appsettings.json
 		ct.proto = ct.proto
+		vs_appsettings.json = vs_appsettings.json
+		world_universities_and_domains.json = world_universities_and_domains.json
 	EndProjectSection
 EndProject
 Global

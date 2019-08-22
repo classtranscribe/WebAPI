@@ -1,4 +1,4 @@
-[
+﻿[
   {
     "web_pages": [
       "http://www.42.us.org/"
@@ -40905,7 +40905,7 @@
     "state-province": null,
     "domains": [
       "hochschule-bonn-rhein-sieg.de",
-	  "h-brs.de"
+      "h-brs.de"
     ],
     "country": "Germany"
   },
