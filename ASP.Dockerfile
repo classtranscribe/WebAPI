@@ -18,6 +18,7 @@ FROM api_csproj AS api_build
 COPY ./ClassTranscribeServer ./ClassTranscribeServer
 COPY ./ClassTranscribeDatabase ./ClassTranscribeDatabase
 COPY ./vs_appsettings.json ./vs_appsettings.json
+COPY ./world_universities_and_domains.json ./world_universities_and_domains.json
 WORKDIR "/src/ClassTranscribeServer"
 RUN dotnet build "ClassTranscribeServer.csproj" -c Release -o /app
 
