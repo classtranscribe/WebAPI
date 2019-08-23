@@ -42,7 +42,7 @@ namespace ClassTranscribeServer.Controllers
         [HttpGet("ByUniversity/{universityId}")]
         public async Task<ActionResult<IEnumerable<Term>>> GetTerms(string universityId)
         {
-            return await _context.Terms.Where(t => t.UniversityId == universityId).ToListAsync();
+            return await _context.Terms.Where(t => t.UniversityId == universityId).OrderBy(t => t.StartDate).ToListAsync();
         }
 
         // GET: api/Terms/5

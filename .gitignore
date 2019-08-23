@@ -95,9 +95,8 @@ typings/
 # NUNIT
 *.VisualState.xml
 TestResult.xml
-/ClassTranscribeServer/vs_appsettings.json
-vs_appsettings.json
 Data/
+data/
 /NodeRpcServer/cookies.txt
 *.txt
 nginx/app.conf

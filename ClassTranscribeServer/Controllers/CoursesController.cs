@@ -41,7 +41,7 @@ namespace ClassTranscribeServer.Controllers
         [HttpGet("ByDepartment/{departmentId}")]
         public async Task<ActionResult<IEnumerable<Course>>> GetCourses(string departmentId)
         {
-            return await _context.Courses.Where(c => c.DepartmentId == departmentId).ToListAsync();
+            return await _context.Courses.Where(c => c.DepartmentId == departmentId).OrderBy(c => c.CourseNumber).ToListAsync();
         }
 
         // GET: api/Courses/
@@ -57,7 +57,7 @@ namespace ClassTranscribeServer.Controllers
                           join o in _context.Offerings on co.OfferingId equals o.Id
                           join uo in _context.UserOfferings on o.Id equals uo.OfferingId
                           where uo.IdentityRole.Name == Globals.ROLE_INSTRUCTOR && uo.ApplicationUserId == userId
-                          select c).ToListAsync();
+                          select c).OrderBy(c => c.CourseNumber).ToListAsync();
         }
 
         // GET: api/Courses/5

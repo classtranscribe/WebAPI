@@ -33,7 +33,7 @@ namespace ClassTranscribeServer.Controllers
         [HttpGet("ByUniversity/{universityId}")]
         public async Task<ActionResult<IEnumerable<Department>>> GetDepartments(string universityId)
         {
-            return await _context.Departments.Where(d => d.UniversityId == universityId).ToListAsync();
+            return await _context.Departments.Where(d => d.UniversityId == universityId).OrderBy(d => d.Acronym).ToListAsync();
         }
 
         // GET: api/Departments/5
