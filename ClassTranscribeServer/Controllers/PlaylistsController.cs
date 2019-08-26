@@ -63,7 +63,7 @@ namespace ClassTranscribeServer.Controllers
             {
                 return NotFound();
             }
-            List<MediaDTO> medias = playlist.Medias.Select(m => new MediaDTO
+            List<MediaDTO> medias = playlist.Medias.OrderBy(m => m.CreatedAt).Select(m => new MediaDTO
             {
                 Media = m,
                 Videos = m.Videos,
