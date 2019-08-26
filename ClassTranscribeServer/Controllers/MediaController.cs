@@ -40,15 +40,17 @@ namespace ClassTranscribeServer.Controllers
         }
 
         // PUT: api/Media/5
-        [HttpPut("{id}")]
+        [HttpPut("PutJsonMetaData/{id}")]
         [Authorize]
-        public async Task<IActionResult> PutMedia(string id, Media media)
+        public async Task<IActionResult> PutJsonMetaData(JObject jsonMetaData, string id)
         {
-            if (id != media.Id)
+            if (!MediaExists(id))
             {
-                return BadRequest();
+                return NotFound();
             }
 
+            Media media = await _context.Medias.FindAsync(id);
+            media.JsonMetadata = jsonMetaData;
             _context.Entry(media).State = EntityState.Modified;
 
             try
