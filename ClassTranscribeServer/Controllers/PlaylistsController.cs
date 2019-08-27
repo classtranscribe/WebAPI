@@ -103,6 +103,7 @@ namespace ClassTranscribeServer.Controllers
             try
             {
                 await _context.SaveChangesAsync();
+                WakeDownloader.Wake();
             }
             catch (DbUpdateConcurrencyException)
             {
@@ -138,6 +139,7 @@ namespace ClassTranscribeServer.Controllers
             }
             _context.Playlists.Add(playlist);
             await _context.SaveChangesAsync();
+            WakeDownloader.Wake();
 
             return CreatedAtAction("GetPlaylist", new { id = playlist.Id }, playlist);
         }

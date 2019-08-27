@@ -31,6 +31,7 @@ namespace TaskEngine
                 .AddSingleton<DownloadMediaTask>()
                 .AddSingleton<ConvertVideoToWavTask>()
                 .AddSingleton<TranscriptionTask>()
+                .AddSingleton<WakeDownloaderTask>()
                 .AddSingleton<RpcClient>()
                 .AddSingleton<MSTranscriptionService>()
                 .BuildServiceProvider();
@@ -55,6 +56,7 @@ namespace TaskEngine
             serviceProvider.GetService<DownloadMediaTask>().Consume();
             serviceProvider.GetService<ConvertVideoToWavTask>().Consume();
             serviceProvider.GetService<TranscriptionTask>().Consume();
+            serviceProvider.GetService<WakeDownloaderTask>().Consume();
             RunProgramRunExample(rabbitMQ).GetAwaiter().GetResult();
 
             logger.LogDebug("All done!");

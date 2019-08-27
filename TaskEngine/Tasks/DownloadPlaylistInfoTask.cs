@@ -35,7 +35,6 @@ namespace TaskEngine.Tasks
             {
 
                 Init((RabbitMQ)context.MergedJobDataMap["rabbitMQ"]);
-                queueName = RabbitMQ.QueueNameBuilder(TaskType.FetchPlaylistData, "_1");
                 var period = DateTime.Now.AddMonths(-12);
                 var playlists = await _context.Offerings.Where(o => o.Term.StartDate >= period).SelectMany(o => o.Playlists).ToListAsync();
                 // TEMPORARY CHANGE

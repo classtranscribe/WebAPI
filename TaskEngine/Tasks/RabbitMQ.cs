@@ -11,43 +11,43 @@ namespace TaskEngine
 {
     public class RabbitMQ
     {
-        IConnection Connection;
-        IModel Channel;
+        IConnection _connection;
+        IModel _channel;
         public RabbitMQ()
         {
             var factory = new ConnectionFactory() { HostName = Globals.appSettings.RabbitMQServer };
-            Connection = factory.CreateConnection();
-            Channel = Connection.CreateModel();
+            _connection = factory.CreateConnection();
+            _channel = _connection.CreateModel();
         }
 
         ~RabbitMQ()
         {
-            Channel.Close();
-            Connection.Close();
+            _channel.Close();
+            _connection.Close();
         }
         public void PublishTask<T>(string queueName, T message)
         {
-            Channel.QueueDeclare(queue: queueName, durable: true, exclusive: false, autoDelete: false, arguments: null);
+            _channel.QueueDeclare(queue: queueName, durable: true, exclusive: false, autoDelete: false, arguments: null);
             var body = MessageToBytes(message);
-            var properties = Channel.CreateBasicProperties();
+            var properties = _channel.CreateBasicProperties();
             properties.Persistent = true;
 
-            Channel.BasicPublish(exchange: "", routingKey: queueName, basicProperties: properties, body: body);
+            _channel.BasicPublish(exchange: "", routingKey: queueName, basicProperties: properties, body: body);
         }
 
         public void ConsumeTask<T>(string queueName, Func<T, Task> OnConsume)
         {
 
-            Channel.QueueDeclare(queue: queueName,
+            _channel.QueueDeclare(queue: queueName,
                                  durable: true,
                                  exclusive: false,
                                  autoDelete: false,
                                  arguments: null);
-            Channel.BasicQos(prefetchSize: 0, prefetchCount: 20, global: false);
+            _channel.BasicQos(prefetchSize: 0, prefetchCount: 20, global: false);
 
             Console.WriteLine(" [*] Waiting for messages.");
 
-            var consumer = new EventingBasicConsumer(Channel);
+            var consumer = new EventingBasicConsumer(_channel);
             consumer.Received += async (model, ea) =>
             {
                 var message = BytesToMessage<T>(ea.Body);
@@ -57,9 +57,9 @@ namespace TaskEngine
 
                 Console.WriteLine(" [x] Done");
 
-                Channel.BasicAck(deliveryTag: ea.DeliveryTag, multiple: false);
+                _channel.BasicAck(deliveryTag: ea.DeliveryTag, multiple: false);
             };
-            Channel.BasicConsume(queue: queueName,
+            _channel.BasicConsume(queue: queueName,
                                  autoAck: false,
                                  consumer: consumer);
         }
