@@ -53,6 +53,29 @@ namespace ClassTranscribeServer.Controllers
             throw new ApplicationException("INVALID_LOGIN_ATTEMPT");
         }
 
+        [HttpPost]
+        public async Task<ActionResult> CreateUser(string emailId)
+        {
+            ApplicationUser applicationUser = await _userManager.FindByEmailAsync(emailId);
+            if (applicationUser != null)
+            {
+                return Ok("User exists.");
+            }
+
+            ApplicationUser user = new ApplicationUser
+            {
+                EmailConfirmed = false,
+                UserName = emailId,
+                Email = emailId
+            };
+            var result = await _userManager.CreateAsync(user, user.Email);
+            University university = await GetUniversity(user.Email);
+            user.University = university;
+            await _context.SaveChangesAsync();
+
+            return Ok();
+        }
+
         [NonAction]
         public async Task<LoggedInDTO> Register(ApplicationUser user)
         {
@@ -106,6 +129,13 @@ namespace ClassTranscribeServer.Controllers
                 }
                 else
                 {
+                    if (!(await _userManager.IsEmailConfirmedAsync(applicationUser)))
+                    {
+                        applicationUser.EmailConfirmed = true;
+                        applicationUser.FirstName = user.FirstName;
+                        applicationUser.LastName = user.LastName;
+                        await _context.SaveChangesAsync();
+                    }
                     loggedInDTO = await Login(user);
                 }
 
@@ -182,7 +212,8 @@ namespace ClassTranscribeServer.Controllers
                 UserName = claims.FindFirstValue("email"),
                 Email = claims.FindFirstValue("email"),
                 FirstName = claims.FindFirstValue("given_name"),
-                LastName = claims.FindFirstValue("family_name")
+                LastName = claims.FindFirstValue("family_name"),
+                EmailConfirmed = true
             };
 
             return applicationUser;
