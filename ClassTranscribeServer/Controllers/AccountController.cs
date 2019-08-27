@@ -17,6 +17,7 @@ using ClassTranscribeDatabase;
 using Newtonsoft.Json.Linq;
 using System.Threading;
 using System.Reflection;
+using Microsoft.AspNetCore.Authorization;
 
 namespace ClassTranscribeServer.Controllers
 {
@@ -54,6 +55,7 @@ namespace ClassTranscribeServer.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = Globals.ROLE_ADMIN + "," + Globals.ROLE_TEACHING_ASSISTANT + "," + Globals.ROLE_INSTRUCTOR)]
         public async Task<ActionResult> CreateUser(string emailId)
         {
             ApplicationUser applicationUser = await _userManager.FindByEmailAsync(emailId);
