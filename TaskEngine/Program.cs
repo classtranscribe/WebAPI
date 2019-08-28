@@ -10,6 +10,7 @@ using Quartz;
 using TaskEngine.Grpc;
 using TaskEngine.MSTranscription;
 using Microsoft.Extensions.Options;
+using System.Linq;
 
 namespace TaskEngine
 {
@@ -58,6 +59,9 @@ namespace TaskEngine
             serviceProvider.GetService<TranscriptionTask>().Consume();
             serviceProvider.GetService<WakeDownloaderTask>().Consume();
             RunProgramRunExample(rabbitMQ).GetAwaiter().GetResult();
+
+            TranscriptionTask transcriptionTask = serviceProvider.GetService<TranscriptionTask>();
+            context.Videos.Where(v => v.TranscriptionStatus != "NoError").ToList().ForEach(v => transcriptionTask.Publish(v));
 
             logger.LogDebug("All done!");
 
