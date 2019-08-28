@@ -1,4 +1,4 @@
-const _dirname = process.env.TEMP_DIRECTORY;
+const _dirname = process.env.TMPDIR;
 
 async function asyncForEach(array, callback) {
     for (let index = 0; index < array.length; index++) {

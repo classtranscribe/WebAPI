@@ -17,6 +17,20 @@ ENV PATH $PATH:$BIN_PATH/dotnet/
 EXPOSE 80
 EXPOSE 443
 
+RUN apt-get update && apt-get install -y openssh-server
+RUN mkdir /var/run/sshd
+RUN echo 'root:JohnWick123!' | chpasswd
+RUN sed -i 's/PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config
+
+# SSH login fix. Otherwise user is kicked off after login
+RUN sed 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' -i /etc/pam.d/sshd
+
+ENV NOTVISIBLE "in users profile"
+RUN echo "export VISIBLE=now" >> /etc/profile
+
+EXPOSE 22
+CMD ["/usr/sbin/sshd", "-D"]
+
 FROM classtranscribe/ubuntu_asp_base:latest AS dotnet_sdk_2.2
 RUN wget -q https://download.visualstudio.microsoft.com/download/pr/3224f4c4-8333-4b78-b357-144f7d575ce5/ce8cb4b466bba08d7554fe0900ddc9dd/dotnet-sdk-2.2.301-linux-x64.tar.gz
 RUN mkdir -p $BIN_PATH/dotnet && tar zxf dotnet-sdk-2.2.301-linux-x64.tar.gz -C $BIN_PATH/dotnet
