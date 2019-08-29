@@ -137,7 +137,12 @@ namespace ClassTranscribeServer.Controllers
             {
                 return NotFound();
             }
-
+            media.Transcriptions.ForEach(t =>
+            {
+                _context.Captions.RemoveRange(_context.Captions.Where(c => c.TranscriptionId == t.Id));
+            });
+            _context.Transcriptions.RemoveRange(media.Transcriptions);
+            _context.Videos.RemoveRange(media.Videos);
             _context.Medias.Remove(media);
             await _context.SaveChangesAsync();
 
