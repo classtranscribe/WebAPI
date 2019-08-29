@@ -53,6 +53,7 @@ namespace TaskEngine
             CTDbContext context = CTDbContext.CreateDbContext();
             Seeder.Seed(context);
             logger.LogDebug("Starting application");
+            rabbitMQ.DeleteAllQueues();
             serviceProvider.GetService<DownloadPlaylistInfoTask>().Consume();
             serviceProvider.GetService<DownloadMediaTask>().Consume();
             serviceProvider.GetService<ConvertVideoToWavTask>().Consume();
@@ -60,8 +61,14 @@ namespace TaskEngine
             serviceProvider.GetService<WakeDownloaderTask>().Consume();
             RunProgramRunExample(rabbitMQ).GetAwaiter().GetResult();
 
+
+            DownloadMediaTask downloadMediaTask = serviceProvider.GetService<DownloadMediaTask>();
+            ConvertVideoToWavTask convertVideoToWavTask = serviceProvider.GetService<ConvertVideoToWavTask>();
             TranscriptionTask transcriptionTask = serviceProvider.GetService<TranscriptionTask>();
-            context.Videos.Where(v => v.TranscriptionStatus != "NoError").ToList().ForEach(v => transcriptionTask.Publish(v));
+
+            context.Medias.Where(m => !m.Videos.Any()).ToList().ForEach(m => downloadMediaTask.Publish(m));
+            context.Videos.Where(v => v.MediaId != null && v.AudioId == null).ToList().ForEach(v => convertVideoToWavTask.Publish(v));
+            context.Videos.Where(v => v.TranscriptionStatus != "NoError" && v.MediaId != null && v.AudioId != null).ToList().ForEach(v => transcriptionTask.Publish(v));
 
             logger.LogDebug("All done!");
 

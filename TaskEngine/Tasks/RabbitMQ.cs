@@ -12,7 +12,7 @@ namespace TaskEngine
     public class RabbitMQ
     {
         IConnection _connection;
-        IModel _channel;
+        IModel _channel { get; set; }
         public RabbitMQ()
         {
             var factory = new ConnectionFactory() { HostName = Globals.appSettings.RabbitMQServer };
@@ -62,6 +62,15 @@ namespace TaskEngine
             _channel.BasicConsume(queue: queueName,
                                  autoAck: false,
                                  consumer: consumer);
+        }
+
+        public void DeleteAllQueues()
+        {
+            foreach(TaskType taskType in Enum.GetValues(typeof(TaskType)))
+            {
+                string queueName = RabbitMQ.QueueNameBuilder(taskType, "_1");
+                _channel.QueueDelete(queueName);
+            }
         }
 
         public static byte[] MessageToBytes<T>(T obj)
