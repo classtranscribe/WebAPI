@@ -13,7 +13,7 @@ namespace ClassTranscribeServer.Controllers
     [ApiController]
     public class AdminController : ControllerBase
     {
-        [HttpPost]
+        [HttpPost("WakeDownloader")]
         [Authorize(Roles = Globals.ROLE_ADMIN)]
         public ActionResult Wake()
         {
