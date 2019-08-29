@@ -50,7 +50,9 @@ namespace ClassTranscribeServer.Controllers
                     return new ChallengeResult();
                 }
             }
-            return (await _context.Offerings.FindAsync(offeringId)).Playlists;
+            var playlists = await _context.Playlists.Where(p => p.OfferingId == offeringId).OrderBy(p => p.CreatedAt).ToListAsync();
+            playlists.ForEach(p => p.Medias.Sort((x,y) => x.CreatedAt.CompareTo(y.CreatedAt)));
+            return playlists;
         }
 
         // GET: api/Playlists/5
