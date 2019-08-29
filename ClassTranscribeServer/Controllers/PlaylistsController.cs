@@ -51,7 +51,8 @@ namespace ClassTranscribeServer.Controllers
                 }
             }
             var playlists = await _context.Playlists.Where(p => p.OfferingId == offeringId).OrderBy(p => p.CreatedAt).ToListAsync();
-            playlists.ForEach(p => p.Medias.Sort((x,y) => x.CreatedAt.CompareTo(y.CreatedAt)));
+            // Sorting by descending.
+            playlists.ForEach(p => p.Medias.Sort((x,y) => -1 * x.CreatedAt.CompareTo(y.CreatedAt)));
             return playlists;
         }
 
