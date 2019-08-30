@@ -11,7 +11,6 @@ using Microsoft.EntityFrameworkCore;
 namespace ClassTranscribeServer.Authorization
 {
     public class ReadOfferingRequirement : IAuthorizationRequirement { }
-
     public class UpdateOfferingRequirement : IAuthorizationRequirement { }
     public class CreateOfferingRequirement : IAuthorizationRequirement { }
 
