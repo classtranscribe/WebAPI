@@ -62,7 +62,9 @@ namespace ClassTranscribeServer.Controllers
                         Id = m.Id,
                         JsonMetadata = m.JsonMetadata,
                         CreatedAt = m.CreatedAt,
-                        Ready = m.Transcriptions.Any()
+                        Ready = m.Transcriptions.Any(),
+                        Videos = GetVideoDTOs(m.Videos),
+                        Transcriptions = GetTranscriptionDTOs(m.Transcriptions)
                     }).ToList()
             }).ToListAsync();
             // Sorting by descending.
