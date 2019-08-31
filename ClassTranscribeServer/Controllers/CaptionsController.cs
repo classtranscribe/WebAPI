@@ -86,6 +86,38 @@ namespace ClassTranscribeServer.Controllers
             return CreatedAtAction("GetCaption", new { id = caption.Id }, caption);
         }
 
+        // POST: api/Captions
+        [HttpPost]
+        public async Task<ActionResult<Caption>> UpVote(string id)
+        {
+            var caption = await _context.Captions.FindAsync(id);
+
+            if (caption == null)
+            {
+                return NotFound();
+            }
+
+            caption.UpVote++;
+            await _context.SaveChangesAsync();
+            return caption;            
+        }
+
+        // POST: api/Captions
+        [HttpPost]
+        public async Task<ActionResult<Caption>> DownVote(string id)
+        {
+            var caption = await _context.Captions.FindAsync(id);
+
+            if (caption == null)
+            {
+                return NotFound();
+            }
+
+            caption.DownVote++;
+            await _context.SaveChangesAsync();
+            return caption;
+        }
+
         // DELETE: api/Captions/5
         [HttpDelete("{id}")]
         [Authorize]
