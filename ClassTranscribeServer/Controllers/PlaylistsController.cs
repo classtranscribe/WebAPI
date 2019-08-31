@@ -65,6 +65,7 @@ namespace ClassTranscribeServer.Controllers
                         JsonMetadata = m.JsonMetadata,
                         CreatedAt = m.CreatedAt,
                         Ready = m.Transcriptions.Any(),
+                        SourceType = m.SourceType,
                         Videos = m.Videos.Select(v => new VideoDTO
                         {
                             Id = v.Id,
