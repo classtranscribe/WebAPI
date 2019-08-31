@@ -25,13 +25,6 @@ namespace ClassTranscribeServer.Controllers
         }
 
         // GET: api/Playlists
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<Playlist>>> GetPlaylists()
-        {
-            return await _context.Playlists.ToListAsync();
-        }
-
-        // GET: api/Playlists
         /// <summary>
         /// Gets all Playlists for offeringId
         /// </summary>

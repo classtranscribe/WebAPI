@@ -22,13 +22,6 @@ namespace ClassTranscribeServer.Controllers
         {
             _context = context;
             _authorizationService = authorizationService;
-    }
-
-        // GET: api/CourseOfferings
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<CourseOffering>>> GetCourseOfferings()
-        {
-            return await _context.CourseOfferings.ToListAsync();
         }
 
         // GET: api/Courses/
@@ -49,49 +42,6 @@ namespace ClassTranscribeServer.Controllers
                 Offerings = g.ToList()
             }).ToListAsync();
 
-        }
-
-        // PUT: api/CourseOfferings/5
-        [HttpPut("{id}")]
-        [Authorize]
-        public async Task<IActionResult> PutCourseOffering(string id, CourseOffering courseOffering)
-        {
-            var authorizationResult = await _authorizationService.AuthorizeAsync(this.User, courseOffering.OfferingId, Globals.POLICY_UPDATE_OFFERING);
-            if (!authorizationResult.Succeeded)
-            {
-                if (User.Identity.IsAuthenticated)
-                {
-                    return new ForbidResult();
-                }
-                else
-                {
-                    return new ChallengeResult();
-                }
-            }
-            if (id != courseOffering.CourseId)
-            {
-                return BadRequest();
-            }
-
-            _context.Entry(courseOffering).State = EntityState.Modified;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!CourseOfferingExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
-            return NoContent();
         }
 
         // POST: api/CourseOfferings

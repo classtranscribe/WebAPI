@@ -30,60 +30,27 @@ namespace ClassTranscribeServer.Controllers
             return await _context.Captions.Where(c => c.TranscriptionId == TranscriptionId).OrderBy(c => c.Index).ToListAsync();
         }
 
-        // GET: api/Captions/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<Caption>> GetCaption(string id)
-        {
-            var caption = await _context.Captions.FindAsync(id);
-
-            if (caption == null)
-            {
-                return NotFound();
-            }
-
-            return caption;
-        }
-
-        // PUT: api/Captions/5
-        [HttpPut("{id}")]
-        [Authorize]
-        public async Task<IActionResult> PutCaption(string id, Caption caption)
-        {
-            if (id != caption.Id)
-            {
-                return BadRequest();
-            }
-
-            _context.Entry(caption).State = EntityState.Modified;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!CaptionExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
-            return NoContent();
-        }
-
         // POST: api/Captions
         [HttpPost]
         [Authorize]
-        public async Task<ActionResult<Caption>> PostCaption(Caption caption)
+        public async Task<ActionResult<Caption>> PostCaption(string captionId, string text)
         {
-            _context.Captions.Add(caption);
+            Caption oldCaption = await _context.Captions.FindAsync(captionId);
+            if (oldCaption == null)
+            {
+                return NotFound();
+            }
+            Caption newCaption = new Caption
+            {
+                Begin = oldCaption.Begin,
+                End = oldCaption.End,
+                Index = oldCaption.Index,
+                Text = oldCaption.Text,
+                TranscriptionId = oldCaption.TranscriptionId
+            };
+            _context.Captions.Add(newCaption);
             await _context.SaveChangesAsync();
-
-            return CreatedAtAction("GetCaption", new { id = caption.Id }, caption);
+            return newCaption;
         }
 
         // POST: api/Captions
@@ -115,23 +82,6 @@ namespace ClassTranscribeServer.Controllers
 
             caption.DownVote++;
             await _context.SaveChangesAsync();
-            return caption;
-        }
-
-        // DELETE: api/Captions/5
-        [HttpDelete("{id}")]
-        [Authorize]
-        public async Task<ActionResult<Caption>> DeleteCaption(string id)
-        {
-            var caption = await _context.Captions.FindAsync(id);
-            if (caption == null)
-            {
-                return NotFound();
-            }
-
-            _context.Captions.Remove(caption);
-            await _context.SaveChangesAsync();
-
             return caption;
         }
 

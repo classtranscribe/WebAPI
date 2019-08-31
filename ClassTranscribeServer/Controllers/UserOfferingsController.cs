@@ -24,16 +24,6 @@ namespace ClassTranscribeServer.Controllers
 
         // GET: api/Courses/
         /// <summary>
-        /// Gets all UserOfferings for a userId
-        /// </summary>
-        [HttpGet("ByUserId/{userId}")]
-        public async Task<ActionResult<IEnumerable<UserOffering>>> GetUserOfferingsByUserId(string userId)
-        {
-            return await _context.UserOfferings.Where(uo => uo.ApplicationUserId == userId).ToListAsync();
-        }
-
-        // GET: api/Courses/
-        /// <summary>
         /// Gets all Offerings per Course per Instructor
         /// </summary>
         [HttpGet("ByOfferingId/{offeringId}")]

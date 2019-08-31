@@ -20,22 +20,6 @@ namespace ClassTranscribeServer.Controllers
             _context = context;
         }
 
-        // GET: api/Terms
-        /// <summary>
-        /// Gets all Terms.
-        /// </summary>
-        /// <remarks>
-        /// Sample request:
-        ///
-        ///     GET /api/Courses    
-        ///
-        /// </remarks>
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<Term>>> GetTerms()
-        {
-            return await _context.Terms.ToListAsync();
-        }
-
         /// <summary>
         /// Gets all Terms for universityId
         /// </summary>

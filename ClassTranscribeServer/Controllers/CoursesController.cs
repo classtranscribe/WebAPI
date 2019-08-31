@@ -21,43 +21,12 @@ namespace ClassTranscribeServer.Controllers
         }
 
         /// <summary>
-        /// Gets all Courses.
-        /// </summary>
-        /// <remarks>
-        /// Sample request:
-        ///
-        ///     GET /api/Courses
-        ///
-        /// </remarks>
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<Course>>> GetCourses()
-        {
-            return await _context.Courses.ToListAsync();
-        }
-
-        /// <summary>
         /// Gets all Courses for departmentId
         /// </summary>
         [HttpGet("ByDepartment/{departmentId}")]
         public async Task<ActionResult<IEnumerable<Course>>> GetCourses(string departmentId)
         {
             return await _context.Courses.Where(c => c.DepartmentId == departmentId).OrderBy(c => c.CourseNumber).ToListAsync();
-        }
-
-        // GET: api/Courses/
-        /// <summary>
-        /// Gets all Courses by Instructors for userId.
-        /// </summary>
-        [HttpGet("ByInstructor/{userId}")]
-        [Authorize]
-        public async Task<ActionResult<IEnumerable<Course>>> GetCoursesByInstructor(string userId)
-        {
-            return await (from c in _context.Courses
-                          join co in _context.CourseOfferings on c.Id equals co.CourseId
-                          join o in _context.Offerings on co.OfferingId equals o.Id
-                          join uo in _context.UserOfferings on o.Id equals uo.OfferingId
-                          where uo.IdentityRole.Name == Globals.ROLE_INSTRUCTOR && uo.ApplicationUserId == userId
-                          select c).OrderBy(c => c.CourseNumber).ToListAsync();
         }
 
         // GET: api/Courses/5
