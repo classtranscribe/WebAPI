@@ -69,8 +69,8 @@ namespace ClassTranscribeServer.Controllers
                         Videos = m.Videos.Select(v => new VideoDTO
                         {
                             Id = v.Id,
-                            Video1Path = v.Video1.Path,
-                            Video2Path = v.Video2.Path
+                            Video1Path = v.Video1 != null ? v.Video1.Path : null,
+                            Video2Path = v.Video2 != null ? v.Video2.Path : null
                         }).ToList(),
                         Transcriptions = m.Transcriptions.Select(t => new TranscriptionDTO
                         {
@@ -105,8 +105,8 @@ namespace ClassTranscribeServer.Controllers
                 Videos = m.Videos.Select(v => new VideoDTO
                 {
                     Id = v.Id,
-                    Video1Path = v.Video1.Path,
-                    Video2Path = v.Video2.Path
+                    Video1Path = v.Video1 != null ? v.Video1.Path : null,
+                    Video2Path = v.Video2 != null ? v.Video2.Path : null
                 }).ToList(),
                 Transcriptions = m.Transcriptions.Select(t => new TranscriptionDTO
                 {
