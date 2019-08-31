@@ -228,6 +228,8 @@ namespace ClassTranscribeDatabase.Models
         public TimeSpan End { get; set; }
         public string Text { get; set; }
         public string TranscriptionId { get; set; }
+        public int UpVote { get; set; }
+        public int DownVote { get; set; }
         [IgnoreDataMember]
         public virtual Transcription Transcription { get; set; }
     }
@@ -276,6 +278,20 @@ namespace ClassTranscribeDatabase.Models
         public string IdentityRoleId { get; set; }
         [IgnoreDataMember]
         public virtual IdentityRole IdentityRole { get; set; }
+    }
 
+    public class Log : Entity
+    {
+        [IgnoreDataMember]
+        public virtual ApplicationUser User { get; set; }
+        public string UserId { get; set; }
+        [IgnoreDataMember]
+        public virtual Offering Offering { get; set; }
+        public string OfferingId { get; set; }
+        [IgnoreDataMember]
+        public virtual Media Media { get; set; }
+        public string MediaId { get; set; }
+        public string EventType { get; set; }
+        public JObject Json { get; set; }
     }
 }

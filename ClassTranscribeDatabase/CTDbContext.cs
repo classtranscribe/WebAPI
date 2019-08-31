@@ -40,6 +40,7 @@ namespace ClassTranscribeDatabase
         public DbSet<UserOffering> UserOfferings { get; set; }
         public DbSet<FileRecord> FileRecords { get; set; }
         public DbSet<Caption> Captions { get; set; }
+        public DbSet<Log> Logs { get; set; }
 
         public static DbContextOptionsBuilder<CTDbContext> GetDbContextOptionsBuilder() 
         {
@@ -98,6 +99,7 @@ namespace ClassTranscribeDatabase
             builder.Entity<UserOffering>().HasQueryFilter(m => m.IsDeletedStatus == Status.Active);
             builder.Entity<FileRecord>().HasQueryFilter(m => m.IsDeletedStatus == Status.Active);
             builder.Entity<Caption>().HasQueryFilter(m => m.IsDeletedStatus == Status.Active);
+            builder.Entity<Log>().HasQueryFilter(m => m.IsDeletedStatus == Status.Active);
 
 
             builder.Entity<CourseOffering>()
@@ -127,6 +129,7 @@ namespace ClassTranscribeDatabase
                 .HasForeignKey(pt => pt.ApplicationUserId);
 
             builder.Entity<Media>().Property(m => m.JsonMetadata).HasJsonValueConversion();
+            builder.Entity<Log>().Property(m => m.Json).HasJsonValueConversion();
         }
         public override int SaveChanges(bool acceptAllChangesOnSuccess)
         {

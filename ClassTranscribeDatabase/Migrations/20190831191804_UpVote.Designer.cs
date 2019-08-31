@@ -3,15 +3,17 @@ using System;
 using ClassTranscribeDatabase;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace ClassTranscribeDatabase.Migrations
 {
     [DbContext(typeof(CTDbContext))]
-    partial class CTDbContextModelSnapshot : ModelSnapshot
+    [Migration("20190831191804_UpVote")]
+    partial class UpVote
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -222,42 +224,6 @@ namespace ClassTranscribeDatabase.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("FileRecords");
-                });
-
-            modelBuilder.Entity("ClassTranscribeDatabase.Models.Log", b =>
-                {
-                    b.Property<string>("Id")
-                        .ValueGeneratedOnAdd();
-
-                    b.Property<DateTime>("CreatedAt");
-
-                    b.Property<string>("CreatedBy");
-
-                    b.Property<string>("EventType");
-
-                    b.Property<int>("IsDeletedStatus");
-
-                    b.Property<string>("Json");
-
-                    b.Property<DateTime>("LastUpdatedAt");
-
-                    b.Property<string>("LastUpdatedBy");
-
-                    b.Property<string>("MediaId");
-
-                    b.Property<string>("OfferingId");
-
-                    b.Property<string>("UserId");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("MediaId");
-
-                    b.HasIndex("OfferingId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("Logs");
                 });
 
             modelBuilder.Entity("ClassTranscribeDatabase.Models.Media", b =>
@@ -649,21 +615,6 @@ namespace ClassTranscribeDatabase.Migrations
                     b.HasOne("ClassTranscribeDatabase.Models.University", "University")
                         .WithMany("Departments")
                         .HasForeignKey("UniversityId");
-                });
-
-            modelBuilder.Entity("ClassTranscribeDatabase.Models.Log", b =>
-                {
-                    b.HasOne("ClassTranscribeDatabase.Models.Media", "Media")
-                        .WithMany()
-                        .HasForeignKey("MediaId");
-
-                    b.HasOne("ClassTranscribeDatabase.Models.Offering", "Offering")
-                        .WithMany()
-                        .HasForeignKey("OfferingId");
-
-                    b.HasOne("ClassTranscribeDatabase.Models.ApplicationUser", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId");
                 });
 
             modelBuilder.Entity("ClassTranscribeDatabase.Models.Media", b =>
