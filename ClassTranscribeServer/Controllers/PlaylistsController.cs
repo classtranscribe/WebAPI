@@ -52,23 +52,35 @@ namespace ClassTranscribeServer.Controllers
             }
             var playlists = await _context.Playlists.Where(p => p.OfferingId == offeringId)
                 .OrderBy(p => p.CreatedAt)
-                .Select(p => new PlaylistDTO{ 
+                .Select(p => new PlaylistDTO
+                {
                     Id = p.Id,
                     CreatedAt = p.CreatedAt,
                     SourceType = p.SourceType,
                     OfferingId = p.OfferingId,
                     Name = p.Name,
-                    Medias = p.Medias.Select(m => new MediaDTO{
+                    Medias = p.Medias.Select(m => new MediaDTO
+                    {
                         Id = m.Id,
                         JsonMetadata = m.JsonMetadata,
                         CreatedAt = m.CreatedAt,
                         Ready = m.Transcriptions.Any(),
-                        Videos = GetVideoDTOs(m.Videos),
-                        Transcriptions = GetTranscriptionDTOs(m.Transcriptions)
+                        Videos = m.Videos.Select(v => new VideoDTO
+                        {
+                            Id = v.Id,
+                            Video1Path = v.Video1.Path,
+                            Video2Path = v.Video2.Path
+                        }).ToList(),
+                        Transcriptions = m.Transcriptions.Select(t => new TranscriptionDTO
+                        {
+                            Id = t.Id,
+                            Path = t.File.Path,
+                            Language = t.Language
+                        }).ToList()
                     }).ToList()
-            }).ToListAsync();
+                }).ToListAsync();
             // Sorting by descending.
-            playlists.ForEach(p => p.Medias.Sort((x,y) => -1 * x.CreatedAt.CompareTo(y.CreatedAt)));
+            playlists.ForEach(p => p.Medias.Sort((x, y) => -1 * x.CreatedAt.CompareTo(y.CreatedAt)));
             return playlists;
         }
 
@@ -89,11 +101,22 @@ namespace ClassTranscribeServer.Controllers
                 JsonMetadata = m.JsonMetadata,
                 SourceType = m.SourceType,
                 Ready = m.Transcriptions.Any(),
-                Videos = GetVideoDTOs(m.Videos),
-                Transcriptions = GetTranscriptionDTOs(m.Transcriptions)
+                Videos = m.Videos.Select(v => new VideoDTO
+                {
+                    Id = v.Id,
+                    Video1Path = v.Video1.Path,
+                    Video2Path = v.Video2.Path
+                }).ToList(),
+                Transcriptions = m.Transcriptions.Select(t => new TranscriptionDTO
+                {
+                    Id = t.Id,
+                    Path = t.File.Path,
+                    Language = t.Language
+                }).ToList()
             }).ToList();
 
-            return new PlaylistDTO {
+            return new PlaylistDTO
+            {
                 Id = p.Id,
                 CreatedAt = p.CreatedAt,
                 SourceType = p.SourceType,
