@@ -33,9 +33,9 @@ namespace ClassTranscribeServer.Controllers
         // POST: api/Captions
         [HttpPost]
         [Authorize]
-        public async Task<ActionResult<Caption>> PostCaption(string captionId, string text)
+        public async Task<ActionResult<Caption>> PostCaption(Caption modifiedCaption)
         {
-            Caption oldCaption = await _context.Captions.FindAsync(captionId);
+            Caption oldCaption = await _context.Captions.FindAsync(modifiedCaption.Id);
             if (oldCaption == null)
             {
                 return NotFound();
@@ -45,7 +45,7 @@ namespace ClassTranscribeServer.Controllers
                 Begin = oldCaption.Begin,
                 End = oldCaption.End,
                 Index = oldCaption.Index,
-                Text = oldCaption.Text,
+                Text = modifiedCaption.Text,
                 TranscriptionId = oldCaption.TranscriptionId
             };
             _context.Captions.Add(newCaption);
