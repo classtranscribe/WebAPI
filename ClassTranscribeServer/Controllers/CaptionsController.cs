@@ -87,7 +87,7 @@ namespace ClassTranscribeServer.Controllers
         }
 
         // POST: api/Captions
-        [HttpPost]
+        [HttpPost("UpVote")]
         public async Task<ActionResult<Caption>> UpVote(string id)
         {
             var caption = await _context.Captions.FindAsync(id);
@@ -103,7 +103,7 @@ namespace ClassTranscribeServer.Controllers
         }
 
         // POST: api/Captions
-        [HttpPost]
+        [HttpPost("DownVote")]
         public async Task<ActionResult<Caption>> DownVote(string id)
         {
             var caption = await _context.Captions.FindAsync(id);
