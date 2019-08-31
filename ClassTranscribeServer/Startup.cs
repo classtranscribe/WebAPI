@@ -12,7 +12,6 @@ using System.Text;
 using ClassTranscribeDatabase;
 using ClassTranscribeDatabase.Models;
 using Microsoft.AspNetCore.Http;
-using Microsoft.OpenApi.Models;
 using System.IO;
 using System.Reflection;
 using Microsoft.Extensions.Options;

@@ -27,7 +27,7 @@ namespace ClassTranscribeServer.Controllers
         [HttpGet("ByTranscription/{TranscriptionId}")]
         public async Task<ActionResult<IEnumerable<Caption>>> GetCaptions(string TranscriptionId)
         {
-            return await _context.Captions.Where(c => c.TranscriptionId == TranscriptionId).OrderBy(c => c.Index).ToListAsync();
+            return await _context.Captions.Where(c => c.TranscriptionId == TranscriptionId).GroupBy(c => c.Index).Select(g => g.OrderByDescending(c => c.CreatedAt).First()).OrderBy(c => c.Index).ToListAsync();
         }
 
         // POST: api/Captions
