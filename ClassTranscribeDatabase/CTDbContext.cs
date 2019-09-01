@@ -177,22 +177,15 @@ namespace ClassTranscribeDatabase
 
         private string GetCurrentUser()
         {
-            // TODO: Fix this
-            return null;
-            var httpContextAccessor = _httpContextAccessor;
-            if (httpContextAccessor.HttpContext.User != null)
+            var user = _httpContextAccessor?.HttpContext?.User;
+            if (user == null || user.FindFirst(ClaimTypes.NameIdentifier) == null)
             {
-                var httpContext = httpContextAccessor.HttpContext;
-                var authenticatedUserName = httpContext.User.Identity.Name;
-
-                // If it returns null, even when the user was authenticated, you may try to get the value of a specific claim 
-                var authenticatedUserId = _httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value ?? "";
-                // var authenticatedUserId = _httpContextAccessor.HttpContext.User.FindFirst("sub").Value
-
-                // TODO use name to set the shadow property value like in the following post: https://www.meziantou.net/2017/07/03/entity-framework-core-generate-tracking-columns
-                return authenticatedUserId;
+                return null;
             }
-            return null;
+            else
+            {
+                return user.FindFirst(ClaimTypes.NameIdentifier).Value;
+            }            
         }
     }
 }
