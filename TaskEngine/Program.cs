@@ -11,6 +11,8 @@ using TaskEngine.Grpc;
 using TaskEngine.MSTranscription;
 using Microsoft.Extensions.Options;
 using System.Linq;
+using Microsoft.Extensions.Configuration;
+using System.Threading;
 
 namespace TaskEngine
 {
@@ -38,7 +40,13 @@ namespace TaskEngine
                 .BuildServiceProvider();
 
             //configure console logging
-
+            var configuration = new ConfigurationBuilder().AddEnvironmentVariables().Build();
+            if (configuration.GetValue<string>("DEV_ENV", "NULL") == "DOCKER")
+            {
+                Console.WriteLine("Sleeping");
+                Thread.Sleep(10000);
+                Console.WriteLine("Waking up");
+            }
             serviceProvider
                 .GetService<ILoggerFactory>()
                 .AddConsole(LogLevel.Debug);
