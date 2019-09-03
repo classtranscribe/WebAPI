@@ -117,6 +117,42 @@ namespace ClassTranscribeServer.Controllers
             return Ok(loggedInDTO);
         }
 
+        [HttpGet("GetUserMetadata")]
+        [Authorize]
+        public async Task<ActionResult<JObject>> GetUserMetadata()
+        {
+            ApplicationUser user = null;
+            if (User.Identity.IsAuthenticated && this.User.FindFirst(ClaimTypes.NameIdentifier) != null)
+            {
+                var userId = this.User.FindFirst(ClaimTypes.NameIdentifier).Value;
+                user = await _context.Users.FindAsync(userId);
+                return user.Metadata;
+            }
+            else
+            {
+                return BadRequest();
+            }
+        }
+
+        [HttpPost("PostUserMetadata")]
+        [Authorize]
+        public async Task<ActionResult> PostUserMetadata(JObject metadata)
+        {
+            ApplicationUser user = null;
+            if (User.Identity.IsAuthenticated && this.User.FindFirst(ClaimTypes.NameIdentifier) != null)
+            {
+                var userId = this.User.FindFirst(ClaimTypes.NameIdentifier).Value;
+                user = await _context.Users.FindAsync(userId);
+                user.Metadata = metadata;
+                await _context.SaveChangesAsync();
+                return Ok();
+            }
+            else
+            {
+                return BadRequest();
+            }
+        }
+
         [HttpPost]
         public async Task<ActionResult<LoggedInDTO>> SignIn([FromBody] LoginDto model)
         {
@@ -182,7 +218,8 @@ namespace ClassTranscribeServer.Controllers
                 AuthToken = new JwtSecurityTokenHandler().WriteToken(token),
                 UserId = user.Id,
                 EmailId = email,
-                UniversityId = user.UniversityId
+                UniversityId = user.UniversityId,
+                Metadata = user.Metadata
             };
         }
 
@@ -289,6 +326,7 @@ namespace ClassTranscribeServer.Controllers
             public string UniversityId { get; set; }
             public string AuthToken { get; set; }
             public string EmailId { get; set; }
+            public JObject Metadata { get; set; }
         }
 
     }

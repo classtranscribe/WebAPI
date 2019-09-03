@@ -39,6 +39,7 @@ namespace ClassTranscribeDatabase.Models
         public string UniversityId { get; set; }
         public virtual University University { get; set; }
         public Status Status { get; set; }
+        public JObject Metadata { get; set; }
     }
 
 
@@ -182,6 +183,7 @@ namespace ClassTranscribeDatabase.Models
         [IgnoreDataMember]
         public virtual List<UserOffering> OfferingUsers { get; set; }
         public AccessTypes AccessType { get; set; }
+        public bool LogEventsFlag { get; set; }
     }
 
     public class Playlist : Entity

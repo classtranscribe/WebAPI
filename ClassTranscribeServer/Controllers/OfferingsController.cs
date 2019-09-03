@@ -68,7 +68,7 @@ namespace ClassTranscribeServer.Controllers
             }
 
             // return the combined result
-            return offerings;
+            return offerings.OrderBy(o => o.Term.StartDate).ToList();
         }
 
         // GET: api/Offerings/5
