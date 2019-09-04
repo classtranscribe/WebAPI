@@ -160,14 +160,18 @@ namespace ClassTranscribeServer.Controllers
                 CourseId = newOfferingDTO.CourseId,
                 OfferingId = newOfferingDTO.Offering.Id
             });
-            _context.UserOfferings.Add(new UserOffering
+            ApplicationUser user = null;
+            if (User.Identity.IsAuthenticated && this.User.FindFirst(ClaimTypes.NameIdentifier) != null)
             {
-                ApplicationUserId = newOfferingDTO.InstructorId,
-                IdentityRole = _context.Roles.Where(r => r.Name == Globals.ROLE_INSTRUCTOR).FirstOrDefault(),
-                OfferingId = newOfferingDTO.Offering.Id
-            });
-
-            await _context.SaveChangesAsync();
+                var userId = this.User.FindFirst(ClaimTypes.NameIdentifier).Value;
+                await _context.UserOfferings.AddAsync(new UserOffering
+                {
+                    ApplicationUserId = userId,
+                    IdentityRole = _context.Roles.Where(r => r.Name == Globals.ROLE_INSTRUCTOR).FirstOrDefault(),
+                    OfferingId = newOfferingDTO.Offering.Id
+                });
+                await _context.SaveChangesAsync();
+            }
 
             return CreatedAtAction("GetOffering", new { id = newOfferingDTO.Offering.Id }, newOfferingDTO.Offering);
         }
@@ -245,7 +249,6 @@ namespace ClassTranscribeServer.Controllers
         {
             public Offering Offering { get; set; }
             public string CourseId { get; set; }
-            public string InstructorId { get; set; }
 
         }
 
