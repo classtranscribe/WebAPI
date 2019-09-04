@@ -43,7 +43,7 @@ namespace TaskEngine
                                  exclusive: false,
                                  autoDelete: false,
                                  arguments: null);
-            _channel.BasicQos(prefetchSize: 0, prefetchCount: 20, global: false);
+            _channel.BasicQos(prefetchSize: 0, prefetchCount: 55, global: false);
 
             Console.WriteLine(" [*] Waiting for messages.");
 

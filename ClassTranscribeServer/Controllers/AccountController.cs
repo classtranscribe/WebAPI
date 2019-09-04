@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.IdentityModel.Tokens.Jwt;
-using System.IO;
 using System.Linq;
 using System.Security.Claims;
 using System.Text;
@@ -16,8 +15,8 @@ using Microsoft.IdentityModel.Tokens;
 using ClassTranscribeDatabase;
 using Newtonsoft.Json.Linq;
 using System.Threading;
-using System.Reflection;
 using Microsoft.AspNetCore.Authorization;
+using ClassTranscribeServer.Utils;
 
 namespace ClassTranscribeServer.Controllers
 {
@@ -27,7 +26,7 @@ namespace ClassTranscribeServer.Controllers
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly CTDbContext _context;
-        
+        private readonly UserUtils _userUtils;
         public AccountController(
             UserManager<ApplicationUser> userManager,
             SignInManager<ApplicationUser> signInManager,
@@ -37,6 +36,7 @@ namespace ClassTranscribeServer.Controllers
             _userManager = userManager;
             _signInManager = signInManager;
             _context = context;
+            _userUtils = new UserUtils(_userManager, _context);
         }
 
         [NonAction]
@@ -63,18 +63,7 @@ namespace ClassTranscribeServer.Controllers
             {
                 return Ok("User exists.");
             }
-
-            ApplicationUser user = new ApplicationUser
-            {
-                EmailConfirmed = false,
-                UserName = emailId,
-                Email = emailId
-            };
-            var result = await _userManager.CreateAsync(user, user.Email);
-            University university = await GetUniversity(user.Email);
-            user.University = university;
-            await _context.SaveChangesAsync();
-
+            await _userUtils.CreateNonExistentUser(emailId);
             return Ok();
         }
 
@@ -82,7 +71,7 @@ namespace ClassTranscribeServer.Controllers
         public async Task<LoggedInDTO> Register(ApplicationUser user)
         {
             var result = await _userManager.CreateAsync(user, user.Email);
-            University university = await GetUniversity(user.Email);
+            University university = await _userUtils.GetUniversity(user.Email);
             user.University = university;
             await _context.SaveChangesAsync();
 
@@ -258,57 +247,6 @@ namespace ClassTranscribeServer.Controllers
             return applicationUser;
         }
 
-        [NonAction]
-        public async Task<University> GetUniversity(string mailId)
-        {
-            string domain = mailId.Split('@')[1];
-            University university;
-            if(_context.Universities.Where(u => u.Domain == domain).Any())
-            {
-                university = _context.Universities.Where(u => u.Domain == domain).Single();
-            }
-            else
-            {
-                string universityName = GetUniversityName(domain);
-                if(universityName == "")
-                {
-                    // If domain is unknown return Special University as Unknown
-                    university = await _context.Universities.FindAsync("0000");
-                }
-                else
-                {
-                    university = new University
-                    {
-                        Name = universityName,
-                        Domain = domain
-                    };
-                    await _context.Universities.AddAsync(university);
-                    await _context.SaveChangesAsync();
-                }
-            }
-            return university;
-        }
-        [NonAction]
-        public static string GetUniversityName(string domain)
-        {
-            string basePath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-            string filePath = Path.Combine(basePath, "world_universities_and_domains.json");
-            using (StreamReader r = new StreamReader(filePath))
-            {
-                string json = r.ReadToEnd();
-                JArray allUniversities = JArray.Parse(json);
-                if (allUniversities.Where(u => u["domains"].First().ToString() == domain).Any())
-                {
-                    return allUniversities.Where(u => u["domains"].First().ToString() == domain)
-                    .First()["name"].ToString();
-                }
-                else
-                {
-                    return "";
-                }
-                
-            }
-        }
         public class LoginDto
         {
             [Required]

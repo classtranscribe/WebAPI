@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using ClassTranscribeDatabase;
 using ClassTranscribeDatabase.Models;
+using ClassTranscribeServer.Utils;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -17,30 +18,38 @@ namespace ClassTranscribeServer.Controllers
         private readonly CTDbContext _context;
         private readonly RoleManager<IdentityRole> _roleManager;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly UserUtils _userutils;
 
         public RolesController(CTDbContext context, RoleManager<IdentityRole> roleManager, UserManager<ApplicationUser> userManager)
         {
             _context = context;
             _roleManager = roleManager;
             _userManager = userManager;
+            _userutils = new UserUtils(userManager, context);
         }
 
         // POST: api/Roles
         [HttpPost]
         [Authorize(Roles = Globals.ROLE_ADMIN)]
-        public async Task PostNewInstructor(string mailId)
+        public async Task<ActionResult> PostNewInstructor(string mailId)
         {
             ApplicationUser user = await _userManager.FindByEmailAsync(mailId);
+            if(user == null)
+            {
+                user = await _userutils.CreateNonExistentUser(mailId);
+            }
             await _userManager.AddToRoleAsync(user, Globals.ROLE_INSTRUCTOR);
+            return Ok();
         }
 
         // POST: api/Roles
         [HttpDelete]
         [Authorize(Roles = Globals.ROLE_ADMIN)]
-        public async Task RemoveInstructor(string mailId)
+        public async Task<ActionResult> RemoveInstructor(string mailId)
         {
             ApplicationUser user = await _userManager.FindByEmailAsync(mailId);
             await _userManager.RemoveFromRoleAsync(user, Globals.ROLE_INSTRUCTOR);
+            return Ok();
         }
 
         // POST: api/Roles

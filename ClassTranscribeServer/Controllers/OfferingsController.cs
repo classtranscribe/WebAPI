@@ -9,6 +9,7 @@ using System.Security.Claims;
 using System;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Authorization;
+using ClassTranscribeServer.Utils;
 
 namespace ClassTranscribeServer.Controllers
 {
@@ -18,11 +19,15 @@ namespace ClassTranscribeServer.Controllers
     {
         private readonly CTDbContext _context;
         private readonly IAuthorizationService _authorizationService;
+        private readonly UserUtils _userUtils;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public OfferingsController(CTDbContext context, IAuthorizationService authorizationService)
+        public OfferingsController(CTDbContext context, IAuthorizationService authorizationService, UserManager<ApplicationUser> userManager)
         {
             _context = context;
             _authorizationService = authorizationService;
+            _userManager = userManager;
+            _userUtils = new UserUtils(userManager, context);
         }
 
         // GET: api/Courses/
@@ -186,9 +191,14 @@ namespace ClassTranscribeServer.Controllers
             IdentityRole identityRole = _context.Roles.Where(r => r.Name == roleName).FirstOrDefault();
             foreach (string mailId in mailIds)
             {
+                var user = await _userManager.FindByEmailAsync(mailId);
+                if(user == null)
+                {
+                    user = await _userUtils.CreateNonExistentUser(mailId);
+                }
                 userOfferings.Add(new UserOffering
                 {
-                    ApplicationUserId = _context.Users.Where(u => u.Email == mailId).FirstOrDefault().Id,
+                    ApplicationUserId = user.Id,
                     IdentityRole = identityRole,
                     OfferingId = offeringId
                 });
