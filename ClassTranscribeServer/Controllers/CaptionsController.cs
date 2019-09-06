@@ -85,6 +85,38 @@ namespace ClassTranscribeServer.Controllers
             return caption;
         }
 
+        // POST: api/Captions
+        [HttpPost("CancelUpVote")]
+        public async Task<ActionResult<Caption>> CancelUpVote(string id)
+        {
+            var caption = await _context.Captions.FindAsync(id);
+
+            if (caption == null)
+            {
+                return NotFound();
+            }
+
+            caption.UpVote--;
+            await _context.SaveChangesAsync();
+            return caption;
+        }
+
+        // POST: api/Captions
+        [HttpPost("CancelDownVote")]
+        public async Task<ActionResult<Caption>> CancelDownVote(string id)
+        {
+            var caption = await _context.Captions.FindAsync(id);
+
+            if (caption == null)
+            {
+                return NotFound();
+            }
+
+            caption.DownVote--;
+            await _context.SaveChangesAsync();
+            return caption;
+        }
+
         private bool CaptionExists(string id)
         {
             return _context.Captions.Any(e => e.Id == id);
