@@ -47,7 +47,7 @@ namespace ClassTranscribeDatabase
             // Sample connection string -> Server=<POSTGRES_SERVER_NAME>;Port=5432;Database=<POSTGRES_DB_NAME>;User Id=<POSTGRES_USER>;Password=<POSTGRES_PASSWORD>;
             var configurations = CTDbContext.GetConfigurations();
             return "Server=" + configurations["POSTGRES_SERVER_NAME"] + ";Port=5432;Database="
-                + configurations["POSTGRES_DB_NAME"] + ";User Id=" + configurations["POSTGRES_USER"] + ";Password=" + configurations["POSTGRES_PASSWORD"] + ";";
+                + configurations["POSTGRES_DB"] + ";User Id=" + configurations["POSTGRES_USER"] + ";Password=" + configurations["POSTGRES_PASSWORD"] + ";";
         }
 
         public static DbContextOptionsBuilder<CTDbContext> GetDbContextOptionsBuilder() 
