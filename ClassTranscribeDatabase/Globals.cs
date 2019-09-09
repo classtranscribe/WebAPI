@@ -6,7 +6,10 @@
         public string JWT_ISSUER { get; set; }
         public string JWT_KEY { get; set; }
         public string ALLOWED_HOSTS { get; set; }
-        public string POSTGRES { get; set; }
+        public string POSTGRES_SERVER_NAME { get; set; }
+        public string POSTGRES_DB_NAME { get; set; }
+        public string POSTGRES_USER { get; set; }
+        public string POSTGRES_PASSWORD { get; set; }
         public string RabbitMQServer { get; set; }
         public string NODE_RPC_SERVER { get; set; }
         public string AZURE_SUBSCRIPTION_KEYS { get; set; }

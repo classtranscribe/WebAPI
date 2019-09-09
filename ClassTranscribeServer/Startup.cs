@@ -45,8 +45,7 @@ namespace ClassTranscribeServer
                 options.AddPolicy(MyAllowSpecificOrigins,
                 builder => builder.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
             });
-            services.AddDbContext<CTDbContext>(options =>
-                options.UseLazyLoadingProxies().UseNpgsql(Globals.appSettings.POSTGRES));
+            services.AddDbContext<CTDbContext>(options => CTDbContext.GetDbContextOptionsBuilder());
 
             //// ===== Add Identity ========
             services.AddIdentity<ApplicationUser, IdentityRole>(options =>

@@ -42,10 +42,18 @@ namespace ClassTranscribeDatabase
         public DbSet<Caption> Captions { get; set; }
         public DbSet<Log> Logs { get; set; }
 
+        public static string ConnectionStringBuilder()
+        {
+            // Sample connection string -> Server=<POSTGRES_SERVER_NAME>;Port=5432;Database=<POSTGRES_DB_NAME>;User Id=<POSTGRES_USER>;Password=<POSTGRES_PASSWORD>;
+            var configurations = CTDbContext.GetConfigurations();
+            return "Server=" + configurations["POSTGRES_SERVER_NAME"] + ";Port=5432;Database="
+                + configurations["POSTGRES_DB_NAME"] + ";User Id=" + configurations["POSTGRES_USER"] + ";Password=" + configurations["POSTGRES_PASSWORD"] + ";";
+        }
+
         public static DbContextOptionsBuilder<CTDbContext> GetDbContextOptionsBuilder() 
         {
             var optionsBuilder = new DbContextOptionsBuilder<CTDbContext>();
-            optionsBuilder.UseLazyLoadingProxies().UseNpgsql(CTDbContext.GetConfigurations()["POSTGRES"], npgsqlOptionsAction: sqlOptions =>
+            optionsBuilder.UseLazyLoadingProxies().UseNpgsql(ConnectionStringBuilder(), npgsqlOptionsAction: sqlOptions =>
             {
                 sqlOptions.EnableRetryOnFailure(
                         maxRetryCount: 10,
@@ -71,7 +79,7 @@ namespace ClassTranscribeDatabase
         }
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            optionsBuilder.UseNpgsql(CTDbContext.GetConfigurations()["POSTGRES"]);
+            optionsBuilder.UseNpgsql(ConnectionStringBuilder());
         }
 
         public CTDbContext() { }
