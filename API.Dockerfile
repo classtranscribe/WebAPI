@@ -6,10 +6,10 @@ RUN dotnet restore "ClassTranscribeDatabase.csproj"
 RUN dotnet restore "ClassTranscribeServer.csproj"
 
 FROM api_csproj AS api_build
-COPY ./ClassTranscribeServer ./ClassTranscribeServer
-COPY ./ClassTranscribeDatabase ./ClassTranscribeDatabase
 COPY ./vs_appsettings.json ./vs_appsettings.json
 COPY ./world_universities_and_domains.json ./world_universities_and_domains.json
+COPY ./ClassTranscribeServer ./ClassTranscribeServer
+COPY ./ClassTranscribeDatabase ./ClassTranscribeDatabase
 WORKDIR "/src/ClassTranscribeServer"
 RUN dotnet build "ClassTranscribeServer.csproj" -c Debug -o /app
 
