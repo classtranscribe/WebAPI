@@ -131,9 +131,9 @@ namespace ClassTranscribeDatabase
             {
                 // Term Id begins with 0
                 Id = "0003",
-                Name = "Spring 2018",
-                StartDate = new DateTime(2018, 1, 15, 0, 0, 0),
-                EndDate = new DateTime(2018, 5, 14, 0, 0, 0),
+                Name = "Fall 2019",
+                StartDate = new DateTime(2019, 8, 1, 0, 0, 0),
+                EndDate = new DateTime(2020, 1, 1, 0, 0, 0),
                 // Offerings, University, UniversityId
             };
 
@@ -157,23 +157,6 @@ namespace ClassTranscribeDatabase
                 Name = "Electrical and Computer Engineering",
                 Acronym = "ECE",
                 UniversityId = university1.Id
-            };
-
-            Course course1 = new Course
-            {
-                Id = "3001",
-                CourseName = "Distributed Systems",
-                CourseNumber = "425",
-                DepartmentId = department1.Id
-            };
-
-            Course course2 = new Course
-            {
-                Id = "3002",
-                CourseName = "Distributed Systems",
-                CourseNumber = "428",
-                DepartmentId = department2.Id,
-                //CourseOfferings
             };
 
             Course test_course = new Course
@@ -201,7 +184,7 @@ namespace ClassTranscribeDatabase
 
             List<Term> terms = new List<Term> { term1, term2, term3 };
             List<Department> departments = new List<Department> { department1, department2};
-            List<Course> courses = new List<Course> { course1, course2, test_course};
+            List<Course> courses = new List<Course> { test_course};
             List<Offering> offerings = new List<Offering> { offering2};
             List<CourseOffering> courseOfferings = new List<CourseOffering> { course_offering2 };
 
@@ -273,18 +256,10 @@ namespace ClassTranscribeDatabase
 
             _context.SaveChanges();
 
-            Playlist echoPlaylist = new Playlist
-            {
-                Id = "echo_sample",
-                PlaylistIdentifier = "https://echo360.org/section/9d6e3b31-d3ac-4cfa-b44f-24c1a7c60fd5/public",
-                SourceType = SourceType.Echo360,
-                Name = "Echo Sample"
-            };
-
             Playlist youtubePlaylist = new Playlist
             {
-                Id = "youtube_sample",
-                PlaylistIdentifier = "PLLssT5z_DsK8Jk8mpFc_RPzn2obhotfDO",
+                Id = "CT_Test_Playlist",
+                PlaylistIdentifier = "PL9Q1c4uIAoWSc8_VV9JZSMDYdS5xzMWtU",
                 SourceType = SourceType.Youtube,
                 Name = "Youtube Sample"
             };
@@ -296,7 +271,7 @@ namespace ClassTranscribeDatabase
                 Name = "Local Sample"
             };
 
-            List<Playlist> playlists = new List<Playlist> { youtubePlaylist, echoPlaylist, localPlaylist};
+            List<Playlist> playlists = new List<Playlist> { youtubePlaylist, localPlaylist};
 
             foreach (var t in playlists)
             {
@@ -306,7 +281,6 @@ namespace ClassTranscribeDatabase
                 }
             }
             youtubePlaylist.OfferingId = offering2.Id;
-            echoPlaylist.OfferingId = offering2.Id;
             localPlaylist.OfferingId = offering2.Id;
 
             _context.SaveChanges();
