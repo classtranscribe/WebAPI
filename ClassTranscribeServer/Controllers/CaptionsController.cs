@@ -117,6 +117,26 @@ namespace ClassTranscribeServer.Controllers
             return caption;
         }
 
+        // POST: api/Captions
+        [HttpGet("SearchInOffering")]
+        public async Task<ActionResult<IEnumerable<SearchedCaptionDTO>>> SearchInOffering(string offeringId, string query)
+        {
+            var captions = await _context.Captions.Where(c => c.Transcription.Media.Playlist.OfferingId == offeringId)
+                .Where(c => EF.Functions.ToTsVector("english", c.Text).Matches(query)).Take(100).Select(c => new SearchedCaptionDTO { 
+                    Caption = c,
+                    MediaId = c.Transcription.MediaId,
+                    PlaylistId = c.Transcription.Media.PlaylistId
+                }).ToListAsync();
+            return captions;
+        }
+
+        public class SearchedCaptionDTO
+        {
+            public Caption Caption { get; set; }
+            public string MediaId { get; set; }
+            public string PlaylistId { get; set; }
+        }
+
         private bool CaptionExists(string id)
         {
             return _context.Captions.Any(e => e.Id == id);
