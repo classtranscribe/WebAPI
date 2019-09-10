@@ -76,7 +76,8 @@ namespace TaskEngine.Tasks
                         JsonMetadata = jObject,
                         SourceType = playlist.SourceType,
                         PlaylistId = playlist.Id,
-                        UniqueMediaIdentifier = jObject["mediaId"].ToString()
+                        UniqueMediaIdentifier = jObject["mediaId"].ToString(),
+                        CreatedAt = Convert.ToDateTime(jObject["createdAt"])
                     });
                 }
             }

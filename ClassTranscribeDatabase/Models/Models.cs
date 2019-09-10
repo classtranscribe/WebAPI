@@ -47,11 +47,11 @@ namespace ClassTranscribeDatabase.Models
     {
         public string Id { get; set; }
         [IgnoreDataMember]
-        public DateTime CreatedAt { get; set; }
+        public DateTime? CreatedAt { get; set; }
         [IgnoreDataMember]
         public string CreatedBy { get; set; }
         [IgnoreDataMember]
-        public DateTime LastUpdatedAt { get; set; }
+        public DateTime? LastUpdatedAt { get; set; }
         [IgnoreDataMember]
         public string LastUpdatedBy { get; set; }
         [IgnoreDataMember]
