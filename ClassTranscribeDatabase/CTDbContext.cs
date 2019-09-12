@@ -170,7 +170,7 @@ namespace ClassTranscribeDatabase
 
                         case EntityState.Added:
                             entity.IsDeletedStatus = Status.Active;
-                            entity.CreatedAt = entity.CreatedAt ?? now;
+                            entity.CreatedAt = entity.CreatedAt != new DateTime() ? entity.CreatedAt : now;
                             entity.CreatedBy = user;
                             entity.LastUpdatedAt = now;
                             entity.LastUpdatedBy = user;
