@@ -215,7 +215,7 @@ namespace ClassTranscribeServer.Controllers
         [NonAction]
         public async Task<ApplicationUser> Validate(string token)
         {
-            string auth0Domain = Globals.appSettings.AUTH0_DOMAIN; // Your Auth0 domain
+            string auth0Domain = "https://" + Globals.appSettings.AUTH0_DOMAIN + "/"; // Your Auth0 domain
             string auth0Audience = Globals.appSettings.AUTH0_CLIENT_ID; // Your API Identifier
 
             IConfigurationManager<OpenIdConnectConfiguration> configurationManager = new ConfigurationManager<OpenIdConnectConfiguration>($"{auth0Domain}.well-known/openid-configuration", new OpenIdConnectConfigurationRetriever());
