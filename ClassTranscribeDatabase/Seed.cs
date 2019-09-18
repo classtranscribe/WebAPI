@@ -171,7 +171,7 @@ namespace ClassTranscribeDatabase
             {
                 Id = "4002",
                 SectionName = "AB",
-                TermId = term2.Id,
+                TermId = term3.Id,
                 AccessType = AccessTypes.Public
             };
 

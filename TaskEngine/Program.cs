@@ -44,7 +44,7 @@ namespace TaskEngine
             if (configuration.GetValue<string>("DEV_ENV", "NULL") == "DOCKER")
             {
                 Console.WriteLine("Sleeping");
-                Thread.Sleep(10000);
+                Thread.Sleep(15000);
                 Console.WriteLine("Waking up");
             }
             serviceProvider
