@@ -207,7 +207,15 @@ namespace ClassTranscribeServer.Controllers
                     OfferingId = offeringId
                 });
             }
-            await _context.UserOfferings.AddRangeAsync(userOfferings);
+            userOfferings.ForEach(async uo =>
+            {
+                if (!(await _context.UserOfferings.Where(u => u.ApplicationUserId == uo.ApplicationUserId
+                 && u.IdentityRoleId == uo.IdentityRole.Id
+                 && u.OfferingId == uo.OfferingId).AnyAsync()))
+                {
+                    await _context.UserOfferings.AddAsync(uo);
+                }
+            });
             await _context.SaveChangesAsync();
             return userOfferings;
         }
