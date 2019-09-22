@@ -24,6 +24,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Swashbuckle.AspNetCore.Swagger;
 using ClassTranscribeServer.Utils;
+using Microsoft.AspNetCore.Http.Features;
 
 namespace ClassTranscribeServer
 {
@@ -84,6 +85,11 @@ namespace ClassTranscribeServer
                 });
 
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
+            services.Configure<FormOptions>(x =>
+            {
+                x.ValueLengthLimit = int.MaxValue;
+                x.MultipartBodyLengthLimit = int.MaxValue; // In case of multipart
+            });
 
             // Authorization handlers.
             services.AddScoped<IAuthorizationHandler,
