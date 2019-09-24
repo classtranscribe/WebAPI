@@ -40,6 +40,8 @@ namespace TaskEngine
         FetchPlaylistData,
         DownloadMedia,
         ConvertMedia,
-        TranscribeMedia
+        TranscribeMedia,
+        ProcessVideo,
+        Aggregator
     }
 }

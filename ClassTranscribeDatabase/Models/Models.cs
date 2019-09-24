@@ -246,6 +246,14 @@ namespace ClassTranscribeDatabase.Models
         [ForeignKey("Video2")]
         public string Video2Id { get; set; }
         public virtual FileRecord Video2 { get; set; }
+        [ForeignKey("ProcessedVideo1")]
+        public string ProcessedVideo1Id { get; set; }
+
+        public virtual FileRecord ProcessedVideo1 { get; set; }
+
+        [ForeignKey("ProcessedVideo2")]
+        public string ProcessedVideo2Id { get; set; }
+        public virtual FileRecord ProcessedVideo2 { get; set; }
 
         [ForeignKey("Audio")]
         public string AudioId { get; set; }
