@@ -35,41 +35,13 @@ namespace ClassTranscribeServer.Controllers
 
         [HttpGet("StudentLogs")]
         [Authorize(Roles = Globals.ROLE_ADMIN + "," + Globals.ROLE_ADVISORS)]
-        public async Task<IEnumerable<StudentLog>> GetStudentLogs(string mailId, string eventType)
+        public async Task<IEnumerable<StudentLog>> GetStudentLogs(string mailId, string eventType,
+            DateTime? start = null, DateTime? end = null)
         {
             var userId = await _context.Users.Where(u => u.Email == mailId).Select(x => x.Id).FirstOrDefaultAsync();
-            var timeUpdateEvents = await _context.Logs.Where(l => l.CreatedAt >= DateTime.Now.AddMonths(-1) && l.UserId == userId && l.EventType == eventType)
-                .Select(l => new
-            {
-                UserId = l.UserId,
-                OfferingId = l.OfferingId,
-                MediaId = l.MediaId,
-                CreatedAt = l.CreatedAt
-            }).ToListAsync();
-
-            var filtered = timeUpdateEvents.GroupBy(x => x.OfferingId).Select(g => new StudentLog
-            {
-                OfferingId = g.Key,
-                Medias = g.GroupBy(k => k.MediaId).Select(l => new MediaLog
-                {
-                    MediaId = l.Key,
-                    LastHr = l.Where(m => m.CreatedAt >= DateTime.Now.AddHours(-1)).Count(),
-                    Last3days = l.Where(m => m.CreatedAt >= DateTime.Now.AddDays(-3)).Count(),
-                    LastWeek = l.Where(m => m.CreatedAt >= DateTime.Now.AddDays(-7)).Count(),
-                    LastMonth = l.Count(),
-
-                }).ToList()
-            });
-
-            return filtered;
-        }
-
-        [HttpGet("CourseLogs")]
-        [Authorize(Roles = Globals.ROLE_ADMIN + "," + Globals.ROLE_ADVISORS)]
-        public async Task<IEnumerable<CourseLog>> GetCourseLogs(string offeringId, string eventType)
-        {
-            var timeUpdateEvents = await _context.Logs
-                .Where(l => l.CreatedAt >= DateTime.Now.AddMonths(-1) && l.OfferingId == offeringId && l.EventType == eventType)
+            DateTime startTime = start ?? DateTime.Now.AddMonths(-1);
+            DateTime endTime = end ?? DateTime.Now;
+            var timeUpdateEvents = await _context.Logs.Where(l => l.CreatedAt >= startTime && l.CreatedAt <= endTime && l.UserId == userId && l.EventType == eventType)
                 .Select(l => new
                 {
                     UserId = l.UserId,
@@ -78,21 +50,85 @@ namespace ClassTranscribeServer.Controllers
                     CreatedAt = l.CreatedAt
                 }).ToListAsync();
 
-            var filtered = timeUpdateEvents.GroupBy(x => x.UserId).Select(g => new CourseLog
+            IEnumerable<StudentLog> logs;
+            if (start == null)
             {
-                UserId = g.Key,
-                Medias = g.GroupBy(k => k.MediaId).Select(l => new MediaLog
+                logs = timeUpdateEvents.GroupBy(x => x.OfferingId).Select(g => new StudentLog
                 {
-                    MediaId = l.Key,
-                    LastHr = l.Where(m => m.CreatedAt >= DateTime.Now.AddHours(-1)).Count(),
-                    Last3days = l.Where(m => m.CreatedAt >= DateTime.Now.AddDays(-3)).Count(),
-                    LastWeek = l.Where(m => m.CreatedAt >= DateTime.Now.AddDays(-7)).Count(),
-                    LastMonth = l.Count(),
+                    OfferingId = g.Key,
+                    Medias = g.GroupBy(k => k.MediaId).Select(l => new MediaLog
+                    {
+                        MediaId = l.Key,
+                        LastHr = l.Where(m => m.CreatedAt >= DateTime.Now.AddHours(-1)).Count(),
+                        Last3days = l.Where(m => m.CreatedAt >= DateTime.Now.AddDays(-3)).Count(),
+                        LastWeek = l.Where(m => m.CreatedAt >= DateTime.Now.AddDays(-7)).Count(),
+                        LastMonth = l.Count(),
+                    }).ToList()
+                });
+            }
+            else
+            {
+                logs = timeUpdateEvents.GroupBy(x => x.OfferingId).Select(g => new StudentLog
+                {
+                    OfferingId = g.Key,
+                    Medias = g.GroupBy(k => k.MediaId).Select(l => new MediaLog
+                    {
+                        MediaId = l.Key,
+                        Count = l.Count(),
+                    }).ToList()
+                });
+            }
 
-                }).ToList()
-            });
+            return logs;
+        }
 
-            return filtered;
+        [HttpGet("CourseLogs")]
+        [Authorize(Roles = Globals.ROLE_ADMIN + "," + Globals.ROLE_ADVISORS)]
+        public async Task<IEnumerable<CourseLog>> GetCourseLogs(string offeringId, string eventType,
+            DateTime? start = null, DateTime? end = null)
+        {
+            DateTime startTime = start ?? DateTime.Now.AddMonths(-1);
+            DateTime endTime = end ?? DateTime.Now;
+            var timeUpdateEvents = await _context.Logs
+                .Where(l => l.CreatedAt >= startTime && l.CreatedAt <= endTime && l.OfferingId == offeringId && l.EventType == eventType)
+                .Select(l => new
+                {
+                    UserId = l.UserId,
+                    OfferingId = l.OfferingId,
+                    MediaId = l.MediaId,
+                    CreatedAt = l.CreatedAt
+                }).ToListAsync();
+
+            IEnumerable<CourseLog> logs;
+            if (start == null)
+            {
+                logs = timeUpdateEvents.GroupBy(x => x.UserId).Select(g => new CourseLog
+                {
+                    UserId = g.Key,
+                    Medias = g.GroupBy(k => k.MediaId).Select(l => new MediaLog
+                    {
+                        MediaId = l.Key,
+                        LastHr = l.Where(m => m.CreatedAt >= DateTime.Now.AddHours(-1)).Count(),
+                        Last3days = l.Where(m => m.CreatedAt >= DateTime.Now.AddDays(-3)).Count(),
+                        LastWeek = l.Where(m => m.CreatedAt >= DateTime.Now.AddDays(-7)).Count(),
+                        LastMonth = l.Count(),
+                    }).ToList()
+                });
+            }
+            else
+            {
+                logs = timeUpdateEvents.GroupBy(x => x.UserId).Select(g => new CourseLog
+                {
+                    UserId = g.Key,
+                    Medias = g.GroupBy(k => k.MediaId).Select(l => new MediaLog
+                    {
+                        MediaId = l.Key,
+                        Count = l.Count(),
+                    }).ToList()
+                });
+            }                
+
+            return logs;
         }
 
         [HttpGet("EventTypes")]
@@ -129,6 +165,7 @@ namespace ClassTranscribeServer.Controllers
             public int Last3days { get; set; }
             public int LastWeek { get; set; }
             public int LastMonth { get; set; }
+            public int Count { get; set; }
         }
     }
 }
