@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ClassTranscribeDatabase;
 using ClassTranscribeDatabase.Models;
+using Microsoft.AspNetCore.Authorization;
 
 namespace ClassTranscribeServer.Controllers
 {
@@ -29,6 +30,105 @@ namespace ClassTranscribeServer.Controllers
             await _context.SaveChangesAsync();
 
             return Ok();
+        }
+
+
+        [HttpGet("StudentLogs")]
+        [Authorize(Roles = Globals.ROLE_ADMIN + "," + Globals.ROLE_ADVISORS)]
+        public async Task<IEnumerable<StudentLog>> GetStudentLogs(string mailId, string eventType)
+        {
+            var userId = await _context.Users.Where(u => u.Email == mailId).Select(x => x.Id).FirstOrDefaultAsync();
+            var timeUpdateEvents = await _context.Logs.Where(l => l.CreatedAt >= DateTime.Now.AddMonths(-1) && l.UserId == userId && l.EventType == eventType)
+                .Select(l => new
+            {
+                UserId = l.UserId,
+                OfferingId = l.OfferingId,
+                MediaId = l.MediaId,
+                CreatedAt = l.CreatedAt
+            }).ToListAsync();
+
+            var filtered = timeUpdateEvents.GroupBy(x => x.OfferingId).Select(g => new StudentLog
+            {
+                OfferingId = g.Key,
+                Medias = g.GroupBy(k => k.MediaId).Select(l => new MediaLog
+                {
+                    MediaId = l.Key,
+                    LastHr = l.Where(m => m.CreatedAt >= DateTime.Now.AddHours(-1)).Count(),
+                    Last3days = l.Where(m => m.CreatedAt >= DateTime.Now.AddDays(-3)).Count(),
+                    LastWeek = l.Where(m => m.CreatedAt >= DateTime.Now.AddDays(-7)).Count(),
+                    LastMonth = l.Count(),
+
+                }).ToList()
+            });
+
+            return filtered;
+        }
+
+        [HttpGet("CourseLogs")]
+        [Authorize(Roles = Globals.ROLE_ADMIN + "," + Globals.ROLE_ADVISORS)]
+        public async Task<IEnumerable<CourseLog>> GetCourseLogs(string offeringId, string eventType)
+        {
+            var timeUpdateEvents = await _context.Logs
+                .Where(l => l.CreatedAt >= DateTime.Now.AddMonths(-1) && l.OfferingId == offeringId && l.EventType == eventType)
+                .Select(l => new
+                {
+                    UserId = l.UserId,
+                    OfferingId = l.OfferingId,
+                    MediaId = l.MediaId,
+                    CreatedAt = l.CreatedAt
+                }).ToListAsync();
+
+            var filtered = timeUpdateEvents.GroupBy(x => x.UserId).Select(g => new CourseLog
+            {
+                UserId = g.Key,
+                Medias = g.GroupBy(k => k.MediaId).Select(l => new MediaLog
+                {
+                    MediaId = l.Key,
+                    LastHr = l.Where(m => m.CreatedAt >= DateTime.Now.AddHours(-1)).Count(),
+                    Last3days = l.Where(m => m.CreatedAt >= DateTime.Now.AddDays(-3)).Count(),
+                    LastWeek = l.Where(m => m.CreatedAt >= DateTime.Now.AddDays(-7)).Count(),
+                    LastMonth = l.Count(),
+
+                }).ToList()
+            });
+
+            return filtered;
+        }
+
+        [HttpGet("EventTypes")]
+        [Authorize(Roles = Globals.ROLE_ADMIN + "," + Globals.ROLE_ADVISORS)]
+        public async Task<IEnumerable<string>> GetEventTypes()
+        {
+            return await _context.Logs.Select(l => l.EventType).Distinct().ToListAsync();
+        }
+
+        [HttpGet("UserIds")]
+        [Authorize(Roles = Globals.ROLE_ADMIN + "," + Globals.ROLE_ADVISORS)]
+        public async Task<IEnumerable<string>> GetUserIds()
+        {
+            return await _context.Users.Select(u => u.Email).Distinct().ToListAsync();
+        }
+
+        public class CourseLog
+        {
+            public string UserId { get; set; }
+            public List<MediaLog> Medias { get; set; }
+        }
+
+
+        public class StudentLog
+        {
+            public string OfferingId { get; set; }
+            public List<MediaLog> Medias { get; set; }
+        }
+
+        public class MediaLog
+        {
+            public string MediaId { get; set; }
+            public int LastHr { get; set; }
+            public int Last3days { get; set; }
+            public int LastWeek { get; set; }
+            public int LastMonth { get; set; }
         }
     }
 }

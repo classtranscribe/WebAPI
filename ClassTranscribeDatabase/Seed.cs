@@ -24,8 +24,9 @@ namespace ClassTranscribeDatabase
             IdentityRole Admin = new IdentityRole { Name = Globals.ROLE_ADMIN, Id = "0002", NormalizedName = Globals.ROLE_ADMIN.ToUpper() };
             IdentityRole UniversityAdmin = new IdentityRole { Name = Globals.ROLE_UNIVERSITY_ADMIN, Id = "0003", NormalizedName = Globals.ROLE_UNIVERSITY_ADMIN.ToUpper() };
             IdentityRole TeachingAssistant = new IdentityRole { Name = Globals.ROLE_TEACHING_ASSISTANT, Id = "0004", NormalizedName = Globals.ROLE_TEACHING_ASSISTANT.ToUpper() };
+            IdentityRole Advisors = new IdentityRole { Name = Globals.ROLE_TEACHING_ASSISTANT, Id = "0005", NormalizedName = Globals.ROLE_ADVISORS.ToUpper() };
 
-            List<IdentityRole> roles = new List<IdentityRole> { Instructor, Student, Admin, UniversityAdmin, TeachingAssistant };
+            List<IdentityRole> roles = new List<IdentityRole> { Instructor, Student, Admin, UniversityAdmin, TeachingAssistant, Advisors };
             for (int i = 0; i < roles.Count(); i++)
             {
                 if (!_context.Roles.IgnoreQueryFilters().Any(r => r.Name == roles[i].Name))
