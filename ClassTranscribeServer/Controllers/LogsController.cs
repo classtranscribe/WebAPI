@@ -104,7 +104,13 @@ namespace ClassTranscribeServer.Controllers
             {
                 logs = timeUpdateEvents.GroupBy(x => x.UserId).Select(g => new CourseLog
                 {
-                    UserId = g.Key,
+                    User = _context.Users.Where(u => u.Id == g.Key).Select(u=> new ApplicationUser
+                    {
+                        Email = u.Email,
+                        FirstName = u.FirstName,
+                        LastName = u.LastName,
+                        Id = u.Id
+                    }).FirstOrDefault(),
                     Medias = g.GroupBy(k => k.MediaId).Select(l => new MediaLog
                     {
                         MediaId = l.Key,
@@ -119,7 +125,13 @@ namespace ClassTranscribeServer.Controllers
             {
                 logs = timeUpdateEvents.GroupBy(x => x.UserId).Select(g => new CourseLog
                 {
-                    UserId = g.Key,
+                    User = _context.Users.Where(u => u.Id == g.Key).Select(u => new ApplicationUser
+                    {
+                        Email = u.Email,
+                        FirstName = u.FirstName,
+                        LastName = u.LastName,
+                        Id = u.Id
+                    }).FirstOrDefault(),
                     Medias = g.GroupBy(k => k.MediaId).Select(l => new MediaLog
                     {
                         MediaId = l.Key,
@@ -147,7 +159,7 @@ namespace ClassTranscribeServer.Controllers
 
         public class CourseLog
         {
-            public string UserId { get; set; }
+            public ApplicationUser User { get; set; }
             public List<MediaLog> Medias { get; set; }
         }
 
