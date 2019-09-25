@@ -104,7 +104,7 @@ namespace ClassTranscribeServer.Controllers
             {
                 logs = timeUpdateEvents.GroupBy(x => x.UserId).Select(g => new CourseLog
                 {
-                    User = _context.Users.Where(u => u.Id == g.Key).Select(u=> new ApplicationUser
+                    User = _context.Users.Where(u => u.Id == g.Key).Select(u=> new UserDetails
                     {
                         Email = u.Email,
                         FirstName = u.FirstName,
@@ -125,7 +125,7 @@ namespace ClassTranscribeServer.Controllers
             {
                 logs = timeUpdateEvents.GroupBy(x => x.UserId).Select(g => new CourseLog
                 {
-                    User = _context.Users.Where(u => u.Id == g.Key).Select(u => new ApplicationUser
+                    User = _context.Users.Where(u => u.Id == g.Key).Select(u => new UserDetails
                     {
                         Email = u.Email,
                         FirstName = u.FirstName,
@@ -157,9 +157,17 @@ namespace ClassTranscribeServer.Controllers
             return await _context.Users.Select(u => u.Email).Distinct().ToListAsync();
         }
 
+        public class UserDetails
+        {
+            public string Email { get; set; }
+            public string FirstName { get; set; }
+            public string LastName { get; set; }
+            public string Id { get; set; }
+        }
+
         public class CourseLog
         {
-            public ApplicationUser User { get; set; }
+            public UserDetails User { get; set; }
             public List<MediaLog> Medias { get; set; }
         }
 
