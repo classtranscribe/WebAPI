@@ -38,7 +38,10 @@ namespace ClassTranscribeServer.Controllers
             {
                 user = await _userutils.CreateNonExistentUser(mailId);
             }
-            await _userManager.AddToRoleAsync(user, Globals.ROLE_INSTRUCTOR);
+            if (!(await _userManager.IsInRoleAsync(user, Globals.ROLE_INSTRUCTOR)))
+            {
+                await _userManager.AddToRoleAsync(user, Globals.ROLE_INSTRUCTOR);
+            }
             return Ok();
         }
 

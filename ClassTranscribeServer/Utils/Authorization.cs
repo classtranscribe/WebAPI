@@ -43,12 +43,12 @@ namespace ClassTranscribeServer.Authorization
                 var currentUserID = context.User.FindFirst(ClaimTypes.NameIdentifier).Value;
                 user = _ctDbContext.Users.Where(u => u.Id == currentUserID).First();
             }
-            var InstructorRoleId = await _roleManager.GetRoleIdAsync(new IdentityRole { Name = Globals.ROLE_INSTRUCTOR });
+            var InstructorRole = await _roleManager.FindByNameAsync(Globals.ROLE_INSTRUCTOR);
             if (context.User.IsInRole(Globals.ROLE_ADMIN))
             {
                 context.Succeed(requirement);
             }
-            if (_ctDbContext.UserOfferings.Where( (uo) => uo.ApplicationUserId == user.Id && uo.OfferingId == offering.Id && uo.IdentityRoleId == InstructorRoleId).Any())
+            if (_ctDbContext.UserOfferings.Where( (uo) => uo.ApplicationUserId == user.Id && uo.OfferingId == offering.Id && uo.IdentityRoleId == InstructorRole.Id).Any())
             {
                 context.Succeed(requirement);
             }

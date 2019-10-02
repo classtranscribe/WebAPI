@@ -23,10 +23,10 @@ namespace TaskEngine.Utils
             public string CRS_TITLE { get; set; }
             public string SCHED_TYPE { get; set; }
         }
-
+        
         public static void SeedCourses()
         {
-            string file = Path.Combine(Globals.appSettings.DATA_DIRECTORY, "seed", "Fall2019CourseList.csv");
+            string file = Path.Combine(Globals.appSettings.DATA_DIRECTORY, "seed", "Fall2019InstructorList.csv");
             TextReader reader = new StreamReader(file);
             var csvReader = new CsvReader(reader);
             var records = csvReader.GetRecords<CSVCourse>();
@@ -39,7 +39,7 @@ namespace TaskEngine.Utils
                     CourseName = c.First().CRS_TITLE,
                     Description = c.First().CRS_TITLE,
                     CourseNumber = c.First().NBR,
-                    Department = eceDept                    
+                    Department = eceDept
                 }).ToList();
                 _context.Courses.AddRange(courses);
                 _context.SaveChanges();
