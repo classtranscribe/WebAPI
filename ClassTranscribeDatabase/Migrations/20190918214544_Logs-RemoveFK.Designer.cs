@@ -3,15 +3,17 @@ using System;
 using ClassTranscribeDatabase;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace ClassTranscribeDatabase.Migrations
 {
     [DbContext(typeof(CTDbContext))]
-    partial class CTDbContextModelSnapshot : ModelSnapshot
+    [Migration("20190918214544_Logs-RemoveFK")]
+    partial class LogsRemoveFK
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -482,10 +484,6 @@ namespace ClassTranscribeDatabase.Migrations
 
                     b.Property<string>("MediaId");
 
-                    b.Property<string>("ProcessedVideo1Id");
-
-                    b.Property<string>("ProcessedVideo2Id");
-
                     b.Property<string>("TranscriptionStatus");
 
                     b.Property<string>("Video1Id");
@@ -497,10 +495,6 @@ namespace ClassTranscribeDatabase.Migrations
                     b.HasIndex("AudioId");
 
                     b.HasIndex("MediaId");
-
-                    b.HasIndex("ProcessedVideo1Id");
-
-                    b.HasIndex("ProcessedVideo2Id");
 
                     b.HasIndex("Video1Id");
 
@@ -722,14 +716,6 @@ namespace ClassTranscribeDatabase.Migrations
                     b.HasOne("ClassTranscribeDatabase.Models.Media", "Media")
                         .WithMany("Videos")
                         .HasForeignKey("MediaId");
-
-                    b.HasOne("ClassTranscribeDatabase.Models.FileRecord", "ProcessedVideo1")
-                        .WithMany()
-                        .HasForeignKey("ProcessedVideo1Id");
-
-                    b.HasOne("ClassTranscribeDatabase.Models.FileRecord", "ProcessedVideo2")
-                        .WithMany()
-                        .HasForeignKey("ProcessedVideo2Id");
 
                     b.HasOne("ClassTranscribeDatabase.Models.FileRecord", "Video1")
                         .WithMany()

@@ -246,6 +246,14 @@ namespace ClassTranscribeDatabase.Models
         [ForeignKey("Video2")]
         public string Video2Id { get; set; }
         public virtual FileRecord Video2 { get; set; }
+        [ForeignKey("ProcessedVideo1")]
+        public string ProcessedVideo1Id { get; set; }
+
+        public virtual FileRecord ProcessedVideo1 { get; set; }
+
+        [ForeignKey("ProcessedVideo2")]
+        public string ProcessedVideo2Id { get; set; }
+        public virtual FileRecord ProcessedVideo2 { get; set; }
 
         [ForeignKey("Audio")]
         public string AudioId { get; set; }
@@ -284,14 +292,8 @@ namespace ClassTranscribeDatabase.Models
 
     public class Log : Entity
     {
-        [IgnoreDataMember]
-        public virtual ApplicationUser User { get; set; }
         public string UserId { get; set; }
-        [IgnoreDataMember]
-        public virtual Offering Offering { get; set; }
         public string OfferingId { get; set; }
-        [IgnoreDataMember]
-        public virtual Media Media { get; set; }
         public string MediaId { get; set; }
         public string EventType { get; set; }
         public JObject Json { get; set; }
