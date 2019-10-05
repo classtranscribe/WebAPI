@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using ClassTranscribeDatabase;
 using ClassTranscribeDatabase.Models;
 using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 
 namespace ClassTranscribeServer.Controllers
 {
@@ -16,10 +17,11 @@ namespace ClassTranscribeServer.Controllers
     public class LogsController : ControllerBase
     {
         private readonly CTDbContext _context;
-
-        public LogsController(CTDbContext context)
+        private readonly IAuthorizationService _authorizationService;
+        public LogsController(CTDbContext context, IAuthorizationService authorizationService)
         {
             _context = context;
+            _authorizationService = authorizationService;
         }
 
         // POST: api/Logs
@@ -32,13 +34,105 @@ namespace ClassTranscribeServer.Controllers
             return Ok();
         }
 
-
-        [HttpGet("StudentLogs")]
-        [Authorize(Roles = Globals.ROLE_ADMIN + "," + Globals.ROLE_ADVISORS)]
-        public async Task<IEnumerable<StudentLog>> GetStudentLogs(string mailId, string eventType,
-            DateTime? start = null, DateTime? end = null)
+        /// <summary>
+        /// Get Search Terms for a given offeringId
+        /// Only an instructor of a course can view this.
+        /// </summary>
+        [HttpGet("OfferingSearchHistory")]
+        [Authorize]
+        public async Task<ActionResult<IEnumerable<SearchDTO>>> GetSearchLogs(string offeringId)
         {
-            var userId = await _context.Users.Where(u => u.Email == mailId).Select(x => x.Id).FirstOrDefaultAsync();
+            // Get the user
+            var authorizationResult = await _authorizationService.AuthorizeAsync(this.User, offeringId, Globals.POLICY_UPDATE_OFFERING);
+            if (!authorizationResult.Succeeded)
+            {
+                if (User.Identity.IsAuthenticated)
+                {
+                    return new ForbidResult();
+                }
+                else
+                {
+                    return new ChallengeResult();
+                }
+            }
+            return await _context.Logs.Where(l => l.OfferingId == offeringId && l.EventType == "filtertrans")
+                .GroupBy(l => l.Json["value"].ToString())
+                .Select(g => new SearchDTO
+                {
+                    Term = g.Key,
+                    Count = g.Count()
+                }).OrderByDescending(l => l.Count).ToListAsync();
+        }
+
+        /// <summary>
+        /// Get Search Terms for a given offeringId for a given student
+        /// Only the logged in user's search history will be returned
+        /// </summary>
+        [HttpGet("UserSearchHistory")]
+        [Authorize]
+        public async Task<ActionResult<IEnumerable<SearchDTO>>> UserSearchHistory(string offeringId)
+        {
+            // Get the user
+            var authorizationResult = await _authorizationService.AuthorizeAsync(this.User, offeringId, Globals.POLICY_READ_OFFERING);
+            if (!authorizationResult.Succeeded)
+            {
+                if (User.Identity.IsAuthenticated)
+                {
+                    return new ForbidResult();
+                }
+                else
+                {
+                    return new ChallengeResult();
+                }
+            }
+            // Get the user
+            var userId = this.User.FindFirst(ClaimTypes.NameIdentifier).Value;
+            return await _context.Logs.Where(l => l.OfferingId == offeringId && l.UserId == userId && l.EventType == "filtertrans")
+                .GroupBy(l => l.Json["value"].ToString())
+                .Select(g => new SearchDTO
+                {
+                    Term = g.Key,
+                    Count = g.Count()
+                }).OrderByDescending(l => l.Count).ToListAsync();
+        }
+
+        /// <summary>
+        /// Gets all logs for the logged in user.
+        /// </summary>
+        [HttpGet("UserLogs")]
+        [Authorize]
+        public async Task<IEnumerable<Log>> GetUserLogs()
+        {
+            if (User.Identity.IsAuthenticated && this.User.FindFirst(ClaimTypes.NameIdentifier) != null)
+            {
+                var userId = this.User.FindFirst(ClaimTypes.NameIdentifier).Value;
+                return await _context.Logs.Where(u => u.UserId == userId).ToListAsync();
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Gets event count for a particular event type
+        /// start and end are optional parameters
+        /// Logs returned only for the logged in user
+        /// </summary>
+        [HttpGet("UserLogs/ByEvent")]
+        [Authorize]
+        public async Task<IEnumerable<StudentLog>> GetUserLogsByEvent(string eventType, DateTime? start = null, DateTime? end = null)
+        {
+            string userId;
+            if (User.Identity.IsAuthenticated && this.User.FindFirst(ClaimTypes.NameIdentifier) != null)
+            {
+                userId = this.User.FindFirst(ClaimTypes.NameIdentifier).Value;
+            }
+            else
+            {
+                return null;
+            }
+
             DateTime startTime = start ?? DateTime.Now.AddMonths(-1);
             DateTime endTime = end ?? DateTime.Now;
             var timeUpdateEvents = await _context.Logs.Where(l => l.CreatedAt >= startTime && l.CreatedAt <= endTime && l.UserId == userId && l.EventType == eventType)
@@ -82,11 +176,28 @@ namespace ClassTranscribeServer.Controllers
             return logs;
         }
 
+        /// <summary>
+        /// Gets event count for a particular event type for a particular offeringId
+        /// start and end are optional parameters
+        /// Logs returned only if the logged in user is an instructor for the given offeringId
+        /// </summary>
         [HttpGet("CourseLogs")]
-        [Authorize(Roles = Globals.ROLE_ADMIN + "," + Globals.ROLE_ADVISORS)]
-        public async Task<IEnumerable<CourseLog>> GetCourseLogs(string offeringId, string eventType,
+        [Authorize]
+        public async Task<ActionResult<IEnumerable<CourseLog>>> GetCourseLogs(string offeringId, string eventType,
             DateTime? start = null, DateTime? end = null)
         {
+            var authorizationResult = await _authorizationService.AuthorizeAsync(this.User, offeringId, Globals.POLICY_UPDATE_OFFERING);
+            if (!authorizationResult.Succeeded)
+            {
+                if (User.Identity.IsAuthenticated)
+                {
+                    return new ForbidResult();
+                }
+                else
+                {
+                    return new ChallengeResult();
+                }
+            }
             DateTime startTime = start ?? DateTime.Now.AddMonths(-1);
             DateTime endTime = end ?? DateTime.Now;
             var timeUpdateEvents = await _context.Logs
@@ -104,7 +215,7 @@ namespace ClassTranscribeServer.Controllers
             {
                 logs = timeUpdateEvents.GroupBy(x => x.UserId).Select(g => new CourseLog
                 {
-                    User = _context.Users.Where(u => u.Id == g.Key).Select(u=> new UserDetails
+                    User = _context.Users.Where(u => u.Id == g.Key).Select(u => new UserDetails
                     {
                         Email = u.Email,
                         FirstName = u.FirstName,
@@ -138,11 +249,15 @@ namespace ClassTranscribeServer.Controllers
                         Count = l.Count(),
                     }).ToList()
                 });
-            }                
+            }
 
-            return logs;
+            return Ok(logs);
         }
 
+        /// <summary>
+        /// Gets different kinds of events
+        /// Only ADMINS and ADVISORS are authorized
+        /// </summary>
         [HttpGet("EventTypes")]
         [Authorize(Roles = Globals.ROLE_ADMIN + "," + Globals.ROLE_ADVISORS)]
         public async Task<IEnumerable<string>> GetEventTypes()
@@ -150,11 +265,21 @@ namespace ClassTranscribeServer.Controllers
             return await _context.Logs.Select(l => l.EventType).Distinct().ToListAsync();
         }
 
+        /// <summary>
+        /// Gets unique mailIds
+        /// Only ADMINS and ADVISORS are authorized
+        /// </summary>
         [HttpGet("UserIds")]
         [Authorize(Roles = Globals.ROLE_ADMIN + "," + Globals.ROLE_ADVISORS)]
         public async Task<IEnumerable<string>> GetUserIds()
         {
             return await _context.Users.Select(u => u.Email).Distinct().ToListAsync();
+        }
+
+        public class SearchDTO
+        {
+            public string Term { get; set; }
+            public int Count { get; set; }
         }
 
         public class UserDetails
@@ -170,7 +295,6 @@ namespace ClassTranscribeServer.Controllers
             public UserDetails User { get; set; }
             public List<MediaLog> Medias { get; set; }
         }
-
 
         public class StudentLog
         {

@@ -127,7 +127,7 @@ namespace ClassTranscribeServer.Controllers
 
         [HttpPost("PostUserMetadata")]
         [Authorize]
-        public async Task<ActionResult> PostUserMetadata(JObject metadata)
+        public async Task<ActionResult> PostUserMetadata([FromBody]JObject metadata)
         {
             ApplicationUser user = null;
             if (User.Identity.IsAuthenticated && this.User.FindFirst(ClaimTypes.NameIdentifier) != null)
