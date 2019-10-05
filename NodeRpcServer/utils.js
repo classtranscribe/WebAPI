@@ -69,11 +69,45 @@ async function convertVideoToWavRPC(call, callback) {
     })();
 }
 
+async function processVideo(pathToFile) {
+    console.log("processVideo");
+    var outputFile = _dirname + pathToFile.substring(pathToFile.lastIndexOf('/') + 1, pathToFile.lastIndexOf('.')) + '_processed.mp4';
+    const { spawn } = require('child-process-promise');
+    const ffmpeg = spawn('ffmpeg', ['-nostdin', '-i', pathToFile, '-c:v', 'libx264' ,'-b:v',
+    '500K', '-s', '768x432', '-movflags', 'faststart', '-ar', '48000', '-preset', 'medium', outputFile]);
+
+    ffmpeg.childProcess.stdout.on('data', (data) => {
+        console.log(`stdout: ${data}`);
+    });
+
+    ffmpeg.childProcess.stderr.on('data', (data) => {
+        console.log(`stderr: ${data}`);
+    });
+
+    try {
+        await ffmpeg;
+        return outputFile;
+    } catch (err) {
+        console.log(err);
+        return null;
+    }
+}
+
+async function processVideoRPC(call, callback) {
+    console.log(call.request);
+    var outputFile;
+    (async () => {
+        outputFile = await processVideo(call.request.filePath);
+        callback(null, { filePath: outputFile });
+    })();
+}
+
 module.exports = {
     asyncForEach: asyncForEach,
     convertMStoTime: convertMStoTime,
     stringToDate: stringToDate,
     runSynchronously: runSynchronously,
     getRandomString: getRandomString,
-    convertVideoToWavRPC: convertVideoToWavRPC
+    convertVideoToWavRPC: convertVideoToWavRPC,
+    processVideoRPC: processVideoRPC
 }

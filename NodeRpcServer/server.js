@@ -50,7 +50,8 @@ function main() {
        DownloadEchoVideoRPC: echo.downloadEchoVideoRPC,
        GetYoutubePlaylistRPC: youtube.getYoutubePlaylistRPC, 
        DownloadYoutubeVideoRPC: youtube.downloadYoutubeVideoRPC,
-       ConvertVideoToWavRPC: utils.convertVideoToWavRPC
+       ConvertVideoToWavRPC: utils.convertVideoToWavRPC,
+       ProcessVideoRPC: utils.processVideoRPC
      });
    server.bind('0.0.0.0:50052', grpc.ServerCredentials.createInsecure());
    server.start();
