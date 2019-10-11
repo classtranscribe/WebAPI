@@ -125,8 +125,6 @@ namespace ClassTranscribeServer.Controllers
                 return BadRequest();
             }
 
-            _context.Entry(offering).State = EntityState.Modified;
-
             try
             {
                 await _context.SaveChangesAsync();
