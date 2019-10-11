@@ -52,8 +52,14 @@ namespace TaskEngine
             {
                 var message = CommonUtils.BytesToMessage<T>(ea.Body);
                 Console.WriteLine(" [x] Received {0}", message);
-
-                await OnConsume(message);
+                try
+                {
+                    await OnConsume(message);
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e.ToString());
+                }
 
                 Console.WriteLine(" [x] Done");
 
