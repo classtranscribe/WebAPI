@@ -34,14 +34,4 @@ namespace TaskEngine
             }
         }
     }
-
-    public enum TaskType
-    {
-        FetchPlaylistData,
-        DownloadMedia,
-        ConvertMedia,
-        TranscribeMedia,
-        ProcessVideo,
-        Aggregator
-    }
 }

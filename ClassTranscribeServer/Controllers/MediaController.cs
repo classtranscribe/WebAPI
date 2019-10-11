@@ -123,7 +123,7 @@ namespace ClassTranscribeServer.Controllers
 
             _context.Medias.Add(media);
             await _context.SaveChangesAsync();
-            WakeDownloader.Wake();
+            WakeDownloader.UpdatePlaylist(playlistId);
             return CreatedAtAction("GetMedia", new { id = media.Id }, media);
         }
 

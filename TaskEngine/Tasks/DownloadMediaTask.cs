@@ -15,7 +15,7 @@ namespace TaskEngine.Tasks
         private void Init(RabbitMQ rabbitMQ)
         {
             _rabbitMQ = rabbitMQ;
-            queueName = RabbitMQ.QueueNameBuilder(TaskType.DownloadMedia, "_1");
+            queueName = RabbitMQ.QueueNameBuilder(CommonUtils.TaskType.DownloadMedia, "_1");
         }
         public DownloadMediaTask(RabbitMQ rabbitMQ, RpcClient rpcClient, ConvertVideoToWavTask convertVideoToWavTask)
         {
@@ -94,7 +94,7 @@ namespace TaskEngine.Tasks
             if (media.JsonMetadata.ContainsKey("video1Path"))
             {
                 var video1Path = media.JsonMetadata["video1Path"].ToString();
-                var newPath = System.IO.Path.Combine(Globals.appSettings.DATA_DIRECTORY, System.Guid.NewGuid().ToString() + ".mp4");
+                var newPath = System.IO.Path.Combine(Globals.appSettings.DATA_DIRECTORY, Guid.NewGuid().ToString() + ".mp4");
                 File.Copy(video1Path, newPath);
                 video.Video1 = new FileRecord(newPath);
                 
@@ -102,7 +102,7 @@ namespace TaskEngine.Tasks
             if (media.JsonMetadata.ContainsKey("video2Path"))
             {
                 var video2Path = media.JsonMetadata["video2Path"].ToString();
-                var newPath = System.IO.Path.Combine(Globals.appSettings.DATA_DIRECTORY, System.Guid.NewGuid().ToString() + ".mp4");
+                var newPath = System.IO.Path.Combine(Globals.appSettings.DATA_DIRECTORY, Guid.NewGuid().ToString() + ".mp4");
                 File.Copy(video2Path, newPath);
                 video.Video1 = new FileRecord(newPath);
             }

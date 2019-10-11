@@ -54,7 +54,7 @@ namespace ClassTranscribeServer.Authorization
             }
             // Detach object after using
             _ctDbContext.Entry(offering).State = EntityState.Detached;
-            _ctDbContext.Entry(user).State = EntityState.Detached;
+            _ctDbContext.Entry(user).State = EntityState.Detached;            
         }
 
     }
@@ -106,7 +106,10 @@ namespace ClassTranscribeServer.Authorization
             }
             // Detach object after using
             _ctDbContext.Entry(offering).State = EntityState.Detached;
-            _ctDbContext.Entry(user).State = EntityState.Detached;
+            if (user != null)
+            {
+                _ctDbContext.Entry(user).State = EntityState.Detached;
+            }
         }
     }    
 }

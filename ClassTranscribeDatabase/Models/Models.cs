@@ -223,19 +223,6 @@ namespace ClassTranscribeDatabase.Models
         public virtual List<Caption> Captions { get; set; }
     }
 
-    public class Caption : Entity
-    {
-        public int Index { get; set; }
-        public TimeSpan Begin { get; set; }
-        public TimeSpan End { get; set; }
-        public string Text { get; set; }
-        public string TranscriptionId { get; set; }
-        public int UpVote { get; set; }
-        public int DownVote { get; set; }
-        [IgnoreDataMember]
-        public virtual Transcription Transcription { get; set; }
-    }
-
     public class Video : Entity
     {
         [ForeignKey("Video1")]

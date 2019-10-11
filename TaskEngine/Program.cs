@@ -35,7 +35,9 @@ namespace TaskEngine
                 .AddSingleton<ConvertVideoToWavTask>()
                 .AddSingleton<TranscriptionTask>()
                 .AddSingleton<WakeDownloaderTask>()
+                .AddSingleton<GenerateVTTFileTask>()
                 .AddSingleton<RpcClient>()
+                .AddSingleton<ProcessVideoTask>()
                 .AddSingleton<MSTranscriptionService>()
                 .BuildServiceProvider();
 
@@ -67,16 +69,23 @@ namespace TaskEngine
             serviceProvider.GetService<ConvertVideoToWavTask>().Consume();
             serviceProvider.GetService<TranscriptionTask>().Consume();
             serviceProvider.GetService<WakeDownloaderTask>().Consume();
+            serviceProvider.GetService<GenerateVTTFileTask>().Consume();
+            serviceProvider.GetService<ProcessVideoTask>().Consume();
             RunProgramRunExample(rabbitMQ).GetAwaiter().GetResult();
 
 
             DownloadMediaTask downloadMediaTask = serviceProvider.GetService<DownloadMediaTask>();
             ConvertVideoToWavTask convertVideoToWavTask = serviceProvider.GetService<ConvertVideoToWavTask>();
             TranscriptionTask transcriptionTask = serviceProvider.GetService<TranscriptionTask>();
+            GenerateVTTFileTask generateVTTFileTask = serviceProvider.GetService<GenerateVTTFileTask>();
+            ProcessVideoTask processVideoTask = serviceProvider.GetService<ProcessVideoTask>();
 
             context.Medias.Where(m => !m.Videos.Any()).ToList().ForEach(m => downloadMediaTask.Publish(m));
             context.Videos.Where(v => v.MediaId != null && v.AudioId == null).ToList().ForEach(v => convertVideoToWavTask.Publish(v));
             context.Videos.Where(v => v.TranscriptionStatus != "NoError" && v.MediaId != null && v.AudioId != null).ToList().ForEach(v => transcriptionTask.Publish(v));
+
+            // context.Videos.ToList().ForEach(v => processVideoTask.Publish(v));
+            // context.Transcriptions.Where(t => t.Captions.Count > 0).ToList().ForEach(t => generateVTTFileTask.Publish(t));
 
             logger.LogDebug("All done!");
 

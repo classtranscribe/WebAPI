@@ -21,12 +21,21 @@ namespace ClassTranscribeServer.Controllers
         {
             _context = context;
         }
-        [HttpPost("WakeDownloader")]
-        public ActionResult Wake()
+
+        [HttpPost("UpdateAllPlaylists")]
+        public ActionResult UpdateAllPlaylists()
         {
-            WakeDownloader.Wake();
+            WakeDownloader.UpdateAllPlaylists();
             return Ok();
         }
+
+        [HttpPost("UpdatePlaylist")]
+        public ActionResult UpdatePlaylist(string playlistId)
+        {
+            WakeDownloader.UpdatePlaylist(playlistId);
+            return Ok();
+        }
+
         [HttpGet("GetLogs")]
         public async Task<IActionResult> GetLogs(DateTime from, DateTime to)
         {

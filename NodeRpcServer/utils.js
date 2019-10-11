@@ -1,4 +1,4 @@
-const _dirname = process.env.TMPDIR;
+const _dirname = process.env.DATA_DIRECTORY;
 
 async function asyncForEach(array, callback) {
     for (let index = 0; index < array.length; index++) {
@@ -39,9 +39,12 @@ function getRandomString() {
 
 async function convertVideoToWav(pathToFile) {
     console.log("convertVideoToWav");
-    var outputFile = _dirname + pathToFile.substring(pathToFile.lastIndexOf('/') + 1, pathToFile.lastIndexOf('.')) + '.wav';
+    var fileName = pathToFile.substring(pathToFile.lastIndexOf('/') + 1, pathToFile.lastIndexOf('.')) + '.wav';
+    var outputFile = _dirname + "/" + fileName;
+    var tempFile = "/tmp/" + fileName;
     const { spawn } = require('child-process-promise');
     const ffmpeg = spawn('ffmpeg', ['-nostdin', '-i', pathToFile, '-c:a', 'pcm_s16le', '-ac', '1', '-y', '-ar', '16000', outputFile]);
+    const copyFile = spawn('cp', [tempFile, outputFile]);
 
     ffmpeg.childProcess.stdout.on('data', (data) => {
         console.log(`stdout: ${data}`);
@@ -53,6 +56,7 @@ async function convertVideoToWav(pathToFile) {
 
     try {
         await ffmpeg;
+        await copyFile;
         return outputFile;
     } catch (err) {
         console.log(err);
@@ -71,10 +75,13 @@ async function convertVideoToWavRPC(call, callback) {
 
 async function processVideo(pathToFile) {
     console.log("processVideo");
-    var outputFile = _dirname + pathToFile.substring(pathToFile.lastIndexOf('/') + 1, pathToFile.lastIndexOf('.')) + '_processed.mp4';
+    var fileName = pathToFile.substring(pathToFile.lastIndexOf('/') + 1, pathToFile.lastIndexOf('.')) + '_processed.mp4';
+    var outputFile = _dirname + "/" + fileName;
+    var tempFile = "/tmp/" + fileName;
     const { spawn } = require('child-process-promise');
-    const ffmpeg = spawn('ffmpeg', ['-nostdin', '-i', pathToFile, '-c:v', 'libx264' ,'-b:v',
-    '500K', '-s', '768x432', '-movflags', 'faststart', '-ar', '48000', '-preset', 'medium', outputFile]);
+    const ffmpeg = spawn('ffmpeg', ['-nostdin', '-i', pathToFile, '-y', '-c:v', 'libx264' ,'-b:v',
+    '500K', '-s', '768x432', '-movflags', 'faststart', '-ar', '48000', '-preset', 'medium', tempFile]);
+    const copyFile = spawn('cp', [tempFile, outputFile]);
 
     ffmpeg.childProcess.stdout.on('data', (data) => {
         console.log(`stdout: ${data}`);
@@ -86,6 +93,7 @@ async function processVideo(pathToFile) {
 
     try {
         await ffmpeg;
+        await copyFile;
         return outputFile;
     } catch (err) {
         console.log(err);

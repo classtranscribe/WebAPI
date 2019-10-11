@@ -20,7 +20,7 @@ namespace TaskEngine.Tasks
         private void Init(RabbitMQ rabbitMQ)
         {
             _rabbitMQ = rabbitMQ;
-            queueName = RabbitMQ.QueueNameBuilder(TaskType.FetchPlaylistData, "_1");
+            queueName = RabbitMQ.QueueNameBuilder(CommonUtils.TaskType.DownloadPlaylistInfo, "_1");
         }
         public DownloadPlaylistInfoTask(RabbitMQ rabbitMQ, RpcClient rpcClient, DownloadMediaTask downloadMediaTask)
         {

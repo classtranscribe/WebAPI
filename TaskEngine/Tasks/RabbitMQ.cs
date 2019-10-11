@@ -28,7 +28,7 @@ namespace TaskEngine
         public void PublishTask<T>(string queueName, T message)
         {
             _channel.QueueDeclare(queue: queueName, durable: true, exclusive: false, autoDelete: false, arguments: null);
-            var body = MessageToBytes(message);
+            var body = CommonUtils.MessageToBytes(message);
             var properties = _channel.CreateBasicProperties();
             properties.Persistent = true;
 
@@ -50,7 +50,7 @@ namespace TaskEngine
             var consumer = new EventingBasicConsumer(_channel);
             consumer.Received += async (model, ea) =>
             {
-                var message = BytesToMessage<T>(ea.Body);
+                var message = CommonUtils.BytesToMessage<T>(ea.Body);
                 Console.WriteLine(" [x] Received {0}", message);
 
                 await OnConsume(message);
@@ -66,26 +66,14 @@ namespace TaskEngine
 
         public void DeleteAllQueues()
         {
-            foreach(TaskType taskType in Enum.GetValues(typeof(TaskType)))
+            foreach(CommonUtils.TaskType taskType in Enum.GetValues(typeof(CommonUtils.TaskType)))
             {
                 string queueName = RabbitMQ.QueueNameBuilder(taskType, "_1");
                 _channel.QueueDelete(queueName);
             }
         }
 
-        public static byte[] MessageToBytes<T>(T obj)
-        {
-            string output = JsonConvert.SerializeObject(obj);
-            Console.WriteLine(" [x] Sending {0}", output);
-            return Encoding.UTF8.GetBytes(output);
-        }
-
-        public static T BytesToMessage<T>(byte[] bytes)
-        {
-            return JsonConvert.DeserializeObject<T>(Encoding.UTF8.GetString(bytes));
-        }
-
-        public static string QueueNameBuilder(TaskType taskType, string mod)
+        public static string QueueNameBuilder(CommonUtils.TaskType taskType, string mod)
         {
             return taskType.ToString() + "_" + mod;
         }

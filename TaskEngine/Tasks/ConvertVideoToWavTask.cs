@@ -13,7 +13,7 @@ namespace TaskEngine.Tasks
         private void Init(RabbitMQ rabbitMQ)
         {
             _rabbitMQ = rabbitMQ;
-            queueName = RabbitMQ.QueueNameBuilder(TaskType.ConvertMedia, "_1");
+            queueName = RabbitMQ.QueueNameBuilder(CommonUtils.TaskType.ConvertMedia, "_1");
         }
         public ConvertVideoToWavTask(RabbitMQ rabbitMQ, RpcClient rpcClient, TranscriptionTask transcriptionTask)
         {
