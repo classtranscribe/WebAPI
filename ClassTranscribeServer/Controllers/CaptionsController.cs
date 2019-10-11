@@ -32,6 +32,21 @@ namespace ClassTranscribeServer.Controllers
                 .OrderBy(c => c.Index).ToListAsync();
         }
 
+        // GET: api/Captions
+        [HttpGet]
+        public async Task<ActionResult<Caption>> GetCaption(string captionId)
+        {
+            var caption = await _context.Captions.FindAsync(captionId);
+            if (caption == null)
+            {
+                return NotFound();
+            }
+            else
+            {
+                return caption;
+            }
+        }
+
         // POST: api/Captions
         [HttpPost]
         [Authorize]
