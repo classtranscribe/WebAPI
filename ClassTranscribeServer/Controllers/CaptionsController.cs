@@ -34,16 +34,17 @@ namespace ClassTranscribeServer.Controllers
 
         // GET: api/Captions
         [HttpGet]
-        public async Task<ActionResult<Caption>> GetCaption(string captionId)
+        public async Task<ActionResult<Caption>> GetCaption(string transcriptionId, int index)
         {
-            var caption = await _context.Captions.FindAsync(captionId);
-            if (caption == null)
+            var captions = await _context.Captions.Where(c => c.TranscriptionId == transcriptionId && c.Index == index)
+                .OrderByDescending(c => c.CreatedAt).ToListAsync();
+            if (captions == null || captions.Count == 0)
             {
                 return NotFound();
             }
             else
             {
-                return caption;
+                return captions.First();
             }
         }
 
