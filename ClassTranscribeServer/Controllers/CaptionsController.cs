@@ -50,7 +50,6 @@ namespace ClassTranscribeServer.Controllers
 
         // POST: api/Captions
         [HttpPost]
-        [Authorize]
         public async Task<ActionResult<Caption>> PostCaption(Caption modifiedCaption)
         {
             Caption oldCaption = await _context.Captions.FindAsync(modifiedCaption.Id);
