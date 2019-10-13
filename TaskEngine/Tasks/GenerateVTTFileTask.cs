@@ -32,6 +32,7 @@ namespace TaskEngine.Tasks
                 var audioPath = await _context.Medias.Where(m => m.Id == transcription.MediaId).Select(m => m.Videos.First().Audio.Path).FirstAsync();
                 var vttFile = Caption.GenerateWebVTTFile(captions, audioPath, transcription.Language);
                 var srtFile = Caption.GenerateSrtFile(captions, audioPath, transcription.Language);
+                _context.Entry(transcription).State = EntityState.Modified;
                 transcription.File = new FileRecord(vttFile);
                 await _context.SaveChangesAsync();
             }
