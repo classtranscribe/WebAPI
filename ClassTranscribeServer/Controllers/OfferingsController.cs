@@ -72,8 +72,10 @@ namespace ClassTranscribeServer.Controllers
                 offerings.AddRange(member_offerings);
             }
 
+            var filteredOfferings = offerings.FindAll(o => o.Playlists.SelectMany(m => m.Medias).Count() > 0).OrderBy(o => o.Term.StartDate).ToList();
+
             // return the combined result
-            return offerings.OrderBy(o => o.Term.StartDate).ToList();
+            return filteredOfferings;
         }
 
         // GET: api/Offerings/5

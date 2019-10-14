@@ -104,7 +104,7 @@ namespace ClassTranscribeServer.Controllers
                 Transcriptions = m.Transcriptions.Select(t => new TranscriptionDTO
                 {
                     Id = t.Id,
-                    Path = t.File.Path,
+                    Path = t.File != null ? t.File.Path : null,
                     Language = t.Language
                 }).ToList()
             }).ToList();
