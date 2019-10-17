@@ -9,12 +9,12 @@ namespace TaskEngine.Tasks
     class ProcessVideoTask : RabbitMQTask<Video>
     {
         private RpcClient _rpcClient;
-        private void Init(RabbitMQ rabbitMQ)
+        private void Init(RabbitMQConnection rabbitMQ)
         {
             _rabbitMQ = rabbitMQ;
-            queueName = RabbitMQ.QueueNameBuilder(CommonUtils.TaskType.ProcessVideo, "_1");
+            queueName = RabbitMQConnection.QueueNameBuilder(CommonUtils.TaskType.ProcessVideo, "_1");
         }
-        public ProcessVideoTask(RabbitMQ rabbitMQ, RpcClient rpcClient)
+        public ProcessVideoTask(RabbitMQConnection rabbitMQ, RpcClient rpcClient)
         {
             Init(rabbitMQ);
             _rpcClient = rpcClient;

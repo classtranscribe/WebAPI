@@ -16,12 +16,12 @@ namespace TaskEngine.Tasks
         private MSTranscriptionService _msTranscriptionService;
         private AppSettings _appSettings;
         private GenerateVTTFileTask _generateVTTFileTask;
-        private void Init(RabbitMQ rabbitMQ)
+        private void Init(RabbitMQConnection rabbitMQ)
         {
             _rabbitMQ = rabbitMQ;
-            queueName = RabbitMQ.QueueNameBuilder(CommonUtils.TaskType.TranscribeMedia, "_1");
+            queueName = RabbitMQConnection.QueueNameBuilder(CommonUtils.TaskType.TranscribeMedia, "_1");
         }
-        public TranscriptionTask(RabbitMQ rabbitMQ, RpcClient rpcClient, MSTranscriptionService msTranscriptionService, GenerateVTTFileTask generateVTTFileTask)
+        public TranscriptionTask(RabbitMQConnection rabbitMQ, RpcClient rpcClient, MSTranscriptionService msTranscriptionService, GenerateVTTFileTask generateVTTFileTask)
         {
             Init(rabbitMQ);
             _rpcClient = rpcClient;

@@ -36,6 +36,13 @@ namespace ClassTranscribeServer.Controllers
             return Ok();
         }
 
+        [HttpPost("PeriodicCheck")]
+        public ActionResult PeriodicCheck()
+        {
+            WakeDownloader.PeriodicCheck();
+            return Ok();
+        }
+
         [HttpGet("GetLogs")]
         public async Task<IActionResult> GetLogs(DateTime from, DateTime to)
         {

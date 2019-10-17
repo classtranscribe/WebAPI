@@ -1,7 +1,6 @@
 ﻿using ClassTranscribeDatabase;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using RabbitMQ.Client;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -35,20 +34,19 @@ namespace ClassTranscribeServer
             Wake(msg);
         }
 
+        public static void PeriodicCheck()
+        {
+            JObject msg = new JObject();
+            msg.Add("Type", CommonUtils.TaskType.PeriodicCheck.ToString());
+            Wake(msg);
+        }
+
         private static void Wake(JObject message)
         {
-            var factory = new ConnectionFactory() { HostName = Globals.appSettings.RabbitMQServer };
-            using (var connection = factory.CreateConnection())
-            using (var _channel = connection.CreateModel())
+            using (var rabbitmq = new RabbitMQConnection())
             {
-                var queueName = "WakeDownloader";
-                _channel.QueueDeclare(queue: queueName, durable: true, exclusive: false, autoDelete: false, arguments: null);
-                var body = CommonUtils.MessageToBytes(message);
-                var properties = _channel.CreateBasicProperties();
-                properties.Persistent = true;
-
-                _channel.BasicPublish(exchange: "", routingKey: queueName, basicProperties: properties, body: body);
-                Console.WriteLine(" [x] Sent {0}");
+                var queueName = RabbitMQConnection.QueueNameBuilder(CommonUtils.TaskType.ProcessVideo, "_1");
+                rabbitmq.PublishTask<JObject>(queueName, message);
             }
         }
     }

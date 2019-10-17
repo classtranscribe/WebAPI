@@ -29,12 +29,12 @@ namespace TaskEngine
                 .AddLogging()
                 .AddOptions()
                 .Configure<AppSettings>(CTDbContext.GetConfigurations())
-                .AddSingleton<RabbitMQ>()
+                .AddSingleton<RabbitMQConnection>()
                 .AddSingleton<DownloadPlaylistInfoTask>()
                 .AddSingleton<DownloadMediaTask>()
                 .AddSingleton<ConvertVideoToWavTask>()
                 .AddSingleton<TranscriptionTask>()
-                .AddSingleton<WakeDownloaderTask>()
+                .AddSingleton<QueueAwakerTask>()
                 .AddSingleton<GenerateVTTFileTask>()
                 .AddSingleton<RpcClient>()
                 .AddSingleton<ProcessVideoTask>()
@@ -59,7 +59,7 @@ namespace TaskEngine
             var logger = serviceProvider.GetService<ILoggerFactory>()
                 .CreateLogger<Program>();
 
-            RabbitMQ rabbitMQ = serviceProvider.GetService<RabbitMQ>();
+            RabbitMQConnection rabbitMQ = serviceProvider.GetService<RabbitMQConnection>();
             CTDbContext context = CTDbContext.CreateDbContext();
             Seeder.Seed(context);
             logger.LogDebug("Starting application");
@@ -68,27 +68,17 @@ namespace TaskEngine
             serviceProvider.GetService<DownloadMediaTask>().Consume();
             serviceProvider.GetService<ConvertVideoToWavTask>().Consume();
             serviceProvider.GetService<TranscriptionTask>().Consume();
-            serviceProvider.GetService<WakeDownloaderTask>().Consume();
+            serviceProvider.GetService<QueueAwakerTask>().Consume();
             serviceProvider.GetService<GenerateVTTFileTask>().Consume();
             serviceProvider.GetService<ProcessVideoTask>().Consume();
-            // RunProgramRunExample(rabbitMQ).GetAwaiter().GetResult();
+            RunProgramRunExample(rabbitMQ).GetAwaiter().GetResult();
 
 
             DownloadMediaTask downloadMediaTask = serviceProvider.GetService<DownloadMediaTask>();
             ConvertVideoToWavTask convertVideoToWavTask = serviceProvider.GetService<ConvertVideoToWavTask>();
             TranscriptionTask transcriptionTask = serviceProvider.GetService<TranscriptionTask>();
             GenerateVTTFileTask generateVTTFileTask = serviceProvider.GetService<GenerateVTTFileTask>();
-            ProcessVideoTask processVideoTask = serviceProvider.GetService<ProcessVideoTask>();
-
-            context.Medias.Where(m => m.PlaylistId == "f401e41f-0867-4915-a209-e484e52cd462")
-                .SelectMany(m => m.Transcriptions).Where(t => t.Captions.Count > 0).ToList().ForEach(t => generateVTTFileTask.Publish(t));
-
-            //context.Medias.Where(m => !m.Videos.Any()).ToList().ForEach(m => downloadMediaTask.Publish(m));
-            //context.Videos.Where(v => v.MediaId != null && v.AudioId == null).ToList().ForEach(v => convertVideoToWavTask.Publish(v));
-            //context.Videos.Where(v => v.TranscriptionStatus != "NoError" && v.MediaId != null && v.AudioId != null).ToList().ForEach(v => transcriptionTask.Publish(v));
-
-            // context.Videos.ToList().ForEach(v => processVideoTask.Publish(v));
-            // context.Transcriptions.Where(t => t.Captions.Count > 0).Take(5).ToList().ForEach(t => generateVTTFileTask.Publish(t));
+            ProcessVideoTask processVideoTask = serviceProvider.GetService<ProcessVideoTask>();            
 
             logger.LogDebug("All done!");
 
@@ -99,7 +89,7 @@ namespace TaskEngine
             };
         }
 
-        private static async Task RunProgramRunExample(RabbitMQ rabbitMQ)
+        private static async Task RunProgramRunExample(RabbitMQConnection rabbitMQ)
         {
             try
             {
@@ -115,7 +105,7 @@ namespace TaskEngine
                 await scheduler.Start();
 
                 // define the job and tie it to our HelloJob class
-                IJobDetail job = JobBuilder.Create<DownloadPlaylistInfoTask>()
+                IJobDetail job = JobBuilder.Create<QueueAwakerTask>()
                     .WithIdentity("job1", "group1")
                     .Build();
 

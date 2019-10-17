@@ -12,12 +12,12 @@ namespace TaskEngine.Tasks
         private RpcClient _rpcClient;
         private ConvertVideoToWavTask _convertVideoToWavTask;
 
-        private void Init(RabbitMQ rabbitMQ)
+        private void Init(RabbitMQConnection rabbitMQ)
         {
             _rabbitMQ = rabbitMQ;
-            queueName = RabbitMQ.QueueNameBuilder(CommonUtils.TaskType.DownloadMedia, "_1");
+            queueName = RabbitMQConnection.QueueNameBuilder(CommonUtils.TaskType.DownloadMedia, "_1");
         }
-        public DownloadMediaTask(RabbitMQ rabbitMQ, RpcClient rpcClient, ConvertVideoToWavTask convertVideoToWavTask)
+        public DownloadMediaTask(RabbitMQConnection rabbitMQ, RpcClient rpcClient, ConvertVideoToWavTask convertVideoToWavTask)
         {
             Init(rabbitMQ);
             _rpcClient = rpcClient;

@@ -9,6 +9,7 @@ namespace ClassTranscribeDatabase
     {
         public enum TaskType
         {
+            PeriodicCheck,
             DownloadAllPlaylists,
             DownloadPlaylistInfo,
             DownloadMedia,
@@ -16,7 +17,8 @@ namespace ClassTranscribeDatabase
             TranscribeMedia,
             ProcessVideo,
             Aggregator,
-            GenerateVTTFile
+            GenerateVTTFile,
+            QueueAwaker
         }
         public static byte[] MessageToBytes<T>(T obj)
         {

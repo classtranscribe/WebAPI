@@ -6,7 +6,7 @@ namespace TaskEngine
 {
     public abstract class RabbitMQTask<T>
     {
-        protected RabbitMQ _rabbitMQ;
+        protected RabbitMQConnection _rabbitMQ;
         protected string queueName;
         public void Publish(T obj)
         {

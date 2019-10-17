@@ -12,13 +12,13 @@ namespace TaskEngine.Tasks
 {
     class GenerateVTTFileTask : RabbitMQTask<Transcription>
     {
-        private void Init(RabbitMQ rabbitMQ)
+        private void Init(RabbitMQConnection rabbitMQ)
         {
             _rabbitMQ = rabbitMQ;
-            queueName = RabbitMQ.QueueNameBuilder(CommonUtils.TaskType.GenerateVTTFile, "_1");
+            queueName = RabbitMQConnection.QueueNameBuilder(CommonUtils.TaskType.GenerateVTTFile, "_1");
         }
 
-        public GenerateVTTFileTask(RabbitMQ rabbitMQ)
+        public GenerateVTTFileTask(RabbitMQConnection rabbitMQ)
         {
             Init(rabbitMQ);
         }

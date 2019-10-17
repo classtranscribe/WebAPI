@@ -13,7 +13,6 @@ namespace ClassTranscribeServer.Authorization
     public class ReadOfferingRequirement : IAuthorizationRequirement { }
     public class UpdateOfferingRequirement : IAuthorizationRequirement { }
     public class CreateOfferingRequirement : IAuthorizationRequirement { }
-
     public class UpdateOfferingAuthorizationHandler :
     AuthorizationHandler<UpdateOfferingRequirement, string>
     {
