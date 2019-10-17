@@ -81,7 +81,6 @@ namespace TaskEngine.Tasks
             {
                 await DownloadAllPlaylists();
                 await PendingJobs();
-
             }
             else if(jObject["Type"].ToString() == CommonUtils.TaskType.DownloadAllPlaylists.ToString())
             {

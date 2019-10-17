@@ -45,7 +45,7 @@ namespace ClassTranscribeServer
         {
             using (var rabbitmq = new RabbitMQConnection())
             {
-                var queueName = RabbitMQConnection.QueueNameBuilder(CommonUtils.TaskType.ProcessVideo, "_1");
+                var queueName = RabbitMQConnection.QueueNameBuilder(CommonUtils.TaskType.QueueAwaker, "_1");
                 rabbitmq.PublishTask<JObject>(queueName, message);
             }
         }
