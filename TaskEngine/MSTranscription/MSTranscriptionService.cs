@@ -20,11 +20,12 @@ namespace TaskEngine.MSTranscription
             public static string KOREAN = "ko";
             public static string SPANISH = "es";
         }
-        public async Task<Tuple<Dictionary<string, List<Caption>>,string>> RecognitionWithAudioStreamAsync(string file)
+        public async Task<Tuple<Dictionary<string, List<Caption>>,string>> RecognitionWithAudioStreamAsync(Video video)
         {
+            string file = video.Audio.Path;
             AppSettings _appSettings = Globals.appSettings;
             
-            Key key = TaskEngineGlobals.KeyProvider.GetKey();
+            Key key = TaskEngineGlobals.KeyProvider.GetKey(video.Id);
             SpeechTranslationConfig _speechConfig = SpeechTranslationConfig.FromSubscription(key.ApiKey, key.Region);
             _speechConfig.RequestWordLevelTimestamps();
             // Sets source and target languages.
@@ -122,7 +123,7 @@ namespace TaskEngine.MSTranscription
 
                     // Stops recognition.
                     await recognizer.StopContinuousRecognitionAsync().ConfigureAwait(false);
-                    TaskEngineGlobals.KeyProvider.ReleaseKey(key);
+                    TaskEngineGlobals.KeyProvider.ReleaseKey(key, video.Id);
                     return new Tuple<Dictionary<string, List<Caption>>, string>(captions, errorCode);
                 }
             }

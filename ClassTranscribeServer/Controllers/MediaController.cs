@@ -95,11 +95,11 @@ namespace ClassTranscribeServer.Controllers
                 {
                     return BadRequest("File Format not permitted");
                 }
-                var filePath = Path.GetTempFileName();
-                using ( var stream = new FileStream(filePath, FileMode.Create))
+                var filePath = Path.GetTempFileName();                
+                using (var stream = new FileStream(filePath, FileMode.Create))
                 {
                     await video1.CopyToAsync(stream);
-
+                    media.UniqueMediaIdentifier = FileRecord.ComputeSha256HashForFile(filePath);
                     media.JsonMetadata.Add("video1", JsonConvert.SerializeObject(video1));
                     media.JsonMetadata.Add("video1Path", filePath);
                 }

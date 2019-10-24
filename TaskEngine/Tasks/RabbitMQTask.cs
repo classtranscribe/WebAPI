@@ -12,7 +12,6 @@ namespace TaskEngine
         {
             try
             {
-                Console.WriteLine(obj);
                 _rabbitMQ.PublishTask(queueName, obj);
             }
             catch (Exception e)

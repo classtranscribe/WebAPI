@@ -23,7 +23,6 @@ namespace ClassTranscribeDatabase
         public static byte[] MessageToBytes<T>(T obj)
         {
             string output = JsonConvert.SerializeObject(obj);
-            Console.WriteLine(" [x] Sending {0}", output);
             return Encoding.UTF8.GetBytes(output);
         }
 

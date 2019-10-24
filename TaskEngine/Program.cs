@@ -13,7 +13,6 @@ using Microsoft.Extensions.Options;
 using System.Linq;
 using Microsoft.Extensions.Configuration;
 using System.Threading;
-
 namespace TaskEngine
 {
     public static class TaskEngineGlobals
@@ -74,11 +73,12 @@ namespace TaskEngine
             RunProgramRunExample(rabbitMQ).GetAwaiter().GetResult();
 
 
+            DownloadPlaylistInfoTask downloadPlaylistInfoTask = serviceProvider.GetService<DownloadPlaylistInfoTask>();
             DownloadMediaTask downloadMediaTask = serviceProvider.GetService<DownloadMediaTask>();
             ConvertVideoToWavTask convertVideoToWavTask = serviceProvider.GetService<ConvertVideoToWavTask>();
             TranscriptionTask transcriptionTask = serviceProvider.GetService<TranscriptionTask>();
             GenerateVTTFileTask generateVTTFileTask = serviceProvider.GetService<GenerateVTTFileTask>();
-            ProcessVideoTask processVideoTask = serviceProvider.GetService<ProcessVideoTask>();            
+            ProcessVideoTask processVideoTask = serviceProvider.GetService<ProcessVideoTask>();
 
             logger.LogDebug("All done!");
 

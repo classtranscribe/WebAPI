@@ -2,6 +2,7 @@
 using ClassTranscribeDatabase.Models;
 using System;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using TaskEngine.Grpc;
 
@@ -37,11 +38,16 @@ namespace TaskEngine.Tasks
             }
             using (var _context = CTDbContext.CreateDbContext())
             {
-                await _context.Videos.AddAsync(video);
-                await _context.SaveChangesAsync();
-                Console.WriteLine("Downloaded:" + video);
-                _convertVideoToWavTask.Publish(video);
-            }                
+                var latestMedia = await _context.Medias.FindAsync(media.Id);
+                // Don't add video if there are already videos for the given media or the video already exists.
+                if (latestMedia.Videos.Count() == 0 && ! _context.FileRecords.Any(f => f.Hash == video.Video1.Hash))
+                {
+                    await _context.Videos.AddAsync(video);
+                    await _context.SaveChangesAsync();
+                    Console.WriteLine("Downloaded:" + video);
+                    _convertVideoToWavTask.Publish(video);
+                }
+            }
         }
 
         public async Task<Video> DownloadEchoVideo(Media media)
@@ -59,13 +65,20 @@ namespace TaskEngine.Tasks
                 VideoUrl = media.JsonMetadata["altVideoUrl"].ToString(),
                 AdditionalInfo = media.JsonMetadata["download_header"].ToString()
             });
-
-            Video video = new Video
+            Video video = null;
+            if (mediaResponse.FilePath.Length > 0 && mediaResponse2.FilePath.Length > 0)
             {
-                Video1 = new FileRecord(mediaResponse.FilePath),
-                Video2 = new FileRecord(mediaResponse2.FilePath),
-                MediaId = media.Id
-            };
+                video = new Video
+                {
+                    Video1 = new FileRecord(mediaResponse.FilePath),
+                    Video2 = new FileRecord(mediaResponse2.FilePath),
+                    MediaId = media.Id
+                };
+            }
+            else
+            {
+                throw new Exception("DownloadEchoVideo Failed + " + media.Id);
+            }
             return video;
         }
 
@@ -77,11 +90,20 @@ namespace TaskEngine.Tasks
                 VideoUrl = media.JsonMetadata["videoUrl"].ToString()
             });
 
-            Video video = new Video
+            Video video = null;
+            if (mediaResponse.FilePath.Length > 0)
             {
-                Video1 = new FileRecord(mediaResponse.FilePath),
-                MediaId = media.Id
-            };
+                video = new Video
+                {
+                    Video1 = new FileRecord(mediaResponse.FilePath),
+                    MediaId = media.Id
+                };
+            }
+            else
+            {
+                throw new Exception("DownloadYoutubeVideo Failed + " + media.Id);
+            }
+
             return video;
         }
 

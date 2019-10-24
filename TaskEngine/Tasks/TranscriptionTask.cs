@@ -1,9 +1,6 @@
 ﻿using ClassTranscribeDatabase;
 using ClassTranscribeDatabase.Models;
-using Microsoft.Extensions.Options;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
 using TaskEngine.Grpc;
 using TaskEngine.MSTranscription;
@@ -31,7 +28,7 @@ namespace TaskEngine.Tasks
         }
         protected async override Task OnConsume(Video video)
         {
-            var result = await _msTranscriptionService.RecognitionWithAudioStreamAsync(video.Audio.Path);
+            var result = await _msTranscriptionService.RecognitionWithAudioStreamAsync(video);
             List<Transcription> transcriptions = new List<Transcription>();
             foreach(var language in result.Item1)
             {
@@ -46,13 +43,18 @@ namespace TaskEngine.Tasks
                 }
             }
             using (var _context = CTDbContext.CreateDbContext())
-            {                
-                await _context.Transcriptions.AddRangeAsync(transcriptions);
-                video.TranscriptionStatus = result.Item2;
-                _context.Videos.Update(video);
-                await _context.SaveChangesAsync();
-            }
-            transcriptions.ForEach(t => _generateVTTFileTask.Publish(t));
+            {
+                var latestMedia = await _context.Medias.FindAsync(video.MediaId);
+                var latestVideo = await _context.Videos.FindAsync(video.Id);
+                if (latestVideo.TranscriptionStatus != "NoError")
+                {
+                    await _context.Transcriptions.AddRangeAsync(transcriptions);
+                    video.TranscriptionStatus = result.Item2;
+                    _context.Videos.Update(video);
+                    await _context.SaveChangesAsync();
+                    transcriptions.ForEach(t => _generateVTTFileTask.Publish(t));
+                }
+            }            
         }
     }
 }

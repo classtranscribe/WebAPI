@@ -28,11 +28,22 @@ namespace TaskEngine.Tasks
             {
                 FilePath = video.Video1.VMPath
             });
-            using (var _context = CTDbContext.CreateDbContext())
-            {                
-                video.Audio = new FileRecord(file.FilePath);
-                await _context.SaveChangesAsync();
-                _transcriptionTask.Publish(video);
+            if (file.FilePath.Length > 0)
+            {
+                using (var _context = CTDbContext.CreateDbContext())
+                {
+                    var videoLatest = await _context.Videos.FindAsync(video.Id);
+                    if (videoLatest.Audio == null)
+                    {
+                        videoLatest.Audio = new FileRecord(file.FilePath);
+                        await _context.SaveChangesAsync();
+                        _transcriptionTask.Publish(videoLatest);
+                    }
+                }
+            }
+            else
+            {
+                throw new Exception("ConvertVideoToWavTask Failed + " + video.Id);
             }
         }
     }

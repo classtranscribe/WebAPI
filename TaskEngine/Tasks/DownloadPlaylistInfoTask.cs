@@ -56,7 +56,7 @@ namespace TaskEngine.Tasks
             List<Media> newMedia = new List<Media>();
             foreach (JObject jObject in jArray)
             {
-                if (!await _context.Medias.Where(m => m.UniqueMediaIdentifier == jObject["mediaId"].ToString() && m.SourceType == playlist.SourceType).AnyAsync())
+                if (jObject["mediaId"].ToString().Length > 0 && !await _context.Medias.Where(m => m.UniqueMediaIdentifier == jObject["mediaId"].ToString() && m.SourceType == playlist.SourceType).AnyAsync())
                 {
                     newMedia.Add(new Media
                     {
