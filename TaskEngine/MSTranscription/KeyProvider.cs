@@ -19,13 +19,14 @@ namespace TaskEngine.MSTranscription
     {
         private AppSettings _appSettings;
         private List<Key> Keys;
-        private HashSet<string> currentVideoIds;
+        private HashSet<string> CurrentVideoIds;
 
         public KeyProvider(AppSettings appSettings)
         {
             _appSettings = appSettings;
             string subscriptionKeys = _appSettings.AZURE_SUBSCRIPTION_KEYS;
             Keys = new List<Key>();
+            CurrentVideoIds = new HashSet<string>();
             foreach (string subscriptionKey in subscriptionKeys.Split(';'))
             {
                 Keys.Add(new Key
@@ -39,11 +40,11 @@ namespace TaskEngine.MSTranscription
 
         public Key GetKey(string videoId)
         {
-            if(!currentVideoIds.Contains(videoId))
+            if(!CurrentVideoIds.Contains(videoId))
             {
                 Key key = Keys.OrderBy(k => k.Load).First();
                 key.Load += 1;
-                currentVideoIds.Add(videoId);
+                CurrentVideoIds.Add(videoId);
                 return key;
             } 
             else
@@ -55,7 +56,7 @@ namespace TaskEngine.MSTranscription
         public void ReleaseKey(Key key, string videoId)
         {
             Keys.Find(k => k.ApiKey == key.ApiKey).Load -= 1;
-            currentVideoIds.Remove(videoId);
+            CurrentVideoIds.Remove(videoId);
         }
     }
 }
