@@ -162,8 +162,7 @@ namespace ClassTranscribeDatabase
 
             Course test_course = new Course
             {
-                Id = "test_course",
-                CourseName = "Test Course",
+                Id = "test_course",                
                 CourseNumber = "000",
                 DepartmentId = department1.Id
             };
@@ -172,6 +171,7 @@ namespace ClassTranscribeDatabase
             {
                 Id = "4002",
                 SectionName = "AB",
+                CourseName = "Test Course",
                 TermId = term3.Id,
                 AccessType = AccessTypes.Public
             };

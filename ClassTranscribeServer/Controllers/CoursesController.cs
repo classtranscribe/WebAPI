@@ -82,10 +82,17 @@ namespace ClassTranscribeServer.Controllers
         [Authorize(Roles = Globals.ROLE_ADMIN)]
         public async Task<ActionResult<Course>> PostCourse(Course course)
         {
-            _context.Courses.Add(course);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction("GetCourse", new { id = course.Id }, course);
+            if (await _context.Courses.AnyAsync(c => c.CourseNumber == course.CourseNumber && c.DepartmentId == course.DepartmentId))
+            {
+                var existing_course = await _context.Courses.Where(c => c.CourseNumber == course.CourseNumber && c.DepartmentId == course.DepartmentId).FirstAsync();
+                return CreatedAtAction("GetCourse", new { id = existing_course.Id }, existing_course);
+            }
+            else
+            {
+                _context.Courses.Add(course);
+                await _context.SaveChangesAsync();
+                return CreatedAtAction("GetCourse", new { id = course.Id }, course);
+            }
         }
 
         // DELETE: api/Courses/5

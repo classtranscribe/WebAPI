@@ -79,8 +79,6 @@ namespace ClassTranscribeDatabase.Models
     public class Course : Entity
     {
         public string CourseNumber { get; set; }
-        public string CourseName { get; set; }
-        public string Description { get; set; }
         public string DepartmentId { get; set; }
         [IgnoreDataMember]
         public virtual Department Department { get; set; }
@@ -113,6 +111,8 @@ namespace ClassTranscribeDatabase.Models
         public virtual List<UserOffering> OfferingUsers { get; set; }
         public AccessTypes AccessType { get; set; }
         public bool LogEventsFlag { get; set; }
+        public string CourseName { get; set; }
+        public string Description { get; set; }
     }
 
     public class Playlist : Entity

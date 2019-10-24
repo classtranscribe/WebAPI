@@ -36,8 +36,6 @@ namespace TaskEngine.Utils
                 Department eceDept = _context.Departments.Where(d => d.Acronym == "ECE" && d.UniversityId == "1001").FirstOrDefault();
                 List<Course> courses = csvCourses.Where(c => c.SUBJ == "ECE").GroupBy(c => c.CRS_TITLE).Select(c => new Course
                 {
-                    CourseName = c.First().CRS_TITLE,
-                    Description = c.First().CRS_TITLE,
                     CourseNumber = c.First().NBR,
                     Department = eceDept
                 }).ToList();

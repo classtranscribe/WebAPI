@@ -3,15 +3,17 @@ using System;
 using ClassTranscribeDatabase;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace ClassTranscribeDatabase.Migrations
 {
     [DbContext(typeof(CTDbContext))]
-    partial class CTDbContextModelSnapshot : ModelSnapshot
+    [Migration("20191024223759_CourseName-Desc")]
+    partial class CourseNameDesc
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -122,6 +124,8 @@ namespace ClassTranscribeDatabase.Migrations
                     b.Property<string>("Id")
                         .ValueGeneratedOnAdd();
 
+                    b.Property<string>("CourseName");
+
                     b.Property<string>("CourseNumber");
 
                     b.Property<DateTime>("CreatedAt");
@@ -129,6 +133,8 @@ namespace ClassTranscribeDatabase.Migrations
                     b.Property<string>("CreatedBy");
 
                     b.Property<string>("DepartmentId");
+
+                    b.Property<string>("Description");
 
                     b.Property<int>("IsDeletedStatus");
 

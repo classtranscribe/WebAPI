@@ -78,9 +78,7 @@ namespace ClassTranscribeServer.Controllers
             {
                 Offering = o,
                 Courses = o.CourseOfferings.Select(co => new CourseDTO { 
-                    CourseName = co.Course.CourseName,
                     CourseNumber = co.Course.CourseNumber,
-                    Description = co.Course.Description,
                     DepartmentId = co.Course.DepartmentId,
                     DepartmentAcronym = co.Course.Department.Acronym}).ToList(),
                 //Courses = await _context.CourseOfferings.Where(co => co.OfferingId == o.Id).Select(co => co.Course).ToListAsync(),
