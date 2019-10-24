@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using ClassTranscribeDatabase.Models;
 using TaskEngine.Grpc;
 using Newtonsoft.Json.Linq;
+using RestSharp;
 
 namespace TaskEngine.Tasks
 {
@@ -52,6 +53,8 @@ namespace TaskEngine.Tasks
                     case SourceType.Echo360: medias = await GetEchoPlaylist(p, _context); break;
                     case SourceType.Youtube: medias = await GetYoutubePlaylist(p, _context); break;
                     case SourceType.Local: medias = await GetLocalPlaylist(p, _context); break;
+                    // jason
+                    case SourceType.Box: medias = await GetBoxPlaylist(p, _context); break;
                 }
                 medias.ForEach(m => _downloadMediaTask.Publish(m));
             }
@@ -117,6 +120,47 @@ namespace TaskEngine.Tasks
         {
             return _context.Medias.Where(m => m.Videos.Count == 0 && m.PlaylistId == playlist.Id).ToList();
         }
+
+        // jason
+        public async Task<List<Media>> GetBoxPlaylist(Playlist playlist, CTDbContext _context)
+        {
+            // send request using RestSharp
+            var client = new RestClient("https://uofi.app.box.com/2.0/folders/88965021711");
+            var request = new RestRequest(Method.GET);
+            request.AddHeader("cache-control", "no-cache");
+            request.AddHeader("Connection", "keep-alive");
+            request.AddHeader("Cookie", "box_visitor_id=5da4f447d00911.72030283");
+            request.AddHeader("Accept-Encoding", "gzip, deflate");
+            request.AddHeader("Host", "uofi.app.box.com");
+            request.AddHeader("Postman-Token", "8e63d4fe-f3da-48ef-b756-a4baecaa4266,af322b88-474b-4778-acaf-363622702dc5");
+            request.AddHeader("Cache-Control", "no-cache");
+            request.AddHeader("Accept", "*/*");
+            request.AddHeader("User-Agent", "PostmanRuntime/7.18.0");
+            // TODO: figure out a way to refresh token
+            request.AddHeader("Authorization", "Bearer SpwUYgsvmtfirGbSG79FtFEWJcmuBJKs");
+            IRestResponse response = client.Execute(request);
+            JObject Content =  JObject.Parse(response.Content);
+            // pick entries to get array of file
+            JArray jArray = (JArray) Content.SelectToken("item_collection").SelectToken("entries");
+            List<Media> newMedia = new List<Media>();
+
+            foreach (JObject jObject in jArray.Children())
+            {
+                newMedia.Add(new Media
+                {
+                    JsonMetadata = jObject,
+                    SourceType = playlist.SourceType,
+                    PlaylistId = playlist.Id,
+                    UniqueMediaIdentifier = jObject["sha1"].ToString(),
+                    // Id used to download specific file
+                    Id = jObject["id"].ToString()
+                });
+            }
+            await _context.Medias.AddRangeAsync(newMedia);
+            await _context.SaveChangesAsync();
+            return newMedia;
+        }
+
 
     }
 }
