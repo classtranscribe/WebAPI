@@ -59,12 +59,7 @@ namespace ClassTranscribeServer.Controllers
                         CreatedAt = m.CreatedAt,
                         Ready = m.Transcriptions.Any(),
                         SourceType = m.SourceType,
-                        Video = m.Videos.OrderByDescending(v => v.LastUpdatedAt).Select(v => new VideoDTO
-                        {
-                            Id = v.Id,
-                            Video1Path = v.Video1 != null ? v.Video1.Path : null,
-                            Video2Path = v.Video2 != null ? v.Video2.Path : null
-                        }).First(),
+                        Video = new VideoDTO(m.Video),
                         Transcriptions = m.Transcriptions.Select(t => new TranscriptionDTO
                         {
                             Id = t.Id,
@@ -95,12 +90,7 @@ namespace ClassTranscribeServer.Controllers
                 JsonMetadata = m.JsonMetadata,
                 SourceType = m.SourceType,
                 Ready = m.Transcriptions.Any(),
-                Video = m.Videos.OrderByDescending(v => v.LastUpdatedAt).Select(v => new VideoDTO
-                {
-                    Id = v.Id,
-                    Video1Path = v.Video1 != null ? v.Video1.Path : null,
-                    Video2Path = v.Video2 != null ? v.Video2.Path : null
-                }).First(),
+                Video = new VideoDTO(m.Video),
                 Transcriptions = m.Transcriptions.Select(t => new TranscriptionDTO
                 {
                     Id = t.Id,
@@ -222,27 +212,6 @@ namespace ClassTranscribeServer.Controllers
             return _context.Playlists.Any(e => e.Id == id);
         }
 
-        public class PlaylistDTO
-        {
-            public string Id { get; set; }
-            public DateTime CreatedAt { get; set; }
-            public SourceType SourceType { get; set; }
-            public string OfferingId { get; set; }
-            public string Name { get; set; }
-            public List<MediaDTO> Medias { get; set; }
-        }
-
-        public class MediaDTO
-        {
-            public string Id { get; set; }
-            public DateTime CreatedAt { get; set; }
-            public JObject JsonMetadata { get; set; }
-            public SourceType SourceType { get; set; }
-            public bool Ready { get; set; }
-            public VideoDTO Video { get; set; }
-            public List<TranscriptionDTO> Transcriptions { get; set; }
-        }
-
         [NonAction]
         public List<VideoDTO> GetVideoDTOs(List<Video> vs)
         {
@@ -264,19 +233,56 @@ namespace ClassTranscribeServer.Controllers
                 Language = t.Language
             }).ToList();
         }
+    }
 
-        public class VideoDTO
-        {
-            public string Id { get; set; }
-            public string Video1Path { get; set; }
-            public string Video2Path { get; set; }
-        }
+    public class VideoDTO
+    {
+        public string Id { get; set; }
+        public string Video1Path { get; set; }
+        public string Video2Path { get; set; }
 
-        public class TranscriptionDTO
+        public VideoDTO() { }
+        public VideoDTO(Video v)
         {
-            public string Id { get; set; }
-            public string Path { get; set; }
-            public string Language { get; set; }
+            Id = v.Id;
+            Video1Path = v.Video1?.Path;
+            Video2Path = v.Video2?.Path;
         }
+    }
+
+    public class TranscriptionDTO
+    {
+        public string Id { get; set; }
+        public string Path { get; set; }
+        public string Language { get; set; }
+        public TranscriptionDTO() { }
+        public TranscriptionDTO(Transcription t)
+        {
+
+            Id = t.Id;
+            Path = t.File?.Path;
+            Language = t.Language;
+        }
+    }
+
+    public class PlaylistDTO
+    {
+        public string Id { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public SourceType SourceType { get; set; }
+        public string OfferingId { get; set; }
+        public string Name { get; set; }
+        public List<MediaDTO> Medias { get; set; }
+    }
+
+    public class MediaDTO
+    {
+        public string Id { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public JObject JsonMetadata { get; set; }
+        public SourceType SourceType { get; set; }
+        public bool Ready { get; set; }
+        public VideoDTO Video { get; set; }
+        public List<TranscriptionDTO> Transcriptions { get; set; }
     }
 }

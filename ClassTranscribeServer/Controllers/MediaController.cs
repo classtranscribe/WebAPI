@@ -27,16 +27,27 @@ namespace ClassTranscribeServer.Controllers
 
         // GET: api/Media/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Media>> GetMedia(string id)
+        public async Task<ActionResult<MediaDTO>> GetMedia(string id)
         {
             var media = await _context.Medias.FindAsync(id);
+            var v = await _context.Videos.FindAsync(media.VideoId);
 
             if (media == null)
             {
                 return NotFound();
             }
 
-            return media;
+            var mediaDTO = new MediaDTO
+            {
+                Id = media.Id,
+                CreatedAt = media.CreatedAt,
+                JsonMetadata = media.JsonMetadata,
+                SourceType = media.SourceType,
+                Transcriptions = media.Transcriptions.Select(t => new TranscriptionDTO(t)).ToList(),
+                Video = new VideoDTO(media.Video)
+            };
+
+            return mediaDTO;
         }
 
         // PUT: api/Media/5
@@ -142,7 +153,8 @@ namespace ClassTranscribeServer.Controllers
                 _context.Captions.RemoveRange(_context.Captions.Where(c => c.TranscriptionId == t.Id));
             });
             _context.Transcriptions.RemoveRange(media.Transcriptions);
-            _context.Videos.RemoveRange(media.Videos);
+            var video = await _context.Videos.FindAsync(media.VideoId);
+            _context.Videos.Remove(video);
             _context.Medias.Remove(media);
             await _context.SaveChangesAsync();
 

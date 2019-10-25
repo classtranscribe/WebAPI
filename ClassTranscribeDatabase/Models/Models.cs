@@ -132,7 +132,9 @@ namespace ClassTranscribeDatabase.Models
         public string UniqueMediaIdentifier { get; set; }
         public JObject JsonMetadata { get; set; }
         public virtual List<Transcription> Transcriptions { get; set; }
-        public virtual List<Video> Videos { get; set; }
+        public string VideoId { get; set; }
+        [IgnoreDataMember]
+        public virtual Video Video { get; set; }
         public string PlaylistId { get; set; }
         [IgnoreDataMember]
         public virtual Playlist Playlist { get; set; }
@@ -176,9 +178,7 @@ namespace ClassTranscribeDatabase.Models
         public virtual FileRecord Audio { get; set; }
 
         public string Description { get; set; }
-        public string MediaId { get; set; }
-        [IgnoreDataMember]
-        public virtual Media Media { get; set; }
+        public virtual List<Media> Medias { get; set; }
         public string TranscriptionStatus { get; set; }
     }
 
