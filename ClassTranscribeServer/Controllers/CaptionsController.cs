@@ -144,14 +144,15 @@ namespace ClassTranscribeServer.Controllers
             var allVideos = await _context.Medias.Where(m => m.Playlist.OfferingId == offeringId)
                 .Select(m => new { VideoId = m.VideoId, Video = m.Video, MediaId = m.Id, PlaylistId = m.PlaylistId }).ToListAsync();
 
-            var captions = allVideos.SelectMany(v => v.Video.Transcriptions)
+            var captions = await _context.Medias.Where(m => m.Playlist.OfferingId == offeringId)
+                .Select(m => m.Video).SelectMany(v => v.Transcriptions)
                     .SelectMany(t => t.Captions)
                     .Where(c => EF.Functions.ToTsVector("english", c.Text).Matches(query))
                     .Take(100).Select(c => new SearchedCaptionDTO
                     {
                         Caption = c,
                         VideoId = c.Transcription.VideoId
-                    }).ToList();
+                    }).ToListAsync();
 
             // Stitch the two.
 
