@@ -26,6 +26,7 @@ namespace TaskEngine.Utils
         
         public static void SeedCourses()
         {
+            // Dry run code before using it on Production.
             string file = Path.Combine(Globals.appSettings.DATA_DIRECTORY, "seed", "Fall2019InstructorList.csv");
             TextReader reader = new StreamReader(file);
             var csvReader = new CsvReader(reader);
@@ -34,7 +35,7 @@ namespace TaskEngine.Utils
             using (var _context = CTDbContext.CreateDbContext())
             {
                 Department eceDept = _context.Departments.Where(d => d.Acronym == "ECE" && d.UniversityId == "1001").FirstOrDefault();
-                List<Course> courses = csvCourses.Where(c => c.SUBJ == "ECE").GroupBy(c => c.CRS_TITLE).Select(c => new Course
+                List<Course> courses = csvCourses.Where(c => c.SUBJ == "ECE").GroupBy(c => new { c.CRS_TITLE, c.NBR, c.SUBJ }).Select(c => new Course
                 {
                     CourseNumber = c.First().NBR,
                     Department = eceDept

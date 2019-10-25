@@ -59,12 +59,12 @@ namespace ClassTranscribeServer.Controllers
                         CreatedAt = m.CreatedAt,
                         Ready = m.Transcriptions.Any(),
                         SourceType = m.SourceType,
-                        Videos = m.Videos.Select(v => new VideoDTO
+                        Video = m.Videos.OrderByDescending(v => v.LastUpdatedAt).Select(v => new VideoDTO
                         {
                             Id = v.Id,
                             Video1Path = v.Video1 != null ? v.Video1.Path : null,
                             Video2Path = v.Video2 != null ? v.Video2.Path : null
-                        }).ToList(),
+                        }).First(),
                         Transcriptions = m.Transcriptions.Select(t => new TranscriptionDTO
                         {
                             Id = t.Id,
@@ -95,12 +95,12 @@ namespace ClassTranscribeServer.Controllers
                 JsonMetadata = m.JsonMetadata,
                 SourceType = m.SourceType,
                 Ready = m.Transcriptions.Any(),
-                Videos = m.Videos.Select(v => new VideoDTO
+                Video = m.Videos.OrderByDescending(v => v.LastUpdatedAt).Select(v => new VideoDTO
                 {
                     Id = v.Id,
                     Video1Path = v.Video1 != null ? v.Video1.Path : null,
                     Video2Path = v.Video2 != null ? v.Video2.Path : null
-                }).ToList(),
+                }).First(),
                 Transcriptions = m.Transcriptions.Select(t => new TranscriptionDTO
                 {
                     Id = t.Id,
@@ -239,7 +239,7 @@ namespace ClassTranscribeServer.Controllers
             public JObject JsonMetadata { get; set; }
             public SourceType SourceType { get; set; }
             public bool Ready { get; set; }
-            public List<VideoDTO> Videos { get; set; }
+            public VideoDTO Video { get; set; }
             public List<TranscriptionDTO> Transcriptions { get; set; }
         }
 
