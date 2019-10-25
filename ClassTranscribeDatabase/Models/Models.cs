@@ -147,6 +147,7 @@ namespace ClassTranscribeDatabase.Models
         public virtual FileRecord File { get; set; }
         public string Language { get; set; }
         public string Description { get; set; }
+        public string VideoId { get; set; }
         public string MediaId { get; set; }
         [IgnoreDataMember]
         public virtual Media Media { get; set; }
