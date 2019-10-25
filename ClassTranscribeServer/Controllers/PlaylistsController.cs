@@ -58,7 +58,7 @@ namespace ClassTranscribeServer.Controllers
                         Id = m.Id,
                         JsonMetadata = m.JsonMetadata,
                         CreatedAt = m.CreatedAt,
-                        Ready = m.Transcriptions.Any(),
+                        Ready = m.Video.Transcriptions.Any(),
                         SourceType = m.SourceType,
                         Video = new VideoDTO
                         {
@@ -66,7 +66,7 @@ namespace ClassTranscribeServer.Controllers
                             Video1Path = m.Video.Video1 != null ? m.Video.Video1.Path : null,
                             Video2Path = m.Video.Video2 != null ? m.Video.Video2.Path : null,
                         },
-                        Transcriptions = m.Transcriptions.Select(t => new TranscriptionDTO
+                        Transcriptions = m.Video.Transcriptions.Select(t => new TranscriptionDTO
                         {
                             Id = t.Id,
                             Path = t.File.Path,
@@ -95,14 +95,14 @@ namespace ClassTranscribeServer.Controllers
                 CreatedAt = m.CreatedAt,
                 JsonMetadata = m.JsonMetadata,
                 SourceType = m.SourceType,
-                Ready = m.Transcriptions.Any(),
+                Ready = m.Video.Transcriptions.Any(),
                 Video = new VideoDTO
                 {
                     Id = m.Video.Id,
                     Video1Path = m.Video.Video1?.Path,
                     Video2Path = m.Video.Video2?.Path
                 },
-                Transcriptions = m.Transcriptions.Select(t => new TranscriptionDTO
+                Transcriptions = m.Video.Transcriptions.Select(t => new TranscriptionDTO
                 {
                     Id = t.Id,
                     Path = t.File != null ? t.File.Path : null,

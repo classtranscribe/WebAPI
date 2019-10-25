@@ -139,12 +139,28 @@ namespace ClassTranscribeServer.Controllers
         [HttpGet("SearchInOffering")]
         public async Task<ActionResult<IEnumerable<SearchedCaptionDTO>>> SearchInOffering(string offeringId, string query)
         {
-            var captions = await _context.Captions.Where(c => c.Transcription.Media.Playlist.OfferingId == offeringId)
-                .Where(c => EF.Functions.ToTsVector("english", c.Text).Matches(query)).Take(100).Select(c => new SearchedCaptionDTO { 
-                    Caption = c,
-                    MediaId = c.Transcription.MediaId,
-                    PlaylistId = c.Transcription.Media.PlaylistId
-                }).ToListAsync();
+            
+
+            var allVideos = await _context.Medias.Where(m => m.Playlist.OfferingId == offeringId)
+                .Select(m => new { VideoId = m.VideoId, Video = m.Video, MediaId = m.Id, PlaylistId = m.PlaylistId }).ToListAsync();
+
+            var captions = allVideos.SelectMany(v => v.Video.Transcriptions)
+                    .SelectMany(t => t.Captions)
+                    .Where(c => EF.Functions.ToTsVector("english", c.Text).Matches(query))
+                    .Take(100).Select(c => new SearchedCaptionDTO
+                    {
+                        Caption = c,
+                        VideoId = c.Transcription.VideoId
+                    }).ToList();
+
+            // Stitch the two.
+
+            captions.ForEach(c =>
+            {
+                c.MediaId = allVideos.Where(v => v.VideoId == c.VideoId).Select(v => v.MediaId).First();
+                c.PlaylistId = allVideos.Where(v => v.VideoId == c.VideoId).Select(v => v.PlaylistId).First();
+            });
+
             return captions;
         }
 
@@ -153,6 +169,7 @@ namespace ClassTranscribeServer.Controllers
             public Caption Caption { get; set; }
             public string MediaId { get; set; }
             public string PlaylistId { get; set; }
+            public string VideoId { get; set; }
         }
 
         private bool CaptionExists(string id)

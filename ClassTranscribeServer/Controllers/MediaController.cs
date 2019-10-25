@@ -43,7 +43,7 @@ namespace ClassTranscribeServer.Controllers
                 CreatedAt = media.CreatedAt,
                 JsonMetadata = media.JsonMetadata,
                 SourceType = media.SourceType,
-                Transcriptions = media.Transcriptions
+                Transcriptions = media.Video.Transcriptions
                 .Select(t => new TranscriptionDTO
                 {
                     Id = t.Id,
@@ -159,11 +159,11 @@ namespace ClassTranscribeServer.Controllers
             {
                 return NotFound();
             }
-            media.Transcriptions.ForEach(t =>
+            media.Video.Transcriptions.ForEach(t =>
             {
                 _context.Captions.RemoveRange(_context.Captions.Where(c => c.TranscriptionId == t.Id));
             });
-            _context.Transcriptions.RemoveRange(media.Transcriptions);
+            _context.Transcriptions.RemoveRange(media.Video.Transcriptions);
             var video = await _context.Videos.FindAsync(media.VideoId);
             _context.Videos.Remove(video);
             _context.Medias.Remove(media);

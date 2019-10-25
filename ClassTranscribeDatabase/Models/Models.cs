@@ -131,7 +131,6 @@ namespace ClassTranscribeDatabase.Models
         public SourceType SourceType { get; set; }
         public string UniqueMediaIdentifier { get; set; }
         public JObject JsonMetadata { get; set; }
-        public virtual List<Transcription> Transcriptions { get; set; }
         public string VideoId { get; set; }
         [IgnoreDataMember]
         public virtual Video Video { get; set; }
@@ -148,9 +147,9 @@ namespace ClassTranscribeDatabase.Models
         public string Language { get; set; }
         public string Description { get; set; }
         public string VideoId { get; set; }
-        public string MediaId { get; set; }
         [IgnoreDataMember]
-        public virtual Media Media { get; set; }
+        public virtual Video Video { get; set; }
+
         [IgnoreDataMember]
         public virtual List<Caption> Captions { get; set; }
     }
@@ -181,6 +180,7 @@ namespace ClassTranscribeDatabase.Models
         public string Description { get; set; }
         public virtual List<Media> Medias { get; set; }
         public string TranscriptionStatus { get; set; }
+        public virtual List<Transcription> Transcriptions { get; set; }
     }
 
     public class CourseOffering : Entity
