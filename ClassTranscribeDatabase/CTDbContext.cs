@@ -136,6 +136,8 @@ namespace ClassTranscribeDatabase
                 .WithMany(t => t.UserOfferings)
                 .HasForeignKey(pt => pt.ApplicationUserId);
 
+            builder.Entity<Media>().HasOne(m => m.Video).WithMany(v => v.Medias).HasForeignKey(m => m.VideoId);
+
             builder.Entity<Media>().Property(m => m.JsonMetadata).HasJsonValueConversion();
             builder.Entity<Log>().Property(m => m.Json).HasJsonValueConversion();
             builder.Entity<ApplicationUser>().Property(m => m.Metadata).HasJsonValueConversion();

@@ -43,7 +43,8 @@ namespace ClassTranscribeServer.Controllers
                     return new ChallengeResult();
                 }
             }
-            var playlists = await _context.Playlists.Where(p => p.OfferingId == offeringId)
+            var playlists = await _context.Playlists
+                .Where(p => p.OfferingId == offeringId)
                 .OrderBy(p => p.CreatedAt)
                 .Select(p => new PlaylistDTO
                 {
@@ -52,14 +53,19 @@ namespace ClassTranscribeServer.Controllers
                     SourceType = p.SourceType,
                     OfferingId = p.OfferingId,
                     Name = p.Name,
-                    Medias = p.Medias.Select(m => new MediaDTO
+                    Medias = p.Medias.Where(m => m.Video != null).Select(m => new MediaDTO
                     {
                         Id = m.Id,
                         JsonMetadata = m.JsonMetadata,
                         CreatedAt = m.CreatedAt,
                         Ready = m.Transcriptions.Any(),
                         SourceType = m.SourceType,
-                        Video = new VideoDTO(m.Video),
+                        Video = new VideoDTO
+                        {
+                            Id = m.Video.Id,
+                            Video1Path = m.Video.Video1 != null ? m.Video.Video1.Path : null,
+                            Video2Path = m.Video.Video2 != null ? m.Video.Video2.Path : null,
+                        },
                         Transcriptions = m.Transcriptions.Select(t => new TranscriptionDTO
                         {
                             Id = t.Id,
@@ -90,7 +96,12 @@ namespace ClassTranscribeServer.Controllers
                 JsonMetadata = m.JsonMetadata,
                 SourceType = m.SourceType,
                 Ready = m.Transcriptions.Any(),
-                Video = new VideoDTO(m.Video),
+                Video = new VideoDTO
+                {
+                    Id = m.Video.Id,
+                    Video1Path = m.Video.Video1?.Path,
+                    Video2Path = m.Video.Video2?.Path
+                },
                 Transcriptions = m.Transcriptions.Select(t => new TranscriptionDTO
                 {
                     Id = t.Id,
@@ -240,14 +251,6 @@ namespace ClassTranscribeServer.Controllers
         public string Id { get; set; }
         public string Video1Path { get; set; }
         public string Video2Path { get; set; }
-
-        public VideoDTO() { }
-        public VideoDTO(Video v)
-        {
-            Id = v.Id;
-            Video1Path = v.Video1?.Path;
-            Video2Path = v.Video2?.Path;
-        }
     }
 
     public class TranscriptionDTO
@@ -255,14 +258,6 @@ namespace ClassTranscribeServer.Controllers
         public string Id { get; set; }
         public string Path { get; set; }
         public string Language { get; set; }
-        public TranscriptionDTO() { }
-        public TranscriptionDTO(Transcription t)
-        {
-
-            Id = t.Id;
-            Path = t.File?.Path;
-            Language = t.Language;
-        }
     }
 
     public class PlaylistDTO

@@ -43,8 +43,19 @@ namespace ClassTranscribeServer.Controllers
                 CreatedAt = media.CreatedAt,
                 JsonMetadata = media.JsonMetadata,
                 SourceType = media.SourceType,
-                Transcriptions = media.Transcriptions.Select(t => new TranscriptionDTO(t)).ToList(),
-                Video = new VideoDTO(media.Video)
+                Transcriptions = media.Transcriptions
+                .Select(t => new TranscriptionDTO
+                {
+                    Id = t.Id,
+                    Path = t.File != null ? t.File.Path : null,
+                    Language = t.Language
+                }).ToList(),
+                Video = new VideoDTO
+                {
+                    Id = media.Video.Id,
+                    Video1Path = media.Video.Video1?.Path,
+                    Video2Path = media.Video.Video2?.Path
+                },
             };
 
             return mediaDTO;
@@ -85,7 +96,7 @@ namespace ClassTranscribeServer.Controllers
 
         // POST: api/Media
         [DisableRequestSizeLimit]
-        [HttpPost]        
+        [HttpPost]
         [Authorize]
         public async Task<ActionResult<Media>> PostMedia(IFormFile video1, IFormFile video2, [FromForm] string playlistId)
         {
@@ -102,11 +113,11 @@ namespace ClassTranscribeServer.Controllers
             // full path to file in temp location
             if (video1.Length > 0)
             {
-                if(Path.GetExtension(video1.FileName) != ".mp4")
+                if (Path.GetExtension(video1.FileName) != ".mp4")
                 {
                     return BadRequest("File Format not permitted");
                 }
-                var filePath = Path.GetTempFileName();                
+                var filePath = Path.GetTempFileName();
                 using (var stream = new FileStream(filePath, FileMode.Create))
                 {
                     await video1.CopyToAsync(stream);
