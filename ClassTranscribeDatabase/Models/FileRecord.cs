@@ -3,6 +3,7 @@ using System.IO;
 using System.Runtime.Serialization;
 using System.Security.Cryptography;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace ClassTranscribeDatabase.Models
 {
@@ -73,6 +74,20 @@ namespace ClassTranscribeDatabase.Models
                 }
                 return builder.ToString();
             }
+        }
+
+        public async Task DeleteFileRecordAsync(CTDbContext context)
+        {
+            if (File.Exists(Path))
+            {
+                File.Delete(Path);
+            }
+            var dbFileRecord = await context.FileRecords.FindAsync(Id);
+            if (dbFileRecord != null)
+            {
+                context.FileRecords.Remove(dbFileRecord);
+                await context.SaveChangesAsync();
+            }            
         }
     }
 }

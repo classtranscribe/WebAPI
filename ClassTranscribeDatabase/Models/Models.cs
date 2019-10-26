@@ -3,7 +3,9 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.IO;
 using System.Runtime.Serialization;
+using System.Threading.Tasks;
 
 namespace ClassTranscribeDatabase.Models
 {
@@ -144,6 +146,7 @@ namespace ClassTranscribeDatabase.Models
         [ForeignKey("File")]
         public string FileId { get; set; }
         public virtual FileRecord File { get; set; }
+        public virtual FileRecord SrtFile { get; set; }
         public string Language { get; set; }
         public string Description { get; set; }
         public string VideoId { get; set; }
@@ -181,6 +184,36 @@ namespace ClassTranscribeDatabase.Models
         public virtual List<Media> Medias { get; set; }
         public string TranscriptionStatus { get; set; }
         public virtual List<Transcription> Transcriptions { get; set; }
+
+        public async Task DeleteVideoAsync(CTDbContext context)
+        {
+            if(Video1 != null)
+            {
+                await Video1.DeleteFileRecordAsync(context);
+            }
+            if(Video2 != null)
+            {
+                await Video2.DeleteFileRecordAsync(context);
+            }
+            if (ProcessedVideo1 != null)
+            {
+                await ProcessedVideo1.DeleteFileRecordAsync(context);
+            }
+            if (ProcessedVideo2 != null)
+            {
+                await ProcessedVideo2.DeleteFileRecordAsync(context);
+            }
+            if (Audio != null)
+            {
+                await Audio.DeleteFileRecordAsync(context);
+            }
+            var dbVideoRow = await context.Videos.FindAsync(Id);
+            if (dbVideoRow != null)
+            {
+                context.Videos.Remove(dbVideoRow);
+                await context.SaveChangesAsync();
+            }
+        }
     }
 
     public class CourseOffering : Entity

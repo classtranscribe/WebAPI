@@ -102,7 +102,7 @@ namespace TaskEngine.Tasks
 
         public async Task<List<Media>> GetLocalPlaylist(Playlist playlist, CTDbContext _context)
         {
-            return _context.Medias.Where(m => m.Videos.Count == 0 && m.PlaylistId == playlist.Id).ToList();
+            return _context.Medias.Where(m => m.Video == null && m.PlaylistId == playlist.Id).ToList();
         }
 
     }

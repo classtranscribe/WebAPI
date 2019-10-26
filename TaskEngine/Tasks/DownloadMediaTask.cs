@@ -1,5 +1,6 @@
 ﻿using ClassTranscribeDatabase;
 using ClassTranscribeDatabase.Models;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.IO;
 using System.Linq;
@@ -39,13 +40,30 @@ namespace TaskEngine.Tasks
             using (var _context = CTDbContext.CreateDbContext())
             {
                 var latestMedia = await _context.Medias.FindAsync(media.Id);
-                // Don't add video if there are already videos for the given media or the video already exists.
-                if (latestMedia.Videos.Count() == 0 && ! _context.FileRecords.Any(f => f.Hash == video.Video1.Hash))
+                // Don't add video if there are already videos for the given media.
+                if (latestMedia.Video == null)
                 {
-                    await _context.Videos.AddAsync(video);
-                    await _context.SaveChangesAsync();
-                    Console.WriteLine("Downloaded:" + video);
-                    _convertVideoToWavTask.Publish(video);
+                    // Check if Video already exists, if yes link it with this media item.
+                    var file = _context.FileRecords.Where(f => f.Hash == video.Video1.Hash).ToList();
+                    if (file.Count() == 0)
+                    {
+                        await _context.Videos.AddAsync(video);
+                        await _context.SaveChangesAsync();
+                        latestMedia.VideoId = video.Id;
+                        await _context.SaveChangesAsync();
+                        Console.WriteLine("Downloaded:" + video);
+                        _convertVideoToWavTask.Publish(video);
+                    }
+                    else
+                    {
+                        var existingVideo = await _context.Videos.Where(v => v.Video1Id == file.First().Id).FirstAsync();                        
+                        latestMedia.VideoId = existingVideo.Id;
+                        await _context.SaveChangesAsync();
+                        Console.WriteLine("Existing Video:" + existingVideo);
+
+                        // Deleting downloaded video as it's duplicate.
+                        await video.DeleteVideoAsync(_context);
+                    }
                 }
             }
         }
@@ -71,8 +89,7 @@ namespace TaskEngine.Tasks
                 video = new Video
                 {
                     Video1 = new FileRecord(mediaResponse.FilePath),
-                    Video2 = new FileRecord(mediaResponse2.FilePath),
-                    MediaId = media.Id
+                    Video2 = new FileRecord(mediaResponse2.FilePath)
                 };
             }
             else
@@ -95,8 +112,7 @@ namespace TaskEngine.Tasks
             {
                 video = new Video
                 {
-                    Video1 = new FileRecord(mediaResponse.FilePath),
-                    MediaId = media.Id
+                    Video1 = new FileRecord(mediaResponse.FilePath)
                 };
             }
             else
@@ -109,10 +125,7 @@ namespace TaskEngine.Tasks
 
         public async Task<Video> DownloadLocalPlaylist(Media media)
         {
-            Video video = new Video
-            {
-                MediaId = media.Id
-            };
+            Video video = new Video();
             if (media.JsonMetadata.ContainsKey("video1Path"))
             {
                 var video1Path = media.JsonMetadata["video1Path"].ToString();

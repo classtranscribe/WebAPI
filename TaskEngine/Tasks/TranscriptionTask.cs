@@ -37,20 +37,18 @@ namespace TaskEngine.Tasks
                     transcriptions.Add(new Transcription
                     {
                         Language = language.Key,
-                        MediaId = video.MediaId,
+                        VideoId = video.Id,
                         Captions = language.Value
                     });
                 }
             }
             using (var _context = CTDbContext.CreateDbContext())
             {
-                var latestMedia = await _context.Medias.FindAsync(video.MediaId);
                 var latestVideo = await _context.Videos.FindAsync(video.Id);
                 if (latestVideo.TranscriptionStatus != "NoError")
                 {
                     await _context.Transcriptions.AddRangeAsync(transcriptions);
-                    video.TranscriptionStatus = result.Item2;
-                    _context.Videos.Update(video);
+                    latestVideo.TranscriptionStatus = result.Item2;
                     await _context.SaveChangesAsync();
                     transcriptions.ForEach(t => _generateVTTFileTask.Publish(t));
                 }
