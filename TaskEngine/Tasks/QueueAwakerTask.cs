@@ -90,7 +90,7 @@ namespace TaskEngine.Tasks
             {
                 using (var _context = CTDbContext.CreateDbContext())
                 {
-                    var playlistId = jObject["playlistId"].ToString();
+                    var playlistId = jObject["PlaylistId"].ToString();
                     var playlist = await _context.Playlists.FindAsync(playlistId);
                     _downloadPlaylistInfoTask.Publish(playlist);
                 }
