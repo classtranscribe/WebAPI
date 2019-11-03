@@ -6,6 +6,9 @@ using System;
 using System.IO;
 using System.Threading.Tasks;
 using TaskEngine.Grpc;
+using Newtonsoft.Json.Linq;
+using Newtonsoft.Json;
+using System.Net;
 
 namespace TaskEngine.Tasks
 {
@@ -116,30 +119,71 @@ namespace TaskEngine.Tasks
         // jason
         public async Task<Video> DownloadBoxVideo(Media media)
         {
-            // send request using RestSharp
-            var client = new RestClient($"https://uofi.app.box.com/2.0/files/{media.Id}/content");
-            var request = new RestRequest(Method.GET);
-            request.AddHeader("cache-control", "no-cache");
-            request.AddHeader("Connection", "keep-alive");
-            request.AddHeader("Referer", $"https://uofi.app.box.com/2.0/files/{media.Id}/content");
-            request.AddHeader("Cookie", "box_visitor_id=5da4f447d00911.72030283");
-            request.AddHeader("Accept-Encoding", "gzip, deflate");
-            request.AddHeader("Postman-Token", "a02a657a-e03b-41b3-a747-6190a61f3bea,b759367e-377f-46a6-b96f-f3a78a984ad3");
-            request.AddHeader("Cache-Control", "no-cache");
-            request.AddHeader("Accept", "*/*");
-            request.AddHeader("User-Agent", "PostmanRuntime/7.18.0");
-            // TODO: figure out a way to refresh token
-            request.AddHeader("Authorization", "Bearer MWsSoDokG53x0GhgPzIwsqeurPX9uYbG");
+            var path = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "refresh.json");
+            JObject refresh_json = JObject.Parse(File.ReadAllText(@path));
+            String access_token = (String)refresh_json.SelectToken("access_token");
 
-            // download the file to the local
-            var path = System.IO.Path.Combine(Globals.appSettings.DATA_DIRECTORY, System.Guid.NewGuid().ToString() + ".mp4");
-            client.DownloadData(request).SaveAs(path);
-            Video video = new Video
+            while (true)
             {
-                Video1 = new FileRecord(path),
-                MediaId = media.Id
-            };
-            return video;
+                // send request using RestSharp
+                var client = new RestClient($"https://uofi.app.box.com/2.0/files/{media.Id}/content");
+                var request = new RestRequest(Method.GET);
+                request.AddHeader("cache-control", "no-cache");
+                request.AddHeader("Connection", "keep-alive");
+                request.AddHeader("Referer", $"https://uofi.app.box.com/2.0/files/{media.Id}/content");
+                request.AddHeader("Cookie", "box_visitor_id=5da4f447d00911.72030283");
+                request.AddHeader("Accept-Encoding", "gzip, deflate");
+                request.AddHeader("Postman-Token", "a02a657a-e03b-41b3-a747-6190a61f3bea,b759367e-377f-46a6-b96f-f3a78a984ad3");
+                request.AddHeader("Cache-Control", "no-cache");
+                request.AddHeader("Accept", "*/*");
+                request.AddHeader("User-Agent", "PostmanRuntime/7.18.0");
+                // TODO: figure out a way to refresh token
+                request.AddHeader("Authorization", $"Bearer {access_token}");
+                IRestResponse response = client.Execute(request);
+                HttpStatusCode statusCode = response.StatusCode;
+                int numericStatusCode = (int)statusCode;
+                if (numericStatusCode == 401)
+                {
+                    String refresh_token = (String)refresh_json.SelectToken("refresh_token");
+                    // get access token using refresh token
+                    var refresh_client = new RestClient("https://api.box.com/oauth2/token");
+                    var refresh_request = new RestRequest(Method.POST);
+                    refresh_request.AddHeader("cache-control", "no-cache");
+                    refresh_request.AddHeader("Connection", "keep-alive");
+                    refresh_request.AddHeader("Cookie", "box_visitor_id=5da4f447d00911.72030283; site_preference=desktop");
+                    refresh_request.AddHeader("Content-Length", "193");
+                    refresh_request.AddHeader("Accept-Encoding", "gzip, deflate");
+                    refresh_request.AddHeader("Host", "api.box.com");
+                    refresh_request.AddHeader("Postman-Token", "35cc41df-37bc-475b-a330-787ee4dd5647,f83f9780-407a-4d36-96a3-645699f1ae44");
+                    refresh_request.AddHeader("Cache-Control", "no-cache");
+                    refresh_request.AddHeader("Accept", "*/*");
+                    refresh_request.AddHeader("User-Agent", "PostmanRuntime/7.18.0");
+                    refresh_request.AddHeader("Content-Type", "application/x-www-form-urlencoded");
+                    refresh_request.AddParameter("undefined", $"grant_type=refresh_token&client_id=hyqhskag8e4mko8for8dxjdumu37lpyd&client_secret=Byjx7nDHwLgnH8KPF0BkdVXoQOJXpCtd&refresh_token={refresh_token}", ParameterType.RequestBody);
+                    IRestResponse refresh_response = refresh_client.Execute(refresh_request);
+                    JObject refresh_content = JObject.Parse(refresh_response.Content);
+
+                    // save the refresh token
+                    using (StreamWriter file = File.CreateText(@path))
+                    using (JsonTextWriter writer = new JsonTextWriter(file))
+                    {
+                        refresh_content.WriteTo(writer);
+                    }
+
+                    access_token = (String)refresh_content.SelectToken("access_token");
+                } else
+                {
+                    // download the file to the local
+                    var file_path = System.IO.Path.Combine(Globals.appSettings.DATA_DIRECTORY, System.Guid.NewGuid().ToString() + ".mp4");
+                    client.DownloadData(request).SaveAs(file_path);
+                    Video video = new Video
+                    {
+                        Video1 = new FileRecord(file_path),
+                        MediaId = media.Id
+                    };
+                    return video;
+                }
+            }
         }
     }
 }
