@@ -1,4 +1,5 @@
 ﻿using ClassTranscribeDatabase;
+using ClassTranscribeDatabase.Models;
 using Microsoft.CognitiveServices.Speech;
 using Microsoft.CognitiveServices.Speech.Translation;
 using Newtonsoft.Json.Linq;
@@ -19,11 +20,12 @@ namespace TaskEngine.MSTranscription
             public static string KOREAN = "ko";
             public static string SPANISH = "es";
         }
-        public async Task<Tuple<Dictionary<string, List<Sub>>, Dictionary<string, string>, string>> RecognitionWithAudioStreamAsync(string file)
+        public async Task<Tuple<Dictionary<string, List<Caption>>,string>> RecognitionWithAudioStreamAsync(Video video)
         {
+            string file = video.Audio.Path;
             AppSettings _appSettings = Globals.appSettings;
             
-            Key key = TaskEngineGlobals.KeyProvider.GetKey();
+            Key key = TaskEngineGlobals.KeyProvider.GetKey(video.Id);
             SpeechTranslationConfig _speechConfig = SpeechTranslationConfig.FromSubscription(key.ApiKey, key.Region);
             _speechConfig.RequestWordLevelTimestamps();
             // Sets source and target languages.
@@ -35,13 +37,12 @@ namespace TaskEngine.MSTranscription
 
             string errorCode = "";
             Console.OutputEncoding = Encoding.Unicode;
-            Dictionary<string, List<Sub>> captions = new Dictionary<string, List<Sub>>();
-            Dictionary<string, string> vttFiles = new Dictionary<string, string>();
+            Dictionary<string, List<Caption>> captions = new Dictionary<string, List<Caption>>();
 
-            captions.Add(TranslationLanguages.ENGLISH, new List<Sub>());
-            captions.Add(TranslationLanguages.SIMPLIFIED_CHINESE, new List<Sub>());
-            captions.Add(TranslationLanguages.KOREAN, new List<Sub>());
-            captions.Add(TranslationLanguages.SPANISH, new List<Sub>());
+            captions.Add(TranslationLanguages.ENGLISH, new List<Caption>());
+            captions.Add(TranslationLanguages.SIMPLIFIED_CHINESE, new List<Caption>());
+            captions.Add(TranslationLanguages.KOREAN, new List<Caption>());
+            captions.Add(TranslationLanguages.SPANISH, new List<Caption>());
 
 
             var stopRecognition = new TaskCompletionSource<int>();
@@ -72,25 +73,15 @@ namespace TaskEngine.MSTranscription
 
 
                             TimeSpan offset = new TimeSpan(e.Result.OffsetInTicks);
-                            Console.WriteLine($"Begin={offset.Minutes}:{offset.Seconds},{offset.Milliseconds}", offset);
+                            Console.Write($"Begin={offset.Minutes}:{offset.Seconds},{offset.Milliseconds}", offset);
                             TimeSpan end = e.Result.Duration.Add(offset);
                             Console.WriteLine($"End={end.Minutes}:{end.Seconds},{end.Milliseconds}");
-                            List<Sub> englishSubs = Sub.GetSubs(words);
-                            englishSubs.ForEach(s => Console.WriteLine(s.Caption));
-                            captions[TranslationLanguages.ENGLISH].AddRange(englishSubs);
-
+                            Caption.AppendCaptions(captions[TranslationLanguages.ENGLISH], words);
+                            
                             foreach (var element in e.Result.Translations)
                             {
-                                List<Sub> subs = Sub.GetSubs(new Sub
-                                {
-                                    Begin = offset,
-                                    End = end,
-                                    Caption = element.Value
-                                });
-                                captions[element.Key].AddRange(subs);
-                                subs.ForEach(s => Console.WriteLine(s.Caption));
+                                Caption.AppendCaptions(captions[element.Key], offset, end, element.Value);                                
                             }
-
                         }
                         else if (e.Result.Reason == ResultReason.NoMatch)
                         {
@@ -108,15 +99,6 @@ namespace TaskEngine.MSTranscription
                             Console.WriteLine($"CANCELED: ErrorDetails={e.ErrorDetails}");
                         }
                         stopRecognition.TrySetResult(0);
-                        if (!fileWritten)
-                        {
-                            foreach (var language in captions.Keys)
-                            {
-                                string vttFile = Sub.GenerateWebVTTFile(captions[language], file, language);
-                                vttFiles.Add(language, vttFile);
-                            }
-                        }
-                        fileWritten = true;
                     };
 
                     recognizer.SessionStarted += (s, e) =>
@@ -129,14 +111,6 @@ namespace TaskEngine.MSTranscription
                         Console.WriteLine("\nSession stopped event.");
                         Console.WriteLine("\nStop recognition.");
                         stopRecognition.TrySetResult(0);
-                        foreach (var language in captions.Keys)
-                        {
-                            string vttFile = Sub.GenerateWebVTTFile(captions[language], file, language);
-                            if (!vttFiles.ContainsKey(language))
-                            {
-                                vttFiles.Add(language, vttFile);
-                            }
-                        }
                         fileWritten = true;
                     };
 
@@ -149,8 +123,8 @@ namespace TaskEngine.MSTranscription
 
                     // Stops recognition.
                     await recognizer.StopContinuousRecognitionAsync().ConfigureAwait(false);
-                    TaskEngineGlobals.KeyProvider.ReleaseKey(key);
-                    return new Tuple<Dictionary<string, List<Sub>>, Dictionary<string, string>, string>(captions, vttFiles, errorCode);
+                    TaskEngineGlobals.KeyProvider.ReleaseKey(key, video.Id);
+                    return new Tuple<Dictionary<string, List<Caption>>, string>(captions, errorCode);
                 }
             }
             // </recognitionAudioStream>

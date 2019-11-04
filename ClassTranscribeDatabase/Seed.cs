@@ -24,8 +24,9 @@ namespace ClassTranscribeDatabase
             IdentityRole Admin = new IdentityRole { Name = Globals.ROLE_ADMIN, Id = "0002", NormalizedName = Globals.ROLE_ADMIN.ToUpper() };
             IdentityRole UniversityAdmin = new IdentityRole { Name = Globals.ROLE_UNIVERSITY_ADMIN, Id = "0003", NormalizedName = Globals.ROLE_UNIVERSITY_ADMIN.ToUpper() };
             IdentityRole TeachingAssistant = new IdentityRole { Name = Globals.ROLE_TEACHING_ASSISTANT, Id = "0004", NormalizedName = Globals.ROLE_TEACHING_ASSISTANT.ToUpper() };
+            IdentityRole Advisors = new IdentityRole { Name = Globals.ROLE_ADVISORS, Id = "0005", NormalizedName = Globals.ROLE_ADVISORS.ToUpper() };
 
-            List<IdentityRole> roles = new List<IdentityRole> { Instructor, Student, Admin, UniversityAdmin, TeachingAssistant };
+            List<IdentityRole> roles = new List<IdentityRole> { Instructor, Student, Admin, UniversityAdmin, TeachingAssistant, Advisors };
             for (int i = 0; i < roles.Count(); i++)
             {
                 if (!_context.Roles.IgnoreQueryFilters().Any(r => r.Name == roles[i].Name))
@@ -161,8 +162,7 @@ namespace ClassTranscribeDatabase
 
             Course test_course = new Course
             {
-                Id = "test_course",
-                CourseName = "Test Course",
+                Id = "test_course",                
                 CourseNumber = "000",
                 DepartmentId = department1.Id
             };
@@ -171,6 +171,7 @@ namespace ClassTranscribeDatabase
             {
                 Id = "4002",
                 SectionName = "AB",
+                CourseName = "Test Course",
                 TermId = term3.Id,
                 AccessType = AccessTypes.Public
             };

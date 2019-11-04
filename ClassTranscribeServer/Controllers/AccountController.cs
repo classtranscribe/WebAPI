@@ -17,6 +17,8 @@ using Newtonsoft.Json.Linq;
 using System.Threading;
 using Microsoft.AspNetCore.Authorization;
 using ClassTranscribeServer.Utils;
+using System.IO;
+using CsvHelper;
 
 namespace ClassTranscribeServer.Controllers
 {
@@ -125,7 +127,7 @@ namespace ClassTranscribeServer.Controllers
 
         [HttpPost("PostUserMetadata")]
         [Authorize]
-        public async Task<ActionResult> PostUserMetadata(JObject metadata)
+        public async Task<ActionResult> PostUserMetadata([FromBody]JObject metadata)
         {
             ApplicationUser user = null;
             if (User.Identity.IsAuthenticated && this.User.FindFirst(ClaimTypes.NameIdentifier) != null)
@@ -267,5 +269,38 @@ namespace ClassTranscribeServer.Controllers
             public JObject Metadata { get; set; }
         }
 
+        //public class CSVInstructor
+        //{
+        //    public string TERM { get; set; }
+        //    public string SUBJ { get; set; }
+        //    public string NBR { get; set; }
+        //    public string SECT { get; set; }
+        //    public string PRIMARY_INSTR { get; set; }
+        //    public string INSTR_NETID { get; set; }
+        //}
+
+        //[HttpGet("SeedInstructors")]
+        //public async Task SeedInstructors()
+        //{
+        //    string file = Path.Combine(Globals.appSettings.DATA_DIRECTORY, "seed", "Fall2019InstructorList.csv");
+        //    TextReader reader = new StreamReader(file);
+        //    var csvReader = new CsvReader(reader);
+        //    var records = csvReader.GetRecords<CSVInstructor>();
+        //    List<CSVInstructor> instructors = new List<CSVInstructor>(records);
+        //    var filteredInstructors = instructors.ToList();
+        //    foreach(var i in filteredInstructors)
+        //    {
+        //        var emailId = i.INSTR_NETID + "@illinois.edu";
+        //        ApplicationUser applicationUser = await _userManager.FindByEmailAsync(emailId);
+        //        if (applicationUser == null)
+        //        {
+        //            applicationUser = await _userUtils.CreateNonExistentUser(emailId);                    
+        //        }
+        //        if (!(await _userManager.IsInRoleAsync(applicationUser, Globals.ROLE_INSTRUCTOR)))
+        //        {
+        //            await _userManager.AddToRoleAsync(applicationUser, Globals.ROLE_INSTRUCTOR);
+        //        }
+        //    }
+        //}
     }
 }

@@ -1,7 +1,7 @@
 var rp = require('request-promise');
 var path = require('path');
 var fs  = require('fs-promise');
-const _tempdir = process.env.TMPDIR;
+const _datadir = process.env.DATA_DIRECTORY;
 var utils = require('./utils');
 
 async function requestCookies(publicAccessUrl, playlistId) {
@@ -149,7 +149,7 @@ async function downloadFile(url, header, dest) {
 
 async function downloadEchoLecture(mediaId, videoUrl, download_header) {
     console.log("downloadEchoLecture");
-    var dest = _tempdir + '_' + utils.getRandomString() + '_' + mediaId + videoUrl.substring(videoUrl.lastIndexOf('.'));
+    var dest = _datadir + "/" + mediaId + "_" + utils.getRandomString() + '_'  + videoUrl.substring(videoUrl.lastIndexOf('.'));
     var outputFile = await downloadFile(videoUrl, download_header, dest);
     console.log("Outputfile " + outputFile);
     return outputFile;

@@ -10,6 +10,7 @@ service NodeServer {
   rpc DownloadYoutubeVideoRPC (MediaRequest) returns (File) {}
   rpc DownloadEchoVideoRPC (MediaRequest) returns (File) {}
   rpc ConvertVideoToWavRPC (File) returns (File) {}
+  rpc ProcessVideoRPC (File) returns (File) {}
 }
 
 // The request message containing the user's name.

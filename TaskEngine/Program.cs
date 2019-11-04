@@ -13,7 +13,6 @@ using Microsoft.Extensions.Options;
 using System.Linq;
 using Microsoft.Extensions.Configuration;
 using System.Threading;
-
 namespace TaskEngine
 {
     public static class TaskEngineGlobals
@@ -29,13 +28,15 @@ namespace TaskEngine
                 .AddLogging()
                 .AddOptions()
                 .Configure<AppSettings>(CTDbContext.GetConfigurations())
-                .AddSingleton<RabbitMQ>()
+                .AddSingleton<RabbitMQConnection>()
                 .AddSingleton<DownloadPlaylistInfoTask>()
                 .AddSingleton<DownloadMediaTask>()
                 .AddSingleton<ConvertVideoToWavTask>()
                 .AddSingleton<TranscriptionTask>()
-                .AddSingleton<WakeDownloaderTask>()
+                .AddSingleton<QueueAwakerTask>()
+                .AddSingleton<GenerateVTTFileTask>()
                 .AddSingleton<RpcClient>()
+                .AddSingleton<ProcessVideoTask>()
                 .AddSingleton<MSTranscriptionService>()
                 .BuildServiceProvider();
 
@@ -57,7 +58,7 @@ namespace TaskEngine
             var logger = serviceProvider.GetService<ILoggerFactory>()
                 .CreateLogger<Program>();
 
-            RabbitMQ rabbitMQ = serviceProvider.GetService<RabbitMQ>();
+            RabbitMQConnection rabbitMQ = serviceProvider.GetService<RabbitMQConnection>();
             CTDbContext context = CTDbContext.CreateDbContext();
             Seeder.Seed(context);
             logger.LogDebug("Starting application");
@@ -66,17 +67,18 @@ namespace TaskEngine
             serviceProvider.GetService<DownloadMediaTask>().Consume();
             serviceProvider.GetService<ConvertVideoToWavTask>().Consume();
             serviceProvider.GetService<TranscriptionTask>().Consume();
-            serviceProvider.GetService<WakeDownloaderTask>().Consume();
+            serviceProvider.GetService<QueueAwakerTask>().Consume();
+            serviceProvider.GetService<GenerateVTTFileTask>().Consume();
+            serviceProvider.GetService<ProcessVideoTask>().Consume();
             RunProgramRunExample(rabbitMQ).GetAwaiter().GetResult();
 
 
+            DownloadPlaylistInfoTask downloadPlaylistInfoTask = serviceProvider.GetService<DownloadPlaylistInfoTask>();
             DownloadMediaTask downloadMediaTask = serviceProvider.GetService<DownloadMediaTask>();
             ConvertVideoToWavTask convertVideoToWavTask = serviceProvider.GetService<ConvertVideoToWavTask>();
             TranscriptionTask transcriptionTask = serviceProvider.GetService<TranscriptionTask>();
-
-            context.Medias.Where(m => !m.Videos.Any()).ToList().ForEach(m => downloadMediaTask.Publish(m));
-            context.Videos.Where(v => v.MediaId != null && v.AudioId == null).ToList().ForEach(v => convertVideoToWavTask.Publish(v));
-            context.Videos.Where(v => v.TranscriptionStatus != "NoError" && v.MediaId != null && v.AudioId != null).ToList().ForEach(v => transcriptionTask.Publish(v));
+            GenerateVTTFileTask generateVTTFileTask = serviceProvider.GetService<GenerateVTTFileTask>();
+            ProcessVideoTask processVideoTask = serviceProvider.GetService<ProcessVideoTask>();
 
             logger.LogDebug("All done!");
 
@@ -87,7 +89,7 @@ namespace TaskEngine
             };
         }
 
-        private static async Task RunProgramRunExample(RabbitMQ rabbitMQ)
+        private static async Task RunProgramRunExample(RabbitMQConnection rabbitMQ)
         {
             try
             {
@@ -103,7 +105,7 @@ namespace TaskEngine
                 await scheduler.Start();
 
                 // define the job and tie it to our HelloJob class
-                IJobDetail job = JobBuilder.Create<DownloadPlaylistInfoTask>()
+                IJobDetail job = JobBuilder.Create<QueueAwakerTask>()
                     .WithIdentity("job1", "group1")
                     .Build();
 

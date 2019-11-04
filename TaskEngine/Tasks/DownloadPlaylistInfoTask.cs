@@ -15,35 +15,22 @@ using System.Net;
 
 namespace TaskEngine.Tasks
 {
-    class DownloadPlaylistInfoTask : RabbitMQTask<Playlist>, IJob
+    class DownloadPlaylistInfoTask : RabbitMQTask<Playlist>
     {
         private RpcClient _rpcClient;
         private DownloadMediaTask _downloadMediaTask;
         public DownloadPlaylistInfoTask() { }
 
-        private void Init(RabbitMQ rabbitMQ)
+        private void Init(RabbitMQConnection rabbitMQ)
         {
             _rabbitMQ = rabbitMQ;
-            queueName = RabbitMQ.QueueNameBuilder(TaskType.FetchPlaylistData, "_1");
+            queueName = RabbitMQConnection.QueueNameBuilder(CommonUtils.TaskType.DownloadPlaylistInfo, "_1");
         }
-        public DownloadPlaylistInfoTask(RabbitMQ rabbitMQ, RpcClient rpcClient, DownloadMediaTask downloadMediaTask)
+        public DownloadPlaylistInfoTask(RabbitMQConnection rabbitMQ, RpcClient rpcClient, DownloadMediaTask downloadMediaTask)
         {
             Init(rabbitMQ);
             _rpcClient = rpcClient;
             _downloadMediaTask = downloadMediaTask;
-        }
-
-        public async Task Execute(IJobExecutionContext context)
-        {
-            using (var _context = CTDbContext.CreateDbContext())
-            {
-
-                Init((RabbitMQ)context.MergedJobDataMap["rabbitMQ"]);
-                var period = DateTime.Now.AddMonths(-12);
-                var playlists = await _context.Offerings.Where(o => o.Term.StartDate >= period).SelectMany(o => o.Playlists).ToListAsync();
-                // TEMPORARY CHANGE
-                playlists.ForEach(p => Publish(p));
-            }
         }
 
         protected override async Task OnConsume(Playlist p)
@@ -75,7 +62,7 @@ namespace TaskEngine.Tasks
             List<Media> newMedia = new List<Media>();
             foreach (JObject jObject in jArray)
             {
-                if (!await _context.Medias.Where(m => m.UniqueMediaIdentifier == jObject["mediaId"].ToString() && m.SourceType == playlist.SourceType).AnyAsync())
+                if (jObject["mediaId"].ToString().Length > 0 && !await _context.Medias.Where(m => m.UniqueMediaIdentifier == jObject["mediaId"].ToString() && m.SourceType == playlist.SourceType).AnyAsync())
                 {
                     newMedia.Add(new Media
                     {
@@ -121,7 +108,7 @@ namespace TaskEngine.Tasks
 
         public async Task<List<Media>> GetLocalPlaylist(Playlist playlist, CTDbContext _context)
         {
-            return _context.Medias.Where(m => m.Videos.Count == 0 && m.PlaylistId == playlist.Id).ToList();
+            return _context.Medias.Where(m => m.Video == null && m.PlaylistId == playlist.Id).ToList();
         }
 
         // jason

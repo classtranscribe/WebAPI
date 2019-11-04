@@ -2,8 +2,10 @@
 using ClassTranscribeDatabase.Models;
 using RestSharp;
 using RestSharp.Extensions;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using TaskEngine.Grpc;
 using Newtonsoft.Json.Linq;
@@ -17,12 +19,12 @@ namespace TaskEngine.Tasks
         private RpcClient _rpcClient;
         private ConvertVideoToWavTask _convertVideoToWavTask;
 
-        private void Init(RabbitMQ rabbitMQ)
+        private void Init(RabbitMQConnection rabbitMQ)
         {
             _rabbitMQ = rabbitMQ;
-            queueName = RabbitMQ.QueueNameBuilder(TaskType.DownloadMedia, "_1");
+            queueName = RabbitMQConnection.QueueNameBuilder(CommonUtils.TaskType.DownloadMedia, "_1");
         }
-        public DownloadMediaTask(RabbitMQ rabbitMQ, RpcClient rpcClient, ConvertVideoToWavTask convertVideoToWavTask)
+        public DownloadMediaTask(RabbitMQConnection rabbitMQ, RpcClient rpcClient, ConvertVideoToWavTask convertVideoToWavTask)
         {
             Init(rabbitMQ);
             _rpcClient = rpcClient;
@@ -44,10 +46,32 @@ namespace TaskEngine.Tasks
             }
             using (var _context = CTDbContext.CreateDbContext())
             {
-                await _context.Videos.AddAsync(video);
-                await _context.SaveChangesAsync();
-                Console.WriteLine("Downloaded:" + video);
-                // _convertVideoToWavTask.Publish(video);
+                var latestMedia = await _context.Medias.FindAsync(media.Id);
+                // Don't add video if there are already videos for the given media.
+                if (latestMedia.Video == null)
+                {
+                    // Check if Video already exists, if yes link it with this media item.
+                    var file = _context.FileRecords.Where(f => f.Hash == video.Video1.Hash).ToList();
+                    if (file.Count() == 0)
+                    {
+                        await _context.Videos.AddAsync(video);
+                        await _context.SaveChangesAsync();
+                        latestMedia.VideoId = video.Id;
+                        await _context.SaveChangesAsync();
+                        Console.WriteLine("Downloaded:" + video);
+                        _convertVideoToWavTask.Publish(video);
+                    }
+                    else
+                    {
+                        var existingVideo = await _context.Videos.Where(v => v.Video1Id == file.First().Id).FirstAsync();                        
+                        latestMedia.VideoId = existingVideo.Id;
+                        await _context.SaveChangesAsync();
+                        Console.WriteLine("Existing Video:" + existingVideo);
+
+                        // Deleting downloaded video as it's duplicate.
+                        await video.DeleteVideoAsync(_context);
+                    }
+                }
             }
         }
 
@@ -66,13 +90,19 @@ namespace TaskEngine.Tasks
                 VideoUrl = media.JsonMetadata["altVideoUrl"].ToString(),
                 AdditionalInfo = media.JsonMetadata["download_header"].ToString()
             });
-
-            Video video = new Video
+            Video video = null;
+            if (mediaResponse.FilePath.Length > 0 && mediaResponse2.FilePath.Length > 0)
             {
-                Video1 = new FileRecord(mediaResponse.FilePath),
-                Video2 = new FileRecord(mediaResponse2.FilePath),
-                MediaId = media.Id
-            };
+                video = new Video
+                {
+                    Video1 = new FileRecord(mediaResponse.FilePath),
+                    Video2 = new FileRecord(mediaResponse2.FilePath)
+                };
+            }
+            else
+            {
+                throw new Exception("DownloadEchoVideo Failed + " + media.Id);
+            }
             return video;
         }
 
@@ -84,24 +114,29 @@ namespace TaskEngine.Tasks
                 VideoUrl = media.JsonMetadata["videoUrl"].ToString()
             });
 
-            Video video = new Video
+            Video video = null;
+            if (mediaResponse.FilePath.Length > 0)
             {
-                Video1 = new FileRecord(mediaResponse.FilePath),
-                MediaId = media.Id
-            };
+                video = new Video
+                {
+                    Video1 = new FileRecord(mediaResponse.FilePath)
+                };
+            }
+            else
+            {
+                throw new Exception("DownloadYoutubeVideo Failed + " + media.Id);
+            }
+
             return video;
         }
 
         public async Task<Video> DownloadLocalPlaylist(Media media)
         {
-            Video video = new Video
-            {
-                MediaId = media.Id
-            };
+            Video video = new Video();
             if (media.JsonMetadata.ContainsKey("video1Path"))
             {
                 var video1Path = media.JsonMetadata["video1Path"].ToString();
-                var newPath = System.IO.Path.Combine(Globals.appSettings.DATA_DIRECTORY, System.Guid.NewGuid().ToString() + ".mp4");
+                var newPath = System.IO.Path.Combine(Globals.appSettings.DATA_DIRECTORY, Guid.NewGuid().ToString() + ".mp4");
                 File.Copy(video1Path, newPath);
                 video.Video1 = new FileRecord(newPath);
                 
@@ -109,7 +144,7 @@ namespace TaskEngine.Tasks
             if (media.JsonMetadata.ContainsKey("video2Path"))
             {
                 var video2Path = media.JsonMetadata["video2Path"].ToString();
-                var newPath = System.IO.Path.Combine(Globals.appSettings.DATA_DIRECTORY, System.Guid.NewGuid().ToString() + ".mp4");
+                var newPath = System.IO.Path.Combine(Globals.appSettings.DATA_DIRECTORY, Guid.NewGuid().ToString() + ".mp4");
                 File.Copy(video2Path, newPath);
                 video.Video1 = new FileRecord(newPath);
             }

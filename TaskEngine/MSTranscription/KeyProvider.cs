@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Linq;
 using System.Threading;
+using ClassTranscribeDatabase.Models;
 
 namespace TaskEngine.MSTranscription
 {
@@ -18,12 +19,14 @@ namespace TaskEngine.MSTranscription
     {
         private AppSettings _appSettings;
         private List<Key> Keys;
+        private HashSet<string> CurrentVideoIds;
 
         public KeyProvider(AppSettings appSettings)
         {
             _appSettings = appSettings;
             string subscriptionKeys = _appSettings.AZURE_SUBSCRIPTION_KEYS;
             Keys = new List<Key>();
+            CurrentVideoIds = new HashSet<string>();
             foreach (string subscriptionKey in subscriptionKeys.Split(';'))
             {
                 Keys.Add(new Key
@@ -35,16 +38,25 @@ namespace TaskEngine.MSTranscription
             }
         }
 
-        public Key GetKey()
+        public Key GetKey(string videoId)
         {
-            Key key = Keys.OrderBy(k => k.Load).First();
-            key.Load += 1;
-            return key;
+            if(!CurrentVideoIds.Contains(videoId))
+            {
+                Key key = Keys.OrderBy(k => k.Load).First();
+                key.Load += 1;
+                CurrentVideoIds.Add(videoId);
+                return key;
+            } 
+            else
+            {
+                throw new Exception("Video already being transcribed");
+            }
         }
 
-        public void ReleaseKey(Key key)
+        public void ReleaseKey(Key key, string videoId)
         {
             Keys.Find(k => k.ApiKey == key.ApiKey).Load -= 1;
+            CurrentVideoIds.Remove(videoId);
         }
     }
 }

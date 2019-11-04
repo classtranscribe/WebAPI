@@ -27,16 +27,38 @@ namespace ClassTranscribeServer.Controllers
 
         // GET: api/Media/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Media>> GetMedia(string id)
+        public async Task<ActionResult<MediaDTO>> GetMedia(string id)
         {
             var media = await _context.Medias.FindAsync(id);
+            var v = await _context.Videos.FindAsync(media.VideoId);
 
             if (media == null)
             {
                 return NotFound();
             }
 
-            return media;
+            var mediaDTO = new MediaDTO
+            {
+                Id = media.Id,
+                CreatedAt = media.CreatedAt,
+                JsonMetadata = media.JsonMetadata,
+                SourceType = media.SourceType,
+                Transcriptions = media.Video.Transcriptions
+                .Select(t => new TranscriptionDTO
+                {
+                    Id = t.Id,
+                    Path = t.File != null ? t.File.Path : null,
+                    Language = t.Language
+                }).ToList(),
+                Video = new VideoDTO
+                {
+                    Id = media.Video.Id,
+                    Video1Path = media.Video.Video1?.Path,
+                    Video2Path = media.Video.Video2?.Path
+                },
+            };
+
+            return mediaDTO;
         }
 
         // PUT: api/Media/5
@@ -74,7 +96,7 @@ namespace ClassTranscribeServer.Controllers
 
         // POST: api/Media
         [DisableRequestSizeLimit]
-        [HttpPost]        
+        [HttpPost]
         [Authorize]
         public async Task<ActionResult<Media>> PostMedia(IFormFile video1, IFormFile video2, [FromForm] string playlistId)
         {
@@ -91,15 +113,15 @@ namespace ClassTranscribeServer.Controllers
             // full path to file in temp location
             if (video1.Length > 0)
             {
-                if(Path.GetExtension(video1.FileName) != ".mp4")
+                if (Path.GetExtension(video1.FileName) != ".mp4")
                 {
                     return BadRequest("File Format not permitted");
                 }
                 var filePath = Path.GetTempFileName();
-                using ( var stream = new FileStream(filePath, FileMode.Create))
+                using (var stream = new FileStream(filePath, FileMode.Create))
                 {
                     await video1.CopyToAsync(stream);
-
+                    media.UniqueMediaIdentifier = FileRecord.ComputeSha256HashForFile(filePath);
                     media.JsonMetadata.Add("video1", JsonConvert.SerializeObject(video1));
                     media.JsonMetadata.Add("video1Path", filePath);
                 }
@@ -123,7 +145,7 @@ namespace ClassTranscribeServer.Controllers
 
             _context.Medias.Add(media);
             await _context.SaveChangesAsync();
-            WakeDownloader.Wake();
+            WakeDownloader.UpdatePlaylist(playlistId);
             return CreatedAtAction("GetMedia", new { id = media.Id }, media);
         }
 
@@ -137,12 +159,13 @@ namespace ClassTranscribeServer.Controllers
             {
                 return NotFound();
             }
-            media.Transcriptions.ForEach(t =>
+            media.Video.Transcriptions.ForEach(t =>
             {
                 _context.Captions.RemoveRange(_context.Captions.Where(c => c.TranscriptionId == t.Id));
             });
-            _context.Transcriptions.RemoveRange(media.Transcriptions);
-            _context.Videos.RemoveRange(media.Videos);
+            _context.Transcriptions.RemoveRange(media.Video.Transcriptions);
+            var video = await _context.Videos.FindAsync(media.VideoId);
+            _context.Videos.Remove(video);
             _context.Medias.Remove(media);
             await _context.SaveChangesAsync();
 
