@@ -18,7 +18,8 @@ namespace ClassTranscribeDatabase
             ProcessVideo,
             Aggregator,
             GenerateVTTFile,
-            QueueAwaker
+            QueueAwaker,
+            GenerateEPubFile
         }
         public static byte[] MessageToBytes<T>(T obj)
         {
