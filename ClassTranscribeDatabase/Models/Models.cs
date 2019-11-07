@@ -161,7 +161,7 @@ namespace ClassTranscribeDatabase.Models
     {
         [ForeignKey("Video1")]
         public string Video1Id { get; set; }
-        
+
         public virtual FileRecord Video1 { get; set; }
 
         [ForeignKey("Video2")]
@@ -185,13 +185,15 @@ namespace ClassTranscribeDatabase.Models
         public string TranscriptionStatus { get; set; }
         public virtual List<Transcription> Transcriptions { get; set; }
 
+        public virtual List<EPub> EPubs { get; set; }
+
         public async Task DeleteVideoAsync(CTDbContext context)
         {
-            if(Video1 != null)
+            if (Video1 != null)
             {
                 await Video1.DeleteFileRecordAsync(context);
             }
-            if(Video2 != null)
+            if (Video2 != null)
             {
                 await Video2.DeleteFileRecordAsync(context);
             }
@@ -247,5 +249,15 @@ namespace ClassTranscribeDatabase.Models
         public string MediaId { get; set; }
         public string EventType { get; set; }
         public JObject Json { get; set; }
+    }
+
+    public class EPub : Entity
+    {
+        public string Language { get; set; }
+        public FileRecord File { get; set; }
+
+        public string VideoId { get; set; }
+        [IgnoreDataMember]
+        public virtual Video Video { get; set; }
     }
 }
