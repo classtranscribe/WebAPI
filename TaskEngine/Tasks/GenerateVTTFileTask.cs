@@ -22,10 +22,11 @@ namespace TaskEngine.Tasks
         {
             Init(rabbitMQ);
         }
-        protected async override Task OnConsume(Transcription transcription)
+        protected async override Task OnConsume(Transcription t)
         {
             using (var _context = CTDbContext.CreateDbContext())
             {
+                var transcription = await _context.Transcriptions.FindAsync(t.Id);
                 var captions = await _context.Captions.Where(c => c.TranscriptionId == transcription.Id)
                 .GroupBy(c => c.Index).Select(g => g.OrderByDescending(c => c.CreatedAt).First())
                 .OrderBy(c => c.Index).ToListAsync();

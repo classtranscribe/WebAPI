@@ -47,6 +47,7 @@ namespace TaskEngine.Tasks
                     var file = _context.FileRecords.Where(f => f.Hash == video.Video1.Hash).ToList();
                     if (file.Count() == 0)
                     {
+                        // Create new video Record
                         await _context.Videos.AddAsync(video);
                         await _context.SaveChangesAsync();
                         latestMedia.VideoId = video.Id;
@@ -56,13 +57,33 @@ namespace TaskEngine.Tasks
                     }
                     else
                     {
-                        var existingVideo = await _context.Videos.Where(v => v.Video1Id == file.First().Id).FirstAsync();                        
-                        latestMedia.VideoId = existingVideo.Id;
-                        await _context.SaveChangesAsync();
-                        Console.WriteLine("Existing Video:" + existingVideo);
+                        var existingVideos = await _context.Videos.Where(v => v.Video1Id == file.First().Id).ToListAsync();
+                        // If file exists but video doesn't.
+                        if(existingVideos.Count() == 0)
+                        {
+                            // Delete existing file Record
+                            await file.First().DeleteFileRecordAsync(_context);
 
-                        // Deleting downloaded video as it's duplicate.
-                        await video.DeleteVideoAsync(_context);
+                            // Create new video Record
+                            await _context.Videos.AddAsync(video);
+                            await _context.SaveChangesAsync();
+                            latestMedia.VideoId = video.Id;
+                            await _context.SaveChangesAsync();
+                            Console.WriteLine("Downloaded:" + video);
+                            _convertVideoToWavTask.Publish(video);
+                        }
+                        // If video and file both exist.
+                        else
+                        {
+                            
+                            var existingVideo = await _context.Videos.Where(v => v.Video1Id == file.First().Id).FirstAsync();
+                            latestMedia.VideoId = existingVideo.Id;
+                            await _context.SaveChangesAsync();
+                            Console.WriteLine("Existing Video:" + existingVideo);
+
+                            // Deleting downloaded video as it's duplicate.
+                            await video.DeleteVideoAsync(_context);
+                        }
                     }
                 }
             }
