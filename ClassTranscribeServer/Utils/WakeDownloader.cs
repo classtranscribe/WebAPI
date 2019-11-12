@@ -41,6 +41,14 @@ namespace ClassTranscribeServer
             Wake(msg);
         }
 
+        public static void GenerateEpub(string epubId)
+        {
+            JObject msg = new JObject();
+            msg.Add("Type", CommonUtils.TaskType.GenerateEPubFile.ToString());
+            msg.Add("EpubId", epubId);
+            Wake(msg);
+        }
+
         private static void Wake(JObject message)
         {
             using (var rabbitmq = new RabbitMQConnection())

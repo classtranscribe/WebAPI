@@ -38,6 +38,7 @@ namespace TaskEngine
                 .AddSingleton<RpcClient>()
                 .AddSingleton<ProcessVideoTask>()
                 .AddSingleton<MSTranscriptionService>()
+                .AddSingleton<EPubGeneratorTask>()
                 .BuildServiceProvider();
 
             //configure console logging
@@ -70,6 +71,7 @@ namespace TaskEngine
             serviceProvider.GetService<QueueAwakerTask>().Consume();
             serviceProvider.GetService<GenerateVTTFileTask>().Consume();
             serviceProvider.GetService<ProcessVideoTask>().Consume();
+            serviceProvider.GetService<EPubGeneratorTask>().Consume();
             RunProgramRunExample(rabbitMQ).GetAwaiter().GetResult();
 
 
@@ -79,6 +81,9 @@ namespace TaskEngine
             TranscriptionTask transcriptionTask = serviceProvider.GetService<TranscriptionTask>();
             GenerateVTTFileTask generateVTTFileTask = serviceProvider.GetService<GenerateVTTFileTask>();
             ProcessVideoTask processVideoTask = serviceProvider.GetService<ProcessVideoTask>();
+            EPubGeneratorTask ePubGeneratorTask = serviceProvider.GetService<EPubGeneratorTask>();
+
+            // ePubGeneratorTask.Publish()
 
             logger.LogDebug("All done!");
 

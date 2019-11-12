@@ -11,6 +11,7 @@ service NodeServer {
   rpc DownloadEchoVideoRPC (MediaRequest) returns (File) {}
   rpc ConvertVideoToWavRPC (File) returns (File) {}
   rpc ProcessVideoRPC (File) returns (File) {}
+  rpc CreateEPubRPC (EPubData) returns (JsonString) {}
 }
 
 // The request message containing the user's name.
@@ -33,4 +34,9 @@ message MediaRequest {
 
 message File {
 	string filePath = 1;
+}
+
+message EPubData {
+	string text = 1;
+	string outputPath = 2;
 }
