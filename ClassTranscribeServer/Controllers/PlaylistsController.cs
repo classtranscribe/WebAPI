@@ -92,6 +92,7 @@ namespace ClassTranscribeServer.Controllers
             List<MediaDTO> medias = p.Medias.OrderBy(m => m.CreatedAt).Select(m => new MediaDTO
             {
                 Id = m.Id,
+                PlaylistId = m.PlaylistId,
                 CreatedAt = m.CreatedAt,
                 JsonMetadata = m.JsonMetadata,
                 SourceType = m.SourceType,
@@ -273,6 +274,7 @@ namespace ClassTranscribeServer.Controllers
     public class MediaDTO
     {
         public string Id { get; set; }
+        public string PlaylistId { get; set; }
         public DateTime CreatedAt { get; set; }
         public JObject JsonMetadata { get; set; }
         public SourceType SourceType { get; set; }

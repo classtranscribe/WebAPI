@@ -40,6 +40,7 @@ namespace ClassTranscribeServer.Controllers
             var mediaDTO = new MediaDTO
             {
                 Id = media.Id,
+                PlaylistId = media.PlaylistId,
                 CreatedAt = media.CreatedAt,
                 JsonMetadata = media.JsonMetadata,
                 SourceType = media.SourceType,
