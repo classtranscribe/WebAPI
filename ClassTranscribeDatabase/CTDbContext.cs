@@ -41,6 +41,7 @@ namespace ClassTranscribeDatabase
         public DbSet<FileRecord> FileRecords { get; set; }
         public DbSet<Caption> Captions { get; set; }
         public DbSet<Log> Logs { get; set; }
+        public DbSet<EPub> EPubs { get; set; }
 
         public static string ConnectionStringBuilder()
         {
