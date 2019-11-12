@@ -254,7 +254,9 @@ namespace ClassTranscribeDatabase.Models
     public class EPub : Entity
     {
         public string Language { get; set; }
-        public FileRecord File { get; set; }
+        [ForeignKey("File")]
+        public string FileId { get; set; }
+        public virtual FileRecord File { get; set; }
 
         public string VideoId { get; set; }
         [IgnoreDataMember]
