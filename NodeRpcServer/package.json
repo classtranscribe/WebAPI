@@ -17,6 +17,7 @@
     "minimist": "^1.2.0",
     "path": "^0.12.7",
     "request": "^2.88.0",
-    "request-promise": "^4.2.4"
+    "request-promise": "^4.2.4",
+    "epub-gen": "0.1.0"
   }
 }

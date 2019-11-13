@@ -13,6 +13,9 @@ using Microsoft.Extensions.Options;
 using System.Linq;
 using Microsoft.Extensions.Configuration;
 using System.Threading;
+using ClassTranscribeDatabase.Models;
+using static ClassTranscribeDatabase.CommonUtils;
+
 namespace TaskEngine
 {
     public static class TaskEngineGlobals
@@ -72,7 +75,7 @@ namespace TaskEngine
             serviceProvider.GetService<GenerateVTTFileTask>().Consume();
             serviceProvider.GetService<ProcessVideoTask>().Consume();
             serviceProvider.GetService<EPubGeneratorTask>().Consume();
-            RunProgramRunExample(rabbitMQ).GetAwaiter().GetResult();
+            // RunProgramRunExample(rabbitMQ).GetAwaiter().GetResult();
 
 
             DownloadPlaylistInfoTask downloadPlaylistInfoTask = serviceProvider.GetService<DownloadPlaylistInfoTask>();
@@ -83,13 +86,25 @@ namespace TaskEngine
             ProcessVideoTask processVideoTask = serviceProvider.GetService<ProcessVideoTask>();
             EPubGeneratorTask ePubGeneratorTask = serviceProvider.GetService<EPubGeneratorTask>();
 
-            // ePubGeneratorTask.Publish()
+            var ePubs = context.Offerings.Find("e740770d-e6fb-4ddb-86ca-a49a8dcc7d28")
+                .Playlists.First().Medias.Select(m => m.Video).Select(v => new
+                EPub
+                {
+                    Language = Languages.ENGLISH,
+                    VideoId = v.Video1Id                    
+                }).ToList();
+
+            context.EPubs.AddRange(ePubs);
+            context.SaveChanges();
+
+            ePubGeneratorTask.Publish(ePubs.First());
 
             logger.LogDebug("All done!");
 
             Console.WriteLine("Press any key to close the application");
-            
-             while (true) {
+
+            while (true)
+            {
                 Console.Read();
             };
         }

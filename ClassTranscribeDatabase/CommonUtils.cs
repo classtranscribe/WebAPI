@@ -21,6 +21,14 @@ namespace ClassTranscribeDatabase
             QueueAwaker,
             GenerateEPubFile
         }
+
+        public class Languages
+        {
+            public static string ENGLISH = "en-US";
+            public static string SIMPLIFIED_CHINESE = "zh-Hans";
+            public static string KOREAN = "ko";
+            public static string SPANISH = "es";
+        }
         public static byte[] MessageToBytes<T>(T obj)
         {
             string output = JsonConvert.SerializeObject(obj);

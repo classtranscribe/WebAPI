@@ -8,18 +8,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static ClassTranscribeDatabase.CommonUtils;
 
 namespace TaskEngine.MSTranscription
 {
     public class MSTranscriptionService
     {
-        public static class TranslationLanguages
-        {
-            public static string ENGLISH = "en-US";
-            public static string SIMPLIFIED_CHINESE = "zh-Hans";
-            public static string KOREAN = "ko";
-            public static string SPANISH = "es";
-        }
+        
         public async Task<Tuple<Dictionary<string, List<Caption>>,string>> RecognitionWithAudioStreamAsync(Video video)
         {
             string file = video.Audio.Path;
@@ -29,20 +24,20 @@ namespace TaskEngine.MSTranscription
             SpeechTranslationConfig _speechConfig = SpeechTranslationConfig.FromSubscription(key.ApiKey, key.Region);
             _speechConfig.RequestWordLevelTimestamps();
             // Sets source and target languages.
-            _speechConfig.SpeechRecognitionLanguage = TranslationLanguages.ENGLISH;
-            _speechConfig.AddTargetLanguage(TranslationLanguages.SIMPLIFIED_CHINESE);
-            _speechConfig.AddTargetLanguage(TranslationLanguages.KOREAN);
-            _speechConfig.AddTargetLanguage(TranslationLanguages.SPANISH);
+            _speechConfig.SpeechRecognitionLanguage = Languages.ENGLISH;
+            _speechConfig.AddTargetLanguage(Languages.SIMPLIFIED_CHINESE);
+            _speechConfig.AddTargetLanguage(Languages.KOREAN);
+            _speechConfig.AddTargetLanguage(Languages.SPANISH);
             _speechConfig.OutputFormat = OutputFormat.Detailed;
 
             string errorCode = "";
             Console.OutputEncoding = Encoding.Unicode;
             Dictionary<string, List<Caption>> captions = new Dictionary<string, List<Caption>>();
 
-            captions.Add(TranslationLanguages.ENGLISH, new List<Caption>());
-            captions.Add(TranslationLanguages.SIMPLIFIED_CHINESE, new List<Caption>());
-            captions.Add(TranslationLanguages.KOREAN, new List<Caption>());
-            captions.Add(TranslationLanguages.SPANISH, new List<Caption>());
+            captions.Add(Languages.ENGLISH, new List<Caption>());
+            captions.Add(Languages.SIMPLIFIED_CHINESE, new List<Caption>());
+            captions.Add(Languages.KOREAN, new List<Caption>());
+            captions.Add(Languages.SPANISH, new List<Caption>());
 
 
             var stopRecognition = new TaskCompletionSource<int>();
@@ -76,7 +71,7 @@ namespace TaskEngine.MSTranscription
                             Console.Write($"Begin={offset.Minutes}:{offset.Seconds},{offset.Milliseconds}", offset);
                             TimeSpan end = e.Result.Duration.Add(offset);
                             Console.WriteLine($"End={end.Minutes}:{end.Seconds},{end.Milliseconds}");
-                            Caption.AppendCaptions(captions[TranslationLanguages.ENGLISH], words);
+                            Caption.AppendCaptions(captions[Languages.ENGLISH], words);
                             
                             foreach (var element in e.Result.Translations)
                             {

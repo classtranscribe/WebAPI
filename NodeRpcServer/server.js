@@ -26,6 +26,7 @@ var path = require('path');
 var echo = require('./echo');
 var youtube = require('./youtube');
 var utils = require('./utils');
+var epub = require('./epub');
 
 var packageDefinition = protoLoader.loadSync(
     PROTO_PATH,
@@ -51,7 +52,8 @@ function main() {
        GetYoutubePlaylistRPC: youtube.getYoutubePlaylistRPC, 
        DownloadYoutubeVideoRPC: youtube.downloadYoutubeVideoRPC,
        ConvertVideoToWavRPC: utils.convertVideoToWavRPC,
-       ProcessVideoRPC: utils.processVideoRPC
+       ProcessVideoRPC: utils.processVideoRPC,
+       createEpubRPC: epub.createEpubRPC
      });
    server.bind('0.0.0.0:50052', grpc.ServerCredentials.createInsecure());
    server.start();

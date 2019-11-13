@@ -37,6 +37,9 @@ message File {
 }
 
 message EPubData {
-	string text = 1;
-	string outputPath = 2;
+	string title = 1;
+  string author = 2;
+  string publisher = 3;
+  string text = 4;
+  string file = 5;
 }
