@@ -1,4 +1,25 @@
 {
-  "Instruction1": "Do not commit a modified version of this file",
-  "Instruction2": "https://stackoverflow.com/questions/18276951/how-do-i-stop-git-from-tracking-any-changes-to-a-file-from-this-commit-forward Follow this link to prevent tracking this file"
+  // Copy the same values as filled in the .env file.
+  "POSTGRES_SERVER_NAME": "localhost",
+  "POSTGRES_DB": "ct2019db",
+  "POSTGRES_USER": "postgres",
+  "POSTGRES_PASSWORD": "RandomPassword123!",
+  //"POSTGRES_SERVER_NAME": "sysprog.ncsa.illinois.edu",
+  //"POSTGRES_DB": "ct2019db",
+  //"POSTGRES_USER": "postgres",
+  //"POSTGRES_PASSWORD": "RandomPassword123!",
+  "ALLOWED_HOSTS": "*",
+  "JWT_KEY": "qD=Y_h@P+U?55%S6vHAK-5!Qz_Dd2Y",
+  "JWT_ISSUER": "https://classtranscribe.ncsa.illinois.edu",
+  "JWT_EXPIRE_DAYS": "30",
+  "RabbitMQServer": "localhost",
+  "NODE_RPC_SERVER": "localhost:50052",
+  "AZURE_SUBSCRIPTION_KEYS": "bbea4c3982b54a3b82c751e889932a07,eastus;6641185bfc2b475c80a47c2b8e88db3a,eastus;b647dbb6798b407aa51761d0ac2f8511,eastus",
+  "AUTH0_CLIENT_ID": "xXXY7dlDM3Ddz8bZ87pAtYzUN7yixz7C",
+  "AUTH0_DOMAIN": "classtranscribe.auth0.com",
+  "DATA_DIRECTORY": "C:\\Users\\15615\\Desktop\\classtranscribe\\data",
+  "GOD_MODE_PASSWORD": "D+T3&8V2Cw?=L+$t",
+  "FIRST_BOX_TOKEN": "rJn7Ksgt7LJHQmqOHc2tONidbmxqk6UM"
 }
+
+
