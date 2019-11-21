@@ -183,6 +183,7 @@ namespace ClassTranscribeDatabase.Models
         public string Description { get; set; }
         public virtual List<Media> Medias { get; set; }
         public string TranscriptionStatus { get; set; }
+        public int TranscribingAttempts { get; set; }
         public virtual List<Transcription> Transcriptions { get; set; }
 
         public virtual List<EPub> EPubs { get; set; }

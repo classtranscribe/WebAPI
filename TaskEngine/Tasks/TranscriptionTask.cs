@@ -49,6 +49,7 @@ namespace TaskEngine.Tasks
                 {
                     await _context.Transcriptions.AddRangeAsync(transcriptions);
                     latestVideo.TranscriptionStatus = result.Item2;
+                    latestVideo.TranscribingAttempts += 1;
                     await _context.SaveChangesAsync();
                     transcriptions.ForEach(t => _generateVTTFileTask.Publish(t));
                 }
