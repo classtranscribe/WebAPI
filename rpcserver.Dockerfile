@@ -12,5 +12,9 @@ RUN apt-get install -y nodejs
 # done installing node
 RUN wget https://yt-dl.org/latest/youtube-dl -O /usr/local/bin/youtube-dl; chmod a+x /usr/local/bin/youtube-dl; hash -r
 
-RUN apt-get update
-EXPOSE 50052
+# Installing python dependencies
+RUN apt-get install -y python3-pip
+RUN pip3 install grpcio-tools
+RUN apt-get install -y libsm6 libxext6 libxrender-dev
+RUN pip3 install scenedetect[opencv,progress_bar]
+RUN pip3 install KalturaApiClient
