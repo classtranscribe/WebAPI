@@ -17,7 +17,7 @@
  *
  */
 
-var PROTO_PATH = __dirname + '/ct.proto';
+var PROTO_PATH = '/ct.proto';
 var _ = require('lodash');
 var grpc = require('grpc');
 var protoLoader = require('@grpc/proto-loader');
@@ -53,7 +53,7 @@ function main() {
        DownloadYoutubeVideoRPC: youtube.downloadYoutubeVideoRPC,
        ConvertVideoToWavRPC: utils.convertVideoToWavRPC,
        ProcessVideoRPC: utils.processVideoRPC,
-       createEpubRPC: epub.createEpubRPC
+       CreateEPubRPC: epub.createEpubRPC
      });
    server.bind('0.0.0.0:50052', grpc.ServerCredentials.createInsecure());
    server.start();

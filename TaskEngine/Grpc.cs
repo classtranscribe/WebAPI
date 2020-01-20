@@ -1,7 +1,6 @@
 ﻿using ClassTranscribeDatabase;
 using CTGrpc;
 using Grpc.Core;
-using Microsoft.Extensions.Options;
 using System;
 
 namespace TaskEngine.Grpc
@@ -10,15 +9,21 @@ namespace TaskEngine.Grpc
     {
         AppSettings _appSettings;
         public NodeServer.NodeServerClient NodeServerClient;
+        public PythonServer.PythonServerClient PythonServerClient;
         public RpcClient()
         {
             _appSettings = Globals.appSettings;
             AppContext.SetSwitch("System.Net.Http.SocketsHttpHandler.Http2UnencryptedSupport", true);
-            var channel = new Channel(_appSettings.NODE_RPC_SERVER, ChannelCredentials.Insecure, new[]{
+            var channel1 = new Channel(_appSettings.NODE_RPC_SERVER, ChannelCredentials.Insecure, new[]{
                       new ChannelOption(ChannelOptions.MaxSendMessageLength , 2*1024*1024),
                       new ChannelOption(ChannelOptions.MaxReceiveMessageLength , 5 *1024*1024)
             });
-            NodeServerClient = new NodeServer.NodeServerClient(channel);
+            var channel2 = new Channel(_appSettings.PYTHON_RPC_SERVER, ChannelCredentials.Insecure, new[]{
+                      new ChannelOption(ChannelOptions.MaxSendMessageLength , 2*1024*1024),
+                      new ChannelOption(ChannelOptions.MaxReceiveMessageLength , 5 *1024*1024)
+            });
+            NodeServerClient = new NodeServer.NodeServerClient(channel1);
+            PythonServerClient = new PythonServer.PythonServerClient(channel2);
         }
     }
 }

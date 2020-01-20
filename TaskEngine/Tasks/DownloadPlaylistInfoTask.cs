@@ -39,9 +39,38 @@ namespace TaskEngine.Tasks
                     case SourceType.Echo360: medias = await GetEchoPlaylist(p, _context); break;
                     case SourceType.Youtube: medias = await GetYoutubePlaylist(p, _context); break;
                     case SourceType.Local: medias = await GetLocalPlaylist(p, _context); break;
+                    case SourceType.Kaltura: medias = await GetKalturaPlaylist(p, _context); break;
                 }
                 medias.ForEach(m => _downloadMediaTask.Publish(m));
             }
+        }
+
+        public async Task<List<Media>> GetKalturaPlaylist(Playlist playlist, CTDbContext _context)
+        {
+            var jsonString = await _rpcClient.PythonServerClient.GetKalturaPlaylistRPCAsync(new CTGrpc.PlaylistRequest
+            {
+                Url = playlist.PlaylistIdentifier,
+                Id = playlist.Id
+            });
+            JArray jArray = JArray.Parse(jsonString.Json);
+            List<Media> newMedia = new List<Media>();
+            foreach (JObject jObject in jArray)
+            {
+                if (jObject["id"].ToString().Length > 0 && !await _context.Medias.Where(m => m.UniqueMediaIdentifier == jObject["id"].ToString() && m.SourceType == playlist.SourceType).AnyAsync())
+                {
+                    newMedia.Add(new Media
+                    {
+                        JsonMetadata = jObject,
+                        SourceType = playlist.SourceType,
+                        PlaylistId = playlist.Id,
+                        UniqueMediaIdentifier = jObject["id"].ToString(),
+                        CreatedAt = Convert.ToDateTime(jObject["createdAt"])
+                    });
+                }
+            }
+            await _context.Medias.AddRangeAsync(newMedia);
+            await _context.SaveChangesAsync();
+            return newMedia;
         }
 
         public async Task<List<Media>> GetEchoPlaylist(Playlist playlist, CTDbContext _context)

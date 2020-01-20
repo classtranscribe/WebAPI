@@ -36,6 +36,7 @@ namespace TaskEngine.Tasks
                 case SourceType.Echo360: video = await DownloadEchoVideo(media); break;
                 case SourceType.Youtube: video = await DownloadYoutubeVideo(media); break;
                 case SourceType.Local: video = await DownloadLocalPlaylist(media); break;
+                case SourceType.Kaltura: video = await DownloadKalturaVideo(media); break;
             }
             using (var _context = CTDbContext.CreateDbContext())
             {
@@ -87,6 +88,30 @@ namespace TaskEngine.Tasks
                     }
                 }
             }
+        }
+
+        public async Task<Video> DownloadKalturaVideo(Media media)
+        {
+            var mediaResponse = await _rpcClient.NodeServerClient.DownloadKalturaVideoRPCAsync(new CTGrpc.MediaRequest
+            {
+                Id = media.Id,
+                VideoUrl = media.JsonMetadata["downloadUrl"].ToString()
+            });
+
+            Video video = null;
+            if (mediaResponse.FilePath.Length > 0)
+            {
+                video = new Video
+                {
+                    Video1 = new FileRecord(mediaResponse.FilePath)
+                };
+            }
+            else
+            {
+                throw new Exception("DownloadKalturaVideo Failed + " + media.Id);
+            }
+
+            return video;
         }
 
         public async Task<Video> DownloadEchoVideo(Media media)

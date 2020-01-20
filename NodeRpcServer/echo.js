@@ -130,12 +130,12 @@ async function downloadEchoPlaylistInfo(playlist) {
     return medias;
 }  
 
-async function downloadFile(url, header, dest) {
+async function downloadFile(url, dest, header= "") {
     console.log('downloadFile');
     console.log(url, header, dest);
     const { spawn } = require('child-process-promise');
     header = header.replace(';','\;');
-    const curl = spawn("curl", ["-o", dest, "-O", url, "-H", header, "--silent"]);
+    const curl = spawn("curl", ["-L", "-o", dest, "-O", url, "-H", header, "--silent"]);
     curl.childProcess.stdout.on('data', (data) => {
         console.log(`stdout: ${data}`);
     });
@@ -150,7 +150,15 @@ async function downloadFile(url, header, dest) {
 async function downloadEchoLecture(mediaId, videoUrl, download_header) {
     console.log("downloadEchoLecture");
     var dest = _datadir + "/" + mediaId + "_" + utils.getRandomString() + '_'  + videoUrl.substring(videoUrl.lastIndexOf('.'));
-    var outputFile = await downloadFile(videoUrl, download_header, dest);
+    var outputFile = await downloadFile(videoUrl, dest, download_header);
+    console.log("Outputfile " + outputFile);
+    return outputFile;
+}
+
+async function downloadKalturaLecture(mediaId, videoUrl) {
+    console.log("downloadKalturaLecture");
+    var dest = _datadir + "/" + mediaId + "_" + utils.getRandomString() + '.mp4';
+    var outputFile = await downloadFile(videoUrl, dest);
     console.log("Outputfile " + outputFile);
     return outputFile;
 }
@@ -174,8 +182,18 @@ function downloadEchoVideoRPC(call, callback) {
     })();    
 }
 
+function downloadKalturaVideoRPC(call, callback) {
+    console.log(call.request);
+    var outputFile;
+    (async () => {
+        outputFile = await downloadKalturaLecture(call.request.Id, call.request.videoUrl);
+        callback(null, {filePath: outputFile});
+    })();    
+}
+
 module.exports = {
     getEchoPlaylistRPC: getEchoPlaylistRPC,
     downloadEchoVideoRPC: downloadEchoVideoRPC,
-    downloadEchoLecture: downloadEchoLecture
+    downloadEchoLecture: downloadEchoLecture,
+    downloadKalturaVideoRPC: downloadKalturaVideoRPC
 }
