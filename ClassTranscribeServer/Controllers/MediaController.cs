@@ -30,13 +30,15 @@ namespace ClassTranscribeServer.Controllers
         public async Task<ActionResult<MediaDTO>> GetMedia(string id)
         {
             var media = await _context.Medias.FindAsync(id);
-            var v = await _context.Videos.FindAsync(media.VideoId);
+            
 
             if (media == null)
             {
                 return NotFound();
             }
 
+            var v = await _context.Videos.FindAsync(media.VideoId);
+            
             var mediaDTO = new MediaDTO
             {
                 Id = media.Id,

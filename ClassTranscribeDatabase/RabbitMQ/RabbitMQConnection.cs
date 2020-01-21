@@ -15,7 +15,7 @@ namespace ClassTranscribeDatabase
             var factory = new ConnectionFactory() { HostName = Globals.appSettings.RabbitMQServer };
             _connection = factory.CreateConnection();
             _channel = _connection.CreateModel();
-            prefetchCount = 20;
+            prefetchCount = 10;
         }
 
         public void PublishTask<T>(string queueName, T message)
