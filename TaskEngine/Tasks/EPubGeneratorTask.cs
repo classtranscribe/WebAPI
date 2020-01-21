@@ -27,7 +27,7 @@ namespace TaskEngine.Tasks
             foreach (JObject scene in scenes)
             {
                 var endTime = TimeSpan.Parse(scene["end"].ToString());
-                var subset = captions.Where(c => c.End <= endTime && c.Begin >= nextStart).ToList();
+                var subset = captions.Where(c => c.Begin < endTime && c.Begin >= nextStart).ToList();
                 StringBuilder sb = new StringBuilder();
                 subset.ForEach(c => sb.Append(c.Text + " "));
                 string allText = sb.ToString();
