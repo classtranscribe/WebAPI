@@ -32,10 +32,7 @@ namespace ClassTranscribeServer.Controllers
         }
 
 
-        /// <summary>
-        /// Gets captions and images for a given video
-        /// </summary>
-        /// 
+        [NonAction]
         public List<EPubChapter> GetEPubChapters(JArray scenes, List<Caption> captions)
         {
             var chapters = new List<EPubChapter>();
@@ -57,6 +54,10 @@ namespace ClassTranscribeServer.Controllers
             return chapters;
         }
 
+        /// <summary>
+        /// Gets captions and images for a given video
+        /// </summary>
+        /// 
         [HttpGet("GetEpubData")]
         public async Task<ActionResult<List<EPubChapter>>> GetEpubData(string mediaId)
         {
