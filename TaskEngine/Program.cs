@@ -75,7 +75,7 @@ namespace TaskEngine
             serviceProvider.GetService<GenerateVTTFileTask>().Consume();
             serviceProvider.GetService<ProcessVideoTask>().Consume();
             serviceProvider.GetService<EPubGeneratorTask>().Consume();
-            // RunProgramRunExample(rabbitMQ).GetAwaiter().GetResult();
+            RunProgramRunExample(rabbitMQ).GetAwaiter().GetResult();
 
 
             DownloadPlaylistInfoTask downloadPlaylistInfoTask = serviceProvider.GetService<DownloadPlaylistInfoTask>();
@@ -85,19 +85,16 @@ namespace TaskEngine
             GenerateVTTFileTask generateVTTFileTask = serviceProvider.GetService<GenerateVTTFileTask>();
             ProcessVideoTask processVideoTask = serviceProvider.GetService<ProcessVideoTask>();
             EPubGeneratorTask ePubGeneratorTask = serviceProvider.GetService<EPubGeneratorTask>();
+            RpcClient rpcClient = serviceProvider.GetService<RpcClient>();
 
-            var ePubs = context.Offerings.Find("e740770d-e6fb-4ddb-86ca-a49a8dcc7d28")
-                .Playlists.First().Medias.Select(m => m.Video).Select(v => new
-                EPub
-                {
-                    Language = Languages.ENGLISH,
-                    VideoId = v.Video1Id                    
-                }).ToList();
+            //// downloadPlaylistInfoTask.Publish(new Playlist { Id = "Test", PlaylistIdentifier = "1_jfkhu08c", SourceType = SourceType.Kaltura });
 
-            context.EPubs.AddRange(ePubs);
-            context.SaveChanges();
-
-            ePubGeneratorTask.Publish(ePubs.First());
+            //var m = context.Medias.Find("cccb7dc9-e694-419b-ab03-780360b20956");
+            //ePubGeneratorTask.Publish(new EPub
+            //{
+            //    Language = Languages.ENGLISH,
+            //    VideoId = m.VideoId
+            //});
 
             logger.LogDebug("All done!");
 

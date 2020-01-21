@@ -220,7 +220,8 @@ namespace ClassTranscribeServer.Controllers
                     OfferingId = offeringId
                 });
             }
-            userOfferings.ForEach(async uo =>
+
+            foreach (var uo in userOfferings)
             {
                 if (!(await _context.UserOfferings.Where(u => u.ApplicationUserId == uo.ApplicationUserId
                  && u.IdentityRoleId == uo.IdentityRole.Id
@@ -228,7 +229,7 @@ namespace ClassTranscribeServer.Controllers
                 {
                     await _context.UserOfferings.AddAsync(uo);
                 }
-            });
+            }
             await _context.SaveChangesAsync();
             return userOfferings;
         }

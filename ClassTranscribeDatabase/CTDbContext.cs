@@ -142,6 +142,8 @@ namespace ClassTranscribeDatabase
             builder.Entity<Media>().Property(m => m.JsonMetadata).HasJsonValueConversion();
             builder.Entity<Log>().Property(m => m.Json).HasJsonValueConversion();
             builder.Entity<ApplicationUser>().Property(m => m.Metadata).HasJsonValueConversion();
+            builder.Entity<Video>().Property(m => m.SceneData).HasJsonValueConversion();
+            builder.Entity<Video>().Property(m => m.JsonMetadata).HasJsonValueConversion();
         }
         public override int SaveChanges(bool acceptAllChangesOnSuccess)
         {

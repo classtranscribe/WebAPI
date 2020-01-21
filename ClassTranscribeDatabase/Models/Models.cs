@@ -26,7 +26,8 @@ namespace ClassTranscribeDatabase.Models
     {
         Echo360,
         Youtube,
-        Local
+        Local,
+        Kaltura
     }
     public class ApplicationUser : IdentityUser
     {
@@ -187,6 +188,8 @@ namespace ClassTranscribeDatabase.Models
         public virtual List<Transcription> Transcriptions { get; set; }
 
         public virtual List<EPub> EPubs { get; set; }
+        public JObject SceneData { get; set; }
+        public JObject JsonMetadata { get; set; }
 
         public async Task DeleteVideoAsync(CTDbContext context)
         {
@@ -258,7 +261,6 @@ namespace ClassTranscribeDatabase.Models
         [ForeignKey("File")]
         public string FileId { get; set; }
         public virtual FileRecord File { get; set; }
-
         public string VideoId { get; set; }
         [IgnoreDataMember]
         public virtual Video Video { get; set; }

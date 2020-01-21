@@ -12,6 +12,7 @@
         public string POSTGRES_PASSWORD { get; set; }
         public string RabbitMQServer { get; set; }
         public string NODE_RPC_SERVER { get; set; }
+        public string PYTHON_RPC_SERVER { get; set; }
         public string AZURE_SUBSCRIPTION_KEYS { get; set; }
         public string DATA_DIRECTORY { get; set; }
         public string AUTH0_DOMAIN { get; set; }

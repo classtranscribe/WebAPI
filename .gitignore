@@ -103,3 +103,7 @@ nginx/app.conf
 NodeRpcServer/ct.proto
 /NodeRpcServer
 /ClassTranscribeServer/Properties
+PythonRpcServer/ct_pb2_grpc.py
+PythonRpcServer/ct_pb2.py
+
+*.pyc
