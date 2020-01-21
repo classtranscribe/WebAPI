@@ -41,11 +41,11 @@ namespace ClassTranscribeServer
             Wake(msg);
         }
 
-        public static void GenerateEpub(string epubId)
+        public static void GenerateEpub(string mediaId)
         {
             JObject msg = new JObject();
             msg.Add("Type", CommonUtils.TaskType.GenerateEPubFile.ToString());
-            msg.Add("EpubId", epubId);
+            msg.Add("mediaId", mediaId);
             Wake(msg);
         }
 
