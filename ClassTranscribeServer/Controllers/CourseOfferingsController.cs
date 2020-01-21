@@ -58,7 +58,7 @@ namespace ClassTranscribeServer.Controllers
             {
                 if (CourseOfferingExists(courseOffering.CourseId))
                 {
-                    return Conflict();
+                    return Ok("Course Offering already exists!");
                 }
                 else
                 {
@@ -66,7 +66,7 @@ namespace ClassTranscribeServer.Controllers
                 }
             }
 
-            return CreatedAtAction("GetCourseOffering", new { id = courseOffering.CourseId }, courseOffering);
+            return Ok();
         }
 
         // DELETE: api/CourseOfferings/{courseId}/{offeringId}

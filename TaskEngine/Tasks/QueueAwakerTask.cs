@@ -1,10 +1,12 @@
 ﻿using ClassTranscribeDatabase;
+using ClassTranscribeDatabase.Models;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json.Linq;
 using Quartz;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using static ClassTranscribeDatabase.CommonUtils;
 
 namespace TaskEngine.Tasks
 {
@@ -16,6 +18,7 @@ namespace TaskEngine.Tasks
         private readonly TranscriptionTask _transcriptionTask;
         private readonly GenerateVTTFileTask _generateVTTFileTask;
         private readonly ProcessVideoTask _processVideoTask;
+        private readonly EPubGeneratorTask _ePubGeneratorTask;
 
         public QueueAwakerTask() { }
 
@@ -27,7 +30,7 @@ namespace TaskEngine.Tasks
         public QueueAwakerTask(RabbitMQConnection rabbitMQ, DownloadPlaylistInfoTask downloadPlaylistInfoTask,
             DownloadMediaTask downloadMediaTask, ConvertVideoToWavTask convertVideoToWavTask, 
             TranscriptionTask transcriptionTask, ProcessVideoTask processVideoTask,
-            GenerateVTTFileTask generateVTTFileTask)
+            GenerateVTTFileTask generateVTTFileTask, EPubGeneratorTask ePubGeneratorTask)
         {
             Init(rabbitMQ);
             _downloadPlaylistInfoTask = downloadPlaylistInfoTask;
@@ -36,6 +39,7 @@ namespace TaskEngine.Tasks
             _transcriptionTask = transcriptionTask;
             _generateVTTFileTask = generateVTTFileTask;
             _processVideoTask = processVideoTask;
+            _ePubGeneratorTask = ePubGeneratorTask;
         }
         public async Task Execute(IJobExecutionContext context)
         {
@@ -102,6 +106,19 @@ namespace TaskEngine.Tasks
                     var transcriptionId = jObject["TranscriptionId"].ToString();
                     var transcription = await _context.Transcriptions.FindAsync(transcriptionId);
                     _generateVTTFileTask.Publish(transcription);
+                }
+            }
+            else if (jObject["Type"].ToString() == CommonUtils.TaskType.GenerateEPubFile.ToString())
+            {
+                using (var _context = CTDbContext.CreateDbContext())
+                {
+                    var mediaId = jObject["mediaId"].ToString();
+                    var media = _context.Medias.Find(mediaId);
+                    _ePubGeneratorTask.Publish(new EPub
+                    {
+                        Language = Languages.ENGLISH,
+                        VideoId = media.VideoId
+                    });
                 }
             }
         }
