@@ -3,9 +3,13 @@ const Epub = require("epub-gen");
 function createEpub(data) {
     
     content = [];
-    data.chapters.forEach(function (chapter) {
+    data.chapters.forEach(function (chapter, index) {
         content.push({
-            data: "<img src=" + chapter.image.filePath + " style='width:640px;height:360px;'></img>" + "<div lang=\"en\">" + chapter.text + "</div>"  // pass html string + 
+            title: `Chapter ${index+1}`,
+            data: `
+                <img src="${chapter.image.filePath}" />
+                <p lang="en">${chapter.text}</p>
+            `
         })
     });
     console.log(content[3]);
