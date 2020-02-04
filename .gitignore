@@ -103,3 +103,4 @@ nginx/app.conf
 NodeRpcServer/ct.proto
 /NodeRpcServer
 /ClassTranscribeServer/Properties
+__pycache__/
