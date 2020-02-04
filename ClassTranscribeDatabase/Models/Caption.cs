@@ -12,8 +12,13 @@ namespace ClassTranscribeDatabase.Models
         public long Offset { get; set; }
         public string Word { get; set; }
     }
-    public class Caption : Entity
+    public enum CaptionType
     {
+        TextCaption,
+        AudioDescription
+    }
+    public class Caption : Entity
+    { 
         public int Index { get; set; }
         public TimeSpan Begin { get; set; }
         public TimeSpan End { get; set; }
@@ -23,7 +28,7 @@ namespace ClassTranscribeDatabase.Models
         public int DownVote { get; set; }
         [IgnoreDataMember]
         public virtual Transcription Transcription { get; set; }
-
+        public CaptionType CaptionType { get; set; }
         public static int subLength = 40;
 
         public string SrtSubtitle()
