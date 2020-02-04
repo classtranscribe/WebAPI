@@ -5,8 +5,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.IO;
 using System.Runtime.Serialization;
-using System.Security.Cryptography;
-using System.Text;
+using System.Threading.Tasks;
 
 namespace ClassTranscribeDatabase.Models
 {
@@ -27,7 +26,8 @@ namespace ClassTranscribeDatabase.Models
     {
         Echo360,
         Youtube,
-        Local
+        Local,
+        Kaltura
     }
     public class ApplicationUser : IdentityUser
     {
@@ -58,74 +58,6 @@ namespace ClassTranscribeDatabase.Models
         public Status IsDeletedStatus { get; set; }
 
     }
-    public class FileRecord : Entity
-    {
-        public FileRecord(string path)
-        {
-            char separator = System.IO.Path.DirectorySeparatorChar;
-            this.Path = path;
-            this.FileName = path.Substring(path.LastIndexOf(separator) + 1);
-            this.Hash = ComputeSha256HashForFile(this.Path);
-        }
-        public FileRecord() { }
-        public string FileName { get; set; }
-        [IgnoreDataMember]
-        public string PrivatePath { get; set; }
-        [NotMapped]
-        public string Path
-        {
-            get
-            {
-                string p = PrivatePath;
-                // Windows
-                if (System.IO.Path.DirectorySeparatorChar == '\\')
-                {
-                    p = PrivatePath.Replace('\\', '/');
-                }
-                p = p.Substring(p.LastIndexOf("/data/") + 6);
-                return System.IO.Path.Combine(Globals.appSettings.DATA_DIRECTORY, p);
-            }
-            set
-            {
-                // Windows
-                if (value.Contains('\\'))
-                {
-                    value = value.Replace('\\', '/');
-                }
-                PrivatePath = value.Substring(value.LastIndexOf("/data/"));
-            }
-        }
-        [IgnoreDataMember]
-        public string VMPath
-        {
-            get
-            {
-                return PrivatePath;
-            }
-        }
-        [IgnoreDataMember]
-        public string Hash { get; set; }
-
-        public static string ComputeSha256HashForFile(string filePath)
-        {
-            using (FileStream stream = File.OpenRead(filePath))
-            {
-                // Create a SHA256
-                SHA256 Sha256 = SHA256.Create();
-
-                // ComputeHash - returns byte array  
-                byte[] bytes = Sha256.ComputeHash(stream);
-                // Convert byte array to a string   
-
-                StringBuilder builder = new StringBuilder();
-                for (int i = 0; i < bytes.Length; i++)
-                {
-                    builder.Append(bytes[i].ToString("x2"));
-                }
-                return builder.ToString();
-            }
-        }
-    }
     public class University : Entity
     {
         public string Name { get; set; }
@@ -150,8 +82,6 @@ namespace ClassTranscribeDatabase.Models
     public class Course : Entity
     {
         public string CourseNumber { get; set; }
-        public string CourseName { get; set; }
-        public string Description { get; set; }
         public string DepartmentId { get; set; }
         [IgnoreDataMember]
         public virtual Department Department { get; set; }
@@ -184,6 +114,8 @@ namespace ClassTranscribeDatabase.Models
         public virtual List<UserOffering> OfferingUsers { get; set; }
         public AccessTypes AccessType { get; set; }
         public bool LogEventsFlag { get; set; }
+        public string CourseName { get; set; }
+        public string Description { get; set; }
     }
 
     public class Playlist : Entity
@@ -202,8 +134,9 @@ namespace ClassTranscribeDatabase.Models
         public SourceType SourceType { get; set; }
         public string UniqueMediaIdentifier { get; set; }
         public JObject JsonMetadata { get; set; }
-        public virtual List<Transcription> Transcriptions { get; set; }
-        public virtual List<Video> Videos { get; set; }
+        public string VideoId { get; set; }
+        [IgnoreDataMember]
+        public virtual Video Video { get; set; }
         public string PlaylistId { get; set; }
         [IgnoreDataMember]
         public virtual Playlist Playlist { get; set; }
@@ -214,48 +147,79 @@ namespace ClassTranscribeDatabase.Models
         [ForeignKey("File")]
         public string FileId { get; set; }
         public virtual FileRecord File { get; set; }
+        public virtual FileRecord SrtFile { get; set; }
         public string Language { get; set; }
         public string Description { get; set; }
-        public string MediaId { get; set; }
+        public string VideoId { get; set; }
         [IgnoreDataMember]
-        public virtual Media Media { get; set; }
+        public virtual Video Video { get; set; }
+
         [IgnoreDataMember]
         public virtual List<Caption> Captions { get; set; }
-    }
-
-    public class Caption : Entity
-    {
-        public int Index { get; set; }
-        public TimeSpan Begin { get; set; }
-        public TimeSpan End { get; set; }
-        public string Text { get; set; }
-        public string TranscriptionId { get; set; }
-        public int UpVote { get; set; }
-        public int DownVote { get; set; }
-        [IgnoreDataMember]
-        public virtual Transcription Transcription { get; set; }
     }
 
     public class Video : Entity
     {
         [ForeignKey("Video1")]
         public string Video1Id { get; set; }
-        
+
         public virtual FileRecord Video1 { get; set; }
 
         [ForeignKey("Video2")]
         public string Video2Id { get; set; }
         public virtual FileRecord Video2 { get; set; }
+        [ForeignKey("ProcessedVideo1")]
+        public string ProcessedVideo1Id { get; set; }
+
+        public virtual FileRecord ProcessedVideo1 { get; set; }
+
+        [ForeignKey("ProcessedVideo2")]
+        public string ProcessedVideo2Id { get; set; }
+        public virtual FileRecord ProcessedVideo2 { get; set; }
 
         [ForeignKey("Audio")]
         public string AudioId { get; set; }
         public virtual FileRecord Audio { get; set; }
 
         public string Description { get; set; }
-        public string MediaId { get; set; }
-        [IgnoreDataMember]
-        public virtual Media Media { get; set; }
+        public virtual List<Media> Medias { get; set; }
         public string TranscriptionStatus { get; set; }
+        public int TranscribingAttempts { get; set; }
+        public virtual List<Transcription> Transcriptions { get; set; }
+
+        public virtual List<EPub> EPubs { get; set; }
+        public JObject SceneData { get; set; }
+        public JObject JsonMetadata { get; set; }
+
+        public async Task DeleteVideoAsync(CTDbContext context)
+        {
+            if (Video1 != null)
+            {
+                await Video1.DeleteFileRecordAsync(context);
+            }
+            if (Video2 != null)
+            {
+                await Video2.DeleteFileRecordAsync(context);
+            }
+            if (ProcessedVideo1 != null)
+            {
+                await ProcessedVideo1.DeleteFileRecordAsync(context);
+            }
+            if (ProcessedVideo2 != null)
+            {
+                await ProcessedVideo2.DeleteFileRecordAsync(context);
+            }
+            if (Audio != null)
+            {
+                await Audio.DeleteFileRecordAsync(context);
+            }
+            var dbVideoRow = await context.Videos.FindAsync(Id);
+            if (dbVideoRow != null)
+            {
+                context.Videos.Remove(dbVideoRow);
+                await context.SaveChangesAsync();
+            }
+        }
     }
 
     public class CourseOffering : Entity
@@ -284,16 +248,21 @@ namespace ClassTranscribeDatabase.Models
 
     public class Log : Entity
     {
-        [IgnoreDataMember]
-        public virtual ApplicationUser User { get; set; }
         public string UserId { get; set; }
-        [IgnoreDataMember]
-        public virtual Offering Offering { get; set; }
         public string OfferingId { get; set; }
-        [IgnoreDataMember]
-        public virtual Media Media { get; set; }
         public string MediaId { get; set; }
         public string EventType { get; set; }
         public JObject Json { get; set; }
+    }
+
+    public class EPub : Entity
+    {
+        public string Language { get; set; }
+        [ForeignKey("File")]
+        public string FileId { get; set; }
+        public virtual FileRecord File { get; set; }
+        public string VideoId { get; set; }
+        [IgnoreDataMember]
+        public virtual Video Video { get; set; }
     }
 }

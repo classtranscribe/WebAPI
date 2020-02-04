@@ -104,3 +104,7 @@ NodeRpcServer/ct.proto
 /NodeRpcServer
 /ClassTranscribeServer/Properties
 __pycache__/
+PythonRpcServer/ct_pb2_grpc.py
+PythonRpcServer/ct_pb2.py
+
+*.pyc

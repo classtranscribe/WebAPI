@@ -13,6 +13,8 @@ using Microsoft.Extensions.Options;
 using System.Linq;
 using Microsoft.Extensions.Configuration;
 using System.Threading;
+using ClassTranscribeDatabase.Models;
+using static ClassTranscribeDatabase.CommonUtils;
 
 namespace TaskEngine
 {
@@ -29,14 +31,17 @@ namespace TaskEngine
                 .AddLogging()
                 .AddOptions()
                 .Configure<AppSettings>(CTDbContext.GetConfigurations())
-                .AddSingleton<RabbitMQ>()
+                .AddSingleton<RabbitMQConnection>()
                 .AddSingleton<DownloadPlaylistInfoTask>()
                 .AddSingleton<DownloadMediaTask>()
                 .AddSingleton<ConvertVideoToWavTask>()
                 .AddSingleton<TranscriptionTask>()
-                .AddSingleton<WakeDownloaderTask>()
+                .AddSingleton<QueueAwakerTask>()
+                .AddSingleton<GenerateVTTFileTask>()
                 .AddSingleton<RpcClient>()
+                .AddSingleton<ProcessVideoTask>()
                 .AddSingleton<MSTranscriptionService>()
+                .AddSingleton<EPubGeneratorTask>()
                 .BuildServiceProvider();
 
             //configure console logging
@@ -47,9 +52,6 @@ namespace TaskEngine
                 Thread.Sleep(15000);
                 Console.WriteLine("Waking up");
             }
-            serviceProvider
-                .GetService<ILoggerFactory>()
-                .AddConsole(LogLevel.Debug);
 
             Globals.appSettings = serviceProvider.GetService<IOptions<AppSettings>>().Value;
             TaskEngineGlobals.KeyProvider = new KeyProvider(Globals.appSettings);
@@ -57,7 +59,7 @@ namespace TaskEngine
             var logger = serviceProvider.GetService<ILoggerFactory>()
                 .CreateLogger<Program>();
 
-            RabbitMQ rabbitMQ = serviceProvider.GetService<RabbitMQ>();
+            RabbitMQConnection rabbitMQ = serviceProvider.GetService<RabbitMQConnection>();
             CTDbContext context = CTDbContext.CreateDbContext();
             Seeder.Seed(context);
             logger.LogDebug("Starting application");
@@ -66,28 +68,33 @@ namespace TaskEngine
             serviceProvider.GetService<DownloadMediaTask>().Consume();
             serviceProvider.GetService<ConvertVideoToWavTask>().Consume();
             serviceProvider.GetService<TranscriptionTask>().Consume();
-            serviceProvider.GetService<WakeDownloaderTask>().Consume();
+            serviceProvider.GetService<QueueAwakerTask>().Consume();
+            serviceProvider.GetService<GenerateVTTFileTask>().Consume();
+            serviceProvider.GetService<ProcessVideoTask>().Consume();
+            serviceProvider.GetService<EPubGeneratorTask>().Consume();
             RunProgramRunExample(rabbitMQ).GetAwaiter().GetResult();
 
 
+            DownloadPlaylistInfoTask downloadPlaylistInfoTask = serviceProvider.GetService<DownloadPlaylistInfoTask>();
             DownloadMediaTask downloadMediaTask = serviceProvider.GetService<DownloadMediaTask>();
             ConvertVideoToWavTask convertVideoToWavTask = serviceProvider.GetService<ConvertVideoToWavTask>();
             TranscriptionTask transcriptionTask = serviceProvider.GetService<TranscriptionTask>();
-
-            context.Medias.Where(m => !m.Videos.Any()).ToList().ForEach(m => downloadMediaTask.Publish(m));
-            context.Videos.Where(v => v.MediaId != null && v.AudioId == null).ToList().ForEach(v => convertVideoToWavTask.Publish(v));
-            context.Videos.Where(v => v.TranscriptionStatus != "NoError" && v.MediaId != null && v.AudioId != null).ToList().ForEach(v => transcriptionTask.Publish(v));
+            GenerateVTTFileTask generateVTTFileTask = serviceProvider.GetService<GenerateVTTFileTask>();
+            ProcessVideoTask processVideoTask = serviceProvider.GetService<ProcessVideoTask>();
+            EPubGeneratorTask ePubGeneratorTask = serviceProvider.GetService<EPubGeneratorTask>();
+            RpcClient rpcClient = serviceProvider.GetService<RpcClient>();
 
             logger.LogDebug("All done!");
 
             Console.WriteLine("Press any key to close the application");
-            
-             while (true) {
+
+            while (true)
+            {
                 Console.Read();
             };
         }
 
-        private static async Task RunProgramRunExample(RabbitMQ rabbitMQ)
+        private static async Task RunProgramRunExample(RabbitMQConnection rabbitMQ)
         {
             try
             {
@@ -103,7 +110,7 @@ namespace TaskEngine
                 await scheduler.Start();
 
                 // define the job and tie it to our HelloJob class
-                IJobDetail job = JobBuilder.Create<DownloadPlaylistInfoTask>()
+                IJobDetail job = JobBuilder.Create<QueueAwakerTask>()
                     .WithIdentity("job1", "group1")
                     .Build();
 

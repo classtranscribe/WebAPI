@@ -10,29 +10,41 @@ namespace TaskEngine.Tasks
     {
         private RpcClient _rpcClient;
         private TranscriptionTask _transcriptionTask;
-        private void Init(RabbitMQ rabbitMQ)
+        private void Init(RabbitMQConnection rabbitMQ)
         {
             _rabbitMQ = rabbitMQ;
-            queueName = RabbitMQ.QueueNameBuilder(TaskType.ConvertMedia, "_1");
+            queueName = RabbitMQConnection.QueueNameBuilder(CommonUtils.TaskType.ConvertMedia, "_1");
         }
-        public ConvertVideoToWavTask(RabbitMQ rabbitMQ, RpcClient rpcClient, TranscriptionTask transcriptionTask)
+        public ConvertVideoToWavTask(RabbitMQConnection rabbitMQ, RpcClient rpcClient, TranscriptionTask transcriptionTask)
         {
             Init(rabbitMQ);
             _rpcClient = rpcClient;
             _transcriptionTask = transcriptionTask;
         }
-        protected async override Task OnConsume(Video video)
+        protected async override Task OnConsume(Video v)
         {
-            Console.WriteLine("Consuming" + video);
-            var file = await _rpcClient.NodeServerClient.ConvertVideoToWavRPCAsync(new CTGrpc.File
-            {
-                FilePath = video.Video1.VMPath
-            });
             using (var _context = CTDbContext.CreateDbContext())
-            {                
-                video.Audio = new FileRecord(file.FilePath);
-                await _context.SaveChangesAsync();
-                _transcriptionTask.Publish(video);
+            {
+                var video = await _context.Videos.FindAsync(v.Id);
+                Console.WriteLine("Consuming" + video);
+                var file = await _rpcClient.NodeServerClient.ConvertVideoToWavRPCAsync(new CTGrpc.File
+                {
+                    FilePath = video.Video1.VMPath
+                });
+                if (file.FilePath.Length > 0)
+                {
+                    var videoLatest = await _context.Videos.FindAsync(video.Id);
+                    if (videoLatest.Audio == null)
+                    {
+                        videoLatest.Audio = new FileRecord(file.FilePath);
+                        await _context.SaveChangesAsync();
+                        _transcriptionTask.Publish(videoLatest);
+                    }
+                }
+                else
+                {
+                    throw new Exception("ConvertVideoToWavTask Failed + " + video.Id);
+                }
             }
         }
     }

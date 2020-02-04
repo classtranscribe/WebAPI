@@ -31,10 +31,3 @@ RUN echo "export VISIBLE=now" >> /etc/profile
 EXPOSE 22
 CMD ["/usr/sbin/sshd", "-D"]
 
-FROM classtranscribe/ubuntu_asp_base:latest AS dotnet_sdk_2.2
-RUN wget -q https://download.visualstudio.microsoft.com/download/pr/3224f4c4-8333-4b78-b357-144f7d575ce5/ce8cb4b466bba08d7554fe0900ddc9dd/dotnet-sdk-2.2.301-linux-x64.tar.gz
-RUN mkdir -p $BIN_PATH/dotnet && tar zxf dotnet-sdk-2.2.301-linux-x64.tar.gz -C $BIN_PATH/dotnet
-
-FROM classtranscribe/ubuntu_asp_base:latest AS dotnet_sdk_3.0
-RUN wget -q https://download.visualstudio.microsoft.com/download/pr/72ce4d40-9063-4a2e-a962-0bf2574f75d1/5463bb92cff4f9c76935838d1efbc757/dotnet-sdk-3.0.100-preview6-012264-linux-x64.tar.gz
-RUN mkdir -p $BIN_PATH/dotnet && tar zxf dotnet-sdk-3.0.100-preview6-012264-linux-x64.tar.gz -C $BIN_PATH/dotnet

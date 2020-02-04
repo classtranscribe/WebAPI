@@ -1,4 +1,4 @@
-FROM classtranscribe/dotnet_sdk_2.2:latest AS api_csproj
+FROM classtranscribe/dotnet3_1:latest AS api_csproj
 WORKDIR /src
 COPY ["./ClassTranscribeServer/ClassTranscribeServer.csproj", ""]
 COPY ["./ClassTranscribeDatabase/ClassTranscribeDatabase.csproj", ""]

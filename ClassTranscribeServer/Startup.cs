@@ -19,11 +19,11 @@ using Microsoft.Extensions.FileProviders;
 using Microsoft.AspNetCore.Authorization;
 using ClassTranscribeServer.Authorization;
 using Microsoft.AspNetCore.HttpOverrides;
-using Swashbuckle.AspNetCore.Filters;
+using Microsoft.Extensions.Hosting;
 using System.Collections.Generic;
-using System.Linq;
-using Swashbuckle.AspNetCore.Swagger;
 using ClassTranscribeServer.Utils;
+using Microsoft.AspNetCore.Http.Features;
+using Microsoft.OpenApi.Models;
 
 namespace ClassTranscribeServer
 {
@@ -83,7 +83,12 @@ namespace ClassTranscribeServer
                     };
                 });
 
-            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
+            services.AddMvc().AddNewtonsoftJson().SetCompatibilityVersion(CompatibilityVersion.Version_3_0);
+            services.Configure<FormOptions>(x =>
+            {
+                x.ValueLengthLimit = int.MaxValue;
+                x.MultipartBodyLengthLimit = int.MaxValue; // In case of multipart
+            });
 
             // Authorization handlers.
             services.AddScoped<IAuthorizationHandler,
@@ -105,7 +110,7 @@ namespace ClassTranscribeServer
             // new ApiKeyScheme { };
             services.AddSwaggerGen(c =>
             {
-                c.SwaggerDoc("v1", new Info
+                c.SwaggerDoc("v1", new OpenApiInfo
                 {
                     Version = "v1",
                     Title = "ClassTranscribeServer API"
@@ -114,21 +119,31 @@ namespace ClassTranscribeServer
                 var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
                 var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
                 c.IncludeXmlComments(xmlPath);
-                c.AddSecurityDefinition("Bearer",
-                new ApiKeyScheme
+                c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
                 {
-                    In = "header",
-                    Description = "Please enter into field the word 'Bearer' following by space and JWT",
+                    Description =
+                    "JWT Authorization header using the Bearer scheme. \r\n\r\n Enter 'Bearer' [space] and then your token in the text input below.\r\n\r\nExample: \"Bearer 12345abcdef\"",
                     Name = "Authorization",
-                    Type = "apiKey"
+                    In = ParameterLocation.Header,
+                    Type = SecuritySchemeType.ApiKey,
+                    Scheme = "Bearer"
                 });
-                c.AddSecurityRequirement(new Dictionary<string, IEnumerable<string>> {{ "Bearer", Enumerable.Empty<string>() }});
+                c.AddSecurityRequirement(new OpenApiSecurityRequirement{
+                    {
+                        new OpenApiSecurityScheme{
+                            Reference = new OpenApiReference{
+                                Id = "Bearer", //The name of the previously defined security scheme.
+                                Type = ReferenceType.SecurityScheme
+                            }
+                        },new List<string>()
+                    }
+                });
                 c.OperationFilter<FileUploadOperation>(); //Register File Upload Operation Filter
             });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env, CTDbContext dbContext)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, CTDbContext dbContext)
         {
             if (env.IsDevelopment())
             {
@@ -145,7 +160,7 @@ namespace ClassTranscribeServer
             });
             app.UseCors(MyAllowSpecificOrigins);
             // app.UseHttpsRedirection();
-            app.UseAuthentication();
+            app.UseAuthentication();            
             // Enable middleware to serve generated Swagger as a JSON endpoint.
             app.UseSwagger();
             app.UseStaticFiles(new StaticFileOptions
@@ -163,9 +178,11 @@ namespace ClassTranscribeServer
                 c.RoutePrefix = "swag";
             });
 
-            app.UseMvc(routes =>
+            app.UseRouting();
+            app.UseAuthorization();
+            app.UseEndpoints(endpoints =>
             {
-                routes.MapRoute("default","/swag/index.html");
+                endpoints.MapDefaultControllerRoute().RequireAuthorization();
             });
             Seeder.Seed(dbContext);
         }

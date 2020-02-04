@@ -43,7 +43,8 @@ namespace ClassTranscribeServer.Controllers
                     return new ChallengeResult();
                 }
             }
-            var playlists = await _context.Playlists.Where(p => p.OfferingId == offeringId)
+            var playlists = await _context.Playlists
+                .Where(p => p.OfferingId == offeringId)
                 .OrderBy(p => p.CreatedAt)
                 .Select(p => new PlaylistDTO
                 {
@@ -52,20 +53,20 @@ namespace ClassTranscribeServer.Controllers
                     SourceType = p.SourceType,
                     OfferingId = p.OfferingId,
                     Name = p.Name,
-                    Medias = p.Medias.Select(m => new MediaDTO
+                    Medias = p.Medias.Where(m => m.Video != null).Select(m => new MediaDTO
                     {
                         Id = m.Id,
                         JsonMetadata = m.JsonMetadata,
                         CreatedAt = m.CreatedAt,
-                        Ready = m.Transcriptions.Any(),
+                        Ready = m.Video.Transcriptions.Any(),
                         SourceType = m.SourceType,
-                        Videos = m.Videos.Select(v => new VideoDTO
+                        Video = new VideoDTO
                         {
-                            Id = v.Id,
-                            Video1Path = v.Video1 != null ? v.Video1.Path : null,
-                            Video2Path = v.Video2 != null ? v.Video2.Path : null
-                        }).ToList(),
-                        Transcriptions = m.Transcriptions.Select(t => new TranscriptionDTO
+                            Id = m.Video.Id,
+                            Video1Path = m.Video.Video1 != null ? m.Video.Video1.Path : null,
+                            Video2Path = m.Video.Video2 != null ? m.Video.Video2.Path : null,
+                        },
+                        Transcriptions = m.Video.Transcriptions.Select(t => new TranscriptionDTO
                         {
                             Id = t.Id,
                             Path = t.File.Path,
@@ -91,20 +92,21 @@ namespace ClassTranscribeServer.Controllers
             List<MediaDTO> medias = p.Medias.OrderBy(m => m.CreatedAt).Select(m => new MediaDTO
             {
                 Id = m.Id,
+                PlaylistId = m.PlaylistId,
                 CreatedAt = m.CreatedAt,
                 JsonMetadata = m.JsonMetadata,
                 SourceType = m.SourceType,
-                Ready = m.Transcriptions.Any(),
-                Videos = m.Videos.Select(v => new VideoDTO
+                Ready = m.Video.Transcriptions.Any(),
+                Video = new VideoDTO
                 {
-                    Id = v.Id,
-                    Video1Path = v.Video1 != null ? v.Video1.Path : null,
-                    Video2Path = v.Video2 != null ? v.Video2.Path : null
-                }).ToList(),
-                Transcriptions = m.Transcriptions.Select(t => new TranscriptionDTO
+                    Id = m.Video.Id,
+                    Video1Path = m.Video.Video1?.Path,
+                    Video2Path = m.Video.Video2?.Path
+                },
+                Transcriptions = m.Video.Transcriptions.Select(t => new TranscriptionDTO
                 {
                     Id = t.Id,
-                    Path = t.File.Path,
+                    Path = t.File != null ? t.File.Path : null,
                     Language = t.Language
                 }).ToList()
             }).ToList();
@@ -147,7 +149,7 @@ namespace ClassTranscribeServer.Controllers
             try
             {
                 await _context.SaveChangesAsync();
-                WakeDownloader.Wake();
+                WakeDownloader.UpdatePlaylist(playlist.Id);
             }
             catch (DbUpdateConcurrencyException)
             {
@@ -183,7 +185,7 @@ namespace ClassTranscribeServer.Controllers
             }
             _context.Playlists.Add(playlist);
             await _context.SaveChangesAsync();
-            WakeDownloader.Wake();
+            WakeDownloader.UpdatePlaylist(playlist.Id);
 
             return CreatedAtAction("GetPlaylist", new { id = playlist.Id }, playlist);
         }
@@ -222,27 +224,6 @@ namespace ClassTranscribeServer.Controllers
             return _context.Playlists.Any(e => e.Id == id);
         }
 
-        public class PlaylistDTO
-        {
-            public string Id { get; set; }
-            public DateTime CreatedAt { get; set; }
-            public SourceType SourceType { get; set; }
-            public string OfferingId { get; set; }
-            public string Name { get; set; }
-            public List<MediaDTO> Medias { get; set; }
-        }
-
-        public class MediaDTO
-        {
-            public string Id { get; set; }
-            public DateTime CreatedAt { get; set; }
-            public JObject JsonMetadata { get; set; }
-            public SourceType SourceType { get; set; }
-            public bool Ready { get; set; }
-            public List<VideoDTO> Videos { get; set; }
-            public List<TranscriptionDTO> Transcriptions { get; set; }
-        }
-
         [NonAction]
         public List<VideoDTO> GetVideoDTOs(List<Video> vs)
         {
@@ -264,19 +245,41 @@ namespace ClassTranscribeServer.Controllers
                 Language = t.Language
             }).ToList();
         }
+    }
 
-        public class VideoDTO
-        {
-            public string Id { get; set; }
-            public string Video1Path { get; set; }
-            public string Video2Path { get; set; }
-        }
+    public class VideoDTO
+    {
+        public string Id { get; set; }
+        public string Video1Path { get; set; }
+        public string Video2Path { get; set; }
+    }
 
-        public class TranscriptionDTO
-        {
-            public string Id { get; set; }
-            public string Path { get; set; }
-            public string Language { get; set; }
-        }
+    public class TranscriptionDTO
+    {
+        public string Id { get; set; }
+        public string Path { get; set; }
+        public string Language { get; set; }
+    }
+
+    public class PlaylistDTO
+    {
+        public string Id { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public SourceType SourceType { get; set; }
+        public string OfferingId { get; set; }
+        public string Name { get; set; }
+        public List<MediaDTO> Medias { get; set; }
+    }
+
+    public class MediaDTO
+    {
+        public string Id { get; set; }
+        public string PlaylistId { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public JObject JsonMetadata { get; set; }
+        public SourceType SourceType { get; set; }
+        public bool Ready { get; set; }
+        public VideoDTO Video { get; set; }
+        public List<TranscriptionDTO> Transcriptions { get; set; }
     }
 }

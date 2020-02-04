@@ -6,13 +6,12 @@ namespace TaskEngine
 {
     public abstract class RabbitMQTask<T>
     {
-        protected RabbitMQ _rabbitMQ;
+        protected RabbitMQConnection _rabbitMQ;
         protected string queueName;
         public void Publish(T obj)
         {
             try
             {
-                Console.WriteLine(obj);
                 _rabbitMQ.PublishTask(queueName, obj);
             }
             catch (Exception e)
@@ -33,13 +32,5 @@ namespace TaskEngine
                 Console.WriteLine(e.ToString());
             }
         }
-    }
-
-    public enum TaskType
-    {
-        FetchPlaylistData,
-        DownloadMedia,
-        ConvertMedia,
-        TranscribeMedia
     }
 }

@@ -13,7 +13,6 @@ namespace ClassTranscribeServer.Authorization
     public class ReadOfferingRequirement : IAuthorizationRequirement { }
     public class UpdateOfferingRequirement : IAuthorizationRequirement { }
     public class CreateOfferingRequirement : IAuthorizationRequirement { }
-
     public class UpdateOfferingAuthorizationHandler :
     AuthorizationHandler<UpdateOfferingRequirement, string>
     {
@@ -43,15 +42,18 @@ namespace ClassTranscribeServer.Authorization
                 var currentUserID = context.User.FindFirst(ClaimTypes.NameIdentifier).Value;
                 user = _ctDbContext.Users.Where(u => u.Id == currentUserID).First();
             }
-            var InstructorRoleId = await _roleManager.GetRoleIdAsync(new IdentityRole { Name = Globals.ROLE_INSTRUCTOR });
+            var InstructorRole = await _roleManager.FindByNameAsync(Globals.ROLE_INSTRUCTOR);
             if (context.User.IsInRole(Globals.ROLE_ADMIN))
             {
                 context.Succeed(requirement);
             }
-            if (_ctDbContext.UserOfferings.Where( (uo) => uo.ApplicationUserId == user.Id && uo.OfferingId == offering.Id && uo.IdentityRoleId == InstructorRoleId).Any())
+            if (_ctDbContext.UserOfferings.Where( (uo) => uo.ApplicationUserId == user.Id && uo.OfferingId == offering.Id && uo.IdentityRoleId == InstructorRole.Id).Any())
             {
                 context.Succeed(requirement);
             }
+            // Detach object after using
+            _ctDbContext.Entry(offering).State = EntityState.Detached;
+            _ctDbContext.Entry(user).State = EntityState.Detached;            
         }
 
     }
@@ -100,6 +102,12 @@ namespace ClassTranscribeServer.Authorization
             else if (context.User.IsInRole(Globals.ROLE_ADMIN))
             {
                 context.Succeed(requirement);
+            }
+            // Detach object after using
+            _ctDbContext.Entry(offering).State = EntityState.Detached;
+            if (user != null)
+            {
+                _ctDbContext.Entry(user).State = EntityState.Detached;
             }
         }
     }    

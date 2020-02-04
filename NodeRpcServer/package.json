@@ -11,9 +11,10 @@
   "dependencies": {
     "@grpc/proto-loader": "^0.5.1",
     "child-process-promise": "^2.2.1",
+    "epub-gen": "0.1.0",
     "fs-promise": "^2.0.3",
     "grpc": "^1.21.1",
-    "lodash": "^4.17.11",
+    "lodash": "^4.17.15",
     "minimist": "^1.2.0",
     "path": "^0.12.7",
     "request": "^2.88.0",

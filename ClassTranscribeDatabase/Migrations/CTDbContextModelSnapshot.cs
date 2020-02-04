@@ -16,7 +16,7 @@ namespace ClassTranscribeDatabase.Migrations
 #pragma warning disable 612, 618
             modelBuilder
                 .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.SerialColumn)
-                .HasAnnotation("ProductVersion", "2.2.6-servicing-10079")
+                .HasAnnotation("ProductVersion", "2.2.4-servicing-10062")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             modelBuilder.Entity("ClassTranscribeDatabase.Models.ApplicationUser", b =>
@@ -88,6 +88,8 @@ namespace ClassTranscribeDatabase.Migrations
 
                     b.Property<TimeSpan>("Begin");
 
+                    b.Property<int>("CaptionType");
+
                     b.Property<DateTime>("CreatedAt");
 
                     b.Property<string>("CreatedBy");
@@ -122,8 +124,6 @@ namespace ClassTranscribeDatabase.Migrations
                     b.Property<string>("Id")
                         .ValueGeneratedOnAdd();
 
-                    b.Property<string>("CourseName");
-
                     b.Property<string>("CourseNumber");
 
                     b.Property<DateTime>("CreatedAt");
@@ -131,8 +131,6 @@ namespace ClassTranscribeDatabase.Migrations
                     b.Property<string>("CreatedBy");
 
                     b.Property<string>("DepartmentId");
-
-                    b.Property<string>("Description");
 
                     b.Property<int>("IsDeletedStatus");
 
@@ -200,6 +198,36 @@ namespace ClassTranscribeDatabase.Migrations
                     b.ToTable("Departments");
                 });
 
+            modelBuilder.Entity("ClassTranscribeDatabase.Models.EPub", b =>
+                {
+                    b.Property<string>("Id")
+                        .ValueGeneratedOnAdd();
+
+                    b.Property<DateTime>("CreatedAt");
+
+                    b.Property<string>("CreatedBy");
+
+                    b.Property<string>("FileId");
+
+                    b.Property<int>("IsDeletedStatus");
+
+                    b.Property<string>("Language");
+
+                    b.Property<DateTime>("LastUpdatedAt");
+
+                    b.Property<string>("LastUpdatedBy");
+
+                    b.Property<string>("VideoId");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FileId");
+
+                    b.HasIndex("VideoId");
+
+                    b.ToTable("EPubs");
+                });
+
             modelBuilder.Entity("ClassTranscribeDatabase.Models.FileRecord", b =>
                 {
                     b.Property<string>("Id")
@@ -253,12 +281,6 @@ namespace ClassTranscribeDatabase.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("MediaId");
-
-                    b.HasIndex("OfferingId");
-
-                    b.HasIndex("UserId");
-
                     b.ToTable("Logs");
                 });
 
@@ -285,9 +307,13 @@ namespace ClassTranscribeDatabase.Migrations
 
                     b.Property<string>("UniqueMediaIdentifier");
 
+                    b.Property<string>("VideoId");
+
                     b.HasKey("Id");
 
                     b.HasIndex("PlaylistId");
+
+                    b.HasIndex("VideoId");
 
                     b.ToTable("Medias");
                 });
@@ -299,9 +325,13 @@ namespace ClassTranscribeDatabase.Migrations
 
                     b.Property<int>("AccessType");
 
+                    b.Property<string>("CourseName");
+
                     b.Property<DateTime>("CreatedAt");
 
                     b.Property<string>("CreatedBy");
+
+                    b.Property<string>("Description");
 
                     b.Property<int>("IsDeletedStatus");
 
@@ -403,13 +433,17 @@ namespace ClassTranscribeDatabase.Migrations
 
                     b.Property<string>("LastUpdatedBy");
 
-                    b.Property<string>("MediaId");
+                    b.Property<string>("SrtFileId");
+
+                    b.Property<string>("VideoId");
 
                     b.HasKey("Id");
 
                     b.HasIndex("FileId");
 
-                    b.HasIndex("MediaId");
+                    b.HasIndex("SrtFileId");
+
+                    b.HasIndex("VideoId");
 
                     b.ToTable("Transcriptions");
                 });
@@ -482,11 +516,19 @@ namespace ClassTranscribeDatabase.Migrations
 
                     b.Property<int>("IsDeletedStatus");
 
+                    b.Property<string>("JsonMetadata");
+
                     b.Property<DateTime>("LastUpdatedAt");
 
                     b.Property<string>("LastUpdatedBy");
 
-                    b.Property<string>("MediaId");
+                    b.Property<string>("ProcessedVideo1Id");
+
+                    b.Property<string>("ProcessedVideo2Id");
+
+                    b.Property<string>("SceneData");
+
+                    b.Property<int>("TranscribingAttempts");
 
                     b.Property<string>("TranscriptionStatus");
 
@@ -498,7 +540,9 @@ namespace ClassTranscribeDatabase.Migrations
 
                     b.HasIndex("AudioId");
 
-                    b.HasIndex("MediaId");
+                    b.HasIndex("ProcessedVideo1Id");
+
+                    b.HasIndex("ProcessedVideo2Id");
 
                     b.HasIndex("Video1Id");
 
@@ -655,19 +699,15 @@ namespace ClassTranscribeDatabase.Migrations
                         .HasForeignKey("UniversityId");
                 });
 
-            modelBuilder.Entity("ClassTranscribeDatabase.Models.Log", b =>
+            modelBuilder.Entity("ClassTranscribeDatabase.Models.EPub", b =>
                 {
-                    b.HasOne("ClassTranscribeDatabase.Models.Media", "Media")
+                    b.HasOne("ClassTranscribeDatabase.Models.FileRecord", "File")
                         .WithMany()
-                        .HasForeignKey("MediaId");
+                        .HasForeignKey("FileId");
 
-                    b.HasOne("ClassTranscribeDatabase.Models.Offering", "Offering")
-                        .WithMany()
-                        .HasForeignKey("OfferingId");
-
-                    b.HasOne("ClassTranscribeDatabase.Models.ApplicationUser", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId");
+                    b.HasOne("ClassTranscribeDatabase.Models.Video", "Video")
+                        .WithMany("EPubs")
+                        .HasForeignKey("VideoId");
                 });
 
             modelBuilder.Entity("ClassTranscribeDatabase.Models.Media", b =>
@@ -675,6 +715,10 @@ namespace ClassTranscribeDatabase.Migrations
                     b.HasOne("ClassTranscribeDatabase.Models.Playlist", "Playlist")
                         .WithMany("Medias")
                         .HasForeignKey("PlaylistId");
+
+                    b.HasOne("ClassTranscribeDatabase.Models.Video", "Video")
+                        .WithMany("Medias")
+                        .HasForeignKey("VideoId");
                 });
 
             modelBuilder.Entity("ClassTranscribeDatabase.Models.Offering", b =>
@@ -704,9 +748,13 @@ namespace ClassTranscribeDatabase.Migrations
                         .WithMany()
                         .HasForeignKey("FileId");
 
-                    b.HasOne("ClassTranscribeDatabase.Models.Media", "Media")
+                    b.HasOne("ClassTranscribeDatabase.Models.FileRecord", "SrtFile")
+                        .WithMany()
+                        .HasForeignKey("SrtFileId");
+
+                    b.HasOne("ClassTranscribeDatabase.Models.Video", "Video")
                         .WithMany("Transcriptions")
-                        .HasForeignKey("MediaId");
+                        .HasForeignKey("VideoId");
                 });
 
             modelBuilder.Entity("ClassTranscribeDatabase.Models.UserOffering", b =>
@@ -732,9 +780,13 @@ namespace ClassTranscribeDatabase.Migrations
                         .WithMany()
                         .HasForeignKey("AudioId");
 
-                    b.HasOne("ClassTranscribeDatabase.Models.Media", "Media")
-                        .WithMany("Videos")
-                        .HasForeignKey("MediaId");
+                    b.HasOne("ClassTranscribeDatabase.Models.FileRecord", "ProcessedVideo1")
+                        .WithMany()
+                        .HasForeignKey("ProcessedVideo1Id");
+
+                    b.HasOne("ClassTranscribeDatabase.Models.FileRecord", "ProcessedVideo2")
+                        .WithMany()
+                        .HasForeignKey("ProcessedVideo2Id");
 
                     b.HasOne("ClassTranscribeDatabase.Models.FileRecord", "Video1")
                         .WithMany()

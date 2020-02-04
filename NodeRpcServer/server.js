@@ -17,7 +17,7 @@
  *
  */
 
-var PROTO_PATH = __dirname + '/ct.proto';
+var PROTO_PATH = '/ct.proto';
 var _ = require('lodash');
 var grpc = require('grpc');
 var protoLoader = require('@grpc/proto-loader');
@@ -26,6 +26,7 @@ var path = require('path');
 var echo = require('./echo');
 var youtube = require('./youtube');
 var utils = require('./utils');
+var epub = require('./epub');
 
 var packageDefinition = protoLoader.loadSync(
     PROTO_PATH,
@@ -50,7 +51,9 @@ function main() {
        DownloadEchoVideoRPC: echo.downloadEchoVideoRPC,
        GetYoutubePlaylistRPC: youtube.getYoutubePlaylistRPC, 
        DownloadYoutubeVideoRPC: youtube.downloadYoutubeVideoRPC,
-       ConvertVideoToWavRPC: utils.convertVideoToWavRPC
+       ConvertVideoToWavRPC: utils.convertVideoToWavRPC,
+       ProcessVideoRPC: utils.processVideoRPC,
+       CreateEPubRPC: epub.createEpubRPC
      });
    server.bind('0.0.0.0:50052', grpc.ServerCredentials.createInsecure());
    server.start();

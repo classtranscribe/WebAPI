@@ -38,7 +38,10 @@ namespace ClassTranscribeServer.Controllers
             {
                 user = await _userutils.CreateNonExistentUser(mailId);
             }
-            await _userManager.AddToRoleAsync(user, Globals.ROLE_INSTRUCTOR);
+            if (!(await _userManager.IsInRoleAsync(user, Globals.ROLE_INSTRUCTOR)))
+            {
+                await _userManager.AddToRoleAsync(user, Globals.ROLE_INSTRUCTOR);
+            }
             return Ok();
         }
 
@@ -55,7 +58,7 @@ namespace ClassTranscribeServer.Controllers
         // POST: api/Roles
         [HttpGet]
         [Authorize(Roles = Globals.ROLE_ADMIN)]
-        public async Task<List<ApplicationUser>> GetInstructors(string universityId)
+        public List<ApplicationUser> GetInstructors(string universityId)
         {
             var instructorRoleId = _context.Roles.Where(r => r.Name == Globals.ROLE_INSTRUCTOR).First().Id;
 

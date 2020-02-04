@@ -1,9 +1,6 @@
 ﻿using ClassTranscribeDatabase;
 using ClassTranscribeDatabase.Models;
-using Microsoft.Extensions.Options;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
 using TaskEngine.Grpc;
 using TaskEngine.MSTranscription;
@@ -15,42 +12,48 @@ namespace TaskEngine.Tasks
         private RpcClient _rpcClient;
         private MSTranscriptionService _msTranscriptionService;
         private AppSettings _appSettings;
-        private void Init(RabbitMQ rabbitMQ)
+        private GenerateVTTFileTask _generateVTTFileTask;
+        private void Init(RabbitMQConnection rabbitMQ)
         {
             _rabbitMQ = rabbitMQ;
-            queueName = RabbitMQ.QueueNameBuilder(TaskType.TranscribeMedia, "_1");
+            queueName = RabbitMQConnection.QueueNameBuilder(CommonUtils.TaskType.TranscribeMedia, "_1");
         }
-        public TranscriptionTask(RabbitMQ rabbitMQ, RpcClient rpcClient, MSTranscriptionService msTranscriptionService)
+        public TranscriptionTask(RabbitMQConnection rabbitMQ, RpcClient rpcClient, MSTranscriptionService msTranscriptionService, GenerateVTTFileTask generateVTTFileTask)
         {
             Init(rabbitMQ);
             _rpcClient = rpcClient;
             _msTranscriptionService = msTranscriptionService;
             _appSettings = Globals.appSettings;
+            _generateVTTFileTask = generateVTTFileTask;
         }
         protected async override Task OnConsume(Video video)
         {
-            var result = await _msTranscriptionService.RecognitionWithAudioStreamAsync(video.Audio.Path);
+            var result = await _msTranscriptionService.RecognitionWithAudioStreamAsync(video);
             List<Transcription> transcriptions = new List<Transcription>();
-            foreach(var language in result.Item2)
+            foreach(var language in result.Item1)
             {
-                var captions = result.Item1[language.Key].Select(s => s.ToCaption()).ToList();
-                int i = 1;
-                captions.ForEach(c => c.Index = i++);
-                transcriptions.Add(new Transcription
+                if(language.Value.Count > 0)
                 {
-                    File = new FileRecord(language.Value),
-                    Language = language.Key,
-                    MediaId = video.MediaId,
-                    Captions = captions
-                });
+                    transcriptions.Add(new Transcription
+                    {
+                        Language = language.Key,
+                        VideoId = video.Id,
+                        Captions = language.Value
+                    });
+                }
             }
             using (var _context = CTDbContext.CreateDbContext())
-            {                
-                await _context.Transcriptions.AddRangeAsync(transcriptions);
-                video.TranscriptionStatus = result.Item3;
-                _context.Videos.Update(video);
-                await _context.SaveChangesAsync();
-            }
+            {
+                var latestVideo = await _context.Videos.FindAsync(video.Id);
+                if (latestVideo.TranscriptionStatus != "NoError")
+                {
+                    await _context.Transcriptions.AddRangeAsync(transcriptions);
+                    latestVideo.TranscriptionStatus = result.Item2;
+                    latestVideo.TranscribingAttempts += 1;
+                    await _context.SaveChangesAsync();
+                    transcriptions.ForEach(t => _generateVTTFileTask.Publish(t));
+                }
+            }            
         }
     }
 }

@@ -30,13 +30,13 @@ namespace ClassTranscribeServer.Controllers
             _userUtils = new UserUtils(userManager, context);
         }
 
-        // GET: api/Courses/
+        // GET: api/Offerings/ByStudent
         // TODO: Implement Authorization
         /// <summary>
         /// Gets all Offerings for a student by userId
         /// </summary>
         [HttpGet("ByStudent")]
-        public async Task<ActionResult<IEnumerable<Offering>>> GetOfferingsByStudent()
+        public async Task<ActionResult<IEnumerable<OfferingListDTO>>> GetOfferingsByStudent()
         {
             // Get the user
             ApplicationUser user = null;
@@ -72,8 +72,21 @@ namespace ClassTranscribeServer.Controllers
                 offerings.AddRange(member_offerings);
             }
 
+            var filteredOfferings = offerings.FindAll(o => o.Playlists.SelectMany(m => m.Medias).Count() > 0).OrderBy(o => o.Term.StartDate).ToList();
+
+            var offeringListDTO = filteredOfferings.Select(o => new OfferingListDTO
+            {
+                Offering = o,
+                Courses = o.CourseOfferings.Select(co => new CourseDTO { 
+                    CourseNumber = co.Course.CourseNumber,
+                    DepartmentId = co.Course.DepartmentId,
+                    DepartmentAcronym = co.Course.Department.Acronym}).ToList(),
+                //Courses = await _context.CourseOfferings.Where(co => co.OfferingId == o.Id).Select(co => co.Course).ToListAsync(),
+                Term = o.Term
+            }).ToList();
+
             // return the combined result
-            return offerings.OrderBy(o => o.Term.StartDate).ToList();
+            return offeringListDTO;
         }
 
         // GET: api/Offerings/5
@@ -160,7 +173,6 @@ namespace ClassTranscribeServer.Controllers
                 CourseId = newOfferingDTO.CourseId,
                 OfferingId = newOfferingDTO.Offering.Id
             });
-            ApplicationUser user = null;
             if (User.Identity.IsAuthenticated && this.User.FindFirst(ClaimTypes.NameIdentifier) != null)
             {
                 var userId = this.User.FindFirst(ClaimTypes.NameIdentifier).Value;
@@ -196,7 +208,7 @@ namespace ClassTranscribeServer.Controllers
             foreach (string mailId in mailIds)
             {
                 var user = await _userManager.FindByEmailAsync(mailId);
-                if(user == null)
+                if (user == null)
                 {
                     user = await _userUtils.CreateNonExistentUser(mailId);
                 }
@@ -207,7 +219,16 @@ namespace ClassTranscribeServer.Controllers
                     OfferingId = offeringId
                 });
             }
-            await _context.UserOfferings.AddRangeAsync(userOfferings);
+
+            foreach (var uo in userOfferings)
+            {
+                if (!(await _context.UserOfferings.Where(u => u.ApplicationUserId == uo.ApplicationUserId
+                 && u.IdentityRoleId == uo.IdentityRole.Id
+                 && u.OfferingId == uo.OfferingId).AnyAsync()))
+                {
+                    await _context.UserOfferings.AddAsync(uo);
+                }
+            }
             await _context.SaveChangesAsync();
             return userOfferings;
         }
@@ -257,7 +278,25 @@ namespace ClassTranscribeServer.Controllers
             public Offering Offering { get; set; }
             public List<Course> Courses { get; set; }
             public List<ApplicationUser> InstructorIds { get; set; }
+            public Term Term { get; set; }
         }
+
+        public class OfferingListDTO 
+        {
+            public Offering Offering { get; set; }
+            public List<CourseDTO> Courses { get; set; }
+            public Term Term { get; set; }
+        }
+
+        public class CourseDTO
+        {
+            public string CourseName { get; set; }
+            public string CourseNumber { get; set; }
+            public string Description { get; set; }
+            public string DepartmentId { get; set; }
+            public string DepartmentAcronym { get; set; }
+        }
+
     }
 
 }

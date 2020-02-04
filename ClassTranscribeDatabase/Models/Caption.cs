@@ -1,11 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.Serialization;
 using System.Text;
-using System.Linq;
-using ClassTranscribeDatabase.Models;
 
-namespace TaskEngine.MSTranscription
+namespace ClassTranscribeDatabase.Models
 {
     public class MSTWord
     {
@@ -13,51 +12,52 @@ namespace TaskEngine.MSTranscription
         public long Offset { get; set; }
         public string Word { get; set; }
     }
-    public class Sub
+    public enum CaptionType
     {
-        public static int subLength = 40;
+        TextCaption,
+        AudioDescription
+    }
+    public class Caption : Entity
+    { 
+        public int Index { get; set; }
         public TimeSpan Begin { get; set; }
         public TimeSpan End { get; set; }
-        public string Caption { get; set; }
+        public string Text { get; set; }
+        public string TranscriptionId { get; set; }
+        public int UpVote { get; set; }
+        public int DownVote { get; set; }
+        [IgnoreDataMember]
+        public virtual Transcription Transcription { get; set; }
+        public CaptionType CaptionType { get; set; }
+        public static int subLength = 40;
 
-        public string SrtSubtitle(int Counter)
+        public string SrtSubtitle()
         {
-            String a = "";
-            a += Counter + "\n";
+            string a = "";
+            a += Index + "\n";
             a += string.Format("{0:hh\\:mm\\:ss\\,fff} --> {1:hh\\:mm\\:ss\\,fff}\n", Begin, End);
-            a += Caption + "\n\n";
+            a += Text + "\n\n";
             return a;
         }
 
-        public string WebVTTSubtitle(int Counter)
+        public string WebVTTSubtitle()
         {
-            String a = "";
-            a += Counter + "\n";
+            string a = "";
+            a += Index + "\n";
             a += string.Format("{0:hh\\:mm\\:ss\\.fff} --> {1:hh\\:mm\\:ss\\.fff}\n", Begin, End);
-            a += Caption + "\n\n";
+            a += Text + "\n\n";
             return a;
         }
 
-        public Caption ToCaption()
+        public static void AppendCaptions(List<Caption> captions, List<MSTWord> words)
         {
-            return new Caption
-            {
-                Text = this.Caption,
-                Begin = this.Begin,
-                End = this.End
-            };
-        }
-
-
-        public static List<Sub> GetSubs(List<MSTWord> words)
-        {            
-            List<Sub> subs = new List<Sub>();
+            int currCounter = captions.Count + 1;
             int currLength = 0;
             StringBuilder currSentence = new StringBuilder();
             TimeSpan? startTime = null;
-            foreach(MSTWord word in words)
+            foreach (MSTWord word in words)
             {
-                if(startTime == null)
+                if (startTime == null)
                 {
                     startTime = new TimeSpan(word.Offset);
                 }
@@ -66,11 +66,12 @@ namespace TaskEngine.MSTranscription
 
                 if (currLength > subLength)
                 {
-                    subs.Add(new Sub
+                    captions.Add(new Caption
                     {
+                        Index = currCounter++,
                         Begin = startTime ?? new TimeSpan(),
                         End = new TimeSpan(word.Offset + word.Duration),
-                        Caption = currSentence.ToString().Trim()
+                        Text = currSentence.ToString().Trim()
                     });
                     currSentence.Clear();
                     currLength = 0;
@@ -79,25 +80,25 @@ namespace TaskEngine.MSTranscription
             }
             if (currLength > 0)
             {
-                subs.Add(new Sub
+                captions.Add(new Caption
                 {
+                    Index = currCounter++,
                     Begin = startTime ?? new TimeSpan(),
                     End = new TimeSpan(words[words.Count - 1].Offset + words[words.Count - 1].Duration),
-                    Caption = currSentence.ToString().Trim()
+                    Text = currSentence.ToString().Trim()
                 });
             }
-            return subs;
         }
 
-        public static List<Sub> GetSubs(Sub sub)
+        public static void AppendCaptions(List<Caption> captions, TimeSpan Begin, TimeSpan End, string Caption)
         {
-            List<Sub> subs = new List<Sub>();
-            int length = sub.Caption.Length;
-            string tempCaption = sub.Caption;
+            int currCounter = captions.Count + 1;
+            int length = Caption.Length;
+            string tempCaption = Caption;
             string caption;
             int newDuration;
-            TimeSpan curBegin = sub.Begin;
-            TimeSpan curDuration = sub.End.Subtract(sub.Begin);
+            TimeSpan curBegin = Begin;
+            TimeSpan curDuration = End.Subtract(Begin);
             TimeSpan curEnd;
             while (tempCaption.Length > subLength)
             {
@@ -116,64 +117,63 @@ namespace TaskEngine.MSTranscription
                     tempCaption = tempCaption.Trim();
                 }
                 curEnd = curBegin.Add(new TimeSpan(0, 0, 0, 0, newDuration));
-                subs.Add(new Sub
+                captions.Add(new Caption
                 {
+                    Index = currCounter++,
                     Begin = curBegin,
                     End = curEnd,
-                    Caption = caption
+                    Text = caption
                 });
                 curBegin = curEnd;
-                curDuration = sub.End.Subtract(curBegin);
+                curDuration = End.Subtract(curBegin);
             }
             if (tempCaption.Length > 0)
             {
                 newDuration = Convert.ToInt32(subLength * curDuration.TotalMilliseconds / tempCaption.Length);
                 curEnd = curBegin.Add(new TimeSpan(0, 0, 0, 0, newDuration));
-                subs.Add(new Sub
+                captions.Add(new Caption
                 {
+                    Index = currCounter++,
                     Begin = curBegin,
                     End = curEnd,
-                    Caption = tempCaption
+                    Text = tempCaption
                 });
                 curBegin = curEnd;
-                curDuration = sub.End.Subtract(curBegin);
+                curDuration = End.Subtract(curBegin);
             }
-            return subs;
         }
 
-        public static string GenerateSrtFile(List<Sub> subs, string file, string language)
+        public static string GenerateSrtFile(List<Caption> captions, string file, string language)
         {
             string srtFile = file.Substring(0, file.IndexOf('.')) + "_" + language + ".srt";
-            int Counter = 1;
-            String Subtitle = "";
-            foreach (Sub sub in subs)
+            string Subtitle = "";
+            foreach (Caption caption in captions)
             {
-                Subtitle += sub.SrtSubtitle(Counter++);
+                Subtitle += caption.SrtSubtitle();
             }
             WriteSubtitleToFile(Subtitle, srtFile);
             return srtFile;
         }
 
-        public static string GenerateWebVTTFile(List<Sub> subs, String file, string language)
+        public static string GenerateWebVTTFile(List<Caption> captions, String file, string language)
         {
             string vttFile = file.Substring(0, file.IndexOf('.')) + "_" + language + ".vtt";
-            int Counter = 1;
-            String Subtitle = "WEBVTT\nKind: subtitles\nLanguage: en\n\n";
-            foreach (Sub sub in subs)
+            string Subtitle = "WEBVTT\nKind: subtitles\nLanguage: " + language + "\n\n";
+            foreach (Caption caption in captions)
             {
-                Subtitle += sub.WebVTTSubtitle(Counter++);
+                Subtitle += caption.WebVTTSubtitle();
             }
             WriteSubtitleToFile(Subtitle, vttFile);
             return vttFile;
         }
 
-        public static void WriteSubtitleToFile(string Subtitle, string srtFile)
+        public static void WriteSubtitleToFile(string Subtitle, string file)
         {
             try
             {
 
                 //Pass the filepath and filename to the StreamWriter Constructor
-                StreamWriter sw = new StreamWriter(srtFile, false, System.Text.Encoding.UTF8);
+                StreamWriter sw = new StreamWriter(file, false, System.Text.Encoding.UTF8);
                 //Write a line of text
                 sw.WriteLine(Subtitle);
                 //Close the file

@@ -1,4 +1,4 @@
-FROM classtranscribe/dotnet_sdk_3.0:latest AS taskengine_csproj
+FROM classtranscribe/dotnet3_1:latest AS taskengine_csproj
 WORKDIR /src
 COPY ["./ClassTranscribeDatabase/ClassTranscribeDatabase.csproj", ""]
 COPY ["./TaskEngine/TaskEngine.csproj", ""]

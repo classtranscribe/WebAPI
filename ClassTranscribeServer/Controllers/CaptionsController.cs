@@ -27,12 +27,27 @@ namespace ClassTranscribeServer.Controllers
         [HttpGet("ByTranscription/{TranscriptionId}")]
         public async Task<ActionResult<IEnumerable<Caption>>> GetCaptions(string TranscriptionId)
         {
-            return await _context.Captions.Where(c => c.TranscriptionId == TranscriptionId).GroupBy(c => c.Index).Select(g => g.OrderByDescending(c => c.CreatedAt).First()).OrderBy(c => c.Index).ToListAsync();
+            return await new CaptionQueries(_context).GetCaptionsAsync(TranscriptionId);
+        }
+
+        // GET: api/Captions
+        [HttpGet]
+        public async Task<ActionResult<Caption>> GetCaption(string transcriptionId, int index)
+        {
+            var captions = await _context.Captions.Where(c => c.TranscriptionId == transcriptionId && c.Index == index)
+                .OrderByDescending(c => c.CreatedAt).ToListAsync();
+            if (captions == null || captions.Count == 0)
+            {
+                return NotFound();
+            }
+            else
+            {
+                return captions.First();
+            }
         }
 
         // POST: api/Captions
         [HttpPost]
-        [Authorize]
         public async Task<ActionResult<Caption>> PostCaption(Caption modifiedCaption)
         {
             Caption oldCaption = await _context.Captions.FindAsync(modifiedCaption.Id);
@@ -50,6 +65,7 @@ namespace ClassTranscribeServer.Controllers
             };
             _context.Captions.Add(newCaption);
             await _context.SaveChangesAsync();
+            WakeDownloader.UpdateVTTFile(oldCaption.TranscriptionId);
             return newCaption;
         }
 
@@ -121,12 +137,29 @@ namespace ClassTranscribeServer.Controllers
         [HttpGet("SearchInOffering")]
         public async Task<ActionResult<IEnumerable<SearchedCaptionDTO>>> SearchInOffering(string offeringId, string query)
         {
-            var captions = await _context.Captions.Where(c => c.Transcription.Media.Playlist.OfferingId == offeringId)
-                .Where(c => EF.Functions.ToTsVector("english", c.Text).Matches(query)).Take(100).Select(c => new SearchedCaptionDTO { 
-                    Caption = c,
-                    MediaId = c.Transcription.MediaId,
-                    PlaylistId = c.Transcription.Media.PlaylistId
-                }).ToListAsync();
+            
+
+            var allVideos = await _context.Medias.Where(m => m.Playlist.OfferingId == offeringId)
+                .Select(m => new { VideoId = m.VideoId, Video = m.Video, MediaId = m.Id, PlaylistId = m.PlaylistId }).ToListAsync();
+
+            var captions = await _context.Medias.Where(m => m.Playlist.OfferingId == offeringId)
+                .Select(m => m.Video).SelectMany(v => v.Transcriptions)
+                    .SelectMany(t => t.Captions)
+                    .Where(c => EF.Functions.ToTsVector("english", c.Text).Matches(query))
+                    .Take(100).Select(c => new SearchedCaptionDTO
+                    {
+                        Caption = c,
+                        VideoId = c.Transcription.VideoId
+                    }).ToListAsync();
+
+            // Stitch the two.
+
+            captions.ForEach(c =>
+            {
+                c.MediaId = allVideos.Where(v => v.VideoId == c.VideoId).Select(v => v.MediaId).First();
+                c.PlaylistId = allVideos.Where(v => v.VideoId == c.VideoId).Select(v => v.PlaylistId).First();
+            });
+
             return captions;
         }
 
@@ -135,6 +168,7 @@ namespace ClassTranscribeServer.Controllers
             public Caption Caption { get; set; }
             public string MediaId { get; set; }
             public string PlaylistId { get; set; }
+            public string VideoId { get; set; }
         }
 
         private bool CaptionExists(string id)

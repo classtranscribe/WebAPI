@@ -1,5 +1,13 @@
 ## WebAPI
 
+This repository provides the source code primary API endpoint of the ClassTranscribe Server. Copyright (C) University of Illinois, USA. 2019
+
+The source code in this repository is licensed here under the GNU Public License 3.0 (https://www.gnu.org/licenses/gpl-3.0.en.html). Please email angrave at Illinois if you are interested in alternative licenses of this code and related intellectual property.
+
+# Pull requests, Submitting code and copyright.
+
+In submitting code to this repository  - for example by issuing a git pull-request, or working directly with ClassTranscribe developers to merge or add code - you agree to re-assign copyright of the code to the University of Illinois.
+
 # Build Instructions
 
 This repository is in the form of 3 docker services,

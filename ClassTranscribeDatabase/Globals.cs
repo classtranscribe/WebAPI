@@ -12,6 +12,7 @@
         public string POSTGRES_PASSWORD { get; set; }
         public string RabbitMQServer { get; set; }
         public string NODE_RPC_SERVER { get; set; }
+        public string PYTHON_RPC_SERVER { get; set; }
         public string AZURE_SUBSCRIPTION_KEYS { get; set; }
         public string DATA_DIRECTORY { get; set; }
         public string AUTH0_DOMAIN { get; set; }
@@ -27,6 +28,7 @@
         public const string ROLE_ADMIN = "Admin"; // Unmodifiable
         public const string ROLE_TEACHING_ASSISTANT = "TeachingAssistant";
         public const string ROLE_UNIVERSITY_ADMIN = "UniversityAdmin";
+        public const string ROLE_ADVISORS = "Advisors";
         public const string POLICY_UPDATE_OFFERING = "UpdateOffering";
         public const string POLICY_READ_OFFERING = "ReadOffering";
     }

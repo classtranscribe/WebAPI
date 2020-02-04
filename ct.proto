@@ -9,7 +9,15 @@ service NodeServer {
   rpc GetYoutubePlaylistRPC (PlaylistRequest) returns (JsonString) {}
   rpc DownloadYoutubeVideoRPC (MediaRequest) returns (File) {}
   rpc DownloadEchoVideoRPC (MediaRequest) returns (File) {}
+  rpc DownloadKalturaVideoRPC (MediaRequest) returns (File) {}
   rpc ConvertVideoToWavRPC (File) returns (File) {}
+  rpc ProcessVideoRPC (File) returns (File) {}
+  rpc CreateEPubRPC (EPubData) returns (JsonString) {}  
+}
+
+service PythonServer {
+  rpc GetScenes (File) returns (JsonString) {}
+  rpc GetKalturaPlaylistRPC (PlaylistRequest) returns (JsonString) {}
 }
 
 // The request message containing the user's name.
@@ -32,4 +40,18 @@ message MediaRequest {
 
 message File {
 	string filePath = 1;
+}
+
+message EPubData {
+	string title = 1;
+  string author = 2;
+  string publisher = 3;
+  repeated EPubChapter chapters = 4;
+  string file = 5;
+}
+
+message EPubChapter {
+    string title = 1;
+    string text = 2;
+    File image = 3;
 }

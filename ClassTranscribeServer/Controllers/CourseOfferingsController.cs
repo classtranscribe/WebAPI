@@ -32,16 +32,15 @@ namespace ClassTranscribeServer.Controllers
         [Authorize]
         public async Task<ActionResult<IEnumerable<CourseOfferingDTO>>> GetCourseOfferingsByInstructor(string userId)
         {
-            var courseOfferings = _context.UserOfferings
+            var courseOfferings = await _context.UserOfferings
                 .Where(uo => uo.ApplicationUserId == userId && uo.IdentityRole.Name == Globals.ROLE_INSTRUCTOR)
-                .Select(u => u.Offering).SelectMany(u => u.CourseOfferings);
+                .Select(u => u.Offering).SelectMany(u => u.CourseOfferings).ToListAsync();
 
-            return await courseOfferings.GroupBy(co => co.Course, co => co.Offering).Select(g => new CourseOfferingDTO
+            return courseOfferings.GroupBy(co => co.Course, co => co.Offering).Select(g => new CourseOfferingDTO
             {
                 Course = g.Key,
                 Offerings = g.ToList()
-            }).ToListAsync();
-
+            }).ToList();
         }
 
         // POST: api/CourseOfferings
@@ -58,7 +57,7 @@ namespace ClassTranscribeServer.Controllers
             {
                 if (CourseOfferingExists(courseOffering.CourseId))
                 {
-                    return Conflict();
+                    return Ok("Course Offering already exists!");
                 }
                 else
                 {
@@ -66,7 +65,7 @@ namespace ClassTranscribeServer.Controllers
                 }
             }
 
-            return CreatedAtAction("GetCourseOffering", new { id = courseOffering.CourseId }, courseOffering);
+            return Ok();
         }
 
         // DELETE: api/CourseOfferings/{courseId}/{offeringId}

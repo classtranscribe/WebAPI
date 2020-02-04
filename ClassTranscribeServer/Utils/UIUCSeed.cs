@@ -23,23 +23,22 @@ namespace TaskEngine.Utils
             public string CRS_TITLE { get; set; }
             public string SCHED_TYPE { get; set; }
         }
-
+        
         public static void SeedCourses()
         {
-            string file = Path.Combine(Globals.appSettings.DATA_DIRECTORY, "seed", "Fall2019CourseList.csv");
+            // Dry run code before using it on Production.
+            string file = Path.Combine(Globals.appSettings.DATA_DIRECTORY, "seed", "Fall2019InstructorList.csv");
             TextReader reader = new StreamReader(file);
-            var csvReader = new CsvReader(reader);
+            var csvReader = new CsvReader(reader, System.Globalization.CultureInfo.CurrentCulture);
             var records = csvReader.GetRecords<CSVCourse>();
             List<CSVCourse> csvCourses = new List<CSVCourse>(records);
             using (var _context = CTDbContext.CreateDbContext())
             {
                 Department eceDept = _context.Departments.Where(d => d.Acronym == "ECE" && d.UniversityId == "1001").FirstOrDefault();
-                List<Course> courses = csvCourses.Where(c => c.SUBJ == "ECE").GroupBy(c => c.CRS_TITLE).Select(c => new Course
+                List<Course> courses = csvCourses.Where(c => c.SUBJ == "ECE").GroupBy(c => new { c.CRS_TITLE, c.NBR, c.SUBJ }).Select(c => new Course
                 {
-                    CourseName = c.First().CRS_TITLE,
-                    Description = c.First().CRS_TITLE,
                     CourseNumber = c.First().NBR,
-                    Department = eceDept                    
+                    Department = eceDept
                 }).ToList();
                 _context.Courses.AddRange(courses);
                 _context.SaveChanges();

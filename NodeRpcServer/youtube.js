@@ -2,7 +2,7 @@ var rp = require('request-promise');
 var path = require('path');
 var fs  = require('fs-promise');
 var utils = require('./utils');
-const _tempdir = process.env.TMPDIR;
+const _datadir = process.env.DATA_DIRECTORY;
 var youtube_google_api_key = process.env.YOUTUBE_API_KEY;
 
 async function downloadYoutubePlaylist(playlist) {
@@ -41,7 +41,7 @@ async function downloadYoutubePlaylist(playlist) {
 
 
 async function downloadYoutubeVideo(mediaId, videoUrl) {
-    var outputFile = _tempdir + mediaId + "_" + utils.getRandomString() + '.mp4';
+    var outputFile = _datadir + "/" + mediaId + "_" + utils.getRandomString() + '.mp4';
     const { spawn } = require('child-process-promise');
     const youtubedl = spawn('youtube-dl', [videoUrl, '--format=18', '--output', outputFile]);
 
