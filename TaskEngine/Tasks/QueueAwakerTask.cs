@@ -43,30 +43,26 @@ namespace TaskEngine.Tasks
         }
         public async Task Execute(IJobExecutionContext context)
         {
-            using (var _context = CTDbContext.CreateDbContext())
-            {
-                Init((RabbitMQConnection)context.MergedJobDataMap["rabbitMQ"]);
-                JObject msg = new JObject();
-                msg.Add("Type", CommonUtils.TaskType.PeriodicCheck.ToString());
-                Publish(msg);
-            }
+            Init((RabbitMQConnection)context.MergedJobDataMap["rabbitMQ"]);
+            JObject msg = new JObject();
+            msg.Add("Type", TaskType.PeriodicCheck.ToString());
+            Publish(msg);
         }
 
         private async Task PendingJobs()
         {
             using (var context = CTDbContext.CreateDbContext())
             {
-
                 // Medias for which no videos have downloaded
-                context.Medias.Where(m => m.Video == null).ToList().ForEach(m => _downloadMediaTask.Publish(m));
+                (await context.Medias.Where(m => m.Video == null).ToListAsync()).ForEach(m => _downloadMediaTask.Publish(m));
                 // Videos which haven't been converted to wav 
-                context.Videos.Where(v => v.Medias.Count() > 0 && v.Audio == null).ToList().ForEach(v => _convertVideoToWavTask.Publish(v));
+                (await context.Videos.Where(v => v.Medias.Count() > 0 && v.Audio == null).ToListAsync()).ForEach(v => _convertVideoToWavTask.Publish(v));
                 // Videos which have failed in transcribing
-                context.Videos.Where(v => v.TranscribingAttempts < 3 && v.TranscriptionStatus != "NoError" && v.Medias.Count() > 0 && v.Audio != null)
-                    .ToList().ForEach(v => _transcriptionTask.Publish(v));
+                (await context.Videos.Where(v => v.TranscribingAttempts < 3 && v.TranscriptionStatus != "NoError" && v.Medias.Count() > 0 && v.Audio != null)
+                    .ToListAsync()).ForEach(v => _transcriptionTask.Publish(v));
                 // Completed Transcriptions which haven't generated vtt files
-                context.Transcriptions.Where(t => t.Captions.Count > 0 && t.File == null).ToList().ForEach(t => _generateVTTFileTask.Publish(t));
-            }            
+                (await context.Transcriptions.Where(t => t.Captions.Count > 0 && t.File == null).ToListAsync()).ForEach(t => _generateVTTFileTask.Publish(t));
+            }
         }
 
         private async Task DownloadAllPlaylists()

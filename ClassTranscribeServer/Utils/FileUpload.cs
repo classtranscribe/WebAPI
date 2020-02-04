@@ -1,25 +1,23 @@
-﻿using Swashbuckle.AspNetCore.Swagger;
+﻿using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace ClassTranscribeServer.Utils
 {
     public class FileUploadOperation : IOperationFilter
     {
-        public void Apply(Operation operation, OperationFilterContext context)
+        public void Apply(OpenApiOperation operation, OperationFilterContext context)
         {
-            if (operation.OperationId.ToLower() == "apivaluesuploadpost")
-            {
-                operation.Parameters.Clear();
-                operation.Parameters.Add(new NonBodyParameter
-                {
-                    Name = "uploadedFile",
-                    In = "formData",
-                    Description = "Upload File",
-                    Required = true,
-                    Type = "file"
-                });
-                operation.Consumes.Add("multipart/form-data");
-            }
+            // TODO: Deprecated code, need to fix feature to allow uploading file via Swagger UI
+            //if (operation.OperationId!= null .ToLower() == "apivaluesuploadpost")
+            //{
+            //    operation.Parameters.Clear();
+            //    operation.Parameters.Add(new OpenApiParameter
+            //    {
+            //        Name = "uploadedFile",
+            //        Description = "Upload File",
+            //        Required = true
+            //    });
+            //}
         }
     }
 }

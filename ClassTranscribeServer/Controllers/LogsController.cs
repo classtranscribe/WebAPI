@@ -55,13 +55,13 @@ namespace ClassTranscribeServer.Controllers
                     return new ChallengeResult();
                 }
             }
-            return await _context.Logs.Where(l => l.OfferingId == offeringId && l.EventType == "filtertrans")
-                .GroupBy(l => l.Json["value"].ToString())
-                .Select(g => new SearchDTO
-                {
-                    Term = g.Key,
-                    Count = g.Count()
-                }).OrderByDescending(l => l.Count).ToListAsync();
+            var temp = await _context.Logs.Where(l => l.OfferingId == offeringId && l.EventType == "filtertrans").ToListAsync();
+            return temp.GroupBy(l => l.Json["value"].ToString())
+            .Select(g => new SearchDTO
+            {
+                Term = g.Key,
+                Count = g.Count()
+            }).OrderByDescending(l => l.Count).ToList();
         }
 
         /// <summary>
@@ -87,13 +87,13 @@ namespace ClassTranscribeServer.Controllers
             }
             // Get the user
             var userId = this.User.FindFirst(ClaimTypes.NameIdentifier).Value;
-            return await _context.Logs.Where(l => l.OfferingId == offeringId && l.UserId == userId && l.EventType == "filtertrans")
-                .GroupBy(l => l.Json["value"].ToString())
-                .Select(g => new SearchDTO
-                {
-                    Term = g.Key,
-                    Count = g.Count()
-                }).OrderByDescending(l => l.Count).ToListAsync();
+            var temp = await _context.Logs.Where(l => l.OfferingId == offeringId && l.UserId == userId && l.EventType == "filtertrans").ToListAsync();
+            return temp.GroupBy(l => l.Json["value"].ToString())
+            .Select(g => new SearchDTO
+            {
+                Term = g.Key,
+                Count = g.Count()
+            }).OrderByDescending(l => l.Count).ToList();
         }
 
         /// <summary>

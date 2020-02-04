@@ -27,9 +27,7 @@ namespace TaskEngine.Tasks
             using (var _context = CTDbContext.CreateDbContext())
             {
                 var transcription = await _context.Transcriptions.FindAsync(t.Id);
-                var captions = await _context.Captions.Where(c => c.TranscriptionId == transcription.Id)
-                .GroupBy(c => c.Index).Select(g => g.OrderByDescending(c => c.CreatedAt).First())
-                .OrderBy(c => c.Index).ToListAsync();
+                var captions = await (new CaptionQueries(_context)).GetCaptionsAsync(transcription.Id);
                 var audioPath = transcription.Video.Audio.Path;
                 var vttFile = Caption.GenerateWebVTTFile(captions, audioPath, transcription.Language);
                 var srtFile = Caption.GenerateSrtFile(captions, audioPath, transcription.Language);

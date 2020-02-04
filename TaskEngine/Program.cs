@@ -52,9 +52,6 @@ namespace TaskEngine
                 Thread.Sleep(15000);
                 Console.WriteLine("Waking up");
             }
-            serviceProvider
-                .GetService<ILoggerFactory>()
-                .AddConsole(LogLevel.Debug);
 
             Globals.appSettings = serviceProvider.GetService<IOptions<AppSettings>>().Value;
             TaskEngineGlobals.KeyProvider = new KeyProvider(Globals.appSettings);
@@ -86,15 +83,6 @@ namespace TaskEngine
             ProcessVideoTask processVideoTask = serviceProvider.GetService<ProcessVideoTask>();
             EPubGeneratorTask ePubGeneratorTask = serviceProvider.GetService<EPubGeneratorTask>();
             RpcClient rpcClient = serviceProvider.GetService<RpcClient>();
-
-            //// downloadPlaylistInfoTask.Publish(new Playlist { Id = "Test", PlaylistIdentifier = "1_jfkhu08c", SourceType = SourceType.Kaltura });
-
-            //var m = context.Medias.Find("cccb7dc9-e694-419b-ab03-780360b20956");
-            //ePubGeneratorTask.Publish(new EPub
-            //{
-            //    Language = Languages.ENGLISH,
-            //    VideoId = m.VideoId
-            //});
 
             logger.LogDebug("All done!");
 

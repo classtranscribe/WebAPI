@@ -18,11 +18,16 @@ namespace ClassTranscribeDatabase
 
         public async Task<List<Caption>> GetCaptionsAsync(string videoId, string language = "en-US")
         {
-            var transcriptionId = _context.Transcriptions.Where(t => t.Language == language && t.VideoId == videoId).First().Id;
+            var transcriptionId = _context.Transcriptions.Where(t => t.Language == language && t.VideoId == videoId).First().Id;W
+            return await GetCaptionsAsync(transcriptionId);
+        }
 
-            var captions = await _context.Captions.Where(c => c.TranscriptionId == transcriptionId)
-                .GroupBy(c => c.Index).Select(g => g.OrderByDescending(c => c.CreatedAt).First())
-                .OrderBy(c => c.Index).ToListAsync();
+        public async Task<List<Caption>> GetCaptionsAsync(string transcriptionId)
+        {
+            // This has to be split in two because of https://docs.microsoft.com/en-us/ef/core/querying/client-eval
+            var allCaptions = await _context.Captions.Where(c => c.TranscriptionId == transcriptionId).ToListAsync();
+            var captions = allCaptions.GroupBy(c => c.Index).Select(g => g.OrderByDescending(c => c.CreatedAt).First())
+                .OrderBy(c => c.Index).ToList();
             return captions;
         }
     }

@@ -21,16 +21,17 @@ namespace TaskEngine.Tasks
             _rpcClient = rpcClient;
             _transcriptionTask = transcriptionTask;
         }
-        protected async override Task OnConsume(Video video)
+        protected async override Task OnConsume(Video v)
         {
-            Console.WriteLine("Consuming" + video);
-            var file = await _rpcClient.NodeServerClient.ConvertVideoToWavRPCAsync(new CTGrpc.File
+            using (var _context = CTDbContext.CreateDbContext())
             {
-                FilePath = video.Video1.VMPath
-            });
-            if (file.FilePath.Length > 0)
-            {
-                using (var _context = CTDbContext.CreateDbContext())
+                var video = await _context.Videos.FindAsync(v.Id);
+                Console.WriteLine("Consuming" + video);
+                var file = await _rpcClient.NodeServerClient.ConvertVideoToWavRPCAsync(new CTGrpc.File
+                {
+                    FilePath = video.Video1.VMPath
+                });
+                if (file.FilePath.Length > 0)
                 {
                     var videoLatest = await _context.Videos.FindAsync(video.Id);
                     if (videoLatest.Audio == null)
@@ -40,10 +41,10 @@ namespace TaskEngine.Tasks
                         _transcriptionTask.Publish(videoLatest);
                     }
                 }
-            }
-            else
-            {
-                throw new Exception("ConvertVideoToWavTask Failed + " + video.Id);
+                else
+                {
+                    throw new Exception("ConvertVideoToWavTask Failed + " + video.Id);
+                }
             }
         }
     }

@@ -101,6 +101,7 @@ namespace ClassTranscribeServer.Controllers
         [DisableRequestSizeLimit]
         [HttpPost]
         [Authorize]
+        [Consumes("multipart/form-data")]
         public async Task<ActionResult<Media>> PostMedia(IFormFile video1, IFormFile video2, [FromForm] string playlistId)
         {
             if (video1 == null)

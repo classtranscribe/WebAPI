@@ -29,7 +29,7 @@ namespace TaskEngine.Utils
             // Dry run code before using it on Production.
             string file = Path.Combine(Globals.appSettings.DATA_DIRECTORY, "seed", "Fall2019InstructorList.csv");
             TextReader reader = new StreamReader(file);
-            var csvReader = new CsvReader(reader);
+            var csvReader = new CsvReader(reader, System.Globalization.CultureInfo.CurrentCulture);
             var records = csvReader.GetRecords<CSVCourse>();
             List<CSVCourse> csvCourses = new List<CSVCourse>(records);
             using (var _context = CTDbContext.CreateDbContext())

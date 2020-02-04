@@ -173,7 +173,6 @@ namespace ClassTranscribeServer.Controllers
                 CourseId = newOfferingDTO.CourseId,
                 OfferingId = newOfferingDTO.Offering.Id
             });
-            ApplicationUser user = null;
             if (User.Identity.IsAuthenticated && this.User.FindFirst(ClaimTypes.NameIdentifier) != null)
             {
                 var userId = this.User.FindFirst(ClaimTypes.NameIdentifier).Value;

@@ -35,7 +35,7 @@ namespace TaskEngine.Tasks
             {
                 case SourceType.Echo360: video = await DownloadEchoVideo(media); break;
                 case SourceType.Youtube: video = await DownloadYoutubeVideo(media); break;
-                case SourceType.Local: video = await DownloadLocalPlaylist(media); break;
+                case SourceType.Local: video = DownloadLocalPlaylist(media); break;
                 case SourceType.Kaltura: video = await DownloadKalturaVideo(media); break;
             }
             using (var _context = CTDbContext.CreateDbContext())
@@ -169,7 +169,7 @@ namespace TaskEngine.Tasks
             return video;
         }
 
-        public async Task<Video> DownloadLocalPlaylist(Media media)
+        public Video DownloadLocalPlaylist(Media media)
         {
             Video video = new Video();
             if (media.JsonMetadata.ContainsKey("video1Path"))
