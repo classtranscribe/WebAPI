@@ -43,10 +43,10 @@ namespace ClassTranscribeServer.Controllers
                     return new ChallengeResult();
                 }
             }
-            var playlists = await _context.Playlists
+            var temp = await _context.Playlists
                 .Where(p => p.OfferingId == offeringId)
-                .OrderBy(p => p.CreatedAt)
-                .Select(p => new PlaylistDTO
+                .OrderBy(p => p.CreatedAt).ToListAsync();
+            var playlists = temp.Select(p => new PlaylistDTO
                 {
                     Id = p.Id,
                     CreatedAt = p.CreatedAt,
@@ -73,7 +73,7 @@ namespace ClassTranscribeServer.Controllers
                             Language = t.Language
                         }).ToList()
                     }).ToList()
-                }).ToListAsync();
+                }).ToList();
             // Sorting by descending.
             playlists.ForEach(p => p.Medias.Sort((x, y) => -1 * x.CreatedAt.CompareTo(y.CreatedAt)));
             return playlists;
