@@ -45,6 +45,7 @@ namespace ClassTranscribeDatabase.Models
 
     public class Entity
     {
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public string Id { get; set; }
         [IgnoreDataMember]
         public DateTime CreatedAt { get; set; }
