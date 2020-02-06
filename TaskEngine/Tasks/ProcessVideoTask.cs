@@ -1,22 +1,20 @@
 ﻿using ClassTranscribeDatabase;
 using ClassTranscribeDatabase.Models;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Threading.Tasks;
 using TaskEngine.Grpc;
+using static ClassTranscribeDatabase.CommonUtils;
 
 namespace TaskEngine.Tasks
 {
     class ProcessVideoTask : RabbitMQTask<Video>
     {
         private RpcClient _rpcClient;
-        private void Init(RabbitMQConnection rabbitMQ)
+
+        public ProcessVideoTask(RabbitMQConnection rabbitMQ, RpcClient rpcClient, ILogger<ProcessVideoTask> logger)
+            : base(rabbitMQ, TaskType.ProcessVideo, logger)
         {
-            _rabbitMQ = rabbitMQ;
-            queueName = RabbitMQConnection.QueueNameBuilder(CommonUtils.TaskType.ProcessVideo, "_1");
-        }
-        public ProcessVideoTask(RabbitMQConnection rabbitMQ, RpcClient rpcClient)
-        {
-            Init(rabbitMQ);
             _rpcClient = rpcClient;
         }
         protected async override Task OnConsume(Video video)

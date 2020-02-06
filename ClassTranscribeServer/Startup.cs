@@ -104,7 +104,7 @@ namespace ClassTranscribeServer
                 options.AddPolicy(Globals.POLICY_READ_OFFERING,
                   policy => policy.AddRequirements(new ReadOfferingRequirement()));
             });
-
+            
 
             // Register the Swagger generator, defining 1 or more Swagger documents
             // new ApiKeyScheme { };

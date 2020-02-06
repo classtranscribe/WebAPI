@@ -1,8 +1,10 @@
 ﻿using ClassTranscribeDatabase;
 using ClassTranscribeDatabase.Models;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Threading.Tasks;
 using TaskEngine.Grpc;
+using static ClassTranscribeDatabase.CommonUtils;
 
 namespace TaskEngine.Tasks
 {
@@ -10,14 +12,10 @@ namespace TaskEngine.Tasks
     {
         private RpcClient _rpcClient;
         private TranscriptionTask _transcriptionTask;
-        private void Init(RabbitMQConnection rabbitMQ)
+        
+        public ConvertVideoToWavTask(RabbitMQConnection rabbitMQ, RpcClient rpcClient, TranscriptionTask transcriptionTask, ILogger<ConvertVideoToWavTask> logger) 
+            : base(rabbitMQ, TaskType.ConvertMedia, logger)
         {
-            _rabbitMQ = rabbitMQ;
-            queueName = RabbitMQConnection.QueueNameBuilder(CommonUtils.TaskType.ConvertMedia, "_1");
-        }
-        public ConvertVideoToWavTask(RabbitMQConnection rabbitMQ, RpcClient rpcClient, TranscriptionTask transcriptionTask)
-        {
-            Init(rabbitMQ);
             _rpcClient = rpcClient;
             _transcriptionTask = transcriptionTask;
         }

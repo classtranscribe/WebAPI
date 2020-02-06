@@ -1,26 +1,21 @@
 ﻿using ClassTranscribeDatabase;
 using ClassTranscribeDatabase.Models;
+using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using TaskEngine.Grpc;
 using TaskEngine.MSTranscription;
+using static ClassTranscribeDatabase.CommonUtils;
 
 namespace TaskEngine.Tasks
 {
     class TranscriptionTask : RabbitMQTask<Video>
     {
-        private RpcClient _rpcClient;
         private MSTranscriptionService _msTranscriptionService;
         private GenerateVTTFileTask _generateVTTFileTask;
-        private void Init(RabbitMQConnection rabbitMQ)
+        
+        public TranscriptionTask(RabbitMQConnection rabbitMQ, MSTranscriptionService msTranscriptionService, GenerateVTTFileTask generateVTTFileTask, ILogger<TranscriptionTask> logger)
+            : base(rabbitMQ, TaskType.Transcribe, logger)
         {
-            _rabbitMQ = rabbitMQ;
-            queueName = RabbitMQConnection.QueueNameBuilder(CommonUtils.TaskType.TranscribeMedia, "_1");
-        }
-        public TranscriptionTask(RabbitMQConnection rabbitMQ, RpcClient rpcClient, MSTranscriptionService msTranscriptionService, GenerateVTTFileTask generateVTTFileTask)
-        {
-            Init(rabbitMQ);
-            _rpcClient = rpcClient;
             _msTranscriptionService = msTranscriptionService;
             _generateVTTFileTask = generateVTTFileTask;
         }

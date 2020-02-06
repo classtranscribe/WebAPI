@@ -14,7 +14,7 @@ namespace ClassTranscribeDatabase
             DownloadPlaylistInfo,
             DownloadMedia,
             ConvertMedia,
-            TranscribeMedia,
+            Transcribe,
             ProcessVideo,
             Aggregator,
             GenerateVTTFile,

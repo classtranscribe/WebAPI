@@ -1,6 +1,7 @@
 ﻿using ClassTranscribeDatabase;
 using ClassTranscribeDatabase.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
 using Quartz;
 using System;
@@ -22,17 +23,12 @@ namespace TaskEngine.Tasks
 
         public QueueAwakerTask() { }
 
-        private void Init(RabbitMQConnection rabbitMQ)
-        {
-            _rabbitMQ = rabbitMQ;
-            queueName = RabbitMQConnection.QueueNameBuilder(CommonUtils.TaskType.QueueAwaker, "_1");
-        }
         public QueueAwakerTask(RabbitMQConnection rabbitMQ, DownloadPlaylistInfoTask downloadPlaylistInfoTask,
             DownloadMediaTask downloadMediaTask, ConvertVideoToWavTask convertVideoToWavTask, 
             TranscriptionTask transcriptionTask, ProcessVideoTask processVideoTask,
-            GenerateVTTFileTask generateVTTFileTask, EPubGeneratorTask ePubGeneratorTask)
+            GenerateVTTFileTask generateVTTFileTask, EPubGeneratorTask ePubGeneratorTask, ILogger<QueueAwakerTask> logger)
+            : base(rabbitMQ, TaskType.QueueAwaker, logger)
         {
-            Init(rabbitMQ);
             _downloadPlaylistInfoTask = downloadPlaylistInfoTask;
             _downloadMediaTask = downloadMediaTask;
             _convertVideoToWavTask = convertVideoToWavTask;
@@ -43,7 +39,10 @@ namespace TaskEngine.Tasks
         }
         public async Task Execute(IJobExecutionContext context)
         {
-            Init((RabbitMQConnection)context.MergedJobDataMap["rabbitMQ"]);
+            // Manually initializing base class variables
+            _rabbitMQ = (RabbitMQConnection)context.MergedJobDataMap["rabbitMQ"];
+            _queueName = TaskType.QueueAwaker.ToString();
+
             JObject msg = new JObject();
             msg.Add("Type", TaskType.PeriodicCheck.ToString());
             Publish(msg);

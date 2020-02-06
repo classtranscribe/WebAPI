@@ -1,18 +1,31 @@
 ﻿using ClassTranscribeDatabase;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Threading.Tasks;
+using static ClassTranscribeDatabase.CommonUtils;
 
 namespace TaskEngine
 {
     public abstract class RabbitMQTask<T>
     {
         protected RabbitMQConnection _rabbitMQ;
-        protected string queueName;
+        protected string _queueName;
+        protected readonly ILogger _logger;
+
+        public RabbitMQTask() { }
+
+        public RabbitMQTask(RabbitMQConnection rabbitMQ, TaskType taskType, ILogger logger)
+        {
+            _rabbitMQ = rabbitMQ;
+            _queueName = taskType.ToString();
+            _logger = logger;
+        }
+
         public void Publish(T obj)
         {
             try
             {
-                _rabbitMQ.PublishTask(queueName, obj);
+                _rabbitMQ.PublishTask(_queueName, obj);
             }
             catch (Exception e)
             {
@@ -25,11 +38,11 @@ namespace TaskEngine
         {
             try
             {
-                _rabbitMQ.ConsumeTask<T>(queueName, OnConsume);
+                _rabbitMQ.ConsumeTask<T>(_queueName, OnConsume);
             }
             catch (Exception e)
             {
-                Console.WriteLine(e.ToString());
+                _logger.LogError(e, "RabbitMQTask Error Occured");
             }
         }
     }

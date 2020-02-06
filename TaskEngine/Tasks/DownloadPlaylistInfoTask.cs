@@ -8,6 +8,8 @@ using ClassTranscribeDatabase.Models;
 using TaskEngine.Grpc;
 using Newtonsoft.Json.Linq;
 using Box.V2.Models;
+using Microsoft.Extensions.Logging;
+using static ClassTranscribeDatabase.CommonUtils;
 
 namespace TaskEngine.Tasks
 {
@@ -16,17 +18,10 @@ namespace TaskEngine.Tasks
         private RpcClient _rpcClient;
         private DownloadMediaTask _downloadMediaTask;
         private Box _box;
-        
-        public DownloadPlaylistInfoTask() { }
 
-        private void Init(RabbitMQConnection rabbitMQ)
+        public DownloadPlaylistInfoTask(RabbitMQConnection rabbitMQ, RpcClient rpcClient, DownloadMediaTask downloadMediaTask, Box box, ILogger<DownloadPlaylistInfoTask> logger)
+            : base(rabbitMQ, TaskType.DownloadPlaylistInfo, logger)
         {
-            _rabbitMQ = rabbitMQ;
-            queueName = RabbitMQConnection.QueueNameBuilder(CommonUtils.TaskType.DownloadPlaylistInfo, "_1");
-        }
-        public DownloadPlaylistInfoTask(RabbitMQConnection rabbitMQ, RpcClient rpcClient, DownloadMediaTask downloadMediaTask, Box box)
-        {
-            Init(rabbitMQ);
             _rpcClient = rpcClient;
             _downloadMediaTask = downloadMediaTask;
             _box = box;

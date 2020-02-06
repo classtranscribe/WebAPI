@@ -1,19 +1,17 @@
 ﻿using ClassTranscribeDatabase;
+using Microsoft.Extensions.Logging;
+using System;
 using System.Threading.Tasks;
+using static ClassTranscribeDatabase.CommonUtils;
 
 namespace TaskEngine.Tasks
 {
     class UpdateBoxTokenTask : RabbitMQTask<string>
     {
         private Box _box;
-        private void Init(RabbitMQConnection rabbitMQ)
+        public UpdateBoxTokenTask(RabbitMQConnection rabbitMQ, Box box, ILogger<UpdateBoxTokenTask> logger)
+            : base(rabbitMQ, TaskType.UpdateBoxToken, logger)
         {
-            _rabbitMQ = rabbitMQ;
-            queueName = RabbitMQConnection.QueueNameBuilder(CommonUtils.TaskType.UpdateBoxToken, "_1");
-        }
-        public UpdateBoxTokenTask(RabbitMQConnection rabbitMQ, Box box)
-        {
-            Init(rabbitMQ);
             _box = box;
         }
 

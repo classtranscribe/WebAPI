@@ -1,5 +1,6 @@
 ﻿using ClassTranscribeDatabase;
 using ClassTranscribeDatabase.Models;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -8,42 +9,17 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using TaskEngine.Grpc;
+using static ClassTranscribeDatabase.CommonUtils;
 
 namespace TaskEngine.Tasks
 {
     class EPubGeneratorTask : RabbitMQTask<EPub>
     {
         private RpcClient _rpcClient;
-        private void Init(RabbitMQConnection rabbitMQ)
+        
+        public EPubGeneratorTask(RabbitMQConnection rabbitMQ, RpcClient rpcClient, ILogger<EPubGeneratorTask> logger)
+            : base(rabbitMQ, TaskType.GenerateEPubFile, logger)
         {
-            _rabbitMQ = rabbitMQ;
-            queueName = RabbitMQConnection.QueueNameBuilder(CommonUtils.TaskType.GenerateEPubFile, "_1");
-        }
-
-        public List<CTGrpc.EPubChapter> GetEPubChapters(JArray scenes, List<Caption> captions)
-        {
-            var chapters = new List<CTGrpc.EPubChapter>();
-            var nextStart = new TimeSpan(0);
-            foreach (JObject scene in scenes)
-            {
-                var endTime = TimeSpan.Parse(scene["end"].ToString());
-                var subset = captions.Where(c => c.Begin < endTime && c.Begin >= nextStart).ToList();
-                StringBuilder sb = new StringBuilder();
-                subset.ForEach(c => sb.Append(c.Text + " "));
-                string allText = sb.ToString();
-                chapters.Add(new CTGrpc.EPubChapter
-                {
-                    Image = new CTGrpc.File { FilePath = scene["img_file"].ToString() },
-                    Text = allText
-                });
-                nextStart = endTime;
-            }
-            return chapters;
-        }
-
-        public EPubGeneratorTask(RabbitMQConnection rabbitMQ, RpcClient rpcClient)
-        {
-            Init(rabbitMQ);
             _rpcClient = rpcClient;
         }
 
@@ -86,6 +62,26 @@ namespace TaskEngine.Tasks
                 epub.File = new FileRecord(filePath);
                 await _context.SaveChangesAsync();
             }
+        }
+        public List<CTGrpc.EPubChapter> GetEPubChapters(JArray scenes, List<Caption> captions)
+        {
+            var chapters = new List<CTGrpc.EPubChapter>();
+            var nextStart = new TimeSpan(0);
+            foreach (JObject scene in scenes)
+            {
+                var endTime = TimeSpan.Parse(scene["end"].ToString());
+                var subset = captions.Where(c => c.Begin < endTime && c.Begin >= nextStart).ToList();
+                StringBuilder sb = new StringBuilder();
+                subset.ForEach(c => sb.Append(c.Text + " "));
+                string allText = sb.ToString();
+                chapters.Add(new CTGrpc.EPubChapter
+                {
+                    Image = new CTGrpc.File { FilePath = scene["img_file"].ToString() },
+                    Text = allText
+                });
+                nextStart = endTime;
+            }
+            return chapters;
         }
     }
 }

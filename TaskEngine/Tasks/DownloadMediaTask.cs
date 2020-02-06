@@ -1,11 +1,13 @@
 ﻿using ClassTranscribeDatabase;
 using ClassTranscribeDatabase.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using System;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using TaskEngine.Grpc;
+using static ClassTranscribeDatabase.CommonUtils;
 
 namespace TaskEngine.Tasks
 {
@@ -15,14 +17,9 @@ namespace TaskEngine.Tasks
         private ConvertVideoToWavTask _convertVideoToWavTask;
         private Box _box;
 
-        private void Init(RabbitMQConnection rabbitMQ)
+        public DownloadMediaTask(RabbitMQConnection rabbitMQ, RpcClient rpcClient, ConvertVideoToWavTask convertVideoToWavTask, Box box, ILogger<DownloadMediaTask> logger)
+            : base(rabbitMQ, TaskType.DownloadMedia, logger)
         {
-            _rabbitMQ = rabbitMQ;
-            queueName = RabbitMQConnection.QueueNameBuilder(CommonUtils.TaskType.DownloadMedia, "_1");
-        }
-        public DownloadMediaTask(RabbitMQConnection rabbitMQ, RpcClient rpcClient, ConvertVideoToWavTask convertVideoToWavTask, Box box)
-        {
-            Init(rabbitMQ);
             _rpcClient = rpcClient;
             _convertVideoToWavTask = convertVideoToWavTask;
             _box = box;

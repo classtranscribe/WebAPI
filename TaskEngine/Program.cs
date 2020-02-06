@@ -26,11 +26,17 @@ namespace TaskEngine
     {
         static void Main(string[] args)
         {
+            var configuration = CTDbContext.GetConfigurations();
             //setup our DI
             var serviceProvider = new ServiceCollection()
-                .AddLogging()
+                .AddLogging(builder => {
+                    builder.AddConsole();
+                    builder.AddFilter<Microsoft.Extensions.Logging.ApplicationInsights.ApplicationInsightsLoggerProvider>
+                             ("", LogLevel.Trace);
+                    builder.AddApplicationInsights(configuration.GetValue<string>("APPLICATION_INSIGHTS_KEY"));
+                })
                 .AddOptions()
-                .Configure<AppSettings>(CTDbContext.GetConfigurations())
+                .Configure<AppSettings>(configuration)
                 .AddSingleton<RabbitMQConnection>()
                 .AddSingleton<DownloadPlaylistInfoTask>()
                 .AddSingleton<DownloadMediaTask>()
@@ -45,10 +51,9 @@ namespace TaskEngine
                 .AddSingleton<UpdateBoxTokenTask>()
                 .AddSingleton<CreateBoxTokenTask>()
                 .AddSingleton<Box>()
-                .BuildServiceProvider();
+                .BuildServiceProvider();            
 
             //configure console logging
-            var configuration = new ConfigurationBuilder().AddEnvironmentVariables().Build();
             if (configuration.GetValue<string>("DEV_ENV", "NULL") == "DOCKER")
             {
                 Console.WriteLine("Sleeping");
@@ -59,13 +64,16 @@ namespace TaskEngine
             Globals.appSettings = serviceProvider.GetService<IOptions<AppSettings>>().Value;
             TaskEngineGlobals.KeyProvider = new KeyProvider(Globals.appSettings);
 
-            var logger = serviceProvider.GetService<ILoggerFactory>()
-                .CreateLogger<Program>();
+            var logger = serviceProvider.GetRequiredService<ILogger<Program>>();
+            Globals.logger = logger;
+            AppDomain currentDomain = AppDomain.CurrentDomain;
+            currentDomain.UnhandledException += new UnhandledExceptionEventHandler(ExceptionHandler);
+
 
             RabbitMQConnection rabbitMQ = serviceProvider.GetService<RabbitMQConnection>();
             CTDbContext context = CTDbContext.CreateDbContext();
             Seeder.Seed(context);
-            logger.LogDebug("Starting application");
+            logger.LogInformation("Starting application");
             rabbitMQ.DeleteAllQueues();
             serviceProvider.GetService<DownloadPlaylistInfoTask>().Consume();
             serviceProvider.GetService<DownloadMediaTask>().Consume();
@@ -91,11 +99,10 @@ namespace TaskEngine
             CreateBoxTokenTask createBoxTokenTask= serviceProvider.GetService<CreateBoxTokenTask>();
 
             RpcClient rpcClient = serviceProvider.GetService<RpcClient>();
-            
             logger.LogDebug("All done!");
 
             Console.WriteLine("Press any key to close the application");
-
+            
             while (true)
             {
                 Console.Read();
@@ -146,6 +153,12 @@ namespace TaskEngine
             {
                 Console.WriteLine(se);
             }
+        }
+
+        static void ExceptionHandler(object sender, UnhandledExceptionEventArgs args)
+        {
+            Exception e = (Exception)args.ExceptionObject;
+            Globals.logger.LogError(e, "Unhandled Exception Caught");
         }
     }
 }

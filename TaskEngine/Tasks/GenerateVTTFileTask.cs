@@ -1,26 +1,23 @@
 ﻿using ClassTranscribeDatabase;
 using ClassTranscribeDatabase.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using TaskEngine.Grpc;
+using static ClassTranscribeDatabase.CommonUtils;
 
 namespace TaskEngine.Tasks
 {
     class GenerateVTTFileTask : RabbitMQTask<Transcription>
     {
-        private void Init(RabbitMQConnection rabbitMQ)
+        public GenerateVTTFileTask(RabbitMQConnection rabbitMQ, ILogger<GenerateVTTFileTask> logger)
+            : base(rabbitMQ, TaskType.GenerateVTTFile, logger) 
         {
-            _rabbitMQ = rabbitMQ;
-            queueName = RabbitMQConnection.QueueNameBuilder(CommonUtils.TaskType.GenerateVTTFile, "_1");
-        }
 
-        public GenerateVTTFileTask(RabbitMQConnection rabbitMQ)
-        {
-            Init(rabbitMQ);
         }
         protected async override Task OnConsume(Transcription t)
         {

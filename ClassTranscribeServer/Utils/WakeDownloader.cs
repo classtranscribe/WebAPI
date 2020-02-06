@@ -1,11 +1,6 @@
 ﻿using ClassTranscribeDatabase;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using static ClassTranscribeDatabase.CommonUtils;
 
 namespace ClassTranscribeServer
 {
@@ -53,7 +48,7 @@ namespace ClassTranscribeServer
         {
             using (var rabbitmq = new RabbitMQConnection())
             {
-                var queueName = RabbitMQConnection.QueueNameBuilder(CommonUtils.TaskType.QueueAwaker, "_1");
+                var queueName = TaskType.QueueAwaker.ToString();
                 rabbitmq.PublishTask<JObject>(queueName, message);
             }
         }

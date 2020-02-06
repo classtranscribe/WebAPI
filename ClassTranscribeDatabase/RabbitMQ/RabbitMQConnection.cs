@@ -67,14 +67,9 @@ namespace ClassTranscribeDatabase
         {
             foreach(CommonUtils.TaskType taskType in Enum.GetValues(typeof(CommonUtils.TaskType)))
             {
-                string queueName = RabbitMQConnection.QueueNameBuilder(taskType, "_1");
+                string queueName = taskType.ToString();
                 _channel.QueueDelete(queueName);
             }
-        }
-
-        public static string QueueNameBuilder(CommonUtils.TaskType taskType, string mod)
-        {
-            return taskType.ToString() + "_" + mod;
         }
 
         #region IDisposable Support
