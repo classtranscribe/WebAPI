@@ -143,10 +143,11 @@ namespace ClassTranscribeServer
             services.AddApplicationInsightsTelemetry(Globals.appSettings.APPLICATION_INSIGHTS_KEY);
             services.AddSingleton<RabbitMQConnection>();
             services.AddSingleton<WakeDownloader>();
+            services.AddSingleton<Seeder>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, CTDbContext dbContext)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, Seeder seeder)
         {
             if (env.IsDevelopment())
             {
@@ -187,7 +188,7 @@ namespace ClassTranscribeServer
             {
                 endpoints.MapDefaultControllerRoute().RequireAuthorization();
             });
-            Seeder.Seed(dbContext);
+            seeder.Seed();
         }
     }
 }

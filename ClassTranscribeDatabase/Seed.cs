@@ -1,21 +1,30 @@
 ﻿using ClassTranscribeDatabase.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace ClassTranscribeDatabase
 {
-    public static class Seeder
+    public class Seeder
     {
-        public static Boolean IsSeeded = false;
-        public static void Seed(CTDbContext _context)
+        private bool IsSeeded = false;
+        private readonly CTDbContext _context;
+        private readonly ILogger _logger;
+
+        public Seeder(CTDbContext context, ILogger<Seeder> logger)
         {
-            Console.WriteLine("In Seeder");
+            _context = context;
+            _logger = logger;
+        }
+        public void Seed()
+        {
+            _logger.LogInformation("In Seeder");
             if (IsSeeded)
             {
-                Console.WriteLine("Skipping Seeding");
+                _logger.LogInformation("Skipping Seeding");
                 return;
             }
             _context.Database.EnsureCreated();
@@ -294,7 +303,7 @@ namespace ClassTranscribeDatabase
 
             _context.SaveChanges();
             IsSeeded = true;
-            Console.WriteLine("Seeded");
+            _logger.LogInformation("Seeded");
         }
     }
 }

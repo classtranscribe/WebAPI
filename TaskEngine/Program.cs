@@ -15,6 +15,7 @@ using Microsoft.Extensions.Configuration;
 using System.Threading;
 using ClassTranscribeDatabase.Models;
 using static ClassTranscribeDatabase.CommonUtils;
+using Microsoft.EntityFrameworkCore;
 
 namespace TaskEngine
 {
@@ -29,7 +30,8 @@ namespace TaskEngine
             var configuration = CTDbContext.GetConfigurations();
             //setup our DI
             var serviceProvider = new ServiceCollection()
-                .AddLogging(builder => {
+                .AddLogging(builder =>
+                {
                     builder.AddConsole();
                     builder.AddFilter<Microsoft.Extensions.Logging.ApplicationInsights.ApplicationInsightsLoggerProvider>
                              ("", LogLevel.Trace);
@@ -37,6 +39,7 @@ namespace TaskEngine
                 })
                 .AddOptions()
                 .Configure<AppSettings>(configuration)
+                .AddDbContext<CTDbContext>(options => options.UseLazyLoadingProxies().UseNpgsql(CTDbContext.ConnectionStringBuilder()))
                 .AddSingleton<RabbitMQConnection>()
                 .AddSingleton<DownloadPlaylistInfoTask>()
                 .AddSingleton<DownloadMediaTask>()
@@ -51,7 +54,8 @@ namespace TaskEngine
                 .AddSingleton<UpdateBoxTokenTask>()
                 .AddSingleton<CreateBoxTokenTask>()
                 .AddSingleton<Box>()
-                .BuildServiceProvider();            
+                .AddSingleton<Seeder>()
+                .BuildServiceProvider();
 
             //configure console logging
             if (configuration.GetValue<string>("DEV_ENV", "NULL") == "DOCKER")
@@ -71,8 +75,12 @@ namespace TaskEngine
 
 
             RabbitMQConnection rabbitMQ = serviceProvider.GetService<RabbitMQConnection>();
+
+            Seeder seeder = serviceProvider.GetService<Seeder>();
+            seeder.Seed();
+
             CTDbContext context = CTDbContext.CreateDbContext();
-            Seeder.Seed(context);
+
             logger.LogInformation("Starting application");
             rabbitMQ.DeleteAllQueues();
             serviceProvider.GetService<DownloadPlaylistInfoTask>().Consume();
@@ -96,13 +104,13 @@ namespace TaskEngine
             ProcessVideoTask processVideoTask = serviceProvider.GetService<ProcessVideoTask>();
             EPubGeneratorTask ePubGeneratorTask = serviceProvider.GetService<EPubGeneratorTask>();
             UpdateBoxTokenTask updateBoxTokenTask = serviceProvider.GetService<UpdateBoxTokenTask>();
-            CreateBoxTokenTask createBoxTokenTask= serviceProvider.GetService<CreateBoxTokenTask>();
+            CreateBoxTokenTask createBoxTokenTask = serviceProvider.GetService<CreateBoxTokenTask>();
 
             RpcClient rpcClient = serviceProvider.GetService<RpcClient>();
             logger.LogInformation("All done!");
 
             Console.WriteLine("Press any key to close the application");
-            
+
             while (true)
             {
                 Console.Read();
