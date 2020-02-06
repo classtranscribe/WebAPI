@@ -10,21 +10,21 @@ using System;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Authorization;
 using ClassTranscribeServer.Utils;
+using Microsoft.Extensions.Logging;
 
 namespace ClassTranscribeServer.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class OfferingsController : ControllerBase
+    public class OfferingsController : BaseController
     {
-        private readonly CTDbContext _context;
         private readonly IAuthorizationService _authorizationService;
         private readonly UserUtils _userUtils;
         private readonly UserManager<ApplicationUser> _userManager;
 
-        public OfferingsController(CTDbContext context, IAuthorizationService authorizationService, UserManager<ApplicationUser> userManager)
+        public OfferingsController(IAuthorizationService authorizationService, UserManager<ApplicationUser> userManager, 
+            CTDbContext context, ILogger<OfferingsController> logger) : base(context, logger)
         {
-            _context = context;
             _authorizationService = authorizationService;
             _userManager = userManager;
             _userUtils = new UserUtils(userManager, context);

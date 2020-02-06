@@ -11,19 +11,18 @@ using Microsoft.AspNetCore.Authorization;
 using Newtonsoft.Json.Linq;
 using System.IO;
 using Newtonsoft.Json;
+using Microsoft.Extensions.Logging;
 
 namespace ClassTranscribeServer.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class MediaController : ControllerBase
+    public class MediaController : BaseController
     {
-        private readonly CTDbContext _context;
         private readonly WakeDownloader _wakeDownloader;
 
-        public MediaController(CTDbContext context, WakeDownloader wakeDownloader)
+        public MediaController(WakeDownloader wakeDownloader, CTDbContext context, ILogger<MediaController> logger) : base(context, logger)
         {
-            _context = context;
             _wakeDownloader = wakeDownloader;
         }
 

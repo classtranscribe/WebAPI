@@ -8,19 +8,19 @@ using ClassTranscribeDatabase.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using System.Security.Claims;
+using Microsoft.Extensions.Logging;
 
 namespace ClassTranscribeServer.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class CourseOfferingsController : ControllerBase
+    public class CourseOfferingsController : BaseController
     {
         private readonly CTDbContext _context;
         private readonly IAuthorizationService _authorizationService;
 
-        public CourseOfferingsController(CTDbContext context, IAuthorizationService authorizationService)
+        public CourseOfferingsController(IAuthorizationService authorizationService, CTDbContext context, ILogger<CourseOfferingsController> logger) : base(context, logger)
         {
-            _context = context;
             _authorizationService = authorizationService;
         }
 

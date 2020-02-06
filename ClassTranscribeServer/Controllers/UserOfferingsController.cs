@@ -6,20 +6,19 @@ using Microsoft.EntityFrameworkCore;
 using ClassTranscribeDatabase;
 using ClassTranscribeDatabase.Models;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.Extensions.Logging;
 
 namespace ClassTranscribeServer.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class UserOfferingsController : ControllerBase
+    public class UserOfferingsController : BaseController
     {
-        private readonly CTDbContext _context;
         private readonly IAuthorizationService _authorizationService;
 
-        public UserOfferingsController(CTDbContext context, IAuthorizationService authorizationService)
+        public UserOfferingsController(IAuthorizationService authorizationService, CTDbContext context, ILogger<UserOfferingsController> logger) : base(context, logger)
         {
             _authorizationService = authorizationService;
-            _context = context;
         }
 
         // GET: api/Courses/

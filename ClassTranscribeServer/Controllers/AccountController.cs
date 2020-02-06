@@ -19,25 +19,23 @@ using Microsoft.AspNetCore.Authorization;
 using ClassTranscribeServer.Utils;
 using System.IO;
 using CsvHelper;
+using Microsoft.Extensions.Logging;
 
 namespace ClassTranscribeServer.Controllers
 {
     [Route("api/[controller]/[action]")]
-    public class AccountController : Controller
+    public class AccountController : BaseController
     {
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly UserManager<ApplicationUser> _userManager;
-        private readonly CTDbContext _context;
         private readonly UserUtils _userUtils;
         public AccountController(
             UserManager<ApplicationUser> userManager,
             SignInManager<ApplicationUser> signInManager,
-            CTDbContext context
-            )
+            CTDbContext context, ILogger<AccountController> logger): base(context, logger)
         {
             _userManager = userManager;
             _signInManager = signInManager;
-            _context = context;
             _userUtils = new UserUtils(_userManager, _context);
         }
 
@@ -171,7 +169,7 @@ namespace ClassTranscribeServer.Controllers
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message.ToString());
+                _logger.LogError(ex, "Error signing in User with authToken {0}.", model.auth0Token);
                 return Unauthorized();
             }
 

@@ -7,20 +7,19 @@ using CsvHelper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace ClassTranscribeServer.Controllers
 {
     [Route("api/[controller]")]
     [Authorize(Roles = Globals.ROLE_ADMIN)]
     [ApiController]
-    public class AdminController : ControllerBase
+    public class AdminController : BaseController
     {
-        private readonly CTDbContext _context;
         private readonly WakeDownloader _wakeDownloader;
 
-        public AdminController(CTDbContext context, WakeDownloader wakeDownloader)
+        public AdminController(WakeDownloader wakeDownloader, CTDbContext context, ILogger<AdminController> logger): base(context, logger)
         {
-            _context = context;
             _wakeDownloader = wakeDownloader;
         }
 

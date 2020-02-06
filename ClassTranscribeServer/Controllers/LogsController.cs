@@ -9,18 +9,17 @@ using ClassTranscribeDatabase;
 using ClassTranscribeDatabase.Models;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
+using Microsoft.Extensions.Logging;
 
 namespace ClassTranscribeServer.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class LogsController : ControllerBase
+    public class LogsController : BaseController
     {
-        private readonly CTDbContext _context;
         private readonly IAuthorizationService _authorizationService;
-        public LogsController(CTDbContext context, IAuthorizationService authorizationService)
+        public LogsController(IAuthorizationService authorizationService, CTDbContext context, ILogger<LogsController> logger) : base(context, logger)
         {
-            _context = context;
             _authorizationService = authorizationService;
         }
 

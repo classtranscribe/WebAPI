@@ -6,19 +6,15 @@ using Microsoft.EntityFrameworkCore;
 using ClassTranscribeDatabase;
 using ClassTranscribeDatabase.Models;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.Extensions.Logging;
 
 namespace ClassTranscribeServer.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class UniversitiesController : ControllerBase
+    public class UniversitiesController : BaseController
     {
-        private readonly CTDbContext _context;
-
-        public UniversitiesController(CTDbContext context)
-        {
-            _context = context;
-        }
+        public UniversitiesController(CTDbContext context, ILogger<UniversitiesController> logger) : base(context, logger) {}
 
         // GET: api/Universities
         [HttpGet]

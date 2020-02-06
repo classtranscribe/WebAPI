@@ -8,6 +8,7 @@ using ClassTranscribeDatabase;
 using ClassTranscribeDatabase.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
 using static ClassTranscribeDatabase.CommonUtils;
 
@@ -15,14 +16,12 @@ namespace ClassTranscribeServer.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class EpubController : ControllerBase
+    public class EpubController : BaseController
     {
-        private readonly CTDbContext _context;
         private readonly WakeDownloader _wakeDownloader;
         
-        public EpubController(CTDbContext context, WakeDownloader wakeDownloader)
+        public EpubController(WakeDownloader wakeDownloader, CTDbContext context, ILogger<EpubController> logger) : base(context, logger)
         {
-            _context = context;
             _wakeDownloader = wakeDownloader;
         }
 

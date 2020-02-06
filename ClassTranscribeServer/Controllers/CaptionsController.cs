@@ -9,19 +9,18 @@ using ClassTranscribeDatabase;
 using ClassTranscribeDatabase.Models;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
+using Microsoft.Extensions.Logging;
 
 namespace ClassTranscribeServer.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class CaptionsController : ControllerBase
+    public class CaptionsController : BaseController
     {
-        private readonly CTDbContext _context;
         private readonly WakeDownloader _wakeDownloader;
 
-        public CaptionsController(CTDbContext context, WakeDownloader wakeDownloader)
+        public CaptionsController(WakeDownloader wakeDownloader, CTDbContext context, ILogger<CaptionsController> logger) : base(context, logger)
         {
-            _context = context;
             _wakeDownloader = wakeDownloader;
         }
 

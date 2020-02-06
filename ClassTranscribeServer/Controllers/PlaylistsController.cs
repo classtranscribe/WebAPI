@@ -8,20 +8,19 @@ using ClassTranscribeDatabase;
 using ClassTranscribeDatabase.Models;
 using Microsoft.AspNetCore.Authorization;
 using Newtonsoft.Json.Linq;
+using Microsoft.Extensions.Logging;
 
 namespace ClassTranscribeServer.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class PlaylistsController : ControllerBase
+    public class PlaylistsController : BaseController
     {
-        private readonly CTDbContext _context;
         private readonly IAuthorizationService _authorizationService;
         private readonly WakeDownloader _wakeDownloader;
 
-        public PlaylistsController(CTDbContext context, IAuthorizationService authorizationService, WakeDownloader wakeDownloader)
+        public PlaylistsController(IAuthorizationService authorizationService, WakeDownloader wakeDownloader, CTDbContext context, ILogger<PlaylistsController> logger) : base(context, logger)
         {
-            _context = context;
             _authorizationService = authorizationService;
             _wakeDownloader = wakeDownloader;
         }
