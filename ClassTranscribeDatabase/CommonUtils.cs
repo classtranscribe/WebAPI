@@ -19,7 +19,9 @@ namespace ClassTranscribeDatabase
             Aggregator,
             GenerateVTTFile,
             QueueAwaker,
-            GenerateEPubFile
+            GenerateEPubFile,
+            UpdateBoxToken,
+            CreateBoxToken
         }
 
         public class Languages
@@ -29,6 +31,9 @@ namespace ClassTranscribeDatabase
             public static string KOREAN = "ko";
             public static string SPANISH = "es";
         }
+
+        public static string BOX_ACCESS_TOKEN = "BOX_ACCESS_TOKEN";
+        public static string BOX_REFRESH_TOKEN = "BOX_REFRESH_TOKEN";
         public static byte[] MessageToBytes<T>(T obj)
         {
             string output = JsonConvert.SerializeObject(obj);

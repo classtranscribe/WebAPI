@@ -27,7 +27,8 @@ namespace ClassTranscribeDatabase.Models
         Echo360,
         Youtube,
         Local,
-        Kaltura
+        Kaltura,
+        Box
     }
     public class ApplicationUser : IdentityUser
     {
@@ -128,6 +129,7 @@ namespace ClassTranscribeDatabase.Models
         public string OfferingId { get; set; }
         [IgnoreDataMember]
         public virtual Offering Offering { get; set; }
+        public JObject JsonMetadata { get; set; }
     }
 
     public class Media : Entity
@@ -265,5 +267,11 @@ namespace ClassTranscribeDatabase.Models
         public string VideoId { get; set; }
         [IgnoreDataMember]
         public virtual Video Video { get; set; }
+    }
+
+    public class Dictionary : Entity
+    {
+        public string Key { get; set; }
+        public string Value { get; set; }
     }
 }

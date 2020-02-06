@@ -11,7 +11,6 @@ namespace TaskEngine.Tasks
     {
         private RpcClient _rpcClient;
         private MSTranscriptionService _msTranscriptionService;
-        private AppSettings _appSettings;
         private GenerateVTTFileTask _generateVTTFileTask;
         private void Init(RabbitMQConnection rabbitMQ)
         {
@@ -23,7 +22,6 @@ namespace TaskEngine.Tasks
             Init(rabbitMQ);
             _rpcClient = rpcClient;
             _msTranscriptionService = msTranscriptionService;
-            _appSettings = Globals.appSettings;
             _generateVTTFileTask = generateVTTFileTask;
         }
         protected async override Task OnConsume(Video video)

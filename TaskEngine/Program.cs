@@ -42,6 +42,9 @@ namespace TaskEngine
                 .AddSingleton<ProcessVideoTask>()
                 .AddSingleton<MSTranscriptionService>()
                 .AddSingleton<EPubGeneratorTask>()
+                .AddSingleton<UpdateBoxTokenTask>()
+                .AddSingleton<CreateBoxTokenTask>()
+                .AddSingleton<Box>()
                 .BuildServiceProvider();
 
             //configure console logging
@@ -72,6 +75,8 @@ namespace TaskEngine
             serviceProvider.GetService<GenerateVTTFileTask>().Consume();
             serviceProvider.GetService<ProcessVideoTask>().Consume();
             serviceProvider.GetService<EPubGeneratorTask>().Consume();
+            serviceProvider.GetService<UpdateBoxTokenTask>().Consume();
+            serviceProvider.GetService<CreateBoxTokenTask>().Consume();
             RunProgramRunExample(rabbitMQ).GetAwaiter().GetResult();
 
 
@@ -82,8 +87,11 @@ namespace TaskEngine
             GenerateVTTFileTask generateVTTFileTask = serviceProvider.GetService<GenerateVTTFileTask>();
             ProcessVideoTask processVideoTask = serviceProvider.GetService<ProcessVideoTask>();
             EPubGeneratorTask ePubGeneratorTask = serviceProvider.GetService<EPubGeneratorTask>();
-            RpcClient rpcClient = serviceProvider.GetService<RpcClient>();
+            UpdateBoxTokenTask updateBoxTokenTask = serviceProvider.GetService<UpdateBoxTokenTask>();
+            CreateBoxTokenTask createBoxTokenTask= serviceProvider.GetService<CreateBoxTokenTask>();
 
+            RpcClient rpcClient = serviceProvider.GetService<RpcClient>();
+            
             logger.LogDebug("All done!");
 
             Console.WriteLine("Press any key to close the application");

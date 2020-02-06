@@ -13,17 +13,19 @@ namespace TaskEngine.Tasks
     {
         private RpcClient _rpcClient;
         private ConvertVideoToWavTask _convertVideoToWavTask;
+        private Box _box;
 
         private void Init(RabbitMQConnection rabbitMQ)
         {
             _rabbitMQ = rabbitMQ;
             queueName = RabbitMQConnection.QueueNameBuilder(CommonUtils.TaskType.DownloadMedia, "_1");
         }
-        public DownloadMediaTask(RabbitMQConnection rabbitMQ, RpcClient rpcClient, ConvertVideoToWavTask convertVideoToWavTask)
+        public DownloadMediaTask(RabbitMQConnection rabbitMQ, RpcClient rpcClient, ConvertVideoToWavTask convertVideoToWavTask, Box box)
         {
             Init(rabbitMQ);
             _rpcClient = rpcClient;
             _convertVideoToWavTask = convertVideoToWavTask;
+            _box = box;
         }
 
         protected override async Task OnConsume(Media media)
@@ -37,6 +39,7 @@ namespace TaskEngine.Tasks
                 case SourceType.Youtube: video = await DownloadYoutubeVideo(media); break;
                 case SourceType.Local: video = DownloadLocalPlaylist(media); break;
                 case SourceType.Kaltura: video = await DownloadKalturaVideo(media); break;
+                case SourceType.Box: video = await DownloadBoxVideo(media); break;
             }
             using (var _context = CTDbContext.CreateDbContext())
             {
@@ -98,7 +101,7 @@ namespace TaskEngine.Tasks
                 VideoUrl = media.JsonMetadata["downloadUrl"].ToString()
             });
 
-            Video video = null;
+            Video video;
             if (mediaResponse.FilePath.Length > 0)
             {
                 video = new Video
@@ -129,7 +132,7 @@ namespace TaskEngine.Tasks
                 VideoUrl = media.JsonMetadata["altVideoUrl"].ToString(),
                 AdditionalInfo = media.JsonMetadata["download_header"].ToString()
             });
-            Video video = null;
+            Video video;
             if (mediaResponse.FilePath.Length > 0 && mediaResponse2.FilePath.Length > 0)
             {
                 video = new Video
@@ -153,7 +156,7 @@ namespace TaskEngine.Tasks
                 VideoUrl = media.JsonMetadata["videoUrl"].ToString()
             });
 
-            Video video = null;
+            Video video;
             if (mediaResponse.FilePath.Length > 0)
             {
                 video = new Video
@@ -175,7 +178,7 @@ namespace TaskEngine.Tasks
             if (media.JsonMetadata.ContainsKey("video1Path"))
             {
                 var video1Path = media.JsonMetadata["video1Path"].ToString();
-                var newPath = System.IO.Path.Combine(Globals.appSettings.DATA_DIRECTORY, Guid.NewGuid().ToString() + ".mp4");
+                var newPath = Path.Combine(Globals.appSettings.DATA_DIRECTORY, Guid.NewGuid().ToString() + ".mp4");
                 File.Copy(video1Path, newPath);
                 video.Video1 = new FileRecord(newPath);
                 
@@ -183,10 +186,25 @@ namespace TaskEngine.Tasks
             if (media.JsonMetadata.ContainsKey("video2Path"))
             {
                 var video2Path = media.JsonMetadata["video2Path"].ToString();
-                var newPath = System.IO.Path.Combine(Globals.appSettings.DATA_DIRECTORY, Guid.NewGuid().ToString() + ".mp4");
+                var newPath = Path.Combine(Globals.appSettings.DATA_DIRECTORY, Guid.NewGuid().ToString() + ".mp4");
                 File.Copy(video2Path, newPath);
                 video.Video1 = new FileRecord(newPath);
             }
+            return video;
+        }
+
+        public async Task<Video> DownloadBoxVideo(Media media)
+        {
+            Video video = new Video();
+            var guid = Guid.NewGuid().ToString();
+            var newPath = Path.Combine(Globals.appSettings.DATA_DIRECTORY, guid + ".mp4");
+            var client = await _box.GetBoxClientAsync();
+            var stream = await client.FilesManager.DownloadAsync(media.UniqueMediaIdentifier);
+            using (var fileStream = File.Create(newPath))
+            {
+                stream.CopyTo(fileStream);
+            }
+            video.Video1 = new FileRecord(newPath);
             return video;
         }
     }

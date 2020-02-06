@@ -42,6 +42,7 @@ namespace ClassTranscribeDatabase
         public DbSet<Caption> Captions { get; set; }
         public DbSet<Log> Logs { get; set; }
         public DbSet<EPub> EPubs { get; set; }
+        public DbSet<Dictionary> Dictionaries { get; set; }
 
         public static string ConnectionStringBuilder()
         {
@@ -109,6 +110,7 @@ namespace ClassTranscribeDatabase
             builder.Entity<FileRecord>().HasQueryFilter(m => m.IsDeletedStatus == Status.Active);
             builder.Entity<Caption>().HasQueryFilter(m => m.IsDeletedStatus == Status.Active);
             builder.Entity<Log>().HasQueryFilter(m => m.IsDeletedStatus == Status.Active);
+            builder.Entity<Dictionary>().HasQueryFilter(m => m.IsDeletedStatus == Status.Active);
 
 
             builder.Entity<CourseOffering>()
@@ -139,11 +141,12 @@ namespace ClassTranscribeDatabase
 
             builder.Entity<Media>().HasOne(m => m.Video).WithMany(v => v.Medias).HasForeignKey(m => m.VideoId);
 
+            builder.Entity<Playlist>().Property(m => m.JsonMetadata).HasJsonValueConversion();
             builder.Entity<Media>().Property(m => m.JsonMetadata).HasJsonValueConversion();
             builder.Entity<Log>().Property(m => m.Json).HasJsonValueConversion();
             builder.Entity<ApplicationUser>().Property(m => m.Metadata).HasJsonValueConversion();
             builder.Entity<Video>().Property(m => m.SceneData).HasJsonValueConversion();
-            builder.Entity<Video>().Property(m => m.JsonMetadata).HasJsonValueConversion();
+            builder.Entity<Video>().Property(m => m.JsonMetadata).HasJsonValueConversion();            
         }
         public override int SaveChanges(bool acceptAllChangesOnSuccess)
         {

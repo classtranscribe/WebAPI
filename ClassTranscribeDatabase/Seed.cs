@@ -272,7 +272,15 @@ namespace ClassTranscribeDatabase
                 Name = "Local Sample"
             };
 
-            List<Playlist> playlists = new List<Playlist> { youtubePlaylist, localPlaylist};
+            Playlist boxPlaylist = new Playlist
+            {
+                Id = "box_playlist",
+                SourceType = SourceType.Box,
+                Name = "Box Sample",
+                PlaylistIdentifier = "102571260469"
+            };
+
+            List<Playlist> playlists = new List<Playlist> { youtubePlaylist, localPlaylist, boxPlaylist};
 
             foreach (var t in playlists)
             {
