@@ -22,6 +22,7 @@
   <PropertyGroup>
   <GenerateDocumentationFile>true</GenerateDocumentationFile>
   <NoWarn>$(NoWarn);1591</NoWarn>
+  <ApplicationInsightsResourceId>/subscriptions/f12d3460-c5ee-4ccd-99f5-dd74e32ec44f/resourcegroups/CTFall19/providers/microsoft.insights/components/CT_Monitoring</ApplicationInsightsResourceId>
 </PropertyGroup>
   
   <ItemGroup>
@@ -38,6 +39,7 @@
   
   <ItemGroup>
     <PackageReference Include="CsvHelper" Version="14.0.0" />
+    <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.12.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="3.1.1" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="3.1.1" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="3.1.1" />
@@ -63,6 +65,10 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ClassTranscribeDatabase\ClassTranscribeDatabase.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <WCFMetadata Include="Connected Services" />
   </ItemGroup>
   
 </Project>

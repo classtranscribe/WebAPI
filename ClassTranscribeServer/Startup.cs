@@ -140,6 +140,7 @@ namespace ClassTranscribeServer
                 });
                 c.OperationFilter<FileUploadOperation>(); //Register File Upload Operation Filter
             });
+            services.AddApplicationInsightsTelemetry(Globals.appSettings.APPLICATION_INSIGHTS_KEY);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
