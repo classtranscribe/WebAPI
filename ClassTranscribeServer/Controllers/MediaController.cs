@@ -19,10 +19,12 @@ namespace ClassTranscribeServer.Controllers
     public class MediaController : ControllerBase
     {
         private readonly CTDbContext _context;
+        private readonly WakeDownloader _wakeDownloader;
 
-        public MediaController(CTDbContext context)
+        public MediaController(CTDbContext context, WakeDownloader wakeDownloader)
         {
             _context = context;
+            _wakeDownloader = wakeDownloader;
         }
 
         // GET: api/Media/5
@@ -149,7 +151,7 @@ namespace ClassTranscribeServer.Controllers
 
             _context.Medias.Add(media);
             await _context.SaveChangesAsync();
-            WakeDownloader.UpdatePlaylist(playlistId);
+            _wakeDownloader.UpdatePlaylist(playlistId);
             return CreatedAtAction("GetMedia", new { id = media.Id }, media);
         }
 

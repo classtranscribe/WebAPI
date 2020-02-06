@@ -18,10 +18,12 @@ namespace ClassTranscribeServer.Controllers
     public class EpubController : ControllerBase
     {
         private readonly CTDbContext _context;
+        private readonly WakeDownloader _wakeDownloader;
         
-        public EpubController(CTDbContext context)
+        public EpubController(CTDbContext context, WakeDownloader wakeDownloader)
         {
-            _context = context;            
+            _context = context;
+            _wakeDownloader = wakeDownloader;
         }
 
         
@@ -83,7 +85,7 @@ namespace ClassTranscribeServer.Controllers
         [HttpGet("RequestEpubCreation")]
         public ActionResult RequestEpubCreation(string mediaId)
         {
-            WakeDownloader.GenerateEpub(mediaId);
+            _wakeDownloader.GenerateEpub(mediaId);
             return Ok();
         }
     }

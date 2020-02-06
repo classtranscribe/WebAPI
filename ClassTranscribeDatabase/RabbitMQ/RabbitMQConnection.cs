@@ -1,4 +1,5 @@
-﻿using RabbitMQ.Client;
+﻿using Microsoft.Extensions.Logging;
+using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System;
 using System.Threading.Tasks;
@@ -10,8 +11,10 @@ namespace ClassTranscribeDatabase
         IConnection _connection;
         IModel _channel { get; set; }
         public ushort prefetchCount { get; set; }
-        public RabbitMQConnection()
+        private readonly ILogger _logger;
+        public RabbitMQConnection(ILogger<RabbitMQConnection> logger)
         {
+            _logger = logger;
             var factory = new ConnectionFactory() { HostName = Globals.appSettings.RabbitMQServer };
             _connection = factory.CreateConnection();
             _channel = _connection.CreateModel();
@@ -38,23 +41,23 @@ namespace ClassTranscribeDatabase
                                  arguments: null);
             _channel.BasicQos(prefetchSize: 0, prefetchCount: prefetchCount, global: false);
 
-            Console.WriteLine(" [*] Waiting for messages.");
+            _logger.LogInformation(" [*] Waiting for messages, queueName - {0}", queueName);
 
             var consumer = new EventingBasicConsumer(_channel);
             consumer.Received += async (model, ea) =>
             {
                 var message = CommonUtils.BytesToMessage<T>(ea.Body);
-                Console.WriteLine(" [x] Received {0}", message);
+                _logger.LogInformation(" [x] Received {0}", message);
                 try
                 {
                     await OnConsume(message);
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine(e.ToString());
+                    _logger.LogError(e, "Error occured in RabbitMQTask");
                 }
 
-                Console.WriteLine(" [x] Done");
+                _logger.LogInformation(" [x] Done {0}", message);
 
                 _channel.BasicAck(deliveryTag: ea.DeliveryTag, multiple: false);
             };

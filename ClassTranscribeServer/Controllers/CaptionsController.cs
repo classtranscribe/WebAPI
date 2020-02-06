@@ -17,10 +17,12 @@ namespace ClassTranscribeServer.Controllers
     public class CaptionsController : ControllerBase
     {
         private readonly CTDbContext _context;
+        private readonly WakeDownloader _wakeDownloader;
 
-        public CaptionsController(CTDbContext context)
+        public CaptionsController(CTDbContext context, WakeDownloader wakeDownloader)
         {
             _context = context;
+            _wakeDownloader = wakeDownloader;
         }
 
         // GET: api/Captions/5
@@ -65,7 +67,7 @@ namespace ClassTranscribeServer.Controllers
             };
             _context.Captions.Add(newCaption);
             await _context.SaveChangesAsync();
-            WakeDownloader.UpdateVTTFile(oldCaption.TranscriptionId);
+            _wakeDownloader.UpdateVTTFile(oldCaption.TranscriptionId);
             return newCaption;
         }
 

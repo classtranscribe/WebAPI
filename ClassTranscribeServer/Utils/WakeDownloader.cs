@@ -4,16 +4,22 @@ using static ClassTranscribeDatabase.CommonUtils;
 
 namespace ClassTranscribeServer
 {
-    public static class WakeDownloader
+    public class WakeDownloader
     {
-        public static void UpdateAllPlaylists()
+        private readonly RabbitMQConnection _rabbitMQ;
+        public WakeDownloader(RabbitMQConnection rabbitMQ)
+        {
+            _rabbitMQ = rabbitMQ;
+        }
+
+        public void UpdateAllPlaylists()
         {
             JObject msg = new JObject();
             msg.Add("Type", CommonUtils.TaskType.DownloadAllPlaylists.ToString());
             Wake(msg);
         }
 
-        public static void UpdatePlaylist(string playlistId)
+        public void UpdatePlaylist(string playlistId)
         {
             JObject msg = new JObject();
             msg.Add("Type", CommonUtils.TaskType.DownloadPlaylistInfo.ToString());
@@ -21,7 +27,7 @@ namespace ClassTranscribeServer
             Wake(msg);
         }
 
-        public static void UpdateVTTFile(string transcriptionId)
+        public void UpdateVTTFile(string transcriptionId)
         {
             JObject msg = new JObject();
             msg.Add("Type", CommonUtils.TaskType.GenerateVTTFile.ToString());
@@ -29,14 +35,14 @@ namespace ClassTranscribeServer
             Wake(msg);
         }
 
-        public static void PeriodicCheck()
+        public void PeriodicCheck()
         {
             JObject msg = new JObject();
             msg.Add("Type", CommonUtils.TaskType.PeriodicCheck.ToString());
             Wake(msg);
         }
 
-        public static void GenerateEpub(string mediaId)
+        public void GenerateEpub(string mediaId)
         {
             JObject msg = new JObject();
             msg.Add("Type", CommonUtils.TaskType.GenerateEPubFile.ToString());
@@ -44,13 +50,10 @@ namespace ClassTranscribeServer
             Wake(msg);
         }
 
-        private static void Wake(JObject message)
+        private void Wake(JObject message)
         {
-            using (var rabbitmq = new RabbitMQConnection())
-            {
-                var queueName = TaskType.QueueAwaker.ToString();
-                rabbitmq.PublishTask<JObject>(queueName, message);
-            }
+            var queueName = TaskType.QueueAwaker.ToString();
+            _rabbitMQ.PublishTask(queueName, message);
         }
     }
 }

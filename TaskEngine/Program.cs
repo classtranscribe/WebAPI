@@ -99,7 +99,7 @@ namespace TaskEngine
             CreateBoxTokenTask createBoxTokenTask= serviceProvider.GetService<CreateBoxTokenTask>();
 
             RpcClient rpcClient = serviceProvider.GetService<RpcClient>();
-            logger.LogDebug("All done!");
+            logger.LogInformation("All done!");
 
             Console.WriteLine("Press any key to close the application");
             

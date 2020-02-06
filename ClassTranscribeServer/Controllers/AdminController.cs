@@ -16,30 +16,32 @@ namespace ClassTranscribeServer.Controllers
     public class AdminController : ControllerBase
     {
         private readonly CTDbContext _context;
+        private readonly WakeDownloader _wakeDownloader;
 
-        public AdminController(CTDbContext context)
+        public AdminController(CTDbContext context, WakeDownloader wakeDownloader)
         {
             _context = context;
+            _wakeDownloader = wakeDownloader;
         }
 
         [HttpPost("UpdateAllPlaylists")]
         public ActionResult UpdateAllPlaylists()
         {
-            WakeDownloader.UpdateAllPlaylists();
+            _wakeDownloader.UpdateAllPlaylists();
             return Ok();
         }
 
         [HttpPost("UpdatePlaylist")]
         public ActionResult UpdatePlaylist(string playlistId)
         {
-            WakeDownloader.UpdatePlaylist(playlistId);
+            _wakeDownloader.UpdatePlaylist(playlistId);
             return Ok();
         }
 
         [HttpPost("PeriodicCheck")]
         public ActionResult PeriodicCheck()
         {
-            WakeDownloader.PeriodicCheck();
+            _wakeDownloader.PeriodicCheck();
             return Ok();
         }
 

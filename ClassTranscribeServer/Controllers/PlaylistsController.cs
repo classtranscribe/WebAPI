@@ -17,11 +17,13 @@ namespace ClassTranscribeServer.Controllers
     {
         private readonly CTDbContext _context;
         private readonly IAuthorizationService _authorizationService;
+        private readonly WakeDownloader _wakeDownloader;
 
-        public PlaylistsController(CTDbContext context, IAuthorizationService authorizationService)
+        public PlaylistsController(CTDbContext context, IAuthorizationService authorizationService, WakeDownloader wakeDownloader)
         {
             _context = context;
             _authorizationService = authorizationService;
+            _wakeDownloader = wakeDownloader;
         }
 
         // GET: api/Playlists
@@ -149,7 +151,7 @@ namespace ClassTranscribeServer.Controllers
             try
             {
                 await _context.SaveChangesAsync();
-                WakeDownloader.UpdatePlaylist(playlist.Id);
+                _wakeDownloader.UpdatePlaylist(playlist.Id);
             }
             catch (DbUpdateConcurrencyException)
             {
@@ -185,7 +187,7 @@ namespace ClassTranscribeServer.Controllers
             }
             _context.Playlists.Add(playlist);
             await _context.SaveChangesAsync();
-            WakeDownloader.UpdatePlaylist(playlist.Id);
+            _wakeDownloader.UpdatePlaylist(playlist.Id);
 
             return CreatedAtAction("GetPlaylist", new { id = playlist.Id }, playlist);
         }
