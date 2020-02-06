@@ -1,14 +1,14 @@
-﻿using System;
+﻿using ClassTranscribeDatabase;
+using ClassTranscribeDatabase.Models;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using Newtonsoft.Json.Linq;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using ClassTranscribeDatabase;
-using ClassTranscribeDatabase.Models;
-using Microsoft.AspNetCore.Authorization;
-using Newtonsoft.Json.Linq;
-using Microsoft.Extensions.Logging;
 
 namespace ClassTranscribeServer.Controllers
 {
@@ -48,33 +48,33 @@ namespace ClassTranscribeServer.Controllers
                 .Where(p => p.OfferingId == offeringId)
                 .OrderBy(p => p.CreatedAt).ToListAsync();
             var playlists = temp.Select(p => new PlaylistDTO
+            {
+                Id = p.Id,
+                CreatedAt = p.CreatedAt,
+                SourceType = p.SourceType,
+                OfferingId = p.OfferingId,
+                Name = p.Name,
+                Medias = p.Medias.Where(m => m.Video != null).Select(m => new MediaDTO
                 {
-                    Id = p.Id,
-                    CreatedAt = p.CreatedAt,
-                    SourceType = p.SourceType,
-                    OfferingId = p.OfferingId,
-                    Name = p.Name,
-                    Medias = p.Medias.Where(m => m.Video != null).Select(m => new MediaDTO
+                    Id = m.Id,
+                    JsonMetadata = m.JsonMetadata,
+                    CreatedAt = m.CreatedAt,
+                    Ready = m.Video.Transcriptions.Any(),
+                    SourceType = m.SourceType,
+                    Video = new VideoDTO
                     {
-                        Id = m.Id,
-                        JsonMetadata = m.JsonMetadata,
-                        CreatedAt = m.CreatedAt,
-                        Ready = m.Video.Transcriptions.Any(),
-                        SourceType = m.SourceType,
-                        Video = new VideoDTO
-                        {
-                            Id = m.Video.Id,
-                            Video1Path = m.Video.Video1 != null ? m.Video.Video1.Path : null,
-                            Video2Path = m.Video.Video2 != null ? m.Video.Video2.Path : null,
-                        },
-                        Transcriptions = m.Video.Transcriptions.Select(t => new TranscriptionDTO
-                        {
-                            Id = t.Id,
-                            Path = t.File.Path,
-                            Language = t.Language
-                        }).ToList()
+                        Id = m.Video.Id,
+                        Video1Path = m.Video.Video1 != null ? m.Video.Video1.Path : null,
+                        Video2Path = m.Video.Video2 != null ? m.Video.Video2.Path : null,
+                    },
+                    Transcriptions = m.Video.Transcriptions.Select(t => new TranscriptionDTO
+                    {
+                        Id = t.Id,
+                        Path = t.File.Path,
+                        Language = t.Language
                     }).ToList()
-                }).ToList();
+                }).ToList()
+            }).ToList();
             // Sorting by descending.
             playlists.ForEach(p => p.Medias.Sort((x, y) => -1 * x.CreatedAt.CompareTo(y.CreatedAt)));
             return playlists;

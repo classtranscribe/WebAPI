@@ -1,14 +1,12 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using ClassTranscribeDatabase;
+﻿using ClassTranscribeDatabase;
 using ClassTranscribeDatabase.Models;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
-using System.Security.Claims;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace ClassTranscribeServer.Controllers
 {
@@ -87,7 +85,7 @@ namespace ClassTranscribeServer.Controllers
                 {
                     return new ChallengeResult();
                 }
-            }        
+            }
             var courseOfferings = await _context.CourseOfferings.Where(co => co.OfferingId == offeringId && co.CourseId == courseId).ToListAsync();
             if (courseOfferings == null)
             {

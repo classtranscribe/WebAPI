@@ -1,15 +1,11 @@
-﻿using System;
+﻿using ClassTranscribeDatabase;
+using ClassTranscribeDatabase.Models;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using ClassTranscribeDatabase;
-using ClassTranscribeDatabase.Models;
-using Microsoft.AspNetCore.Authorization;
-using System.Security.Claims;
-using Microsoft.Extensions.Logging;
 
 namespace ClassTranscribeServer.Controllers
 {
@@ -83,7 +79,7 @@ namespace ClassTranscribeServer.Controllers
 
             caption.UpVote++;
             await _context.SaveChangesAsync();
-            return caption;            
+            return caption;
         }
 
         // POST: api/Captions
@@ -138,7 +134,7 @@ namespace ClassTranscribeServer.Controllers
         [HttpGet("SearchInOffering")]
         public async Task<ActionResult<IEnumerable<SearchedCaptionDTO>>> SearchInOffering(string offeringId, string query)
         {
-            
+
 
             var allVideos = await _context.Medias.Where(m => m.Playlist.OfferingId == offeringId)
                 .Select(m => new { VideoId = m.VideoId, Video = m.Video, MediaId = m.Id, PlaylistId = m.PlaylistId }).ToListAsync();

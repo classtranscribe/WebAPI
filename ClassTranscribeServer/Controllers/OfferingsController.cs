@@ -1,16 +1,15 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using ClassTranscribeDatabase;
+using ClassTranscribeDatabase.Models;
+using ClassTranscribeServer.Utils;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using ClassTranscribeDatabase;
-using ClassTranscribeDatabase.Models;
-using System.Security.Claims;
-using System;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Authorization;
-using ClassTranscribeServer.Utils;
 using Microsoft.Extensions.Logging;
+using System.Collections.Generic;
+using System.Linq;
+using System.Security.Claims;
+using System.Threading.Tasks;
 
 namespace ClassTranscribeServer.Controllers
 {
@@ -22,7 +21,7 @@ namespace ClassTranscribeServer.Controllers
         private readonly UserUtils _userUtils;
         private readonly UserManager<ApplicationUser> _userManager;
 
-        public OfferingsController(IAuthorizationService authorizationService, UserManager<ApplicationUser> userManager, 
+        public OfferingsController(IAuthorizationService authorizationService, UserManager<ApplicationUser> userManager,
             CTDbContext context, ILogger<OfferingsController> logger) : base(context, logger)
         {
             _authorizationService = authorizationService;
@@ -77,10 +76,12 @@ namespace ClassTranscribeServer.Controllers
             var offeringListDTO = filteredOfferings.Select(o => new OfferingListDTO
             {
                 Offering = o,
-                Courses = o.CourseOfferings.Select(co => new CourseDTO { 
+                Courses = o.CourseOfferings.Select(co => new CourseDTO
+                {
                     CourseNumber = co.Course.CourseNumber,
                     DepartmentId = co.Course.DepartmentId,
-                    DepartmentAcronym = co.Course.Department.Acronym}).ToList(),
+                    DepartmentAcronym = co.Course.Department.Acronym
+                }).ToList(),
                 //Courses = await _context.CourseOfferings.Where(co => co.OfferingId == o.Id).Select(co => co.Course).ToListAsync(),
                 Term = o.Term
             }).ToList();
@@ -281,7 +282,7 @@ namespace ClassTranscribeServer.Controllers
             public Term Term { get; set; }
         }
 
-        public class OfferingListDTO 
+        public class OfferingListDTO
         {
             public Offering Offering { get; set; }
             public List<CourseDTO> Courses { get; set; }

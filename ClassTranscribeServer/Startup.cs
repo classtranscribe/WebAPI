@@ -1,29 +1,29 @@
-﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using ClassTranscribeDatabase;
+using ClassTranscribeDatabase.Models;
+using ClassTranscribeServer.Authorization;
+using ClassTranscribeServer.Utils;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Features;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.FileProviders;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using System;
+using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
-using System.Text;
-using ClassTranscribeDatabase;
-using ClassTranscribeDatabase.Models;
-using Microsoft.AspNetCore.Http;
 using System.IO;
 using System.Reflection;
-using Microsoft.Extensions.Options;
-using Microsoft.Extensions.FileProviders;
-using Microsoft.AspNetCore.Authorization;
-using ClassTranscribeServer.Authorization;
-using Microsoft.AspNetCore.HttpOverrides;
-using Microsoft.Extensions.Hosting;
-using System.Collections.Generic;
-using ClassTranscribeServer.Utils;
-using Microsoft.AspNetCore.Http.Features;
-using Microsoft.OpenApi.Models;
+using System.Text;
 
 namespace ClassTranscribeServer
 {
@@ -104,7 +104,7 @@ namespace ClassTranscribeServer
                 options.AddPolicy(Globals.POLICY_READ_OFFERING,
                   policy => policy.AddRequirements(new ReadOfferingRequirement()));
             });
-            
+
 
             // Register the Swagger generator, defining 1 or more Swagger documents
             // new ApiKeyScheme { };
@@ -164,7 +164,7 @@ namespace ClassTranscribeServer
             });
             app.UseCors(MyAllowSpecificOrigins);
             // app.UseHttpsRedirection();
-            app.UseAuthentication();            
+            app.UseAuthentication();
             // Enable middleware to serve generated Swagger as a JSON endpoint.
             app.UseSwagger();
             app.UseStaticFiles(new StaticFileOptions

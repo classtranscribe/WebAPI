@@ -12,7 +12,7 @@ namespace TaskEngine
 {
     public class Box
     {
-        public Box() {}
+        public Box() { }
 
         // To generate authCode on a browser open,
         // https://account.box.com/api/oauth2/authorize?client_id=[CLIENT_ID]&response_type=code
@@ -45,7 +45,7 @@ namespace TaskEngine
                 accessToken.Value = auth.AccessToken;
                 refreshToken.Value = auth.RefreshToken;
                 await _context.SaveChangesAsync();
-            }            
+            }
         }
 
         public async Task RefreshAccessTokenAsync()
@@ -79,7 +79,7 @@ namespace TaskEngine
                 var refreshToken = await _context.Dictionaries.Where(d => d.Key == CommonUtils.BOX_REFRESH_TOKEN).FirstAsync();
                 var config = new BoxConfig(Globals.appSettings.BOX_CLIENT_ID, Globals.appSettings.BOX_CLIENT_SECRET, new Uri("http://locahost"));
                 var auth = new OAuthSession(accessToken.Value, refreshToken.Value, 3600, "bearer");
-                boxClient = new BoxClient(config, auth);                
+                boxClient = new BoxClient(config, auth);
             }
             return boxClient;
         }

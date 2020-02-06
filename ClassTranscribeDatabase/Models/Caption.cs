@@ -18,7 +18,7 @@ namespace ClassTranscribeDatabase.Models
         AudioDescription
     }
     public class Caption : Entity
-    { 
+    {
         public int Index { get; set; }
         public TimeSpan Begin { get; set; }
         public TimeSpan End { get; set; }

@@ -1,12 +1,12 @@
-﻿using System;
-using System.Linq;
-using System.Security.Claims;
-using System.Threading.Tasks;
-using ClassTranscribeDatabase;
+﻿using ClassTranscribeDatabase;
 using ClassTranscribeDatabase.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using System;
+using System.Linq;
+using System.Security.Claims;
+using System.Threading.Tasks;
 
 namespace ClassTranscribeServer.Authorization
 {
@@ -47,13 +47,13 @@ namespace ClassTranscribeServer.Authorization
             {
                 context.Succeed(requirement);
             }
-            if (_ctDbContext.UserOfferings.Where( (uo) => uo.ApplicationUserId == user.Id && uo.OfferingId == offering.Id && uo.IdentityRoleId == InstructorRole.Id).Any())
+            if (_ctDbContext.UserOfferings.Where((uo) => uo.ApplicationUserId == user.Id && uo.OfferingId == offering.Id && uo.IdentityRoleId == InstructorRole.Id).Any())
             {
                 context.Succeed(requirement);
             }
             // Detach object after using
             _ctDbContext.Entry(offering).State = EntityState.Detached;
-            _ctDbContext.Entry(user).State = EntityState.Detached;            
+            _ctDbContext.Entry(user).State = EntityState.Detached;
         }
 
     }
@@ -110,5 +110,5 @@ namespace ClassTranscribeServer.Authorization
                 _ctDbContext.Entry(user).State = EntityState.Detached;
             }
         }
-    }    
+    }
 }

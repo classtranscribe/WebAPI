@@ -1,17 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using ClassTranscribeDatabase;
+using ClassTranscribeDatabase.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using ClassTranscribeDatabase;
-using ClassTranscribeDatabase.Models;
-using Microsoft.AspNetCore.Authorization;
+using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.IO;
-using Newtonsoft.Json;
-using Microsoft.Extensions.Logging;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace ClassTranscribeServer.Controllers
 {
@@ -31,7 +29,7 @@ namespace ClassTranscribeServer.Controllers
         public async Task<ActionResult<MediaDTO>> GetMedia(string id)
         {
             var media = await _context.Medias.FindAsync(id);
-            
+
 
             if (media == null)
             {
@@ -39,7 +37,7 @@ namespace ClassTranscribeServer.Controllers
             }
 
             var v = await _context.Videos.FindAsync(media.VideoId);
-            
+
             var mediaDTO = new MediaDTO
             {
                 Id = media.Id,

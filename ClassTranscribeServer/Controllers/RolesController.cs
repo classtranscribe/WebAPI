@@ -1,14 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using ClassTranscribeDatabase;
+﻿using ClassTranscribeDatabase;
 using ClassTranscribeDatabase.Models;
 using ClassTranscribeServer.Utils;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace ClassTranscribeServer.Controllers
 {
@@ -33,7 +32,7 @@ namespace ClassTranscribeServer.Controllers
         public async Task<ActionResult> PostNewInstructor(string mailId)
         {
             ApplicationUser user = await _userManager.FindByEmailAsync(mailId);
-            if(user == null)
+            if (user == null)
             {
                 user = await _userutils.CreateNonExistentUser(mailId);
             }
@@ -64,8 +63,8 @@ namespace ClassTranscribeServer.Controllers
             var userIds = (from user in _context.Users
                            join ur in _context.UserRoles on user.Id equals ur.UserId
                            where user.UniversityId == universityId && ur.RoleId == instructorRoleId
-                            select new ApplicationUser { Id = user.Id, Email = user.Email, FirstName = user.FirstName, LastName = user.LastName }).ToList();
-            return userIds; 
+                           select new ApplicationUser { Id = user.Id, Email = user.Email, FirstName = user.FirstName, LastName = user.LastName }).ToList();
+            return userIds;
         }
     }
 }

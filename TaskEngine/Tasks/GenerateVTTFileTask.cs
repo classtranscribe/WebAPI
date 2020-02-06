@@ -2,12 +2,7 @@
 using ClassTranscribeDatabase.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using TaskEngine.Grpc;
 using static ClassTranscribeDatabase.CommonUtils;
 
 namespace TaskEngine.Tasks
@@ -15,7 +10,7 @@ namespace TaskEngine.Tasks
     class GenerateVTTFileTask : RabbitMQTask<Transcription>
     {
         public GenerateVTTFileTask(RabbitMQConnection rabbitMQ, ILogger<GenerateVTTFileTask> logger)
-            : base(rabbitMQ, TaskType.GenerateVTTFile, logger) 
+            : base(rabbitMQ, TaskType.GenerateVTTFile, logger)
         {
 
         }

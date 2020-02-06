@@ -1,13 +1,13 @@
-﻿using System;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
-using ClassTranscribeDatabase;
+﻿using ClassTranscribeDatabase;
 using CsvHelper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using System;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace ClassTranscribeServer.Controllers
 {
@@ -18,7 +18,7 @@ namespace ClassTranscribeServer.Controllers
     {
         private readonly WakeDownloader _wakeDownloader;
 
-        public AdminController(WakeDownloader wakeDownloader, CTDbContext context, ILogger<AdminController> logger): base(context, logger)
+        public AdminController(WakeDownloader wakeDownloader, CTDbContext context, ILogger<AdminController> logger) : base(context, logger)
         {
             _wakeDownloader = wakeDownloader;
         }
@@ -47,7 +47,8 @@ namespace ClassTranscribeServer.Controllers
         [HttpGet("GetLogs")]
         public async Task<IActionResult> GetLogs(DateTime from, DateTime to)
         {
-            var logs = await _context.Logs.Where(l => l.CreatedAt >= from && l.CreatedAt <= to).Select(l => new {
+            var logs = await _context.Logs.Where(l => l.CreatedAt >= from && l.CreatedAt <= to).Select(l => new
+            {
                 Id = l.Id,
                 CreatedAt = l.CreatedAt,
                 UserId = l.UserId,

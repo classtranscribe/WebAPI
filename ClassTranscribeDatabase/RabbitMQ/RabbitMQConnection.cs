@@ -68,7 +68,7 @@ namespace ClassTranscribeDatabase
 
         public void DeleteAllQueues()
         {
-            foreach(CommonUtils.TaskType taskType in Enum.GetValues(typeof(CommonUtils.TaskType)))
+            foreach (CommonUtils.TaskType taskType in Enum.GetValues(typeof(CommonUtils.TaskType)))
             {
                 string queueName = taskType.ToString();
                 _channel.QueueDelete(queueName);

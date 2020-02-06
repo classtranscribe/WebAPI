@@ -16,7 +16,7 @@ namespace TaskEngine.Tasks
     class EPubGeneratorTask : RabbitMQTask<EPub>
     {
         private RpcClient _rpcClient;
-        
+
         public EPubGeneratorTask(RabbitMQConnection rabbitMQ, RpcClient rpcClient, ILogger<EPubGeneratorTask> logger)
             : base(rabbitMQ, TaskType.GenerateEPubFile, logger)
         {
@@ -25,10 +25,10 @@ namespace TaskEngine.Tasks
 
         protected async override Task OnConsume(EPub epub)
         {
-            
+
             using (var _context = CTDbContext.CreateDbContext())
             {
-                Video video = await _context.Videos.FindAsync(epub.VideoId);            
+                Video video = await _context.Videos.FindAsync(epub.VideoId);
 
                 if (video.SceneData == null)
                 {
@@ -42,7 +42,7 @@ namespace TaskEngine.Tasks
                     video.SceneData.Add("Scenes", scenes);
 
                     await _context.SaveChangesAsync();
-                }                
+                }
 
                 var query = new CaptionQueries(_context);
                 var captions = await query.GetCaptionsAsync(epub.VideoId, epub.Language);

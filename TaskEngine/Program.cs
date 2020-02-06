@@ -1,21 +1,18 @@
 ﻿using ClassTranscribeDatabase;
-using System;
-using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using TaskEngine.Tasks;
-using System.Collections.Specialized;
-using Quartz.Impl;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Quartz;
+using Quartz.Impl;
+using System;
+using System.Collections.Specialized;
+using System.Threading;
+using System.Threading.Tasks;
 using TaskEngine.Grpc;
 using TaskEngine.MSTranscription;
-using Microsoft.Extensions.Options;
-using System.Linq;
-using Microsoft.Extensions.Configuration;
-using System.Threading;
-using ClassTranscribeDatabase.Models;
-using static ClassTranscribeDatabase.CommonUtils;
-using Microsoft.EntityFrameworkCore;
+using TaskEngine.Tasks;
 
 namespace TaskEngine
 {
@@ -57,19 +54,20 @@ namespace TaskEngine
                 .AddScoped<Seeder>()
                 .BuildServiceProvider();
 
+            var logger = serviceProvider.GetRequiredService<ILogger<Program>>();
+            Globals.logger = logger;
+
             //configure console logging
             if (configuration.GetValue<string>("DEV_ENV", "NULL") == "DOCKER")
             {
-                Console.WriteLine("Sleeping");
+                logger.LogInformation("Sleeping");
                 Thread.Sleep(15000);
-                Console.WriteLine("Waking up");
+                logger.LogInformation("Waking up");
             }
 
             Globals.appSettings = serviceProvider.GetService<IOptions<AppSettings>>().Value;
             TaskEngineGlobals.KeyProvider = new KeyProvider(Globals.appSettings);
 
-            var logger = serviceProvider.GetRequiredService<ILogger<Program>>();
-            Globals.logger = logger;
             AppDomain currentDomain = AppDomain.CurrentDomain;
             currentDomain.UnhandledException += new UnhandledExceptionEventHandler(ExceptionHandler);
 
@@ -159,7 +157,7 @@ namespace TaskEngine
             }
             catch (SchedulerException se)
             {
-                Console.WriteLine(se);
+                Globals.logger.LogInformation(se, "Exception in quartz");
             }
         }
 

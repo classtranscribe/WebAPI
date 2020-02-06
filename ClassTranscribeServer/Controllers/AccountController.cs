@@ -1,25 +1,23 @@
-﻿using System;
+﻿using ClassTranscribeDatabase;
+using ClassTranscribeDatabase.Models;
+using ClassTranscribeServer.Utils;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
+using Microsoft.IdentityModel.Protocols;
+using Microsoft.IdentityModel.Protocols.OpenIdConnect;
+using Microsoft.IdentityModel.Tokens;
+using Newtonsoft.Json.Linq;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
 using System.Text;
-using System.Threading.Tasks;
-using ClassTranscribeDatabase.Models;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.IdentityModel.Protocols;
-using Microsoft.IdentityModel.Protocols.OpenIdConnect;
-using Microsoft.IdentityModel.Tokens;
-using ClassTranscribeDatabase;
-using Newtonsoft.Json.Linq;
 using System.Threading;
-using Microsoft.AspNetCore.Authorization;
-using ClassTranscribeServer.Utils;
-using System.IO;
-using CsvHelper;
-using Microsoft.Extensions.Logging;
+using System.Threading.Tasks;
 
 namespace ClassTranscribeServer.Controllers
 {
@@ -32,7 +30,7 @@ namespace ClassTranscribeServer.Controllers
         public AccountController(
             UserManager<ApplicationUser> userManager,
             SignInManager<ApplicationUser> signInManager,
-            CTDbContext context, ILogger<AccountController> logger): base(context, logger)
+            CTDbContext context, ILogger<AccountController> logger) : base(context, logger)
         {
             _userManager = userManager;
             _signInManager = signInManager;
@@ -87,7 +85,7 @@ namespace ClassTranscribeServer.Controllers
         [HttpPost]
         public async Task<ActionResult<LoggedInDTO>> TestSignIn([FromBody] TestLoginDTO model)
         {
-            if(model.password != Globals.appSettings.GOD_MODE_PASSWORD)
+            if (model.password != Globals.appSettings.GOD_MODE_PASSWORD)
             {
                 return Unauthorized();
             }
@@ -185,7 +183,7 @@ namespace ClassTranscribeServer.Controllers
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
                 new Claim(ClaimTypes.NameIdentifier, user.Id)
             };
-            foreach(var role in await _userManager.GetRolesAsync(user))
+            foreach (var role in await _userManager.GetRolesAsync(user))
             {
                 claims.Add(new Claim(ClaimTypes.Role, role));
             }

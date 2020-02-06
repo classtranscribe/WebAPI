@@ -14,12 +14,12 @@ namespace TaskEngine.MSTranscription
 {
     public class MSTranscriptionService
     {
-        
-        public async Task<Tuple<Dictionary<string, List<Caption>>,string>> RecognitionWithAudioStreamAsync(Video video)
+
+        public async Task<Tuple<Dictionary<string, List<Caption>>, string>> RecognitionWithAudioStreamAsync(Video video)
         {
             string file = video.Audio.Path;
             AppSettings _appSettings = Globals.appSettings;
-            
+
             Key key = TaskEngineGlobals.KeyProvider.GetKey(video.Id);
             SpeechTranslationConfig _speechConfig = SpeechTranslationConfig.FromSubscription(key.ApiKey, key.Region);
             _speechConfig.RequestWordLevelTimestamps();
@@ -72,10 +72,10 @@ namespace TaskEngine.MSTranscription
                             TimeSpan end = e.Result.Duration.Add(offset);
                             Console.WriteLine($"End={end.Minutes}:{end.Seconds},{end.Milliseconds}");
                             Caption.AppendCaptions(captions[Languages.ENGLISH], words);
-                            
+
                             foreach (var element in e.Result.Translations)
                             {
-                                Caption.AppendCaptions(captions[element.Key], offset, end, element.Value);                                
+                                Caption.AppendCaptions(captions[element.Key], offset, end, element.Value);
                             }
                         }
                         else if (e.Result.Reason == ResultReason.NoMatch)

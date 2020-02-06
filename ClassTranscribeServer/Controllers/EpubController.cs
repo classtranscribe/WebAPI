@@ -1,15 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using ClassTranscribeDatabase;
+﻿using ClassTranscribeDatabase;
 using ClassTranscribeDatabase.Models;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 using static ClassTranscribeDatabase.CommonUtils;
 
 namespace ClassTranscribeServer.Controllers
@@ -19,13 +17,13 @@ namespace ClassTranscribeServer.Controllers
     public class EpubController : BaseController
     {
         private readonly WakeDownloader _wakeDownloader;
-        
+
         public EpubController(WakeDownloader wakeDownloader, CTDbContext context, ILogger<EpubController> logger) : base(context, logger)
         {
             _wakeDownloader = wakeDownloader;
         }
 
-        
+
         public class EPubChapter
         {
             public string Image { get; set; }

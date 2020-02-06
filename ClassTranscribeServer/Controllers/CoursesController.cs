@@ -1,12 +1,12 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using ClassTranscribeDatabase;
+﻿using ClassTranscribeDatabase;
 using ClassTranscribeDatabase.Models;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace ClassTranscribeServer.Controllers
 {
@@ -14,7 +14,7 @@ namespace ClassTranscribeServer.Controllers
     [ApiController]
     public class CoursesController : BaseController
     {
-        public CoursesController(CTDbContext context, ILogger<CoursesController> logger) : base(context, logger) {}
+        public CoursesController(CTDbContext context, ILogger<CoursesController> logger) : base(context, logger) { }
 
         /// <summary>
         /// Gets all Courses for departmentId

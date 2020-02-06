@@ -1,11 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using ClassTranscribeDatabase;
 using ClassTranscribeDatabase.Models;
+using System;
+using System.Collections.Generic;
 using System.IO;
-using System.Security.Cryptography;
-using ClassTranscribeDatabase;
 using System.Linq;
+using System.Security.Cryptography;
 
 namespace TaskEngine
 {
@@ -13,7 +12,7 @@ namespace TaskEngine
     {
         public static void ComputeSha256HashForDirectory(string dir_path)
         {
-            
+
             if (!Directory.Exists(dir_path))
             {
                 Console.WriteLine("The directory specified could not be found.");

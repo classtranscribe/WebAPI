@@ -52,7 +52,7 @@ namespace ClassTranscribeDatabase
                 + configurations["POSTGRES_DB"] + ";User Id=" + configurations["POSTGRES_USER"] + ";Password=" + configurations["POSTGRES_PASSWORD"] + ";";
         }
 
-        public static DbContextOptionsBuilder<CTDbContext> GetDbContextOptionsBuilder() 
+        public static DbContextOptionsBuilder<CTDbContext> GetDbContextOptionsBuilder()
         {
             var optionsBuilder = new DbContextOptionsBuilder<CTDbContext>();
             optionsBuilder.UseLazyLoadingProxies().UseNpgsql(ConnectionStringBuilder(), npgsqlOptionsAction: sqlOptions =>
@@ -146,7 +146,7 @@ namespace ClassTranscribeDatabase
             builder.Entity<Log>().Property(m => m.Json).HasJsonValueConversion();
             builder.Entity<ApplicationUser>().Property(m => m.Metadata).HasJsonValueConversion();
             builder.Entity<Video>().Property(m => m.SceneData).HasJsonValueConversion();
-            builder.Entity<Video>().Property(m => m.JsonMetadata).HasJsonValueConversion();            
+            builder.Entity<Video>().Property(m => m.JsonMetadata).HasJsonValueConversion();
         }
         public override int SaveChanges(bool acceptAllChangesOnSuccess)
         {
@@ -202,7 +202,7 @@ namespace ClassTranscribeDatabase
             else
             {
                 return user.FindFirst(ClaimTypes.NameIdentifier).Value;
-            }            
+            }
         }
     }
 }

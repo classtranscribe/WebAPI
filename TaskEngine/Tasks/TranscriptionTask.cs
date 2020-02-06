@@ -12,7 +12,7 @@ namespace TaskEngine.Tasks
     {
         private MSTranscriptionService _msTranscriptionService;
         private GenerateVTTFileTask _generateVTTFileTask;
-        
+
         public TranscriptionTask(RabbitMQConnection rabbitMQ, MSTranscriptionService msTranscriptionService, GenerateVTTFileTask generateVTTFileTask, ILogger<TranscriptionTask> logger)
             : base(rabbitMQ, TaskType.Transcribe, logger)
         {
@@ -23,9 +23,9 @@ namespace TaskEngine.Tasks
         {
             var result = await _msTranscriptionService.RecognitionWithAudioStreamAsync(video);
             List<Transcription> transcriptions = new List<Transcription>();
-            foreach(var language in result.Item1)
+            foreach (var language in result.Item1)
             {
-                if(language.Value.Count > 0)
+                if (language.Value.Count > 0)
                 {
                     transcriptions.Add(new Transcription
                     {
@@ -46,7 +46,7 @@ namespace TaskEngine.Tasks
                     await _context.SaveChangesAsync();
                     transcriptions.ForEach(t => _generateVTTFileTask.Publish(t));
                 }
-            }            
+            }
         }
     }
 }

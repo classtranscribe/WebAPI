@@ -1,10 +1,8 @@
 ﻿using ClassTranscribeDatabase;
 using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Linq;
 using System.Threading;
-using ClassTranscribeDatabase.Models;
 
 namespace TaskEngine.MSTranscription
 {
@@ -40,13 +38,13 @@ namespace TaskEngine.MSTranscription
 
         public Key GetKey(string videoId)
         {
-            if(!CurrentVideoIds.Contains(videoId))
+            if (!CurrentVideoIds.Contains(videoId))
             {
                 Key key = Keys.OrderBy(k => k.Load).First();
                 key.Load += 1;
                 CurrentVideoIds.Add(videoId);
                 return key;
-            } 
+            }
             else
             {
                 throw new Exception("Video already being transcribed");

@@ -60,7 +60,7 @@ namespace TaskEngine.Tasks
                     {
                         var existingVideos = await _context.Videos.Where(v => v.Video1Id == file.First().Id).ToListAsync();
                         // If file exists but video doesn't.
-                        if(existingVideos.Count() == 0)
+                        if (existingVideos.Count() == 0)
                         {
                             // Delete existing file Record
                             await file.First().DeleteFileRecordAsync(_context);
@@ -76,7 +76,7 @@ namespace TaskEngine.Tasks
                         // If video and file both exist.
                         else
                         {
-                            
+
                             var existingVideo = await _context.Videos.Where(v => v.Video1Id == file.First().Id).FirstAsync();
                             latestMedia.VideoId = existingVideo.Id;
                             await _context.SaveChangesAsync();
@@ -178,7 +178,7 @@ namespace TaskEngine.Tasks
                 var newPath = Path.Combine(Globals.appSettings.DATA_DIRECTORY, Guid.NewGuid().ToString() + ".mp4");
                 File.Copy(video1Path, newPath);
                 video.Video1 = new FileRecord(newPath);
-                
+
             }
             if (media.JsonMetadata.ContainsKey("video2Path"))
             {

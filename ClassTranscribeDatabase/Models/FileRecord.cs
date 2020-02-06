@@ -18,7 +18,7 @@ namespace ClassTranscribeDatabase.Models
             if (File.Exists(this.Path))
             {
                 this.Hash = ComputeSha256HashForFile(this.Path);
-            }            
+            }
         }
         public FileRecord() { }
         public string FileName { get; set; }
@@ -90,7 +90,7 @@ namespace ClassTranscribeDatabase.Models
             {
                 context.FileRecords.Remove(dbFileRecord);
                 await context.SaveChangesAsync();
-            }            
+            }
         }
     }
 }

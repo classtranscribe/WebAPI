@@ -24,7 +24,7 @@ namespace TaskEngine.Tasks
         public QueueAwakerTask() { }
 
         public QueueAwakerTask(RabbitMQConnection rabbitMQ, DownloadPlaylistInfoTask downloadPlaylistInfoTask,
-            DownloadMediaTask downloadMediaTask, ConvertVideoToWavTask convertVideoToWavTask, 
+            DownloadMediaTask downloadMediaTask, ConvertVideoToWavTask convertVideoToWavTask,
             TranscriptionTask transcriptionTask, ProcessVideoTask processVideoTask,
             GenerateVTTFileTask generateVTTFileTask, EPubGeneratorTask ePubGeneratorTask, ILogger<QueueAwakerTask> logger)
             : base(rabbitMQ, TaskType.QueueAwaker, logger)
@@ -81,7 +81,7 @@ namespace TaskEngine.Tasks
                 await DownloadAllPlaylists();
                 await PendingJobs();
             }
-            else if(jObject["Type"].ToString() == CommonUtils.TaskType.DownloadAllPlaylists.ToString())
+            else if (jObject["Type"].ToString() == CommonUtils.TaskType.DownloadAllPlaylists.ToString())
             {
                 await DownloadAllPlaylists();
             }

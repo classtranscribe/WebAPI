@@ -1,14 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+﻿using Box.V2.Models;
 using ClassTranscribeDatabase;
-using System.Linq;
-using Microsoft.EntityFrameworkCore;
 using ClassTranscribeDatabase.Models;
-using TaskEngine.Grpc;
-using Newtonsoft.Json.Linq;
-using Box.V2.Models;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json.Linq;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using TaskEngine.Grpc;
 using static ClassTranscribeDatabase.CommonUtils;
 
 namespace TaskEngine.Tasks
@@ -42,7 +42,7 @@ namespace TaskEngine.Tasks
                 }
                 medias.ForEach(m => _downloadMediaTask.Publish(m));
             }
-        }        
+        }
 
         public async Task<List<Media>> GetKalturaPlaylist(Playlist playlist, CTDbContext _context)
         {

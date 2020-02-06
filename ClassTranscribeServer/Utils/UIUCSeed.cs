@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 
 namespace TaskEngine.Utils
 {
@@ -23,7 +22,7 @@ namespace TaskEngine.Utils
             public string CRS_TITLE { get; set; }
             public string SCHED_TYPE { get; set; }
         }
-        
+
         public static void SeedCourses()
         {
             // Dry run code before using it on Production.

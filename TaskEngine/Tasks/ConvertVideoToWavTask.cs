@@ -12,8 +12,8 @@ namespace TaskEngine.Tasks
     {
         private RpcClient _rpcClient;
         private TranscriptionTask _transcriptionTask;
-        
-        public ConvertVideoToWavTask(RabbitMQConnection rabbitMQ, RpcClient rpcClient, TranscriptionTask transcriptionTask, ILogger<ConvertVideoToWavTask> logger) 
+
+        public ConvertVideoToWavTask(RabbitMQConnection rabbitMQ, RpcClient rpcClient, TranscriptionTask transcriptionTask, ILogger<ConvertVideoToWavTask> logger)
             : base(rabbitMQ, TaskType.ConvertMedia, logger)
         {
             _rpcClient = rpcClient;

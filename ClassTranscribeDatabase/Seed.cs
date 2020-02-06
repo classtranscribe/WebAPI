@@ -165,7 +165,7 @@ namespace ClassTranscribeDatabase
 
             Course test_course = new Course
             {
-                Id = "test_course",                
+                Id = "test_course",
                 CourseNumber = "000",
                 DepartmentId = department1.Id
             };
@@ -187,9 +187,9 @@ namespace ClassTranscribeDatabase
             };
 
             List<Term> terms = new List<Term> { term1, term2, term3 };
-            List<Department> departments = new List<Department> { department1, department2};
-            List<Course> courses = new List<Course> { test_course};
-            List<Offering> offerings = new List<Offering> { offering2};
+            List<Department> departments = new List<Department> { department1, department2 };
+            List<Course> courses = new List<Course> { test_course };
+            List<Offering> offerings = new List<Offering> { offering2 };
             List<CourseOffering> courseOfferings = new List<CourseOffering> { course_offering2 };
 
             foreach (var t in terms)
@@ -283,7 +283,7 @@ namespace ClassTranscribeDatabase
                 PlaylistIdentifier = "102571260469"
             };
 
-            List<Playlist> playlists = new List<Playlist> { youtubePlaylist, localPlaylist, boxPlaylist};
+            List<Playlist> playlists = new List<Playlist> { youtubePlaylist, localPlaylist, boxPlaylist };
 
             foreach (var t in playlists)
             {
