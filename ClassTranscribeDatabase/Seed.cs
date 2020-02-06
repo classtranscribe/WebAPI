@@ -10,7 +10,6 @@ namespace ClassTranscribeDatabase
 {
     public class Seeder
     {
-        private bool IsSeeded = false;
         private readonly CTDbContext _context;
         private readonly ILogger _logger;
 
@@ -22,11 +21,6 @@ namespace ClassTranscribeDatabase
         public void Seed()
         {
             _logger.LogInformation("In Seeder");
-            if (IsSeeded)
-            {
-                _logger.LogInformation("Skipping Seeding");
-                return;
-            }
             _context.Database.EnsureCreated();
             IdentityRole Instructor = new IdentityRole { Name = Globals.ROLE_INSTRUCTOR, Id = "0000", NormalizedName = Globals.ROLE_INSTRUCTOR.ToUpper() };
             IdentityRole Student = new IdentityRole { Name = Globals.ROLE_STUDENT, Id = "0001", NormalizedName = Globals.ROLE_STUDENT.ToUpper() };
@@ -302,7 +296,6 @@ namespace ClassTranscribeDatabase
             localPlaylist.OfferingId = offering2.Id;
 
             _context.SaveChanges();
-            IsSeeded = true;
             _logger.LogInformation("Seeded");
         }
     }

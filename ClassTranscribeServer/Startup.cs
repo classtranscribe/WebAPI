@@ -141,9 +141,9 @@ namespace ClassTranscribeServer
                 c.OperationFilter<FileUploadOperation>(); //Register File Upload Operation Filter
             });
             services.AddApplicationInsightsTelemetry(Globals.appSettings.APPLICATION_INSIGHTS_KEY);
-            services.AddSingleton<RabbitMQConnection>();
-            services.AddSingleton<WakeDownloader>();
-            services.AddSingleton<Seeder>();
+            services.AddScoped<RabbitMQConnection>();
+            services.AddScoped<WakeDownloader>();
+            services.AddScoped<Seeder>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

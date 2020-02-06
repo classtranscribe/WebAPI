@@ -54,7 +54,7 @@ namespace TaskEngine
                 .AddSingleton<UpdateBoxTokenTask>()
                 .AddSingleton<CreateBoxTokenTask>()
                 .AddSingleton<Box>()
-                .AddSingleton<Seeder>()
+                .AddScoped<Seeder>()
                 .BuildServiceProvider();
 
             //configure console logging
