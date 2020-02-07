@@ -161,6 +161,8 @@ namespace TaskEngine.Tasks
                 }
 
             }
+            await _context.Medias.AddRangeAsync(newMedia);
+            await _context.SaveChangesAsync();
             return newMedia;
         }
     }
