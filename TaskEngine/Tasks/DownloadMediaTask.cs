@@ -38,6 +38,11 @@ namespace TaskEngine.Tasks
                 case SourceType.Kaltura: video = await DownloadKalturaVideo(media); break;
                 case SourceType.Box: video = await DownloadBoxVideo(media); break;
             }
+            if (video == null || new FileInfo(video.Video1.Path).Length < 1000 || (video.Video2 != null && new FileInfo(video.Video2.Path).Length < 1000))
+            {
+                throw new Exception("DownloadMediaTask failed for mediaId " + media.Id);
+            }
+
             using (var _context = CTDbContext.CreateDbContext())
             {
                 var latestMedia = await _context.Medias.FindAsync(media.Id);
@@ -171,23 +176,37 @@ namespace TaskEngine.Tasks
 
         public Video DownloadLocalPlaylist(Media media)
         {
-            Video video = new Video();
-            if (media.JsonMetadata.ContainsKey("video1Path"))
+            try
             {
-                var video1Path = media.JsonMetadata["video1Path"].ToString();
-                var newPath = Path.Combine(Globals.appSettings.DATA_DIRECTORY, Guid.NewGuid().ToString() + ".mp4");
-                File.Copy(video1Path, newPath);
-                video.Video1 = new FileRecord(newPath);
+                Video video = new Video();
+                if (media.JsonMetadata.ContainsKey("video1Path"))
+                {
+                    var video1Path = media.JsonMetadata["video1Path"].ToString();
+                    var newPath = Path.Combine(Globals.appSettings.DATA_DIRECTORY, Guid.NewGuid().ToString() + ".mp4");
+                    File.Copy(video1Path, newPath);
+                    video.Video1 = new FileRecord(newPath);
 
+                }
+                if (media.JsonMetadata.ContainsKey("video2Path"))
+                {
+                    var video2Path = media.JsonMetadata["video2Path"].ToString();
+                    var newPath = Path.Combine(Globals.appSettings.DATA_DIRECTORY, Guid.NewGuid().ToString() + ".mp4");
+                    File.Copy(video2Path, newPath);
+                    video.Video1 = new FileRecord(newPath);
+                }
+
+                return video;
             }
-            if (media.JsonMetadata.ContainsKey("video2Path"))
+            catch (Exception e)
             {
-                var video2Path = media.JsonMetadata["video2Path"].ToString();
-                var newPath = Path.Combine(Globals.appSettings.DATA_DIRECTORY, Guid.NewGuid().ToString() + ".mp4");
-                File.Copy(video2Path, newPath);
-                video.Video1 = new FileRecord(newPath);
+                _logger.LogError(e, "DownloadLocalPlaylist failed. mediaId {0}", media.Id);
+                using (var context = CTDbContext.CreateDbContext())
+                {
+                    context.Medias.Remove(media);
+                    context.SaveChanges();
+                }
             }
-            return video;
+            return null;
         }
 
         public async Task<Video> DownloadBoxVideo(Media media)
