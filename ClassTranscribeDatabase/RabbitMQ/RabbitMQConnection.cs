@@ -54,7 +54,7 @@ namespace ClassTranscribeDatabase
                 }
                 catch (Exception e)
                 {
-                    _logger.LogError(e, "Error occured in RabbitMQConnection for message {0}", message);
+                    _logger.LogError(e, "Error occured in RabbitMQConnection for message {0}", message.ToString());
                 }
 
                 _logger.LogInformation(" [x] Done {0}", message);
