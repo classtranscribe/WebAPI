@@ -134,20 +134,30 @@ namespace TaskEngine.Tasks
                 VideoUrl = media.JsonMetadata["altVideoUrl"].ToString(),
                 AdditionalInfo = media.JsonMetadata["download_header"].ToString()
             });
-            Video video;
-            if (mediaResponse.FilePath.Length > 0 && mediaResponse2.FilePath.Length > 0)
+
+            if (mediaResponse.FilePath.Length > 0 && mediaResponse2.FilePath.Length > 0 &&
+                File.Exists(mediaResponse.FilePath) && File.Exists(mediaResponse2.FilePath) &&
+                new FileInfo(mediaResponse.FilePath).Length > 1000 && new FileInfo(mediaResponse2.FilePath).Length > 1000)
             {
-                video = new Video
+                Video video = new Video
                 {
                     Video1 = new FileRecord(mediaResponse.FilePath),
                     Video2 = new FileRecord(mediaResponse2.FilePath)
                 };
+                return video;
             }
             else
             {
-                throw new Exception("DownloadEchoVideo Failed + " + media.Id);
+                // Deleting media is fine if download failed as we can get it back from the echo playlist.
+                _logger.LogError("DownloadEchoVideo failed. mediaId {0}, removing Media record", media.Id);
+                using (var context = CTDbContext.CreateDbContext())
+                {
+                    context.Medias.Remove(media);
+                    context.SaveChanges();
+                }
+
+                return null;
             }
-            return video;
         }
 
         public async Task<Video> DownloadYoutubeVideo(Media media)
@@ -158,20 +168,27 @@ namespace TaskEngine.Tasks
                 VideoUrl = media.JsonMetadata["videoUrl"].ToString()
             });
 
-            Video video;
-            if (mediaResponse.FilePath.Length > 0)
+            if (mediaResponse.FilePath.Length > 0 &&
+                File.Exists(mediaResponse.FilePath) && new FileInfo(mediaResponse.FilePath).Length > 1000)
             {
-                video = new Video
+                Video video = new Video
                 {
                     Video1 = new FileRecord(mediaResponse.FilePath)
                 };
+                return video;
             }
             else
             {
-                throw new Exception("DownloadYoutubeVideo Failed + " + media.Id);
-            }
+                // Deleting media is fine if download failed as we can get it back from the youtube playlist.
+                _logger.LogError("DownloadYoutubeVideo failed. mediaId {0}, removing Media record", media.Id);
+                using (var context = CTDbContext.CreateDbContext())
+                {
+                    context.Medias.Remove(media);
+                    context.SaveChanges();
+                }
 
-            return video;
+                return null;
+            }
         }
 
         public Video DownloadLocalPlaylist(Media media)
@@ -205,13 +222,12 @@ namespace TaskEngine.Tasks
                     context.Medias.Remove(media);
                     context.SaveChanges();
                 }
+                return null;
             }
-            return null;
         }
 
         public async Task<Video> DownloadBoxVideo(Media media)
         {
-            Video video = new Video();
             var guid = Guid.NewGuid().ToString();
             var newPath = Path.Combine(Globals.appSettings.DATA_DIRECTORY, guid + ".mp4");
             var client = await _box.GetBoxClientAsync();
@@ -220,8 +236,25 @@ namespace TaskEngine.Tasks
             {
                 stream.CopyTo(fileStream);
             }
-            video.Video1 = new FileRecord(newPath);
-            return video;
+            if (File.Exists(newPath) && new FileInfo(newPath).Length > 1000)
+            {
+                Video video = new Video
+                {
+                    Video1 = new FileRecord(newPath)
+                };
+                return video;
+            }
+            else
+            {
+                // Deleting media is fine if download failed as we can get it back from the youtube playlist.
+                _logger.LogError("DownloadBoxVideo failed. mediaId {0}, removing Media record", media.Id);
+                using (var context = CTDbContext.CreateDbContext())
+                {
+                    context.Medias.Remove(media);
+                    context.SaveChanges();
+                }
+                return null;
+            }
         }
     }
 }
