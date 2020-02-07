@@ -16,10 +16,12 @@ namespace TaskEngine.MSTranscription
     public class MSTranscriptionService
     {
         ILogger _logger;
+        SlackLogger _slackLogger;
 
-        public MSTranscriptionService(ILogger<MSTranscriptionService> logger)
+        public MSTranscriptionService(ILogger<MSTranscriptionService> logger, SlackLogger slackLogger)
         {
             _logger = logger;
+            _slackLogger = slackLogger;
         }
         public async Task<Tuple<Dictionary<string, List<Caption>>, string>> RecognitionWithAudioStreamAsync(Video video)
         {
@@ -92,11 +94,11 @@ namespace TaskEngine.MSTranscription
                     recognizer.Canceled += (s, e) =>
                     {
                         errorCode = e.ErrorCode.ToString();
-                        _logger.LogInformation($"CANCELED: Reason={e.Reason}");
+                        _logger.LogInformation($"CANCELED: ErrorCode={e.ErrorCode.ToString()}\nReason={e.Reason}");
 
                         if (e.Reason == CancellationReason.Error)
                         {
-                            _logger.LogInformation($"CANCELED: ErrorDetails={e.ErrorDetails}");
+                            _logger.LogInformation($"CANCELED: ErrorCode={e.ErrorCode.ToString()}\nReason={e.Reason}");
                         }
                         stopRecognition.TrySetResult(0);
                     };

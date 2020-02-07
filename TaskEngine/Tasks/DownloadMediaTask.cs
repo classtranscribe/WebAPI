@@ -15,9 +15,9 @@ namespace TaskEngine.Tasks
     {
         private RpcClient _rpcClient;
         private ConvertVideoToWavTask _convertVideoToWavTask;
-        private Box _box;
+        private BoxAPI _box;
 
-        public DownloadMediaTask(RabbitMQConnection rabbitMQ, RpcClient rpcClient, ConvertVideoToWavTask convertVideoToWavTask, Box box, ILogger<DownloadMediaTask> logger)
+        public DownloadMediaTask(RabbitMQConnection rabbitMQ, RpcClient rpcClient, ConvertVideoToWavTask convertVideoToWavTask, BoxAPI box, ILogger<DownloadMediaTask> logger)
             : base(rabbitMQ, TaskType.DownloadMedia, logger)
         {
             _rpcClient = rpcClient;

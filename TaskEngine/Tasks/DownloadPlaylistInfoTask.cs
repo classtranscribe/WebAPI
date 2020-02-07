@@ -17,9 +17,9 @@ namespace TaskEngine.Tasks
     {
         private RpcClient _rpcClient;
         private DownloadMediaTask _downloadMediaTask;
-        private Box _box;
+        private BoxAPI _box;
 
-        public DownloadPlaylistInfoTask(RabbitMQConnection rabbitMQ, RpcClient rpcClient, DownloadMediaTask downloadMediaTask, Box box, ILogger<DownloadPlaylistInfoTask> logger)
+        public DownloadPlaylistInfoTask(RabbitMQConnection rabbitMQ, RpcClient rpcClient, DownloadMediaTask downloadMediaTask, BoxAPI box, ILogger<DownloadPlaylistInfoTask> logger)
             : base(rabbitMQ, TaskType.DownloadPlaylistInfo, logger)
         {
             _rpcClient = rpcClient;

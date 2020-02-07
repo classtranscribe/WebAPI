@@ -7,8 +7,8 @@ namespace TaskEngine.Tasks
 {
     class UpdateBoxTokenTask : RabbitMQTask<string>
     {
-        private Box _box;
-        public UpdateBoxTokenTask(RabbitMQConnection rabbitMQ, Box box, ILogger<UpdateBoxTokenTask> logger)
+        private BoxAPI _box;
+        public UpdateBoxTokenTask(RabbitMQConnection rabbitMQ, BoxAPI box, ILogger<UpdateBoxTokenTask> logger)
             : base(rabbitMQ, TaskType.UpdateBoxToken, logger)
         {
             _box = box;
