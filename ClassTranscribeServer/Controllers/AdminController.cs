@@ -44,6 +44,13 @@ namespace ClassTranscribeServer.Controllers
             return Ok();
         }
 
+        [HttpPost("CreateBoxToken")]
+        public ActionResult CreateBoxToken(string authCode)
+        {
+            _wakeDownloader.CreateBoxToken(authCode);
+            return Ok();
+        }
+
         [HttpGet("GetLogs")]
         public async Task<IActionResult> GetLogs(DateTime from, DateTime to)
         {

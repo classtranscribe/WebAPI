@@ -20,13 +20,15 @@ namespace TaskEngine.Tasks
         private readonly GenerateVTTFileTask _generateVTTFileTask;
         private readonly ProcessVideoTask _processVideoTask;
         private readonly EPubGeneratorTask _ePubGeneratorTask;
+        private readonly CreateBoxTokenTask _createBoxTokenTask;
 
         public QueueAwakerTask() { }
 
         public QueueAwakerTask(RabbitMQConnection rabbitMQ, DownloadPlaylistInfoTask downloadPlaylistInfoTask,
             DownloadMediaTask downloadMediaTask, ConvertVideoToWavTask convertVideoToWavTask,
             TranscriptionTask transcriptionTask, ProcessVideoTask processVideoTask,
-            GenerateVTTFileTask generateVTTFileTask, EPubGeneratorTask ePubGeneratorTask, ILogger<QueueAwakerTask> logger)
+            GenerateVTTFileTask generateVTTFileTask, EPubGeneratorTask ePubGeneratorTask, CreateBoxTokenTask createBoxTokenTask,
+            ILogger<QueueAwakerTask> logger)
             : base(rabbitMQ, TaskType.QueueAwaker, logger)
         {
             _downloadPlaylistInfoTask = downloadPlaylistInfoTask;
@@ -36,6 +38,7 @@ namespace TaskEngine.Tasks
             _generateVTTFileTask = generateVTTFileTask;
             _processVideoTask = processVideoTask;
             _ePubGeneratorTask = ePubGeneratorTask;
+            _createBoxTokenTask = createBoxTokenTask;
         }
 #pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
         public async Task Execute(IJobExecutionContext context)
@@ -78,16 +81,17 @@ namespace TaskEngine.Tasks
 
         protected async override Task OnConsume(JObject jObject)
         {
-            if (jObject["Type"].ToString() == CommonUtils.TaskType.PeriodicCheck.ToString())
+            var type = jObject["Type"].ToString();
+            if (type == TaskType.PeriodicCheck.ToString())
             {
                 await DownloadAllPlaylists();
                 await PendingJobs();
             }
-            else if (jObject["Type"].ToString() == CommonUtils.TaskType.DownloadAllPlaylists.ToString())
+            else if (type == TaskType.DownloadAllPlaylists.ToString())
             {
                 await DownloadAllPlaylists();
             }
-            else if (jObject["Type"].ToString() == CommonUtils.TaskType.DownloadPlaylistInfo.ToString())
+            else if (type == TaskType.DownloadPlaylistInfo.ToString())
             {
                 using (var _context = CTDbContext.CreateDbContext())
                 {
@@ -96,7 +100,7 @@ namespace TaskEngine.Tasks
                     _downloadPlaylistInfoTask.Publish(playlist);
                 }
             }
-            else if (jObject["Type"].ToString() == CommonUtils.TaskType.GenerateVTTFile.ToString())
+            else if (type == TaskType.GenerateVTTFile.ToString())
             {
                 using (var _context = CTDbContext.CreateDbContext())
                 {
@@ -105,7 +109,7 @@ namespace TaskEngine.Tasks
                     _generateVTTFileTask.Publish(transcription);
                 }
             }
-            else if (jObject["Type"].ToString() == CommonUtils.TaskType.GenerateEPubFile.ToString())
+            else if (type == TaskType.GenerateEPubFile.ToString())
             {
                 using (var _context = CTDbContext.CreateDbContext())
                 {
@@ -117,6 +121,11 @@ namespace TaskEngine.Tasks
                         VideoId = media.VideoId
                     });
                 }
+            }
+            else if (type == TaskType.CreateBoxToken.ToString())
+            {
+                var authCode = jObject["authCode"].ToString();
+                _createBoxTokenTask.Publish(authCode);
             }
         }
     }

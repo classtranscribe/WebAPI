@@ -73,7 +73,7 @@ namespace TaskEngine.MSTranscription
 
 
                             TimeSpan offset = new TimeSpan(e.Result.OffsetInTicks);
-                            Console.Write($"Begin={offset.Minutes}:{offset.Seconds},{offset.Milliseconds}", offset);
+                            _logger.LogInformation($"Begin={offset.Minutes}:{offset.Seconds},{offset.Milliseconds}", offset);
                             TimeSpan end = e.Result.Duration.Add(offset);
                             _logger.LogInformation($"End={end.Minutes}:{end.Seconds},{end.Milliseconds}");
                             Caption.AppendCaptions(captions[Languages.ENGLISH], words);

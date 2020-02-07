@@ -47,6 +47,7 @@ namespace TaskEngine
                 var config = new BoxConfig(Globals.appSettings.BOX_CLIENT_ID, Globals.appSettings.BOX_CLIENT_SECRET, new Uri("http://locahost"));
                 var client = new BoxClient(config);
                 var auth = await client.Auth.AuthenticateAsync(authCode);
+                _logger.LogInformation("Created Box Tokens");
                 accessToken.Value = auth.AccessToken;
                 refreshToken.Value = auth.RefreshToken;
                 await _context.SaveChangesAsync();

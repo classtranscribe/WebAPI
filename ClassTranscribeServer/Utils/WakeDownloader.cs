@@ -15,14 +15,14 @@ namespace ClassTranscribeServer
         public void UpdateAllPlaylists()
         {
             JObject msg = new JObject();
-            msg.Add("Type", CommonUtils.TaskType.DownloadAllPlaylists.ToString());
+            msg.Add("Type", TaskType.DownloadAllPlaylists.ToString());
             Wake(msg);
         }
 
         public void UpdatePlaylist(string playlistId)
         {
             JObject msg = new JObject();
-            msg.Add("Type", CommonUtils.TaskType.DownloadPlaylistInfo.ToString());
+            msg.Add("Type", TaskType.DownloadPlaylistInfo.ToString());
             msg.Add("PlaylistId", playlistId);
             Wake(msg);
         }
@@ -30,7 +30,7 @@ namespace ClassTranscribeServer
         public void UpdateVTTFile(string transcriptionId)
         {
             JObject msg = new JObject();
-            msg.Add("Type", CommonUtils.TaskType.GenerateVTTFile.ToString());
+            msg.Add("Type", TaskType.GenerateVTTFile.ToString());
             msg.Add("TranscriptionId", transcriptionId);
             Wake(msg);
         }
@@ -38,15 +38,23 @@ namespace ClassTranscribeServer
         public void PeriodicCheck()
         {
             JObject msg = new JObject();
-            msg.Add("Type", CommonUtils.TaskType.PeriodicCheck.ToString());
+            msg.Add("Type", TaskType.PeriodicCheck.ToString());
             Wake(msg);
         }
 
         public void GenerateEpub(string mediaId)
         {
             JObject msg = new JObject();
-            msg.Add("Type", CommonUtils.TaskType.GenerateEPubFile.ToString());
+            msg.Add("Type", TaskType.GenerateEPubFile.ToString());
             msg.Add("mediaId", mediaId);
+            Wake(msg);
+        }
+
+        public void CreateBoxToken(string authCode)
+        {
+            JObject msg = new JObject();
+            msg.Add("Type", TaskType.CreateBoxToken.ToString());
+            msg.Add("authCode", authCode);
             Wake(msg);
         }
 
