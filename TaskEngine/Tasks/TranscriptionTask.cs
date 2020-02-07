@@ -13,22 +13,25 @@ namespace TaskEngine.Tasks
     {
         private MSTranscriptionService _msTranscriptionService;
         private GenerateVTTFileTask _generateVTTFileTask;
-        private ConvertVideoToWavTask _convertVideoToWavTask;
 
         public TranscriptionTask(RabbitMQConnection rabbitMQ, MSTranscriptionService msTranscriptionService,
-            GenerateVTTFileTask generateVTTFileTask, ConvertVideoToWavTask convertVideoToWavTask, ILogger<TranscriptionTask> logger)
+            GenerateVTTFileTask generateVTTFileTask, ILogger<TranscriptionTask> logger)
             : base(rabbitMQ, TaskType.Transcribe, logger)
         {
             _msTranscriptionService = msTranscriptionService;
             _generateVTTFileTask = generateVTTFileTask;
-            _convertVideoToWavTask = convertVideoToWavTask;
         }
         protected async override Task OnConsume(Video video)
         {
             if (!File.Exists(video.Audio.Path) || new FileInfo(video.Audio.Path).Length < 1000)
             {
-                // Reprocess conversion of Video to Wav
-                _convertVideoToWavTask.Publish(video);
+                // As file does not exist remove record of it.
+                using (var context = CTDbContext.CreateDbContext())
+                {
+                    var tempAudio = await context.FileRecords.FindAsync(video.AudioId);
+                    context.FileRecords.Remove(tempAudio);
+                    await context.SaveChangesAsync();
+                }
                 throw new FileNotFoundException("Wav file not found.", video.Audio.Path);
             }
             var result = await _msTranscriptionService.RecognitionWithAudioStreamAsync(video);
