@@ -50,8 +50,9 @@ namespace TaskEngine
                 .AddSingleton<EPubGeneratorTask>()
                 .AddSingleton<UpdateBoxTokenTask>()
                 .AddSingleton<CreateBoxTokenTask>()
-                .AddSingleton<Box>()
+                .AddSingleton<BoxAPI>()
                 .AddScoped<Seeder>()
+                .AddScoped<SlackLogger>()
                 .BuildServiceProvider();
 
             var logger = serviceProvider.GetRequiredService<ILogger<Program>>();

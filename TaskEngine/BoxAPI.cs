@@ -93,7 +93,7 @@ namespace TaskEngine
             }
             catch (Box.V2.Exceptions.BoxSessionInvalidatedException e)
             {
-                await _slack.PostError(e, "Box Token Failure.");
+                await _slack.PostErrorAsync(e, "Box Token Failure.");
                 throw e;
             }
         }

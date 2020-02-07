@@ -25,16 +25,16 @@ namespace ClassTranscribeDatabase
             _uri = new Uri("https://hooks.slack.com/services/" + _appSettings.SLACK_WEBHOOK_URL);
         }
 
-        public async Task PostError(Exception e, string message, string username = null, string channel = null)
+        public async Task PostErrorAsync(Exception e, string message, string username = null, string channel = null)
         {
             var obj = new JObject();
             obj["message"] = message;
             obj["Exception"] = JObject.FromObject(e);
 
-            await PostMessage(obj);
+            await PostMessageAsync(obj);
         }
 
-        public async Task PostMessage(string text, string username = null, string channel = null)
+        public async Task PostMessageAsync(string text, string username = null, string channel = null)
         {
             Payload payload = new Payload()
             {
@@ -43,11 +43,11 @@ namespace ClassTranscribeDatabase
                 Text = text
             };
 
-            await PostMessage(payload);
+            await PostMessageAsync(payload);
         }
 
         //Post a message using simple strings
-        public async Task PostMessage(JObject jObject, string username = null, string channel = null)
+        public async Task PostMessageAsync(JObject jObject, string username = null, string channel = null)
         {
             Payload payload = new Payload()
             {
@@ -56,11 +56,11 @@ namespace ClassTranscribeDatabase
                 Text = jObject.ToString()
             };
 
-            await PostMessage(payload);
+            await PostMessageAsync(payload);
         }
 
         //Post a message using a Payload object
-        public async Task PostMessage(Payload payload)
+        public async Task PostMessageAsync(Payload payload)
         {
             string payloadJson = JsonConvert.SerializeObject(payload);
 
