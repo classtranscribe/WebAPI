@@ -2,6 +2,7 @@
 using ClassTranscribeDatabase.Models;
 using Microsoft.Extensions.Logging;
 using System;
+using System.IO;
 using System.Threading.Tasks;
 using TaskEngine.Grpc;
 using static ClassTranscribeDatabase.CommonUtils;
@@ -29,7 +30,7 @@ namespace TaskEngine.Tasks
                 {
                     FilePath = video.Video1.VMPath
                 });
-                if (file.FilePath.Length > 0)
+                if (file.FilePath.Length > 0 && new FileInfo(file.FilePath).Length > 1000)
                 {
                     var videoLatest = await _context.Videos.FindAsync(video.Id);
                     if (videoLatest.Audio == null)

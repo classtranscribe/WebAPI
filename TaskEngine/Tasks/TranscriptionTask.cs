@@ -2,6 +2,7 @@
 using ClassTranscribeDatabase.Models;
 using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
 using TaskEngine.MSTranscription;
 using static ClassTranscribeDatabase.CommonUtils;
@@ -12,15 +13,24 @@ namespace TaskEngine.Tasks
     {
         private MSTranscriptionService _msTranscriptionService;
         private GenerateVTTFileTask _generateVTTFileTask;
+        private ConvertVideoToWavTask _convertVideoToWavTask;
 
-        public TranscriptionTask(RabbitMQConnection rabbitMQ, MSTranscriptionService msTranscriptionService, GenerateVTTFileTask generateVTTFileTask, ILogger<TranscriptionTask> logger)
+        public TranscriptionTask(RabbitMQConnection rabbitMQ, MSTranscriptionService msTranscriptionService,
+            GenerateVTTFileTask generateVTTFileTask, ConvertVideoToWavTask convertVideoToWavTask, ILogger<TranscriptionTask> logger)
             : base(rabbitMQ, TaskType.Transcribe, logger)
         {
             _msTranscriptionService = msTranscriptionService;
             _generateVTTFileTask = generateVTTFileTask;
+            _convertVideoToWavTask = convertVideoToWavTask;
         }
         protected async override Task OnConsume(Video video)
         {
+            if (!File.Exists(video.Audio.Path) || new FileInfo(video.Audio.Path).Length < 1000)
+            {
+                // Reprocess conversion of Video to Wav
+                _convertVideoToWavTask.Publish(video);
+                throw new FileNotFoundException("Wav file not found.", video.Audio.Path);
+            }
             var result = await _msTranscriptionService.RecognitionWithAudioStreamAsync(video);
             List<Transcription> transcriptions = new List<Transcription>();
             foreach (var language in result.Item1)
