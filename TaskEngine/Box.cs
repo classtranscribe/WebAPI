@@ -76,8 +76,6 @@ namespace TaskEngine
 
         public async Task<BoxClient> GetBoxClientAsync()
         {
-            // Refresh token before each use.
-            await RefreshAccessTokenAsync();
             BoxClient boxClient;
             using (var _context = CTDbContext.CreateDbContext())
             {

@@ -184,6 +184,10 @@ namespace ClassTranscribeServer.Controllers
                     return new ChallengeResult();
                 }
             }
+            if (playlist.PlaylistIdentifier != null && playlist.PlaylistIdentifier.Length > 0)
+            {
+                playlist.PlaylistIdentifier = playlist.PlaylistIdentifier.Trim();
+            }
             _context.Playlists.Add(playlist);
             await _context.SaveChangesAsync();
             _wakeDownloader.UpdatePlaylist(playlist.Id);

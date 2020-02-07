@@ -21,13 +21,15 @@ namespace TaskEngine.Tasks
         private readonly ProcessVideoTask _processVideoTask;
         private readonly EPubGeneratorTask _ePubGeneratorTask;
         private readonly CreateBoxTokenTask _createBoxTokenTask;
+        private readonly UpdateBoxTokenTask _updateBoxTokenTask;
 
         public QueueAwakerTask() { }
 
         public QueueAwakerTask(RabbitMQConnection rabbitMQ, DownloadPlaylistInfoTask downloadPlaylistInfoTask,
             DownloadMediaTask downloadMediaTask, ConvertVideoToWavTask convertVideoToWavTask,
             TranscriptionTask transcriptionTask, ProcessVideoTask processVideoTask,
-            GenerateVTTFileTask generateVTTFileTask, EPubGeneratorTask ePubGeneratorTask, CreateBoxTokenTask createBoxTokenTask,
+            GenerateVTTFileTask generateVTTFileTask, EPubGeneratorTask ePubGeneratorTask,
+            CreateBoxTokenTask createBoxTokenTask, UpdateBoxTokenTask updateBoxTokenTask,
             ILogger<QueueAwakerTask> logger)
             : base(rabbitMQ, TaskType.QueueAwaker, logger)
         {
@@ -39,6 +41,7 @@ namespace TaskEngine.Tasks
             _processVideoTask = processVideoTask;
             _ePubGeneratorTask = ePubGeneratorTask;
             _createBoxTokenTask = createBoxTokenTask;
+            _updateBoxTokenTask = updateBoxTokenTask;
         }
 #pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
         public async Task Execute(IJobExecutionContext context)
@@ -55,6 +58,8 @@ namespace TaskEngine.Tasks
 
         private async Task PendingJobs()
         {
+            // Update Box Token every few hours
+            _updateBoxTokenTask.Publish("");
             using (var context = CTDbContext.CreateDbContext())
             {
                 // Medias for which no videos have downloaded
@@ -73,7 +78,7 @@ namespace TaskEngine.Tasks
         {
             using (var _context = CTDbContext.CreateDbContext())
             {
-                var period = DateTime.Now.AddMonths(-12);
+                var period = DateTime.Now.AddMonths(-6);
                 var playlists = await _context.Offerings.Where(o => o.Term.StartDate >= period).SelectMany(o => o.Playlists).ToListAsync();
                 playlists.ForEach(p => _downloadPlaylistInfoTask.Publish(p));
             }
