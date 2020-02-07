@@ -14,7 +14,6 @@ namespace ClassTranscribeServer.Controllers
     [ApiController]
     public class CourseOfferingsController : BaseController
     {
-        private readonly CTDbContext _context;
         private readonly IAuthorizationService _authorizationService;
 
         public CourseOfferingsController(IAuthorizationService authorizationService, CTDbContext context, ILogger<CourseOfferingsController> logger) : base(context, logger)

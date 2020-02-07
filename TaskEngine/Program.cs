@@ -107,11 +107,9 @@ namespace TaskEngine
             RpcClient rpcClient = serviceProvider.GetService<RpcClient>();
             logger.LogInformation("All done!");
 
-            Console.WriteLine("Press any key to close the application");
-
             while (true)
             {
-                Console.Read();
+                Thread.Sleep(10000);
             };
         }
 

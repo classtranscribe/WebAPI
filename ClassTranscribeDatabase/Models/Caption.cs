@@ -169,20 +169,12 @@ namespace ClassTranscribeDatabase.Models
 
         public static void WriteSubtitleToFile(string Subtitle, string file)
         {
-            try
-            {
-
-                //Pass the filepath and filename to the StreamWriter Constructor
-                StreamWriter sw = new StreamWriter(file, false, System.Text.Encoding.UTF8);
-                //Write a line of text
-                sw.WriteLine(Subtitle);
-                //Close the file
-                sw.Close();
-            }
-            catch (Exception e1)
-            {
-                Console.WriteLine("Exception: " + e1.Message);
-            }
+            //Pass the filepath and filename to the StreamWriter Constructor
+            StreamWriter sw = new StreamWriter(file, false, Encoding.UTF8);
+            //Write a line of text
+            sw.WriteLine(Subtitle);
+            //Close the file
+            sw.Close();
         }
     }
 }

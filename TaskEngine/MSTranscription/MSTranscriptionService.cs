@@ -2,6 +2,7 @@
 using ClassTranscribeDatabase.Models;
 using Microsoft.CognitiveServices.Speech;
 using Microsoft.CognitiveServices.Speech.Translation;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -14,7 +15,12 @@ namespace TaskEngine.MSTranscription
 {
     public class MSTranscriptionService
     {
+        ILogger _logger;
 
+        public MSTranscriptionService(ILogger<MSTranscriptionService> logger)
+        {
+            _logger = logger;
+        }
         public async Task<Tuple<Dictionary<string, List<Caption>>, string>> RecognitionWithAudioStreamAsync(Video video)
         {
             string file = video.Audio.Path;
@@ -41,7 +47,6 @@ namespace TaskEngine.MSTranscription
 
 
             var stopRecognition = new TaskCompletionSource<int>();
-            bool fileWritten = false;
             // Create an audio stream from a wav file.
             // Replace with your own audio file name.
             using (var audioInput = Helper.OpenWavFile(file))
@@ -70,7 +75,7 @@ namespace TaskEngine.MSTranscription
                             TimeSpan offset = new TimeSpan(e.Result.OffsetInTicks);
                             Console.Write($"Begin={offset.Minutes}:{offset.Seconds},{offset.Milliseconds}", offset);
                             TimeSpan end = e.Result.Duration.Add(offset);
-                            Console.WriteLine($"End={end.Minutes}:{end.Seconds},{end.Milliseconds}");
+                            _logger.LogInformation($"End={end.Minutes}:{end.Seconds},{end.Milliseconds}");
                             Caption.AppendCaptions(captions[Languages.ENGLISH], words);
 
                             foreach (var element in e.Result.Translations)
@@ -80,33 +85,32 @@ namespace TaskEngine.MSTranscription
                         }
                         else if (e.Result.Reason == ResultReason.NoMatch)
                         {
-                            Console.WriteLine($"NOMATCH: Speech could not be recognized.");
+                            _logger.LogInformation($"NOMATCH: Speech could not be recognized.");
                         }
                     };
 
                     recognizer.Canceled += (s, e) =>
                     {
                         errorCode = e.ErrorCode.ToString();
-                        Console.WriteLine($"CANCELED: Reason={e.Reason}");
+                        _logger.LogInformation($"CANCELED: Reason={e.Reason}");
 
                         if (e.Reason == CancellationReason.Error)
                         {
-                            Console.WriteLine($"CANCELED: ErrorDetails={e.ErrorDetails}");
+                            _logger.LogInformation($"CANCELED: ErrorDetails={e.ErrorDetails}");
                         }
                         stopRecognition.TrySetResult(0);
                     };
 
                     recognizer.SessionStarted += (s, e) =>
                     {
-                        Console.WriteLine("\nSession started event.");
+                        _logger.LogInformation("\nSession started event.");
                     };
 
                     recognizer.SessionStopped += (s, e) =>
                     {
-                        Console.WriteLine("\nSession stopped event.");
-                        Console.WriteLine("\nStop recognition.");
+                        _logger.LogInformation("\nSession stopped event.");
+                        _logger.LogInformation("\nStop recognition.");
                         stopRecognition.TrySetResult(0);
-                        fileWritten = true;
                     };
 
                     // Starts continuous recognition. Uses StopContinuousRecognitionAsync() to stop recognition.

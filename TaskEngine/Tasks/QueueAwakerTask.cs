@@ -37,7 +37,9 @@ namespace TaskEngine.Tasks
             _processVideoTask = processVideoTask;
             _ePubGeneratorTask = ePubGeneratorTask;
         }
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
         public async Task Execute(IJobExecutionContext context)
+#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
         {
             // Manually initializing base class variables
             _rabbitMQ = (RabbitMQConnection)context.MergedJobDataMap["rabbitMQ"];

@@ -28,7 +28,7 @@ namespace TaskEngine.Tasks
         protected override async Task OnConsume(Media media)
         {
 
-            Console.WriteLine("Consuming" + media);
+            _logger.LogInformation("Consuming" + media);
             Video video = new Video();
             switch (media.SourceType)
             {
@@ -53,7 +53,7 @@ namespace TaskEngine.Tasks
                         await _context.SaveChangesAsync();
                         latestMedia.VideoId = video.Id;
                         await _context.SaveChangesAsync();
-                        Console.WriteLine("Downloaded:" + video);
+                        _logger.LogInformation("Downloaded:" + video);
                         _convertVideoToWavTask.Publish(video);
                     }
                     else
@@ -70,7 +70,7 @@ namespace TaskEngine.Tasks
                             await _context.SaveChangesAsync();
                             latestMedia.VideoId = video.Id;
                             await _context.SaveChangesAsync();
-                            Console.WriteLine("Downloaded:" + video);
+                            _logger.LogInformation("Downloaded:" + video);
                             _convertVideoToWavTask.Publish(video);
                         }
                         // If video and file both exist.
@@ -80,7 +80,7 @@ namespace TaskEngine.Tasks
                             var existingVideo = await _context.Videos.Where(v => v.Video1Id == file.First().Id).FirstAsync();
                             latestMedia.VideoId = existingVideo.Id;
                             await _context.SaveChangesAsync();
-                            Console.WriteLine("Existing Video:" + existingVideo);
+                            _logger.LogInformation("Existing Video:" + existingVideo);
 
                             // Deleting downloaded video as it's duplicate.
                             await video.DeleteVideoAsync(_context);

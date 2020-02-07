@@ -29,7 +29,7 @@ namespace TaskEngine
             }
             catch (Exception e)
             {
-                Console.WriteLine(e.ToString());
+                _logger.LogError(e, "Error Publishing Task!");
             }
         }
 

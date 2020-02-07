@@ -19,7 +19,7 @@ namespace TaskEngine.Tasks
         }
         protected async override Task OnConsume(Video video)
         {
-            Console.WriteLine("Consuming" + video);
+            _logger.LogInformation("Consuming" + video);
             if (video.Video1 != null)
             {
                 var file = await _rpcClient.NodeServerClient.ProcessVideoRPCAsync(new CTGrpc.File

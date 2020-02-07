@@ -24,7 +24,7 @@ namespace TaskEngine.Tasks
             using (var _context = CTDbContext.CreateDbContext())
             {
                 var video = await _context.Videos.FindAsync(v.Id);
-                Console.WriteLine("Consuming" + video);
+                _logger.LogInformation("Consuming" + video);
                 var file = await _rpcClient.NodeServerClient.ConvertVideoToWavRPCAsync(new CTGrpc.File
                 {
                     FilePath = video.Video1.VMPath

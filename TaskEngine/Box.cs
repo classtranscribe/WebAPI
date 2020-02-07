@@ -4,6 +4,7 @@ using Box.V2.Config;
 using ClassTranscribeDatabase;
 using ClassTranscribeDatabase.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -12,7 +13,11 @@ namespace TaskEngine
 {
     public class Box
     {
-        public Box() { }
+        private readonly ILogger _logger;
+        public Box(ILogger<Box> logger)
+        {
+            _logger = logger;
+        }
 
         // To generate authCode on a browser open,
         // https://account.box.com/api/oauth2/authorize?client_id=[CLIENT_ID]&response_type=code
@@ -61,7 +66,7 @@ namespace TaskEngine
                 auth = await client.Auth.RefreshAccessTokenAsync(auth.AccessToken);
                 /// Create the client again
                 client = new BoxClient(config, auth);
-                Console.WriteLine("Refreshed Tokens");
+                _logger.LogInformation("Refreshed Tokens");
                 accessToken.Value = auth.AccessToken;
                 refreshToken.Value = auth.RefreshToken;
                 await _context.SaveChangesAsync();

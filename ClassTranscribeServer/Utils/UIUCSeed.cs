@@ -1,7 +1,6 @@
 ﻿using ClassTranscribeDatabase;
 using ClassTranscribeDatabase.Models;
 using CsvHelper;
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -42,9 +41,6 @@ namespace TaskEngine.Utils
                 _context.Courses.AddRange(courses);
                 _context.SaveChanges();
             }
-
-
-            Console.WriteLine("Test");
         }
     }
 }
