@@ -44,11 +44,12 @@ namespace ClassTranscribeServer.Controllers
             return Ok();
         }
 
-        [HttpPost("CreateBoxToken")]
-        public ActionResult CreateBoxToken(string authCode)
+        [HttpGet("CreateBoxToken")]
+        [AllowAnonymous]
+        public ActionResult CreateBoxToken([FromQuery]string code)
         {
-            _wakeDownloader.CreateBoxToken(authCode);
-            return Ok();
+            _wakeDownloader.CreateBoxToken(code);
+            return Ok("Request made to createBoxToken.");
         }
 
         [HttpGet("GetLogs")]
