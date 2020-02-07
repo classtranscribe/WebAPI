@@ -37,6 +37,27 @@ namespace ClassTranscribeServer.Controllers
             return Ok();
         }
 
+        [HttpPost("DownloadMedia")]
+        public ActionResult DownloadMedia(string mediaId)
+        {
+            _wakeDownloader.DownloadMedia(mediaId);
+            return Ok();
+        }
+
+        [HttpPost("ConvertMedia")]
+        public ActionResult ConvertMedia(string videoId)
+        {
+            _wakeDownloader.ConvertMedia(videoId);
+            return Ok();
+        }
+
+        [HttpPost("TranscribeVideo")]
+        public ActionResult TranscribeVideo(string videoId)
+        {
+            _wakeDownloader.TranscribeVideo(videoId);
+            return Ok();
+        }
+
         [HttpPost("PeriodicCheck")]
         public ActionResult PeriodicCheck()
         {

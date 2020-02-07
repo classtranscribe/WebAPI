@@ -86,37 +86,31 @@ namespace TaskEngine.Tasks
 
         protected async override Task OnConsume(JObject jObject)
         {
-            var type = jObject["Type"].ToString();
-            if (type == TaskType.PeriodicCheck.ToString())
+            using (var _context = CTDbContext.CreateDbContext())
             {
-                await DownloadAllPlaylists();
-                await PendingJobs();
-            }
-            else if (type == TaskType.DownloadAllPlaylists.ToString())
-            {
-                await DownloadAllPlaylists();
-            }
-            else if (type == TaskType.DownloadPlaylistInfo.ToString())
-            {
-                using (var _context = CTDbContext.CreateDbContext())
+                var type = jObject["Type"].ToString();
+                if (type == TaskType.PeriodicCheck.ToString())
+                {
+                    await DownloadAllPlaylists();
+                    await PendingJobs();
+                }
+                else if (type == TaskType.DownloadAllPlaylists.ToString())
+                {
+                    await DownloadAllPlaylists();
+                }
+                else if (type == TaskType.DownloadPlaylistInfo.ToString())
                 {
                     var playlistId = jObject["PlaylistId"].ToString();
                     var playlist = await _context.Playlists.FindAsync(playlistId);
                     _downloadPlaylistInfoTask.Publish(playlist);
                 }
-            }
-            else if (type == TaskType.GenerateVTTFile.ToString())
-            {
-                using (var _context = CTDbContext.CreateDbContext())
+                else if (type == TaskType.GenerateVTTFile.ToString())
                 {
                     var transcriptionId = jObject["TranscriptionId"].ToString();
                     var transcription = await _context.Transcriptions.FindAsync(transcriptionId);
                     _generateVTTFileTask.Publish(transcription);
                 }
-            }
-            else if (type == TaskType.GenerateEPubFile.ToString())
-            {
-                using (var _context = CTDbContext.CreateDbContext())
+                else if (type == TaskType.GenerateEPubFile.ToString())
                 {
                     var mediaId = jObject["mediaId"].ToString();
                     var media = _context.Medias.Find(mediaId);
@@ -126,11 +120,29 @@ namespace TaskEngine.Tasks
                         VideoId = media.VideoId
                     });
                 }
-            }
-            else if (type == TaskType.CreateBoxToken.ToString())
-            {
-                var authCode = jObject["authCode"].ToString();
-                _createBoxTokenTask.Publish(authCode);
+                else if (type == TaskType.CreateBoxToken.ToString())
+                {
+                    var authCode = jObject["authCode"].ToString();
+                    _createBoxTokenTask.Publish(authCode);
+                }
+                else if (type == TaskType.DownloadMedia.ToString())
+                {
+                    var mediaId = jObject["mediaId"].ToString();
+                    var media = await _context.Medias.FindAsync(mediaId);
+                    _downloadMediaTask.Publish(media);
+                }
+                else if (type == TaskType.ConvertMedia.ToString())
+                {
+                    var videoId = jObject["videoId"].ToString();
+                    var video = await _context.Videos.FindAsync(videoId);
+                    _convertVideoToWavTask.Publish(video);
+                }
+                else if (type == TaskType.Transcribe.ToString())
+                {
+                    var videoId = jObject["videoId"].ToString();
+                    var video = await _context.Videos.FindAsync(videoId);
+                    _transcriptionTask.Publish(video);
+                }
             }
         }
     }

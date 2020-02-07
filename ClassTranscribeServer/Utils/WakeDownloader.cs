@@ -58,6 +58,30 @@ namespace ClassTranscribeServer
             Wake(msg);
         }
 
+        public void DownloadMedia(string mediaId)
+        {
+            JObject msg = new JObject();
+            msg.Add("Type", TaskType.DownloadMedia.ToString());
+            msg.Add("mediaId", mediaId);
+            Wake(msg);
+        }
+
+        public void ConvertMedia(string videoId)
+        {
+            JObject msg = new JObject();
+            msg.Add("Type", TaskType.ConvertMedia.ToString());
+            msg.Add("videoId", videoId);
+            Wake(msg);
+        }
+
+        public void TranscribeVideo(string videoId)
+        {
+            JObject msg = new JObject();
+            msg.Add("Type", TaskType.Transcribe.ToString());
+            msg.Add("videoId", videoId);
+            Wake(msg);
+        }
+
         private void Wake(JObject message)
         {
             var queueName = TaskType.QueueAwaker.ToString();
