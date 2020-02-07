@@ -19,7 +19,8 @@ namespace ClassTranscribeDatabase
             QueueAwaker,
             GenerateEPubFile,
             UpdateBoxToken,
-            CreateBoxToken
+            CreateBoxToken,
+            UpdateOffering
         }
 
         public class Languages

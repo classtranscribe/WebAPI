@@ -35,6 +35,14 @@ namespace ClassTranscribeServer
             Wake(msg);
         }
 
+        public void UpdateOffering(string offeringId)
+        {
+            JObject msg = new JObject();
+            msg.Add("Type", TaskType.UpdateOffering.ToString());
+            msg.Add("offeringId", offeringId);
+            Wake(msg);
+        }
+
         public void PeriodicCheck()
         {
             JObject msg = new JObject();

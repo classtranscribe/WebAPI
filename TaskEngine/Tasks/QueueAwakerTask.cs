@@ -143,6 +143,12 @@ namespace TaskEngine.Tasks
                     var video = await _context.Videos.FindAsync(videoId);
                     _transcriptionTask.Publish(video);
                 }
+                else if (type == TaskType.UpdateOffering.ToString())
+                {
+                    var offeringId = jObject["offeringId"].ToString();
+                    (await _context.Playlists.Where(o => o.OfferingId == offeringId).ToListAsync())
+                        .ForEach(p => _downloadPlaylistInfoTask.Publish(p));
+                }
             }
         }
     }

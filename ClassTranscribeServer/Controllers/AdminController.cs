@@ -12,18 +12,41 @@ using System.Threading.Tasks;
 namespace ClassTranscribeServer.Controllers
 {
     [Route("api/[controller]")]
-    [Authorize(Roles = Globals.ROLE_ADMIN)]
     [ApiController]
     public class AdminController : BaseController
     {
         private readonly WakeDownloader _wakeDownloader;
+        private readonly IAuthorizationService _authorizationService;
 
-        public AdminController(WakeDownloader wakeDownloader, CTDbContext context, ILogger<AdminController> logger) : base(context, logger)
+        public AdminController(IAuthorizationService authorizationService, WakeDownloader wakeDownloader,
+            CTDbContext context, ILogger<AdminController> logger) : base(context, logger)
         {
+            _authorizationService = authorizationService;
             _wakeDownloader = wakeDownloader;
         }
 
+
+        [HttpPost("UpdateOffering")]
+        public async Task<ActionResult> UpdateOffering(string offeringId)
+        {
+            var authorizationResult = await _authorizationService.AuthorizeAsync(this.User, offeringId, Globals.POLICY_READ_OFFERING);
+            if (!authorizationResult.Succeeded)
+            {
+                if (User.Identity.IsAuthenticated)
+                {
+                    return new ForbidResult();
+                }
+                else
+                {
+                    return new ChallengeResult();
+                }
+            }
+            _wakeDownloader.UpdateOffering(offeringId);
+            return Ok();
+        }
+
         [HttpPost("UpdateAllPlaylists")]
+        [Authorize(Roles = Globals.ROLE_ADMIN)]
         public ActionResult UpdateAllPlaylists()
         {
             _wakeDownloader.UpdateAllPlaylists();
@@ -31,6 +54,7 @@ namespace ClassTranscribeServer.Controllers
         }
 
         [HttpPost("UpdatePlaylist")]
+        [Authorize(Roles = Globals.ROLE_ADMIN)]
         public ActionResult UpdatePlaylist(string playlistId)
         {
             _wakeDownloader.UpdatePlaylist(playlistId);
@@ -38,6 +62,7 @@ namespace ClassTranscribeServer.Controllers
         }
 
         [HttpPost("DownloadMedia")]
+        [Authorize(Roles = Globals.ROLE_ADMIN)]
         public ActionResult DownloadMedia(string mediaId)
         {
             _wakeDownloader.DownloadMedia(mediaId);
@@ -45,6 +70,7 @@ namespace ClassTranscribeServer.Controllers
         }
 
         [HttpPost("ConvertMedia")]
+        [Authorize(Roles = Globals.ROLE_ADMIN)]
         public ActionResult ConvertMedia(string videoId)
         {
             _wakeDownloader.ConvertMedia(videoId);
@@ -59,6 +85,7 @@ namespace ClassTranscribeServer.Controllers
         }
 
         [HttpPost("PeriodicCheck")]
+        [Authorize(Roles = Globals.ROLE_ADMIN)]
         public ActionResult PeriodicCheck()
         {
             _wakeDownloader.PeriodicCheck();
@@ -74,6 +101,7 @@ namespace ClassTranscribeServer.Controllers
         }
 
         [HttpGet("GetLogs")]
+        [Authorize(Roles = Globals.ROLE_ADMIN)]
         public async Task<IActionResult> GetLogs(DateTime from, DateTime to)
         {
             var logs = await _context.Logs.Where(l => l.CreatedAt >= from && l.CreatedAt <= to).Select(l => new
