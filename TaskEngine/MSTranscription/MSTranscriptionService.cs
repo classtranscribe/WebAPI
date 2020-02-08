@@ -99,12 +99,12 @@ namespace TaskEngine.MSTranscription
                         if (e.Reason == CancellationReason.Error)
                         {
                             _logger.LogInformation($"CANCELED: ErrorCode={e.ErrorCode.ToString()} Reason={e.Reason}");
-                        }
-                        else if (e.ErrorCode == CancellationErrorCode.AuthenticationFailure)
-                        {
-                            _logger.LogInformation($"CANCELED: ErrorCode={e.ErrorCode.ToString()} Reason={e.Reason}");
-                            _slackLogger.PostErrorAsync(new Exception($"Transcription Failure, Authentication failure, VideoId {video.Id}"),
-                                $"Transcription Failure, Authentication failure, VideoId {video.Id}").GetAwaiter().GetResult();
+                            if (e.ErrorCode == CancellationErrorCode.AuthenticationFailure)
+                            {
+                                _logger.LogInformation($"CANCELED: ErrorCode={e.ErrorCode.ToString()} Reason={e.Reason}");
+                                _slackLogger.PostErrorAsync(new Exception($"Transcription Failure, Authentication failure, VideoId {video.Id}"),
+                                    $"Transcription Failure, Authentication failure, VideoId {video.Id}").GetAwaiter().GetResult();
+                            }
                         }
 
                         stopRecognition.TrySetResult(0);
