@@ -91,20 +91,20 @@ namespace TaskEngine.MSTranscription
                         }
                     };
 
-                    recognizer.Canceled += async (s, e) =>
+                    recognizer.Canceled += (s, e) =>
                     {
                         errorCode = e.ErrorCode.ToString();
-                        _logger.LogInformation($"CANCELED: ErrorCode={e.ErrorCode.ToString()}\nReason={e.Reason}");
+                        _logger.LogInformation($"CANCELED: ErrorCode={e.ErrorCode.ToString()} Reason={e.Reason}");
 
                         if (e.Reason == CancellationReason.Error)
                         {
-                            _logger.LogInformation($"CANCELED: ErrorCode={e.ErrorCode.ToString()}\nReason={e.Reason}");
+                            _logger.LogInformation($"CANCELED: ErrorCode={e.ErrorCode.ToString()} Reason={e.Reason}");
                         }
                         else if (e.ErrorCode == CancellationErrorCode.AuthenticationFailure)
                         {
-                            _logger.LogInformation($"CANCELED: ErrorCode={e.ErrorCode.ToString()}\nReason={e.Reason}");
-                            await _slackLogger.PostErrorAsync(new Exception($"Transcription Failure, Authentication failure, VideoId {video.Id}"),
-                                $"Transcription Failure, Authentication failure, VideoId {video.Id}");
+                            _logger.LogInformation($"CANCELED: ErrorCode={e.ErrorCode.ToString()} Reason={e.Reason}");
+                            _slackLogger.PostErrorAsync(new Exception($"Transcription Failure, Authentication failure, VideoId {video.Id}"),
+                                $"Transcription Failure, Authentication failure, VideoId {video.Id}").GetAwaiter().GetResult();
                         }
 
                         stopRecognition.TrySetResult(0);
