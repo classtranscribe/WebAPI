@@ -15,16 +15,20 @@ namespace TaskEngine.Tasks
 {
     class DownloadPlaylistInfoTask : RabbitMQTask<Playlist>
     {
-        private RpcClient _rpcClient;
-        private DownloadMediaTask _downloadMediaTask;
-        private BoxAPI _box;
+        private readonly RpcClient _rpcClient;
+        private readonly DownloadMediaTask _downloadMediaTask;
+        private readonly BoxAPI _box;
+        private readonly SlackLogger _slack;
 
-        public DownloadPlaylistInfoTask(RabbitMQConnection rabbitMQ, RpcClient rpcClient, DownloadMediaTask downloadMediaTask, BoxAPI box, ILogger<DownloadPlaylistInfoTask> logger)
+        public DownloadPlaylistInfoTask(RabbitMQConnection rabbitMQ, RpcClient rpcClient,
+            DownloadMediaTask downloadMediaTask, BoxAPI box,
+            ILogger<DownloadPlaylistInfoTask> logger, SlackLogger slack)
             : base(rabbitMQ, TaskType.DownloadPlaylistInfo, logger)
         {
             _rpcClient = rpcClient;
             _downloadMediaTask = downloadMediaTask;
             _box = box;
+            _slack = slack;
         }
 
         protected override async Task OnConsume(Playlist p)
@@ -135,35 +139,44 @@ namespace TaskEngine.Tasks
 
         private async Task<List<Media>> GetBoxPlaylist(Playlist playlist, CTDbContext _context)
         {
-            var client = await _box.GetBoxClientAsync();
-            /// Try to refresh the access token
-            var folderInfo = await client.FoldersManager.GetInformationAsync(playlist.PlaylistIdentifier);
-            playlist.JsonMetadata = JObject.FromObject(folderInfo);
-
-            var items = (await client.FoldersManager.GetFolderItemsAsync(playlist.PlaylistIdentifier, 500)).Entries.OfType<BoxFile>();
-            // Process only files with an mp4 extension.
-            items = items.Where(i => i.Name.Substring(i.Name.LastIndexOf(".") + 1) == "mp4").ToList();
-            List<Media> newMedia = new List<Media>();
-
-            foreach (var item in items)
+            try
             {
-                var file = await client.FilesManager.GetInformationAsync(item.Id);
-                if (file.Id.Length > 0 && !await _context.Medias.Where(m => m.UniqueMediaIdentifier == file.Id && m.SourceType == playlist.SourceType).AnyAsync())
-                {
-                    newMedia.Add(new Media
-                    {
-                        SourceType = playlist.SourceType,
-                        PlaylistId = playlist.Id,
-                        UniqueMediaIdentifier = file.Id,
-                        JsonMetadata = JObject.FromObject(file),
-                        CreatedAt = file.CreatedAt ?? DateTime.Now
-                    });
-                }
+                var client = await _box.GetBoxClientAsync();
+                /// Try to refresh the access token
+                var folderInfo = await client.FoldersManager.GetInformationAsync(playlist.PlaylistIdentifier);
+                playlist.JsonMetadata = JObject.FromObject(folderInfo);
 
+                var items = (await client.FoldersManager.GetFolderItemsAsync(playlist.PlaylistIdentifier, 500)).Entries.OfType<BoxFile>();
+                // Process only files with an mp4 extension.
+                items = items.Where(i => i.Name.Substring(i.Name.LastIndexOf(".") + 1) == "mp4").ToList();
+                List<Media> newMedia = new List<Media>();
+
+                foreach (var item in items)
+                {
+                    var file = await client.FilesManager.GetInformationAsync(item.Id);
+                    if (file.Id.Length > 0 && !await _context.Medias.Where(m => m.UniqueMediaIdentifier == file.Id && m.SourceType == playlist.SourceType).AnyAsync())
+                    {
+                        newMedia.Add(new Media
+                        {
+                            SourceType = playlist.SourceType,
+                            PlaylistId = playlist.Id,
+                            UniqueMediaIdentifier = file.Id,
+                            JsonMetadata = JObject.FromObject(file),
+                            CreatedAt = file.CreatedAt ?? DateTime.Now
+                        });
+                    }
+
+                }
+                await _context.Medias.AddRangeAsync(newMedia);
+                await _context.SaveChangesAsync();
+                return newMedia;
             }
-            await _context.Medias.AddRangeAsync(newMedia);
-            await _context.SaveChangesAsync();
-            return newMedia;
+            catch (Box.V2.Exceptions.BoxSessionInvalidatedException e)
+            {
+                _logger.LogError(e, "Box Token Failure.");
+                await _slack.PostErrorAsync(e, "Box Token Failure.");
+                throw e;
+            }
         }
     }
 }

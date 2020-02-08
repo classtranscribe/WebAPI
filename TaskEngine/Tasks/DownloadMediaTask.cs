@@ -13,16 +13,20 @@ namespace TaskEngine.Tasks
 {
     class DownloadMediaTask : RabbitMQTask<Media>
     {
-        private RpcClient _rpcClient;
-        private ConvertVideoToWavTask _convertVideoToWavTask;
-        private BoxAPI _box;
+        private readonly RpcClient _rpcClient;
+        private readonly ConvertVideoToWavTask _convertVideoToWavTask;
+        private readonly BoxAPI _box;
+        private readonly SlackLogger _slack;
 
-        public DownloadMediaTask(RabbitMQConnection rabbitMQ, RpcClient rpcClient, ConvertVideoToWavTask convertVideoToWavTask, BoxAPI box, ILogger<DownloadMediaTask> logger)
+        public DownloadMediaTask(RabbitMQConnection rabbitMQ, RpcClient rpcClient,
+            ConvertVideoToWavTask convertVideoToWavTask, BoxAPI box,
+            ILogger<DownloadMediaTask> logger, SlackLogger slack)
             : base(rabbitMQ, TaskType.DownloadMedia, logger)
         {
             _rpcClient = rpcClient;
             _convertVideoToWavTask = convertVideoToWavTask;
             _box = box;
+            _slack = slack;
         }
 
         protected override async Task OnConsume(Media media)
@@ -228,32 +232,41 @@ namespace TaskEngine.Tasks
 
         public async Task<Video> DownloadBoxVideo(Media media)
         {
-            var guid = Guid.NewGuid().ToString();
-            var newPath = Path.Combine(Globals.appSettings.DATA_DIRECTORY, guid + ".mp4");
-            var client = await _box.GetBoxClientAsync();
-            var stream = await client.FilesManager.DownloadAsync(media.UniqueMediaIdentifier);
-            using (var fileStream = File.Create(newPath))
+            try
             {
-                stream.CopyTo(fileStream);
-            }
-            if (File.Exists(newPath) && new FileInfo(newPath).Length > 1000)
-            {
-                Video video = new Video
+                var guid = Guid.NewGuid().ToString();
+                var newPath = Path.Combine(Globals.appSettings.DATA_DIRECTORY, guid + ".mp4");
+                var client = await _box.GetBoxClientAsync();
+                var stream = await client.FilesManager.DownloadAsync(media.UniqueMediaIdentifier);
+                using (var fileStream = File.Create(newPath))
                 {
-                    Video1 = new FileRecord(newPath)
-                };
-                return video;
-            }
-            else
-            {
-                // Deleting media is fine if download failed as we can get it back from the youtube playlist.
-                _logger.LogError("DownloadBoxVideo failed. mediaId {0}, removing Media record", media.Id);
-                using (var context = CTDbContext.CreateDbContext())
-                {
-                    context.Medias.Remove(media);
-                    context.SaveChanges();
+                    stream.CopyTo(fileStream);
                 }
-                return null;
+                if (File.Exists(newPath) && new FileInfo(newPath).Length > 1000)
+                {
+                    Video video = new Video
+                    {
+                        Video1 = new FileRecord(newPath)
+                    };
+                    return video;
+                }
+                else
+                {
+                    // Deleting media is fine if download failed as we can get it back from the youtube playlist.
+                    _logger.LogError("DownloadBoxVideo failed. mediaId {0}, removing Media record", media.Id);
+                    using (var context = CTDbContext.CreateDbContext())
+                    {
+                        context.Medias.Remove(media);
+                        context.SaveChanges();
+                    }
+                    return null;
+                }
+            }
+            catch (Box.V2.Exceptions.BoxSessionInvalidatedException e)
+            {
+                _logger.LogError(e, "Box Token Failure.");
+                await _slack.PostErrorAsync(e, "Box Token Failure.");
+                throw e;
             }
         }
     }

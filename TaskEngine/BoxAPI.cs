@@ -58,44 +58,45 @@ namespace TaskEngine
 
         public async Task RefreshAccessTokenAsync()
         {
-            using (var _context = CTDbContext.CreateDbContext())
-            {
-                var accessToken = await _context.Dictionaries.Where(d => d.Key == CommonUtils.BOX_ACCESS_TOKEN).FirstAsync();
-                var refreshToken = await _context.Dictionaries.Where(d => d.Key == CommonUtils.BOX_REFRESH_TOKEN).FirstAsync();
-                var config = new BoxConfig(Globals.appSettings.BOX_CLIENT_ID, Globals.appSettings.BOX_CLIENT_SECRET, new Uri("http://locahost"));
-                var auth = new OAuthSession(accessToken.Value, refreshToken.Value, 3600, "bearer");
-                var client = new Box.V2.BoxClient(config, auth);
-                /// Try to refresh the access token
-                auth = await client.Auth.RefreshAccessTokenAsync(auth.AccessToken);
-                /// Create the client again
-                client = new Box.V2.BoxClient(config, auth);
-                _logger.LogInformation("Refreshed Tokens");
-                accessToken.Value = auth.AccessToken;
-                refreshToken.Value = auth.RefreshToken;
-                await _context.SaveChangesAsync();
-            }
-        }
-
-        public async Task<BoxClient> GetBoxClientAsync()
-        {
             try
             {
-                BoxClient boxClient;
                 using (var _context = CTDbContext.CreateDbContext())
                 {
                     var accessToken = await _context.Dictionaries.Where(d => d.Key == CommonUtils.BOX_ACCESS_TOKEN).FirstAsync();
                     var refreshToken = await _context.Dictionaries.Where(d => d.Key == CommonUtils.BOX_REFRESH_TOKEN).FirstAsync();
                     var config = new BoxConfig(Globals.appSettings.BOX_CLIENT_ID, Globals.appSettings.BOX_CLIENT_SECRET, new Uri("http://locahost"));
                     var auth = new OAuthSession(accessToken.Value, refreshToken.Value, 3600, "bearer");
-                    boxClient = new Box.V2.BoxClient(config, auth);
+                    var client = new BoxClient(config, auth);
+                    /// Try to refresh the access token
+                    auth = await client.Auth.RefreshAccessTokenAsync(auth.AccessToken);
+                    /// Create the client again
+                    client = new BoxClient(config, auth);
+                    _logger.LogInformation("Refreshed Tokens");
+                    accessToken.Value = auth.AccessToken;
+                    refreshToken.Value = auth.RefreshToken;
+                    await _context.SaveChangesAsync();
                 }
-                return boxClient;
             }
             catch (Box.V2.Exceptions.BoxSessionInvalidatedException e)
             {
+                _logger.LogError(e, "Box Token Failure.");
                 await _slack.PostErrorAsync(e, "Box Token Failure.");
                 throw e;
             }
+        }
+
+        public async Task<BoxClient> GetBoxClientAsync()
+        {
+            BoxClient boxClient;
+            using (var _context = CTDbContext.CreateDbContext())
+            {
+                var accessToken = await _context.Dictionaries.Where(d => d.Key == CommonUtils.BOX_ACCESS_TOKEN).FirstAsync();
+                var refreshToken = await _context.Dictionaries.Where(d => d.Key == CommonUtils.BOX_REFRESH_TOKEN).FirstAsync();
+                var config = new BoxConfig(Globals.appSettings.BOX_CLIENT_ID, Globals.appSettings.BOX_CLIENT_SECRET, new Uri("http://locahost"));
+                var auth = new OAuthSession(accessToken.Value, refreshToken.Value, 3600, "bearer");
+                boxClient = new Box.V2.BoxClient(config, auth);
+            }
+            return boxClient;
         }
     }
 }
