@@ -1,39 +1,65 @@
 from KalturaClient import *
+from KalturaClient.Plugins.Core import *
+import hashlib
 import json
 import os
 
 DATA_DIR = os.getenv('DATA_DIRECTORY')
-KALTURA_ADMIN_SECRET = os.getenv('KALTURA_ADMIN_SECRET')
-KALTURA_USER_ID = os.getenv('KALTURA_USER_ID')
 KALTURA_PARTNER_ID = int(os.getenv('KALTURA_PARTNER_ID'))
+KALTURA_TOKEN_ID = os.getenv('KALTURA_TOKEN_ID')
+KATLURA_APP_TOKEN = os.getenv('KALTURA_APP_TOKEN')
 
-config = KalturaConfiguration()
-client = KalturaClient(config)
+class Kaltura:
+    def __init__(self):
+        self.client = self.getClient(KALTURA_PARTNER_ID, KALTURA_TOKEN_ID, KATLURA_APP_TOKEN)
 
-def getKalturaPlaylist(kalturaPlaylistId):
-    ks = client.session.start(
-    KALTURA_ADMIN_SECRET,
-    KALTURA_USER_ID,
-    Plugins.Core.KalturaSessionType.ADMIN,
-    KALTURA_PARTNER_ID,
-    86400, 
-    "appId:appName-appDomain") 
 
-    client.setKs(ks)
+    def getClient(self, partnerId, tokenId, appToken):
+        config = KalturaConfiguration(partnerId)
+        config.serviceUrl = "https://www.kaltura.com/"
+        client = KalturaClient(config)
+        # generate a widget session in order to use the app token
+        widgetId = "_"+str(partnerId)
+        expiry = 864000
+        result = client.session.startWidgetSession(widgetId, expiry)
+        client.setKs(result.ks)    
+        
+        # generate token hash from ks + appToken
+        tokenHash = hashlib.sha256(result.ks.encode('ascii')+appToken.encode('ascii')).hexdigest()    
+        # start an app token session
+        result = client.appToken.startSession(tokenId, tokenHash, '', '', expiry)
+        client.setKs(result.ks)    
+        return client
 
-    playlist = client.playlist.get(kalturaPlaylistId, -1)
-    mediaIds = playlist.getPlaylistContent().split(',')
-
-    res = []
-
-    for mediaId in mediaIds:
-        print(mediaId)
-        mediaEntry = client.media.get(mediaId, -1)
-        res.append({'id': mediaEntry.id, 
+    def getMediaInfo(self, mediaId):
+        mediaEntry = self.client.media.get(mediaId, -1)
+        media = {'id': mediaEntry.id, 
                     'downloadUrl': mediaEntry.downloadUrl, 
                     'name': mediaEntry.name,
                     'description': mediaEntry.description,
                     'createdAt': mediaEntry.createdAt
-                     })
+                }
+        return media
 
-    return json.dumps(res)
+    def getKalturaPlaylist(self, kalturaPlaylistId):
+        playlist = self.client.playlist.get(kalturaPlaylistId, -1)
+        mediaIds = playlist.getPlaylistContent().split(',')
+        return mediaIds
+
+    def getKalturaAllChannelIds(self):
+        channels = self.client.category.list()
+        channelIds = [x.id for x in channels.objects]
+        return channelIds
+
+    def getKalturaChannel(self, channelId):
+        return self.client.category.get(channelId)
+        
+    def getKalturaChannelEntries(self, channelId):    
+        a = KalturaCategoryEntryFilter()
+        a.categoryIdEqual = channelId
+        b = KalturaFilterPager()    
+        entries = self.client.categoryEntry.list(a, b)    
+        res = []
+        for entry in entries.objects:
+            res.append(self.getMediaInfo(entry.entryId))    
+        return json.dumps(res)

@@ -15,6 +15,7 @@ RUN wget https://yt-dl.org/latest/youtube-dl -O /usr/local/bin/youtube-dl; chmod
 # Installing python dependencies
 RUN apt-get install -y python3-pip
 RUN pip3 install grpcio-tools
+RUN pip3 install jupyter
 RUN apt-get install -y libsm6 libxext6 libxrender-dev
 RUN pip3 install scenedetect[opencv,progress_bar]
 RUN pip3 install KalturaApiClient
