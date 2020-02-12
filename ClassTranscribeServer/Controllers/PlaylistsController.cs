@@ -57,6 +57,7 @@ namespace ClassTranscribeServer.Controllers
                 Medias = p.Medias.Where(m => m.Video != null).Select(m => new MediaDTO
                 {
                     Id = m.Id,
+                    Name = m.Name,
                     JsonMetadata = m.JsonMetadata,
                     CreatedAt = m.CreatedAt,
                     Ready = m.Video.Transcriptions.Any(),
@@ -93,6 +94,7 @@ namespace ClassTranscribeServer.Controllers
             List<MediaDTO> medias = p.Medias.OrderBy(m => m.CreatedAt).Select(m => new MediaDTO
             {
                 Id = m.Id,
+                Name = m.Name,
                 PlaylistId = m.PlaylistId,
                 CreatedAt = m.CreatedAt,
                 JsonMetadata = m.JsonMetadata,
@@ -286,5 +288,6 @@ namespace ClassTranscribeServer.Controllers
         public bool Ready { get; set; }
         public VideoDTO Video { get; set; }
         public List<TranscriptionDTO> Transcriptions { get; set; }
+        public string Name { get; set; }
     }
 }
