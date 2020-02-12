@@ -142,6 +142,7 @@ namespace ClassTranscribeDatabase.Models
         public string PlaylistId { get; set; }
         [IgnoreDataMember]
         public virtual Playlist Playlist { get; set; }
+        public string Name { get; set; }
     }
 
     public class Transcription : Entity

@@ -53,6 +53,7 @@ namespace TaskEngine
                 .AddSingleton<BoxAPI>()
                 .AddScoped<Seeder>()
                 .AddScoped<SlackLogger>()
+                .AddSingleton<TempCode>()
                 .BuildServiceProvider();
 
             var logger = serviceProvider.GetRequiredService<ILogger<Program>>();
@@ -78,7 +79,6 @@ namespace TaskEngine
             Seeder seeder = serviceProvider.GetService<Seeder>();
             seeder.Seed();
 
-            CTDbContext context = CTDbContext.CreateDbContext();
 
             logger.LogInformation("Starting application");
             rabbitMQ.DeleteAllQueues();
@@ -94,19 +94,10 @@ namespace TaskEngine
             serviceProvider.GetService<CreateBoxTokenTask>().Consume();
             RunProgramRunExample(rabbitMQ).GetAwaiter().GetResult();
 
-
-            DownloadPlaylistInfoTask downloadPlaylistInfoTask = serviceProvider.GetService<DownloadPlaylistInfoTask>();
-            DownloadMediaTask downloadMediaTask = serviceProvider.GetService<DownloadMediaTask>();
-            ConvertVideoToWavTask convertVideoToWavTask = serviceProvider.GetService<ConvertVideoToWavTask>();
-            TranscriptionTask transcriptionTask = serviceProvider.GetService<TranscriptionTask>();
-            GenerateVTTFileTask generateVTTFileTask = serviceProvider.GetService<GenerateVTTFileTask>();
-            ProcessVideoTask processVideoTask = serviceProvider.GetService<ProcessVideoTask>();
-            EPubGeneratorTask ePubGeneratorTask = serviceProvider.GetService<EPubGeneratorTask>();
-            UpdateBoxTokenTask updateBoxTokenTask = serviceProvider.GetService<UpdateBoxTokenTask>();
-            CreateBoxTokenTask createBoxTokenTask = serviceProvider.GetService<CreateBoxTokenTask>();
-
-            RpcClient rpcClient = serviceProvider.GetService<RpcClient>();
+            TempCode tempCode = serviceProvider.GetService<TempCode>();
             logger.LogInformation("All done!");
+
+            tempCode.UpdateMediaNames();
 
             while (true)
             {

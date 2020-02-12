@@ -13,12 +13,12 @@ import kaltura
 _ONE_DAY_IN_SECONDS = 60 * 60 * 24
 
 class PythonServerServicer(ct_pb2_grpc.PythonServerServicer):
-    def GetScenes(self, request, context):
+    def GetScenesRPC(self, request, context):
         res = scenedetector.find_scenes(request.filePath)
         return ct_pb2.JsonString(json = res)
     
-    def GetKalturaPlaylistRPC(self, request, context):
-        res = kaltura.getKalturaPlaylist(request.Url)
+    def GetKalturaChannelEntriesRPC(self, request, context):
+        res = kaltura.getKalturaChannelEntries(int(request.Url))
         return ct_pb2.JsonString(json = res)
     
 

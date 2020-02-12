@@ -32,7 +32,7 @@ namespace TaskEngine.Tasks
 
                 if (video.SceneData == null)
                 {
-                    var jsonString = await _rpcClient.PythonServerClient.GetScenesAsync(new CTGrpc.File
+                    var jsonString = await _rpcClient.PythonServerClient.GetScenesRPCAsync(new CTGrpc.File
                     {
                         FilePath = video.Video1.VMPath
                     });

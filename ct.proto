@@ -16,8 +16,8 @@ service NodeServer {
 }
 
 service PythonServer {
-  rpc GetScenes (File) returns (JsonString) {}
-  rpc GetKalturaPlaylistRPC (PlaylistRequest) returns (JsonString) {}
+  rpc GetScenesRPC (File) returns (JsonString) {}
+  rpc GetKalturaChannelEntriesRPC (PlaylistRequest) returns (JsonString) {}
 }
 
 // The request message containing the user's name.

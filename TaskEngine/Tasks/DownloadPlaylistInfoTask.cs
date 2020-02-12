@@ -50,7 +50,7 @@ namespace TaskEngine.Tasks
 
         public async Task<List<Media>> GetKalturaPlaylist(Playlist playlist, CTDbContext _context)
         {
-            var jsonString = await _rpcClient.PythonServerClient.GetKalturaPlaylistRPCAsync(new CTGrpc.PlaylistRequest
+            var jsonString = await _rpcClient.PythonServerClient.GetKalturaChannelEntriesRPCAsync(new CTGrpc.PlaylistRequest
             {
                 Url = playlist.PlaylistIdentifier,
                 Id = playlist.Id
@@ -71,6 +71,7 @@ namespace TaskEngine.Tasks
                     });
                 }
             }
+            newMedia.ForEach(m => m.Name = GetMediaName(m));
             await _context.Medias.AddRangeAsync(newMedia);
             await _context.SaveChangesAsync();
             return newMedia;
@@ -96,10 +97,12 @@ namespace TaskEngine.Tasks
                         SourceType = playlist.SourceType,
                         PlaylistId = playlist.Id,
                         UniqueMediaIdentifier = jObject["mediaId"].ToString(),
-                        CreatedAt = Convert.ToDateTime(jObject["createdAt"])
+                        CreatedAt = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+                            .AddSeconds(jObject["createdAt"].ToObject<int>())
                     });
                 }
             }
+            newMedia.ForEach(m => m.Name = GetMediaName(m));
             await _context.Medias.AddRangeAsync(newMedia);
             await _context.SaveChangesAsync();
             return newMedia;
@@ -127,6 +130,7 @@ namespace TaskEngine.Tasks
                     });
                 }
             }
+            newMedia.ForEach(m => m.Name = GetMediaName(m));
             await _context.Medias.AddRangeAsync(newMedia);
             await _context.SaveChangesAsync();
             return newMedia;
@@ -134,7 +138,10 @@ namespace TaskEngine.Tasks
 
         public async Task<List<Media>> GetLocalPlaylist(Playlist playlist, CTDbContext _context)
         {
-            return await _context.Medias.Where(m => m.Video == null && m.PlaylistId == playlist.Id).ToListAsync();
+            var medias = await _context.Medias.Where(m => m.Video == null && m.PlaylistId == playlist.Id).ToListAsync();
+            medias.ForEach(m => m.Name = GetMediaName(m));
+            await _context.SaveChangesAsync();
+            return medias;
         }
 
         private async Task<List<Media>> GetBoxPlaylist(Playlist playlist, CTDbContext _context)
@@ -167,6 +174,7 @@ namespace TaskEngine.Tasks
                     }
 
                 }
+                newMedia.ForEach(m => m.Name = GetMediaName(m));
                 await _context.Medias.AddRangeAsync(newMedia);
                 await _context.SaveChangesAsync();
                 return newMedia;
@@ -177,6 +185,123 @@ namespace TaskEngine.Tasks
                 await _slack.PostErrorAsync(e, "Box Token Failure.");
                 throw e;
             }
+        }
+
+        public static string GetMediaName(Media media)
+        {
+            string name;
+            switch (media.SourceType)
+            {
+                case SourceType.Echo360:
+                    string lessonName;
+                    if (media.JsonMetadata.ContainsKey("lessonName"))
+                    {
+                        lessonName = media.JsonMetadata["lessonName"].ToString();
+                    }
+                    else
+                    {
+                        lessonName = "Untitled";
+                    }
+
+                    string title;
+                    if (media.JsonMetadata.ContainsKey("title"))
+                    {
+                        title = media.JsonMetadata["title"].ToString();
+                    }
+                    else
+                    {
+                        title = null;
+                    }
+
+                    DateTime createdAt;
+                    if (media.JsonMetadata.ContainsKey("createdAt"))
+                    {
+                        createdAt = Convert.ToDateTime(media.JsonMetadata["createdAt"].ToString());
+                    }
+                    else
+                    {
+                        createdAt = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+                    }
+
+                    if (title != null)
+                    {
+                        name = title;
+                    }
+                    else
+                    {
+                        name = $"{lessonName} {createdAt.ToString("MMMM dd, yyyy")}";
+                    }
+                    break;
+                case SourceType.Youtube:
+                    if (media.JsonMetadata.ContainsKey("title") && media.JsonMetadata["title"].ToString().Length > 0)
+                    {
+                        name = media.JsonMetadata["title"].ToString();
+                    }
+                    else
+                    {
+                        name = "Untitled";
+                    }
+                    break;
+                case SourceType.Local:
+                    string fileName;
+                    if (media.JsonMetadata.ContainsKey("filename"))
+                    {
+                        fileName = media.JsonMetadata["filename"].ToString();
+                    }
+                    else
+                    {
+
+                        JObject tempObj = JObject.Parse(media.JsonMetadata["video1"].ToString());
+                        if (tempObj.ContainsKey("FileName"))
+                        {
+                            fileName = tempObj["FileName"].ToString();
+                        }
+                        else
+                        {
+                            fileName = "Untitled";
+                        }
+
+                    }
+                    name = fileName.Replace(".mp4", "");
+                    break;
+                case SourceType.Kaltura:
+                    string temp;
+                    if (media.JsonMetadata.ContainsKey("name"))
+                    {
+                        temp = media.JsonMetadata["name"].ToString();
+                    }
+                    else
+                    {
+                        temp = "Untitled";
+                    }
+
+                    if (media.JsonMetadata.ContainsKey("createdAt"))
+                    {
+
+                        createdAt = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+                            .AddSeconds(media.JsonMetadata["createdAt"].ToObject<int>());
+                    }
+                    else
+                    {
+                        createdAt = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+                    }
+                    name = $"{temp} {createdAt.ToString("MMMM dd, yyyy")}";
+                    break;
+                case SourceType.Box:
+                    if (media.JsonMetadata.ContainsKey("name"))
+                    {
+                        name = media.JsonMetadata["name"].ToString();
+                    }
+                    else
+                    {
+                        name = "Untitled";
+                    }
+                    break;
+                default:
+                    name = "Untitled";
+                    break;
+            }
+            return name;
         }
     }
 }
