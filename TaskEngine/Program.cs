@@ -97,8 +97,6 @@ namespace TaskEngine
             TempCode tempCode = serviceProvider.GetService<TempCode>();
             logger.LogInformation("All done!");
 
-            tempCode.UpdateMediaNames();
-
             while (true)
             {
                 Thread.Sleep(10000);
