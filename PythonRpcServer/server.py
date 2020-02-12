@@ -7,7 +7,7 @@ import time
 import logging
 from concurrent import futures
 import scenedetector
-import kaltura
+from kaltura import Kaltura
 
 
 _ONE_DAY_IN_SECONDS = 60 * 60 * 24
@@ -18,7 +18,8 @@ class PythonServerServicer(ct_pb2_grpc.PythonServerServicer):
         return ct_pb2.JsonString(json = res)
     
     def GetKalturaChannelEntriesRPC(self, request, context):
-        res = kaltura.getKalturaChannelEntries(int(request.Url))
+        print(request)
+        res = Kaltura().getKalturaChannelEntries(int(request.Url))
         return ct_pb2.JsonString(json = res)
     
 

@@ -53,7 +53,8 @@ function main() {
        DownloadYoutubeVideoRPC: youtube.downloadYoutubeVideoRPC,
        ConvertVideoToWavRPC: utils.convertVideoToWavRPC,
        ProcessVideoRPC: utils.processVideoRPC,
-       CreateEPubRPC: epub.createEpubRPC
+       CreateEPubRPC: epub.createEpubRPC,
+       DownloadKalturaVideoRPC: echo.DownloadKalturaVideoRPC
      });
    server.bind('0.0.0.0:50052', grpc.ServerCredentials.createInsecure());
    server.start();

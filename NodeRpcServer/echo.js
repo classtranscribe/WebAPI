@@ -182,7 +182,7 @@ function downloadEchoVideoRPC(call, callback) {
     })();    
 }
 
-function downloadKalturaVideoRPC(call, callback) {
+function DownloadKalturaVideoRPC(call, callback) {
     console.log(call.request);
     var outputFile;
     (async () => {
@@ -195,5 +195,5 @@ module.exports = {
     getEchoPlaylistRPC: getEchoPlaylistRPC,
     downloadEchoVideoRPC: downloadEchoVideoRPC,
     downloadEchoLecture: downloadEchoLecture,
-    downloadKalturaVideoRPC: downloadKalturaVideoRPC
+    DownloadKalturaVideoRPC: DownloadKalturaVideoRPC
 }

@@ -67,7 +67,8 @@ namespace TaskEngine.Tasks
                         SourceType = playlist.SourceType,
                         PlaylistId = playlist.Id,
                         UniqueMediaIdentifier = jObject["id"].ToString(),
-                        CreatedAt = Convert.ToDateTime(jObject["createdAt"])
+                        CreatedAt = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+                            .AddSeconds(jObject["createdAt"].ToObject<int>())
                     });
                 }
             }
@@ -97,8 +98,7 @@ namespace TaskEngine.Tasks
                         SourceType = playlist.SourceType,
                         PlaylistId = playlist.Id,
                         UniqueMediaIdentifier = jObject["mediaId"].ToString(),
-                        CreatedAt = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)
-                            .AddSeconds(jObject["createdAt"].ToObject<int>())
+                        CreatedAt = Convert.ToDateTime(jObject["createdAt"])
                     });
                 }
             }
