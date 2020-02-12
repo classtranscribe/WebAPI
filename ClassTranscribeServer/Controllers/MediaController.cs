@@ -64,6 +64,37 @@ namespace ClassTranscribeServer.Controllers
             return mediaDTO;
         }
 
+        [HttpPut("PutMediaName")]
+        public async Task<IActionResult> PutMediaName(string mediaId, string name)
+        {
+            if (!MediaExists(mediaId))
+            {
+                return NotFound();
+            }
+
+            Media media = await _context.Medias.FindAsync(mediaId);
+            media.Name = name;
+            _context.Entry(media).State = EntityState.Modified;
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!MediaExists(mediaId))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+
+            return NoContent();
+        }
+
         // PUT: api/Media/5
         [HttpPut("PutJsonMetaData/{id}")]
         [Authorize]
