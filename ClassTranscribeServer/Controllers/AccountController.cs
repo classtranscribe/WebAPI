@@ -83,16 +83,17 @@ namespace ClassTranscribeServer.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<LoggedInDTO>> TestSignIn([FromBody] TestLoginDTO model)
+        [Authorize(Roles = Globals.ROLE_ADMIN)]
+        public async Task<ActionResult<LoggedInDTO>> LoginAs([FromBody] LoginAsDTO model)
         {
-            if (model.password != Globals.appSettings.GOD_MODE_PASSWORD)
+            if (model.GodModePassword != Globals.appSettings.GOD_MODE_PASSWORD)
             {
                 return Unauthorized();
             }
             LoggedInDTO loggedInDTO;
             try
             {
-                ApplicationUser user = await _userManager.FindByEmailAsync(model.emailId);
+                ApplicationUser user = await _userManager.FindByEmailAsync(model.EmailId);
                 await _signInManager.SignInAsync(user, false);
                 loggedInDTO = await GenerateJwtToken(user.Email, user);
             }
@@ -251,10 +252,10 @@ namespace ClassTranscribeServer.Controllers
             public string auth0Token { get; set; }
         }
 
-        public class TestLoginDTO
+        public class LoginAsDTO
         {
-            public string emailId { get; set; }
-            public string password { get; set; }
+            public string EmailId { get; set; }
+            public string GodModePassword { get; set; }
         }
         public class LoggedInDTO
         {

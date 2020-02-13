@@ -92,9 +92,12 @@ namespace TaskEngine
             serviceProvider.GetService<EPubGeneratorTask>().Consume();
             serviceProvider.GetService<UpdateBoxTokenTask>().Consume();
             serviceProvider.GetService<CreateBoxTokenTask>().Consume();
-            RunProgramRunExample(rabbitMQ).GetAwaiter().GetResult();
 
             TempCode tempCode = serviceProvider.GetService<TempCode>();
+
+            RunProgramRunExample(rabbitMQ).GetAwaiter().GetResult();
+            // tempCode.Temp();
+
             logger.LogInformation("All done!");
 
             while (true)

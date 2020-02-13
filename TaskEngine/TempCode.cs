@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using TaskEngine.Tasks;
 
 namespace TaskEngine
@@ -88,6 +89,16 @@ namespace TaskEngine
                 Console.WriteLine(media.Name);
             }
             context.SaveChanges();
+        }
+
+        public void Temp()
+        {
+            temp().GetAwaiter().GetResult();
+        }
+
+        private async Task temp()
+        {
+            // Add any temporary code.
         }
     }
 }
