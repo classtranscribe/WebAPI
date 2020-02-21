@@ -91,7 +91,7 @@ namespace ClassTranscribeServer.Authorization
             {
                 context.Succeed(requirement);
             }
-            else if (offering.AccessType == AccessTypes.UniversityOnly && offering.CourseOfferings.Select(c => c.Course.Department.University).Contains(user.University))
+            else if (offering.AccessType == AccessTypes.UniversityOnly && offering.CourseOfferings.Select(c => c.Course.Department.UniversityId).Contains(user.UniversityId))
             {
                 context.Succeed(requirement);
             }
