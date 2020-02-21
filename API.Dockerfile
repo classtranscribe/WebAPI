@@ -1,28 +1,23 @@
-FROM classtranscribe/dotnet3_1:latest AS api_csproj
+FROM mcr.microsoft.com/dotnet/core/sdk:3.1-bionic as build
 WORKDIR /src
-COPY ["./ClassTranscribeServer/ClassTranscribeServer.csproj", ""]
-COPY ["./ClassTranscribeDatabase/ClassTranscribeDatabase.csproj", ""]
-RUN dotnet restore "ClassTranscribeDatabase.csproj"
-RUN dotnet restore "ClassTranscribeServer.csproj"
 
-FROM api_csproj AS api_build
+COPY ./ClassTranscribeDatabase/ClassTranscribeDatabase.csproj ./ClassTranscribeDatabase/ClassTranscribeDatabase.csproj
+RUN dotnet restore ./ClassTranscribeDatabase/ClassTranscribeDatabase.csproj
+
+COPY ./ClassTranscribeServer/ClassTranscribeServer.csproj ./ClassTranscribeServer/ClassTranscribeServer.csproj
+RUN dotnet restore ./ClassTranscribeServer/ClassTranscribeServer.csproj
+
 COPY ./vs_appsettings.json ./vs_appsettings.json
 COPY ./world_universities_and_domains.json ./world_universities_and_domains.json
 COPY ./ClassTranscribeServer ./ClassTranscribeServer
 COPY ./ClassTranscribeDatabase ./ClassTranscribeDatabase
-WORKDIR "/src/ClassTranscribeServer"
-RUN dotnet build "ClassTranscribeServer.csproj" -c Debug -o /app
+WORKDIR /src/ClassTranscribeServer
 
-FROM api_build AS api_publish
-RUN dotnet publish "ClassTranscribeServer.csproj" -c Debug -o /app
-WORKDIR /
+RUN dotnet publish ClassTranscribeServer.csproj -c Release -o /app --no-restore
 
-
-# Instructions for enabling ssh in a container (For root additionally google "PermitRootLogin SSH")
-# RUN apt-get update
-# RUN apt-get install -y openssh-server unzip build-essential gdbserver
-# RUN mkdir /var/run/sshd
-# RUN chmod 0755 /var/run/sshd
-# RUN useradd --create-home --shell /bin/bash --groups sudo god
-# RUN echo 'god:1989' | chpasswd
-# RUN echo 'root:1989' | chpasswd
+FROM mcr.microsoft.com/dotnet/core/aspnet:3.1-bionic as publish
+WORKDIR /app
+COPY --from=build /app .
+EXPOSE 80
+EXPOSE 443
+ENTRYPOINT dotnet /app/ClassTranscribeServer.dll
