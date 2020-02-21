@@ -133,7 +133,7 @@ namespace TaskEngine
                     .WithIdentity("trigger1", "group1")
                     .StartNow()
                     .WithSimpleSchedule(x => x
-                        .WithIntervalInHours(6)
+                        .WithIntervalInHours(4)
                         .RepeatForever())
                     .Build();
 

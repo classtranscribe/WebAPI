@@ -22,6 +22,7 @@ namespace TaskEngine.Tasks
         private readonly EPubGeneratorTask _ePubGeneratorTask;
         private readonly CreateBoxTokenTask _createBoxTokenTask;
         private readonly UpdateBoxTokenTask _updateBoxTokenTask;
+        private readonly SlackLogger _slackLogger;
 
         public QueueAwakerTask() { }
 
@@ -30,7 +31,7 @@ namespace TaskEngine.Tasks
             TranscriptionTask transcriptionTask, ProcessVideoTask processVideoTask,
             GenerateVTTFileTask generateVTTFileTask, EPubGeneratorTask ePubGeneratorTask,
             CreateBoxTokenTask createBoxTokenTask, UpdateBoxTokenTask updateBoxTokenTask,
-            ILogger<QueueAwakerTask> logger)
+            ILogger<QueueAwakerTask> logger, SlackLogger slackLogger)
             : base(rabbitMQ, TaskType.QueueAwaker, logger)
         {
             _downloadPlaylistInfoTask = downloadPlaylistInfoTask;
@@ -42,6 +43,7 @@ namespace TaskEngine.Tasks
             _ePubGeneratorTask = ePubGeneratorTask;
             _createBoxTokenTask = createBoxTokenTask;
             _updateBoxTokenTask = updateBoxTokenTask;
+            _slackLogger = slackLogger;
         }
 #pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
         public async Task Execute(IJobExecutionContext context)
@@ -91,6 +93,7 @@ namespace TaskEngine.Tasks
                 var type = jObject["Type"].ToString();
                 if (type == TaskType.PeriodicCheck.ToString())
                 {
+                    await _slackLogger.PostMessageAsync("Periodic Check.");
                     await DownloadAllPlaylists();
                     await PendingJobs();
                 }
