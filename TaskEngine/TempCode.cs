@@ -1,11 +1,13 @@
 ﻿using ClassTranscribeDatabase;
 using ClassTranscribeDatabase.Models;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using TaskEngine.Tasks;
+using static ClassTranscribeDatabase.CommonUtils;
 
 namespace TaskEngine
 {
@@ -23,11 +25,12 @@ namespace TaskEngine
         private readonly ConvertVideoToWavTask _convertVideoToWavTask;
         private readonly DownloadMediaTask _downloadMediaTask;
         private readonly DownloadPlaylistInfoTask _downloadPlaylistInfoTask;
+        private readonly QueueAwakerTask _queueAwakerTask;
 
         public TempCode(CTDbContext c, CreateBoxTokenTask createBoxTokenTask, UpdateBoxTokenTask updateBoxTokenTask,
             EPubGeneratorTask ePubGeneratorTask, ProcessVideoTask processVideoTask, GenerateVTTFileTask generateVTTFileTask,
             TranscriptionTask transcriptionTask, ConvertVideoToWavTask convertVideoToWavTask, DownloadMediaTask downloadMediaTask,
-            DownloadPlaylistInfoTask downloadPlaylistInfoTask)
+            DownloadPlaylistInfoTask downloadPlaylistInfoTask, QueueAwakerTask queueAwakerTask)
         {
             context = c;
             _createBoxTokenTask = createBoxTokenTask;
@@ -39,6 +42,7 @@ namespace TaskEngine
             _convertVideoToWavTask = convertVideoToWavTask;
             _downloadMediaTask = downloadMediaTask;
             _downloadPlaylistInfoTask = downloadPlaylistInfoTask;
+            _queueAwakerTask = queueAwakerTask;
         }
 
         public void CleanUpInvalidVideos()
@@ -99,6 +103,13 @@ namespace TaskEngine
         private async Task temp()
         {
             // Add any temporary code.
+        }
+
+        public void CronJob()
+        {
+            JObject msg = new JObject();
+            msg.Add("Type", TaskType.PeriodicCheck.ToString());
+            _queueAwakerTask.Publish(msg);
         }
     }
 }

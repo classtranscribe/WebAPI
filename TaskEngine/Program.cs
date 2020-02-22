@@ -95,14 +95,15 @@ namespace TaskEngine
 
             TempCode tempCode = serviceProvider.GetService<TempCode>();
 
-            RunProgramRunExample(rabbitMQ).GetAwaiter().GetResult();
+            // RunProgramRunExample(rabbitMQ).GetAwaiter().GetResult();
             // tempCode.Temp();
 
             logger.LogInformation("All done!");
 
             while (true)
             {
-                Thread.Sleep(10000);
+                Thread.Sleep(new TimeSpan(0, 0, 10));
+                tempCode.CronJob();
             };
         }
 
