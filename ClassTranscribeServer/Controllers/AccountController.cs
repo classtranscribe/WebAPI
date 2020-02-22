@@ -255,7 +255,7 @@ namespace ClassTranscribeServer.Controllers
         public class LoginAsDTO
         {
             public string EmailId { get; set; }
-            public string GodModePassword { get; set; }
+            public string Password { get; set; }
         }
         public class LoggedInDTO
         {
