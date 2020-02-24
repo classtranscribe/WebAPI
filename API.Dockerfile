@@ -20,4 +20,4 @@ WORKDIR /app
 COPY --from=build /app .
 EXPOSE 80
 EXPOSE 443
-ENTRYPOINT dotnet /app/ClassTranscribeServer.dll
+CMD ["dotnet", "/app/ClassTranscribeServer.dll"]

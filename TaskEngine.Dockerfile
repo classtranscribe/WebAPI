@@ -22,4 +22,4 @@ RUN apt-get install -y build-essential libasound2 wget libssl1.0.0
 FROM publish_base as publish
 WORKDIR /app
 COPY --from=build /app .
-ENTRYPOINT dotnet /app/TaskEngine.dll
+CMD ["dotnet", "/app/TaskEngine.dll"]
