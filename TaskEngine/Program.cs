@@ -102,8 +102,8 @@ namespace TaskEngine
 
             while (true)
             {
-                Thread.Sleep(new TimeSpan(5, 0, 0));
                 tempCode.CronJob();
+                Thread.Sleep(new TimeSpan(5, 0, 0));
             };
         }
 
