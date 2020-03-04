@@ -115,35 +115,13 @@ namespace ClassTranscribeDatabase
             {
                 // Term Id begins with 0
                 Id = "0001",
-                Name = "Spring 2019",
-                StartDate = new DateTime(2019, 1, 14, 0, 0, 0),
-                EndDate = new DateTime(2019, 5, 14, 0, 0, 0),
-                // Offerings, University, UniversityId
-            };
-
-            Term term2 = new Term
-            {
-                // Term Id begins with 0
-                Id = "0002",
-                Name = "Fall 2018",
-                StartDate = new DateTime(2018, 8, 27, 0, 0, 0),
-                EndDate = new DateTime(2019, 1, 10, 0, 0, 0),
-                // Offerings, University, UniversityId
-            };
-
-            Term term3 = new Term
-            {
-                // Term Id begins with 0
-                Id = "0003",
-                Name = "Fall 2019",
-                StartDate = new DateTime(2019, 8, 1, 0, 0, 0),
-                EndDate = new DateTime(2020, 1, 1, 0, 0, 0),
+                Name = "Test Term",
+                StartDate = DateTime.Now.AddMonths(-6),
+                EndDate = DateTime.Now,
                 // Offerings, University, UniversityId
             };
 
             term1.UniversityId = university1.Id;
-            term2.UniversityId = university1.Id;
-            term3.UniversityId = university1.Id;
 
             Department department1 = new Department
             {
@@ -175,7 +153,7 @@ namespace ClassTranscribeDatabase
                 Id = "4002",
                 SectionName = "AB",
                 CourseName = "Test Course",
-                TermId = term3.Id,
+                TermId = term1.Id,
                 AccessType = AccessTypes.Public
             };
 
@@ -186,7 +164,7 @@ namespace ClassTranscribeDatabase
                 OfferingId = offering2.Id
             };
 
-            List<Term> terms = new List<Term> { term1, term2, term3 };
+            List<Term> terms = new List<Term> { term1 };
             List<Department> departments = new List<Department> { department1, department2 };
             List<Course> courses = new List<Course> { test_course };
             List<Offering> offerings = new List<Offering> { offering2 };
@@ -268,22 +246,7 @@ namespace ClassTranscribeDatabase
                 Name = "Youtube Sample"
             };
 
-            Playlist localPlaylist = new Playlist
-            {
-                Id = "local_sample",
-                SourceType = SourceType.Local,
-                Name = "Local Sample"
-            };
-
-            Playlist boxPlaylist = new Playlist
-            {
-                Id = "box_playlist",
-                SourceType = SourceType.Box,
-                Name = "Box Sample",
-                PlaylistIdentifier = "102571260469"
-            };
-
-            List<Playlist> playlists = new List<Playlist> { youtubePlaylist, localPlaylist, boxPlaylist };
+            List<Playlist> playlists = new List<Playlist> { youtubePlaylist };
 
             foreach (var t in playlists)
             {
@@ -293,7 +256,6 @@ namespace ClassTranscribeDatabase
                 }
             }
             youtubePlaylist.OfferingId = offering2.Id;
-            localPlaylist.OfferingId = offering2.Id;
 
             _context.SaveChanges();
             _logger.LogInformation("Seeded");
