@@ -7,8 +7,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ClassTranscribeServer", "Cl
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ClassTranscribeDatabase", "ClassTranscribeDatabase\ClassTranscribeDatabase.csproj", "{C628B570-E8F8-4CEC-B75B-E2F9C3D0CE42}"
 EndProject
-Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{99D36946-91B6-4A5F-8C82-F0A82B1491EA}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TaskEngine", "TaskEngine\TaskEngine.csproj", "{F41D8DB4-4E5F-4F94-A909-A3978D85657A}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{7E524246-1DD6-47ED-BE59-C07C5FF0E11F}"
@@ -33,10 +31,6 @@ Global
 		{C628B570-E8F8-4CEC-B75B-E2F9C3D0CE42}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C628B570-E8F8-4CEC-B75B-E2F9C3D0CE42}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C628B570-E8F8-4CEC-B75B-E2F9C3D0CE42}.Release|Any CPU.Build.0 = Release|Any CPU
-		{99D36946-91B6-4A5F-8C82-F0A82B1491EA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{99D36946-91B6-4A5F-8C82-F0A82B1491EA}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{99D36946-91B6-4A5F-8C82-F0A82B1491EA}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{99D36946-91B6-4A5F-8C82-F0A82B1491EA}.Release|Any CPU.Build.0 = Release|Any CPU
 		{F41D8DB4-4E5F-4F94-A909-A3978D85657A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{F41D8DB4-4E5F-4F94-A909-A3978D85657A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F41D8DB4-4E5F-4F94-A909-A3978D85657A}.Release|Any CPU.ActiveCfg = Release|Any CPU
