@@ -192,10 +192,10 @@ namespace ClassTranscribeServer.Controllers
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Globals.appSettings.JWT_KEY));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
             var expires = DateTime.Now.AddDays(Convert.ToDouble(Globals.appSettings.JWT_EXPIRE_DAYS));
-
+            var jwt_issuer = "https://" + Globals.appSettings.HOST_NAME;
             var token = new JwtSecurityToken(
-                Globals.appSettings.JWT_ISSUER,
-                Globals.appSettings.JWT_ISSUER,
+                jwt_issuer,
+                jwt_issuer,
                 claims,
                 expires: expires,
                 signingCredentials: creds

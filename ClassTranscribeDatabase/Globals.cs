@@ -6,7 +6,7 @@ namespace ClassTranscribeDatabase
     public class AppSettings
     {
         public string JWT_EXPIRE_DAYS { get; set; }
-        public string JWT_ISSUER { get; set; }
+        public string HOST_NAME { get; set; }
         public string JWT_KEY { get; set; }
         public string ALLOWED_HOSTS { get; set; }
         public string POSTGRES_SERVER_NAME { get; set; }

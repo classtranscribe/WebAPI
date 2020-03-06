@@ -1,18 +1,18 @@
 upstream app_servers {
-    server ${NGINX_HOST}:6061;
+    server ${HOST_NAME}:6061;
 }
 server {
     listen ${NGINX_HTTP_PORT} default_server;
     listen [::]:${NGINX_HTTP_PORT} default_server;
-    server_name ${NGINX_HOST};
+    server_name ${HOST_NAME};
     return 301 https://${VAR}server_name:${NGINX_HTTPS_PORT}${VAR}request_uri;
 }
 
 server {
     listen ${NGINX_HTTPS_PORT} ssl;
-    server_name ${NGINX_HOST};
-    ssl_certificate /etc/letsencrypt/live/${NGINX_HOST}/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/${NGINX_HOST}/privkey.pem;
+    server_name ${HOST_NAME};
+    ssl_certificate /etc/letsencrypt/live/${HOST_NAME}/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/${HOST_NAME}/privkey.pem;
 
     location / {
         proxy_pass         http://app_servers;

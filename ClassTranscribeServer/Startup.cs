@@ -61,6 +61,7 @@ namespace ClassTranscribeServer
                 .AddEntityFrameworkStores<CTDbContext>()
                 .AddDefaultTokenProviders();
             // ===== Add Jwt Authentication ========
+            var jwt_issuer = "https://" + Globals.appSettings.HOST_NAME;
             JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear(); // => remove default claims
             services
                 .AddAuthentication(options =>
@@ -76,8 +77,8 @@ namespace ClassTranscribeServer
                     cfg.SaveToken = true;
                     cfg.TokenValidationParameters = new TokenValidationParameters
                     {
-                        ValidIssuer = Globals.appSettings.JWT_ISSUER,
-                        ValidAudience = Globals.appSettings.JWT_ISSUER,
+                        ValidIssuer = jwt_issuer,
+                        ValidAudience = jwt_issuer,
                         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Globals.appSettings.JWT_KEY)),
                         ClockSkew = TimeSpan.Zero // remove delay of token when expire
                     };
