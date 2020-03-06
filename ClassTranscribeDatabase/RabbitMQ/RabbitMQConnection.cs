@@ -15,7 +15,12 @@ namespace ClassTranscribeDatabase
         public RabbitMQConnection(ILogger<RabbitMQConnection> logger)
         {
             _logger = logger;
-            var factory = new ConnectionFactory() { HostName = Globals.appSettings.RabbitMQServer };
+            var factory = new ConnectionFactory()
+            {
+                HostName = Globals.appSettings.RabbitMQServer,
+                UserName = Globals.appSettings.ADMIN_USER_ID,
+                Password = Globals.appSettings.ADMIN_PASSWORD
+            };
             _connection = factory.CreateConnection();
             _channel = _connection.CreateModel();
             prefetchCount = 10;

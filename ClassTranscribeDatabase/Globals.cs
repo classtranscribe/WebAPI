@@ -11,8 +11,8 @@ namespace ClassTranscribeDatabase
         public string ALLOWED_HOSTS { get; set; }
         public string POSTGRES_SERVER_NAME { get; set; }
         public string POSTGRES_DB { get; set; }
-        public string POSTGRES_USER { get; set; }
-        public string POSTGRES_PASSWORD { get; set; }
+        public string ADMIN_USER_ID { get; set; }
+        public string ADMIN_PASSWORD { get; set; }
         public string RabbitMQServer { get; set; }
         public string NODE_RPC_SERVER { get; set; }
         public string PYTHON_RPC_SERVER { get; set; }
