@@ -83,12 +83,9 @@ namespace ClassTranscribeServer.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = Globals.ROLE_ADMIN)]
         public async Task<ActionResult<LoggedInDTO>> LoginAs([FromBody] LoginAsDTO model)
         {
-            //if (model.password != Globals.appSettings.GOD_MODE_PASSWORD)
-            //{
-            //    return Unauthorized();
-            //}
             LoggedInDTO loggedInDTO;
             try
             {

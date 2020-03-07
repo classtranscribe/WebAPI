@@ -22,7 +22,7 @@ namespace ClassTranscribeDatabase
         {
             _appSettings = appSettings.Value;
             _logger = logger;
-            _uri = new Uri("https://hooks.slack.com/services/" + _appSettings.SLACK_WEBHOOK_URL);
+            _uri = new Uri(_appSettings.SLACK_WEBHOOK_URL);
         }
 
         public async Task PostErrorAsync(Exception e, string message, string username = null, string channel = null)

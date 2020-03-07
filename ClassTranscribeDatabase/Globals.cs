@@ -20,7 +20,6 @@ namespace ClassTranscribeDatabase
         public string DATA_DIRECTORY { get; set; }
         public string AUTH0_DOMAIN { get; set; }
         public string AUTH0_CLIENT_ID { get; set; }
-        public string GOD_MODE_PASSWORD { get; set; }
         public string BOX_CLIENT_ID { get; set; }
         public string BOX_CLIENT_SECRET { get; set; }
         public string APPLICATION_INSIGHTS_KEY { get; set; }
