@@ -116,7 +116,7 @@ namespace ClassTranscribeDatabase
                 // Term Id begins with 0
                 Id = "0001",
                 Name = "Test Term",
-                StartDate = DateTime.Now.AddMonths(-6),
+                StartDate = DateTime.Now.AddMonths(-3),
                 EndDate = DateTime.Now,
                 // Offerings, University, UniversityId
             };
