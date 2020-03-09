@@ -16,6 +16,7 @@ WORKDIR /src/ClassTranscribeServer
 RUN dotnet publish ClassTranscribeServer.csproj -c Release -o /app --no-restore
 
 FROM mcr.microsoft.com/dotnet/core/aspnet:3.1-bionic as publish
+RUN apt-get -qy install netcat
 WORKDIR /app
 COPY --from=build /app .
 EXPOSE 80

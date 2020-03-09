@@ -59,14 +59,6 @@ namespace TaskEngine
             var logger = serviceProvider.GetRequiredService<ILogger<Program>>();
             Globals.logger = logger;
 
-            //configure console logging
-            if (configuration.GetValue<string>("DEV_ENV", "NULL") == "DOCKER")
-            {
-                logger.LogInformation("Sleeping");
-                Thread.Sleep(15000);
-                logger.LogInformation("Waking up");
-            }
-
             Globals.appSettings = serviceProvider.GetService<IOptions<AppSettings>>().Value;
             TaskEngineGlobals.KeyProvider = new KeyProvider(Globals.appSettings);
 

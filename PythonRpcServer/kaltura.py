@@ -5,9 +5,12 @@ import json
 import os
 
 DATA_DIR = os.getenv('DATA_DIRECTORY')
-KALTURA_PARTNER_ID = int(os.getenv('KALTURA_PARTNER_ID'))
-KALTURA_TOKEN_ID = os.getenv('KALTURA_TOKEN_ID')
-KATLURA_APP_TOKEN = os.getenv('KALTURA_APP_TOKEN')
+KALTURA_PARTNER_ID = int(os.getenv('KALTURA_PARTNER_ID', default = 0))
+KALTURA_TOKEN_ID = os.getenv('KALTURA_TOKEN_ID', default = None)
+KATLURA_APP_TOKEN = os.getenv('KALTURA_APP_TOKEN', default = None)
+
+if KALTURA_PARTNER_ID == 0 or not KALTURA_TOKEN_ID or not KATLURA_APP_TOKEN:
+    print("INVALID KALTURA CREDENTIALS, check KALTURA environment variables.")
 
 class Kaltura:
     def __init__(self):

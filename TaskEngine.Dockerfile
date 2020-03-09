@@ -20,6 +20,7 @@ RUN apt-get update
 RUN apt-get install -y build-essential libasound2 wget libssl1.0.0
 
 FROM publish_base as publish
+RUN apt-get -qy install netcat
 WORKDIR /app
 COPY --from=build /app .
 CMD ["dotnet", "/app/TaskEngine.dll"]
