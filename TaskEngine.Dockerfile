@@ -1,6 +1,9 @@
 FROM mcr.microsoft.com/dotnet/core/sdk:3.1-bionic as build
-WORKDIR /src
 
+WORKDIR /
+RUN git clone https://github.com/eficode/wait-for.git
+
+WORKDIR /src
 COPY ./ClassTranscribeDatabase/ClassTranscribeDatabase.csproj ./ClassTranscribeDatabase/ClassTranscribeDatabase.csproj
 RUN dotnet restore ./ClassTranscribeDatabase/ClassTranscribeDatabase.csproj
 
@@ -18,10 +21,12 @@ RUN dotnet publish TaskEngine.csproj -c Release -o /app --no-restore
 FROM mcr.microsoft.com/dotnet/core/runtime:3.1-bionic as publish_base
 RUN apt-get update
 RUN apt-get install -y build-essential libasound2 wget libssl1.0.0
-
-FROM publish_base as publish
 RUN apt-get -q update
 RUN apt-get -qy install netcat
+
+FROM publish_base as publish
+WORKDIR /
+COPY --from=build /wait-for .
 WORKDIR /app
 COPY --from=build /app .
 CMD ["dotnet", "/app/TaskEngine.dll"]
