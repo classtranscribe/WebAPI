@@ -29,7 +29,7 @@ namespace ClassTranscribeDatabase
         {
             var obj = new JObject();
             obj["message"] = message;
-            obj["Exception"] = JObject.FromObject(e.Message);
+            obj["Exception"] = e.Message;
 
             await PostMessageAsync(obj);
         }
