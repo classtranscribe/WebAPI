@@ -30,12 +30,13 @@ namespace TaskEngine.Tasks
                 {
                     FilePath = video.Video1.VMPath
                 });
-                if (file.FilePath.Length > 0 && new FileInfo(file.FilePath).Length > 1000)
+                var fileRecord = new FileRecord(file.FilePath);
+                if (fileRecord.Path.Length > 0 && new FileInfo(fileRecord.Path).Length > 1000)
                 {
                     var videoLatest = await _context.Videos.FindAsync(video.Id);
                     if (videoLatest.Audio == null)
                     {
-                        videoLatest.Audio = new FileRecord(file.FilePath);
+                        videoLatest.Audio = fileRecord;
                         await _context.SaveChangesAsync();
                         _transcriptionTask.Publish(videoLatest);
                     }

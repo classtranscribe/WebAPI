@@ -43,7 +43,7 @@ namespace ClassTranscribeDatabase.Models
     }
 
 
-    public class Entity
+    public abstract class Entity
     {
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public string Id { get; set; }
