@@ -4,12 +4,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Quartz;
-using Quartz.Impl;
 using System;
-using System.Collections.Specialized;
-using System.Threading;
-using System.Threading.Tasks;
 using TaskEngine.Grpc;
 using TaskEngine.MSTranscription;
 using TaskEngine.Tasks;
@@ -87,62 +82,10 @@ namespace TaskEngine
 
             TempCode tempCode = serviceProvider.GetService<TempCode>();
 
-            // RunProgramRunExample(rabbitMQ).GetAwaiter().GetResult();
+            tempCode.CronJob();
             // tempCode.Temp();
 
             logger.LogInformation("All done!");
-
-            while (true)
-            {
-                tempCode.CronJob();
-                Thread.Sleep(new TimeSpan(5, 0, 0));
-            };
-        }
-
-        private static async Task RunProgramRunExample(RabbitMQConnection rabbitMQ)
-        {
-            try
-            {
-                // Grab the Scheduler instance from the Factory
-                NameValueCollection props = new NameValueCollection
-                {
-                    { "quartz.serializer.type", "binary" }
-                };
-                StdSchedulerFactory factory = new StdSchedulerFactory(props);
-                IScheduler scheduler = await factory.GetScheduler();
-
-                // and start it off
-                await scheduler.Start();
-
-                // define the job and tie it to our HelloJob class
-                IJobDetail job = JobBuilder.Create<QueueAwakerTask>()
-                    .WithIdentity("job1", "group1")
-                    .Build();
-
-                job.JobDataMap.Put("rabbitMQ", rabbitMQ);
-
-                // Trigger the job to run now, and then repeat every 10 seconds
-                ITrigger trigger = TriggerBuilder.Create()
-                    .WithIdentity("trigger1", "group1")
-                    .StartNow()
-                    .WithSimpleSchedule(x => x
-                        .WithIntervalInHours(4)
-                        .RepeatForever())
-                    .Build();
-
-                // Tell quartz to schedule the job using our trigger
-                await scheduler.ScheduleJob(job, trigger);
-
-                // some sleep to show what's happening
-                await Task.Delay(TimeSpan.FromSeconds(60));
-
-                // and last shut down the scheduler when you are ready to close your program
-                await scheduler.Shutdown();
-            }
-            catch (SchedulerException se)
-            {
-                Globals.logger.LogInformation(se, "Exception in quartz");
-            }
         }
 
         static void ExceptionHandler(object sender, UnhandledExceptionEventArgs args)

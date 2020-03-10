@@ -3,7 +3,6 @@ using ClassTranscribeDatabase.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
-using Quartz;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -11,7 +10,7 @@ using static ClassTranscribeDatabase.CommonUtils;
 
 namespace TaskEngine.Tasks
 {
-    class QueueAwakerTask : RabbitMQTask<JObject>, IJob
+    class QueueAwakerTask : RabbitMQTask<JObject>
     {
         private readonly DownloadPlaylistInfoTask _downloadPlaylistInfoTask;
         private readonly DownloadMediaTask _downloadMediaTask;
@@ -44,18 +43,6 @@ namespace TaskEngine.Tasks
             _createBoxTokenTask = createBoxTokenTask;
             _updateBoxTokenTask = updateBoxTokenTask;
             _slackLogger = slackLogger;
-        }
-#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
-        public async Task Execute(IJobExecutionContext context)
-#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
-        {
-            // Manually initializing base class variables
-            _rabbitMQ = (RabbitMQConnection)context.MergedJobDataMap["rabbitMQ"];
-            _queueName = TaskType.QueueAwaker.ToString();
-
-            JObject msg = new JObject();
-            msg.Add("Type", TaskType.PeriodicCheck.ToString());
-            Publish(msg);
         }
 
         private async Task PendingJobs()

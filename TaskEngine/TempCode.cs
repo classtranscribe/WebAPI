@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using TaskEngine.Tasks;
 using static ClassTranscribeDatabase.CommonUtils;
@@ -102,10 +103,23 @@ namespace TaskEngine
 
         private async Task temp()
         {
+            // A dummy awaited function call.
+            await Task.Delay(0);
+
             // Add any temporary code.
+
         }
 
         public void CronJob()
+        {
+            while (true)
+            {
+                PeriodicCheck();
+                Thread.Sleep(new TimeSpan(5, 0, 0));
+            };
+        }
+
+        private void PeriodicCheck()
         {
             JObject msg = new JObject();
             msg.Add("Type", TaskType.PeriodicCheck.ToString());
