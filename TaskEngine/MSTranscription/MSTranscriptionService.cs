@@ -15,8 +15,8 @@ namespace TaskEngine.MSTranscription
 {
     public class MSTranscriptionService
     {
-        ILogger _logger;
-        SlackLogger _slackLogger;
+        readonly ILogger _logger;
+        readonly SlackLogger _slackLogger;
 
         public MSTranscriptionService(ILogger<MSTranscriptionService> logger, SlackLogger slackLogger)
         {
@@ -40,12 +40,13 @@ namespace TaskEngine.MSTranscription
 
             string errorCode = "";
             Console.OutputEncoding = Encoding.Unicode;
-            Dictionary<string, List<Caption>> captions = new Dictionary<string, List<Caption>>();
-
-            captions.Add(Languages.ENGLISH, new List<Caption>());
-            captions.Add(Languages.SIMPLIFIED_CHINESE, new List<Caption>());
-            captions.Add(Languages.KOREAN, new List<Caption>());
-            captions.Add(Languages.SPANISH, new List<Caption>());
+            Dictionary<string, List<Caption>> captions = new Dictionary<string, List<Caption>>
+            {
+                { Languages.ENGLISH, new List<Caption>() },
+                { Languages.SIMPLIFIED_CHINESE, new List<Caption>() },
+                { Languages.KOREAN, new List<Caption>() },
+                { Languages.SPANISH, new List<Caption>() }
+            };
 
 
             var stopRecognition = new TaskCompletionSource<int>();

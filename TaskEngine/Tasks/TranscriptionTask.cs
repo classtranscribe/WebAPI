@@ -11,8 +11,8 @@ namespace TaskEngine.Tasks
 {
     class TranscriptionTask : RabbitMQTask<Video>
     {
-        private MSTranscriptionService _msTranscriptionService;
-        private GenerateVTTFileTask _generateVTTFileTask;
+        private readonly MSTranscriptionService _msTranscriptionService;
+        private readonly GenerateVTTFileTask _generateVTTFileTask;
 
         public TranscriptionTask(RabbitMQConnection rabbitMQ, MSTranscriptionService msTranscriptionService,
             GenerateVTTFileTask generateVTTFileTask, ILogger<TranscriptionTask> logger)

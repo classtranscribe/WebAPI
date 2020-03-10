@@ -137,7 +137,7 @@ namespace ClassTranscribeServer.Controllers
 
 
             var allVideos = await _context.Medias.Where(m => m.Playlist.OfferingId == offeringId)
-                .Select(m => new { VideoId = m.VideoId, Video = m.Video, MediaId = m.Id, PlaylistId = m.PlaylistId }).ToListAsync();
+                .Select(m => new { m.VideoId, m.Video, MediaId = m.Id, m.PlaylistId }).ToListAsync();
 
             var captions = await _context.Medias.Where(m => m.Playlist.OfferingId == offeringId)
                 .Select(m => m.Video).SelectMany(v => v.Transcriptions)

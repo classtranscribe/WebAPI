@@ -15,7 +15,7 @@ namespace TaskEngine.Tasks
 {
     class EPubGeneratorTask : RabbitMQTask<EPub>
     {
-        private RpcClient _rpcClient;
+        private readonly RpcClient _rpcClient;
 
         public EPubGeneratorTask(RabbitMQConnection rabbitMQ, RpcClient rpcClient, ILogger<EPubGeneratorTask> logger)
             : base(rabbitMQ, TaskType.GenerateEPubFile, logger)
@@ -38,8 +38,10 @@ namespace TaskEngine.Tasks
                     });
                     JArray scenes = JArray.Parse(jsonString.Json);
 
-                    video.SceneData = new JObject();
-                    video.SceneData.Add("Scenes", scenes);
+                    video.SceneData = new JObject
+                    {
+                        { "Scenes", scenes }
+                    };
 
                     await _context.SaveChangesAsync();
                 }

@@ -54,9 +54,9 @@ namespace TaskEngine.Tasks
                 // Medias for which no videos have downloaded
                 (await context.Medias.Where(m => m.Video == null).ToListAsync()).ForEach(m => _downloadMediaTask.Publish(m));
                 // Videos which haven't been converted to wav 
-                (await context.Videos.Where(v => v.Medias.Count() > 0 && v.Audio == null).ToListAsync()).ForEach(v => _convertVideoToWavTask.Publish(v));
+                (await context.Videos.Where(v => v.Medias.Any() && v.Audio == null).ToListAsync()).ForEach(v => _convertVideoToWavTask.Publish(v));
                 // Videos which have failed in transcribing
-                (await context.Videos.Where(v => v.TranscribingAttempts < 3 && v.TranscriptionStatus != "NoError" && v.Medias.Count() > 0 && v.Audio != null)
+                (await context.Videos.Where(v => v.TranscribingAttempts < 3 && v.TranscriptionStatus != "NoError" && v.Medias.Any() && v.Audio != null)
                     .ToListAsync()).ForEach(v => _transcriptionTask.Publish(v));
                 // Completed Transcriptions which haven't generated vtt files
                 (await context.Transcriptions.Where(t => t.Captions.Count > 0 && t.File == null).ToListAsync()).ForEach(t => _generateVTTFileTask.Publish(t));

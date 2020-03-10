@@ -51,7 +51,7 @@ namespace TaskEngine
             var incompleteVideos = context.Videos.Select(v => new
             {
                 Length = File.Exists(v.Video1.Path) ? new System.IO.FileInfo(v.Video1.Path).Length : -1,
-                Path = v.Video1.Path,
+                v.Video1.Path,
                 Video = v
             }).ToList().Where(v => v.Length < 1000).OrderBy(v => v.Length).Select(v => new { v.Video, v.Length }).ToList();
 
@@ -98,10 +98,10 @@ namespace TaskEngine
 
         public void Temp()
         {
-            temp().GetAwaiter().GetResult();
+            TempAsync().GetAwaiter().GetResult();
         }
 
-        private async Task temp()
+        private async Task TempAsync()
         {
             // A dummy awaited function call.
             await Task.Delay(0);
@@ -121,8 +121,10 @@ namespace TaskEngine
 
         private void PeriodicCheck()
         {
-            JObject msg = new JObject();
-            msg.Add("Type", TaskType.PeriodicCheck.ToString());
+            JObject msg = new JObject
+            {
+                { "Type", TaskType.PeriodicCheck.ToString() }
+            };
             _queueAwakerTask.Publish(msg);
         }
     }

@@ -1,7 +1,6 @@
 ﻿using ClassTranscribeDatabase;
 using ClassTranscribeDatabase.Models;
 using Microsoft.Extensions.Logging;
-using System;
 using System.Threading.Tasks;
 using TaskEngine.Grpc;
 using static ClassTranscribeDatabase.CommonUtils;
@@ -10,7 +9,7 @@ namespace TaskEngine.Tasks
 {
     class ProcessVideoTask : RabbitMQTask<Video>
     {
-        private RpcClient _rpcClient;
+        private readonly RpcClient _rpcClient;
 
         public ProcessVideoTask(RabbitMQConnection rabbitMQ, RpcClient rpcClient, ILogger<ProcessVideoTask> logger)
             : base(rabbitMQ, TaskType.ProcessVideo, logger)

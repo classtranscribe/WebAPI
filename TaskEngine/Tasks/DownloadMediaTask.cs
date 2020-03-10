@@ -55,7 +55,7 @@ namespace TaskEngine.Tasks
                 {
                     // Check if Video already exists, if yes link it with this media item.
                     var file = _context.FileRecords.Where(f => f.Hash == video.Video1.Hash).ToList();
-                    if (file.Count() == 0)
+                    if (!file.Any())
                     {
                         // Create new video Record
                         await _context.Videos.AddAsync(video);
@@ -69,7 +69,7 @@ namespace TaskEngine.Tasks
                     {
                         var existingVideos = await _context.Videos.Where(v => v.Video1Id == file.First().Id).ToListAsync();
                         // If file exists but video doesn't.
-                        if (existingVideos.Count() == 0)
+                        if (!existingVideos.Any())
                         {
                             // Delete existing file Record
                             await file.First().DeleteFileRecordAsync(_context);
@@ -266,7 +266,7 @@ namespace TaskEngine.Tasks
             {
                 _logger.LogError(e, "Box Token Failure.");
                 await _slack.PostErrorAsync(e, "Box Token Failure.");
-                throw e;
+                throw;
             }
         }
     }

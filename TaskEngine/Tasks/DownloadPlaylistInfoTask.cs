@@ -183,7 +183,7 @@ namespace TaskEngine.Tasks
             {
                 _logger.LogError(e, "Box Token Failure.");
                 await _slack.PostErrorAsync(e, "Box Token Failure.");
-                throw e;
+                throw;
             }
         }
 

@@ -106,13 +106,13 @@ namespace ClassTranscribeServer.Controllers
         {
             var logs = await _context.Logs.Where(l => l.CreatedAt >= from && l.CreatedAt <= to).Select(l => new
             {
-                Id = l.Id,
-                CreatedAt = l.CreatedAt,
-                UserId = l.UserId,
-                OfferingId = l.OfferingId,
-                MediaId = l.MediaId,
-                EventType = l.EventType,
-                Json = l.Json
+                l.Id,
+                l.CreatedAt,
+                l.UserId,
+                l.OfferingId,
+                l.MediaId,
+                l.EventType,
+                l.Json
             }).ToListAsync();
             var path = Path.GetTempFileName();
             using (var writer = new StreamWriter(path))
