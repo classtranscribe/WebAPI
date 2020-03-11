@@ -8,7 +8,7 @@ namespace TaskEngine
 {
     public abstract class RabbitMQTask<T>
     {
-        protected RabbitMQConnection _rabbitMQ;
+        protected RabbitMQConnection _rabbitMQ { get; set; }
         protected string _queueName;
         protected readonly ILogger _logger;
 

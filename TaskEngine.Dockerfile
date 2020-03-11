@@ -20,7 +20,9 @@ RUN dotnet publish TaskEngine.csproj -c Release -o /app --no-restore
 
 FROM mcr.microsoft.com/dotnet/core/runtime:3.1-bionic as publish_base
 RUN apt-get update
-RUN apt-get install -y build-essential libasound2 wget libssl1.0.0
+RUN apt-get install -y build-essential
+RUN apt-get install -y libasound2 
+RUN apt-get install -y wget libssl1.0.0
 RUN apt-get -q update
 RUN apt-get -qy install netcat
 
