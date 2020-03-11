@@ -59,7 +59,7 @@ namespace TaskEngine.Tasks
             List<Media> newMedia = new List<Media>();
             foreach (JObject jObject in jArray)
             {
-                if (jObject["id"].ToString().Length > 0 && !await _context.Medias.Where(m => m.UniqueMediaIdentifier == jObject["id"].ToString() && m.SourceType == playlist.SourceType).AnyAsync())
+                if (jObject["id"].ToString().Length > 0 && !await _context.Medias.Where(m => m.UniqueMediaIdentifier == jObject["id"].ToString() && m.SourceType == playlist.SourceType && m.PlaylistId == playlist.Id).AnyAsync())
                 {
                     newMedia.Add(new Media
                     {
@@ -90,7 +90,7 @@ namespace TaskEngine.Tasks
             List<Media> newMedia = new List<Media>();
             foreach (JObject jObject in jArray)
             {
-                if (jObject["mediaId"].ToString().Length > 0 && !await _context.Medias.Where(m => m.UniqueMediaIdentifier == jObject["mediaId"].ToString() && m.SourceType == playlist.SourceType).AnyAsync())
+                if (jObject["mediaId"].ToString().Length > 0 && !await _context.Medias.Where(m => m.UniqueMediaIdentifier == jObject["mediaId"].ToString() && m.SourceType == playlist.SourceType && m.PlaylistId == playlist.Id).AnyAsync())
                 {
                     newMedia.Add(new Media
                     {
@@ -119,7 +119,7 @@ namespace TaskEngine.Tasks
             List<Media> newMedia = new List<Media>();
             foreach (JObject jObject in jArray)
             {
-                if (!await _context.Medias.Where(m => m.UniqueMediaIdentifier == jObject["videoId"].ToString() && m.SourceType == playlist.SourceType).AnyAsync())
+                if (!await _context.Medias.Where(m => m.UniqueMediaIdentifier == jObject["videoId"].ToString() && m.SourceType == playlist.SourceType && m.PlaylistId == playlist.Id).AnyAsync())
                 {
                     newMedia.Add(new Media
                     {
@@ -161,7 +161,7 @@ namespace TaskEngine.Tasks
                 foreach (var item in items)
                 {
                     var file = await client.FilesManager.GetInformationAsync(item.Id);
-                    if (file.Id.Length > 0 && !await _context.Medias.Where(m => m.UniqueMediaIdentifier == file.Id && m.SourceType == playlist.SourceType).AnyAsync())
+                    if (file.Id.Length > 0 && !await _context.Medias.Where(m => m.UniqueMediaIdentifier == file.Id && m.SourceType == playlist.SourceType && m.PlaylistId == playlist.Id).AnyAsync())
                     {
                         newMedia.Add(new Media
                         {
