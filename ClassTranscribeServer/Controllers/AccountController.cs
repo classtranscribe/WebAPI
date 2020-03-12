@@ -108,7 +108,7 @@ namespace ClassTranscribeServer.Controllers
             LoggedInDTO loggedInDTO;
             try
             {
-                if (Globals.appSettings.DEV_ENV == "true")
+                if (Globals.appSettings.TEST_SIGN_IN == "true")
                 {
                     ApplicationUser user = await _userManager.FindByEmailAsync("testuser999@illinois.edu");
                     await _signInManager.SignInAsync(user, false);

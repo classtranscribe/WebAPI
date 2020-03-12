@@ -24,7 +24,7 @@ namespace ClassTranscribeDatabase
         public string BOX_CLIENT_SECRET { get; set; }
         public string APPLICATION_INSIGHTS_KEY { get; set; }
         public string SLACK_WEBHOOK_URL { get; set; }
-        public string DEV_ENV { get; set; }
+        public string TEST_SIGN_IN { get; set; }
     }
 
     public static class Globals
