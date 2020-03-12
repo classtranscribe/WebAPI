@@ -81,6 +81,7 @@ namespace TaskEngine.Tasks
                 if (type == TaskType.PeriodicCheck.ToString())
                 {
                     await _slackLogger.PostMessageAsync("Periodic Check.");
+                    _updateBoxTokenTask.Publish("");
                     await DownloadAllPlaylists();
                     await PendingJobs();
                 }

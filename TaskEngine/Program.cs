@@ -26,7 +26,7 @@ namespace TaskEngine
                 {
                     builder.AddConsole();
                     builder.AddFilter<Microsoft.Extensions.Logging.ApplicationInsights.ApplicationInsightsLoggerProvider>
-                             ("", LogLevel.Trace);
+                             ("", LogLevel.Warning);
                     builder.AddApplicationInsights(configuration.GetValue<string>("APPLICATION_INSIGHTS_KEY"));
                 })
                 .AddOptions()

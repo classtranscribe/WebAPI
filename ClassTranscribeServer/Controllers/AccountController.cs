@@ -277,7 +277,6 @@ namespace ClassTranscribeServer.Controllers
         public class LoginAsDTO
         {
             public string emailId { get; set; }
-            public string password { get; set; }
         }
         public class LoggedInDTO
         {
