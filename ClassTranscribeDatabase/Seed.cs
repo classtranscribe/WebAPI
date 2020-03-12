@@ -95,10 +95,26 @@ namespace ClassTranscribeDatabase
                 SecurityStamp = Guid.NewGuid().ToString()
             };
 
+            ApplicationUser testuser = new ApplicationUser
+            {
+                Id = "9",
+                UserName = "testuser999@illinois.edu",
+                Email = "testuser999@illinois.edu",
+                FirstName = "Test",
+                LastName = "User",
+                UniversityId = university1.Id,
+                NormalizedEmail = "TESTUSER999@ILLINOIS.EDU",
+                NormalizedUserName = "TESTUSER999@ILLINOIS.EDU",
+                EmailConfirmed = true,
+                LockoutEnabled = false,
+                SecurityStamp = Guid.NewGuid().ToString()
+            };
+
             chirantan.PasswordHash = new PasswordHasher<ApplicationUser>().HashPassword(chirantan, chirantan.Email);
             shawn.PasswordHash = new PasswordHasher<ApplicationUser>().HashPassword(shawn, shawn.Email);
+            testuser.PasswordHash = new PasswordHasher<ApplicationUser>().HashPassword(testuser, testuser.Email);
 
-            List<ApplicationUser> users = new List<ApplicationUser> { shawn, chirantan };
+            List<ApplicationUser> users = new List<ApplicationUser> { shawn, chirantan, testuser };
             foreach (ApplicationUser user in users)
             {
                 if (!_context.Users.IgnoreQueryFilters().Any(u => u.Email == user.Email))

@@ -96,6 +96,32 @@ namespace ClassTranscribeServer.Controllers
             catch (Exception)
             {
                 return Unauthorized();
+                throw;
+            }
+
+            return Ok(loggedInDTO);
+        }
+
+        [HttpGet]
+        public async Task<ActionResult<LoggedInDTO>> TestSignIn()
+        {
+            LoggedInDTO loggedInDTO;
+            try
+            {
+                if (Globals.appSettings.DEV_ENV == "true")
+                {
+                    ApplicationUser user = await _userManager.FindByEmailAsync("testuser999@illinois.edu");
+                    await _signInManager.SignInAsync(user, false);
+                    loggedInDTO = await GenerateJwtToken(user.Email, user);
+                }
+                else
+                {
+                    return Unauthorized();
+                }
+            }
+            catch (Exception)
+            {
+                return Unauthorized();
             }
 
             return Ok(loggedInDTO);
