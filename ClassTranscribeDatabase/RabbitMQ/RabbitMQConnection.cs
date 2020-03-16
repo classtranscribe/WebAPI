@@ -23,7 +23,7 @@ namespace ClassTranscribeDatabase
             };
             _connection = factory.CreateConnection();
             _channel = _connection.CreateModel();
-            prefetchCount = 10;
+            prefetchCount = Convert.ToUInt16(Globals.appSettings.RABBITMQ_PREFETCH_COUNT ?? "10");
         }
 
         public void PublishTask<T>(string queueName, T message)

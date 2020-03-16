@@ -70,7 +70,7 @@ namespace ClassTranscribeServer.Controllers
                     .Select(uo => uo.Offering).ToListAsync();
                 offerings.AddRange(member_offerings);
             }
-
+            // Filter out offerings where there is no media items available.
             var filteredOfferings = offerings.FindAll(o => o.Playlists.SelectMany(m => m.Medias).Count() > 0).OrderBy(o => o.Term.StartDate).ToList();
 
             var offeringListDTO = filteredOfferings.Select(o => new OfferingListDTO
