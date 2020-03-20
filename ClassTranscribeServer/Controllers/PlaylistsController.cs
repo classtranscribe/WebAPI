@@ -53,32 +53,21 @@ namespace ClassTranscribeServer.Controllers
                 CreatedAt = p.CreatedAt,
                 SourceType = p.SourceType,
                 OfferingId = p.OfferingId,
-                Name = p.Name,
-                Medias = p.Medias.Where(m => m.Video != null).Select(m => new MediaDTO
-                {
-                    Id = m.Id,
-                    Name = m.Name,
-                    JsonMetadata = m.JsonMetadata,
-                    CreatedAt = m.CreatedAt,
-                    Ready = m.Video.Transcriptions.Any(),
-                    SourceType = m.SourceType,
-                    Video = new VideoDTO
-                    {
-                        Id = m.Video.Id,
-                        Video1Path = m.Video.Video1 != null ? m.Video.Video1.Path : null,
-                        Video2Path = m.Video.Video2 != null ? m.Video.Video2.Path : null,
-                    },
-                    Transcriptions = m.Video.Transcriptions.Select(t => new TranscriptionDTO
-                    {
-                        Id = t.Id,
-                        Path = t.File.Path,
-                        Language = t.Language
-                    }).ToList()
-                }).ToList()
+                Name = p.Name
             }).ToList();
-            // Sorting by descending.
-            playlists.ForEach(p => p.Medias.Sort((x, y) => -1 * x.CreatedAt.CompareTo(y.CreatedAt)));
             return playlists;
+        }
+
+        [HttpGet("SearchForMedia/{offeringId}/{query}")]
+        public async Task<ActionResult<IEnumerable<MediaSearchDTO>>> SearchForMedia(string offeringId, string query)
+        {
+            var mediaSearches = await _context.Medias.Where(m => m.Playlist.OfferingId == offeringId &&
+            EF.Functions.ToTsVector("english", m.Name).Matches(query))
+                .Select(m => new MediaSearchDTO { Name = m.Name, MediaId = m.Id, PlaylistName = m.Playlist.Name, PlaylistId = m.PlaylistId })
+                .Take(50)
+                .ToListAsync();
+
+            return mediaSearches;
         }
 
         // GET: api/Playlists/5
@@ -289,5 +278,13 @@ namespace ClassTranscribeServer.Controllers
         public VideoDTO Video { get; set; }
         public List<TranscriptionDTO> Transcriptions { get; set; }
         public string Name { get; set; }
+    }
+
+    public class MediaSearchDTO
+    {
+        public string Name { get; set; }
+        public string MediaId { get; set; }
+        public string PlaylistName { get; set; }
+        public string PlaylistId { get; set; }
     }
 }

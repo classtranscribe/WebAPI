@@ -91,15 +91,20 @@ namespace ClassTranscribeServer.Authorization
             {
                 context.Succeed(requirement);
             }
-            else if (offering.AccessType == AccessTypes.UniversityOnly && offering.CourseOfferings.Select(c => c.Course.Department.UniversityId).Contains(user.UniversityId))
+            else if (offering.AccessType == AccessTypes.UniversityOnly)
             {
-                context.Succeed(requirement);
+                var universityId = await _ctDbContext.CourseOfferings.Where(co => co.OfferingId == offeringId)
+                    .Select(c => c.Course.Department.UniversityId).FirstAsync();
+                if (user.UniversityId == universityId)
+                {
+                    context.Succeed(requirement);
+                }
             }
             else if (offering.AccessType == AccessTypes.StudentsOnly && offering.OfferingUsers.Select(ou => ou.ApplicationUser).Contains(user))
             {
                 context.Succeed(requirement);
             }
-            else if (context.User.IsInRole(Globals.ROLE_ADMIN))
+            if (context.User.IsInRole(Globals.ROLE_ADMIN))
             {
                 context.Succeed(requirement);
             }

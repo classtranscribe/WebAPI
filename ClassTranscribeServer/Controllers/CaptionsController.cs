@@ -137,7 +137,7 @@ namespace ClassTranscribeServer.Controllers
 
 
             var allVideos = await _context.Medias.Where(m => m.Playlist.OfferingId == offeringId)
-                .Select(m => new { m.VideoId, m.Video, MediaId = m.Id, m.PlaylistId }).ToListAsync();
+                .Select(m => new { m.VideoId, m.Video, MediaId = m.Id, m.PlaylistId, PlaylistName = m.Playlist.Name, MediaName = m.Name }).ToListAsync();
 
             var captions = await _context.Medias.Where(m => m.Playlist.OfferingId == offeringId)
                 .Select(m => m.Video).SelectMany(v => v.Transcriptions)
@@ -153,8 +153,11 @@ namespace ClassTranscribeServer.Controllers
 
             captions.ForEach(c =>
             {
-                c.MediaId = allVideos.Where(v => v.VideoId == c.VideoId).Select(v => v.MediaId).First();
-                c.PlaylistId = allVideos.Where(v => v.VideoId == c.VideoId).Select(v => v.PlaylistId).First();
+                var v = allVideos.Where(v => v.VideoId == c.VideoId).First();
+                c.MediaId = v.MediaId;
+                c.PlaylistId = v.PlaylistId;
+                c.MediaName = v.MediaName;
+                c.PlaylistName = v.PlaylistName;
             });
 
             return captions;
@@ -166,6 +169,8 @@ namespace ClassTranscribeServer.Controllers
             public string MediaId { get; set; }
             public string PlaylistId { get; set; }
             public string VideoId { get; set; }
+            public string MediaName { get; set; }
+            public string PlaylistName { get; set; }
         }
 
         private bool CaptionExists(string id)
