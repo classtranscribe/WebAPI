@@ -6,6 +6,7 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using TaskEngine.Grpc;
@@ -98,7 +99,7 @@ namespace TaskEngine.Tasks
                         SourceType = playlist.SourceType,
                         PlaylistId = playlist.Id,
                         UniqueMediaIdentifier = jObject["mediaId"].ToString(),
-                        CreatedAt = Convert.ToDateTime(jObject["createdAt"])
+                        CreatedAt = Convert.ToDateTime(jObject["createdAt"], CultureInfo.InvariantCulture)
                     });
                 }
             }
@@ -216,7 +217,7 @@ namespace TaskEngine.Tasks
                     DateTime createdAt;
                     if (media.JsonMetadata.ContainsKey("createdAt"))
                     {
-                        createdAt = Convert.ToDateTime(media.JsonMetadata["createdAt"].ToString());
+                        createdAt = Convert.ToDateTime(media.JsonMetadata["createdAt"].ToString(), CultureInfo.InvariantCulture);
                     }
                     else
                     {
@@ -229,7 +230,7 @@ namespace TaskEngine.Tasks
                     }
                     else
                     {
-                        name = $"{lessonName} {createdAt.ToString("MMMM dd, yyyy")}";
+                        name = $"{lessonName} {createdAt.ToString("MMMM dd, yyyy", CultureInfo.InvariantCulture)}";
                     }
                     break;
                 case SourceType.Youtube:
@@ -285,7 +286,7 @@ namespace TaskEngine.Tasks
                     {
                         createdAt = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
                     }
-                    name = $"{temp} {createdAt.ToString("MMMM dd, yyyy")}";
+                    name = $"{temp} {createdAt.ToString("MMMM dd, yyyy", CultureInfo.InvariantCulture)}";
                     break;
                 case SourceType.Box:
                     if (media.JsonMetadata.ContainsKey("name"))

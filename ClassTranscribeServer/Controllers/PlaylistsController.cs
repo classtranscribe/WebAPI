@@ -35,14 +35,7 @@ namespace ClassTranscribeServer.Controllers
             var authorizationResult = await _authorizationService.AuthorizeAsync(this.User, offeringId, Globals.POLICY_READ_OFFERING);
             if (!authorizationResult.Succeeded)
             {
-                if (User.Identity.IsAuthenticated)
-                {
-                    return new ForbidResult();
-                }
-                else
-                {
-                    return new ChallengeResult();
-                }
+                return Unauthorized();
             }
             var temp = await _context.Playlists
                 .Where(p => p.OfferingId == offeringId)
@@ -119,6 +112,10 @@ namespace ClassTranscribeServer.Controllers
         [Authorize]
         public async Task<IActionResult> PutPlaylist(string id, Playlist playlist)
         {
+            if (playlist == null || playlist.Id == null || id != playlist.Id)
+            {
+                return BadRequest();
+            }
             var authorizationResult = await _authorizationService.AuthorizeAsync(this.User, playlist.OfferingId, Globals.POLICY_UPDATE_OFFERING);
             if (!authorizationResult.Succeeded)
             {
@@ -130,10 +127,6 @@ namespace ClassTranscribeServer.Controllers
                 {
                     return new ChallengeResult();
                 }
-            }
-            if (id != playlist.Id)
-            {
-                return BadRequest();
             }
 
             _context.Entry(playlist).State = EntityState.Modified;
@@ -163,6 +156,10 @@ namespace ClassTranscribeServer.Controllers
         [Authorize]
         public async Task<ActionResult<Playlist>> PostPlaylist(Playlist playlist)
         {
+            if (playlist == null)
+            {
+                return BadRequest();
+            }
             var authorizationResult = await _authorizationService.AuthorizeAsync(this.User, playlist.OfferingId, Globals.POLICY_UPDATE_OFFERING);
             if (!authorizationResult.Succeeded)
             {
@@ -218,28 +215,6 @@ namespace ClassTranscribeServer.Controllers
         private bool PlaylistExists(string id)
         {
             return _context.Playlists.Any(e => e.Id == id);
-        }
-
-        [NonAction]
-        public List<VideoDTO> GetVideoDTOs(List<Video> vs)
-        {
-            return vs.Select(v => new VideoDTO
-            {
-                Id = v.Id,
-                Video1Path = v.Video1.Path,
-                Video2Path = v.Video2.Path
-            }).ToList();
-        }
-
-        [NonAction]
-        public List<TranscriptionDTO> GetTranscriptionDTOs(List<Transcription> ts)
-        {
-            return ts.Select(t => new TranscriptionDTO
-            {
-                Id = t.Id,
-                Path = t.File.Path,
-                Language = t.Language
-            }).ToList();
         }
     }
 

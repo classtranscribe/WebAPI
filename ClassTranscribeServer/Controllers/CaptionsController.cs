@@ -47,6 +47,10 @@ namespace ClassTranscribeServer.Controllers
         [HttpPost]
         public async Task<ActionResult<Caption>> PostCaption(Caption modifiedCaption)
         {
+            if (modifiedCaption == null || modifiedCaption.Id == null)
+            {
+                return BadRequest("modifiedCaption.Id not present");
+            }
             Caption oldCaption = await _context.Captions.FindAsync(modifiedCaption.Id);
             if (oldCaption == null)
             {

@@ -29,7 +29,7 @@ namespace ClassTranscribeServer.Controllers
         [HttpPost("UpdateOffering")]
         public async Task<ActionResult> UpdateOffering(string offeringId)
         {
-            var authorizationResult = await _authorizationService.AuthorizeAsync(this.User, offeringId, Globals.POLICY_READ_OFFERING);
+            var authorizationResult = await _authorizationService.AuthorizeAsync(this.User, offeringId, Globals.POLICY_UPDATE_OFFERING);
             if (!authorizationResult.Succeeded)
             {
                 if (User.Identity.IsAuthenticated)

@@ -37,41 +37,12 @@ namespace ClassTranscribeServer.Controllers
         [HttpGet("ByStudent")]
         public async Task<ActionResult<IEnumerable<OfferingListDTO>>> GetOfferingsByStudent()
         {
-            // Get the user
-            ApplicationUser user = null;
-            if (User.Identity.IsAuthenticated && this.User.FindFirst(ClaimTypes.NameIdentifier) != null)
-            {
-                var userId = this.User.FindFirst(ClaimTypes.NameIdentifier).Value;
-                user = await _context.Users.FindAsync(userId);
-            }
-
             // Store the results
-            List<Offering> offerings = new List<Offering>();
+            List<Offering> offerings = await _context.Offerings.ToListAsync();
 
-            // Get all the public offerings
-            var public_offerings = await _context.Offerings.Where(offer => offer.AccessType == AccessTypes.Public).ToListAsync();
-            offerings.AddRange(public_offerings);
 
-            // Get all offering that need authentication
-            if (user != null)
-            {
-                var authen_offerings = await _context.Offerings.Where(offer => offer.AccessType == AccessTypes.AuthenticatedOnly).ToListAsync();
-                offerings.AddRange(authen_offerings);
-
-                // Get all their university's offerings
-                var university_offerings = await _context.Courses.Where(c => c.Department.University == user.University)
-                                                            .SelectMany(c => c.CourseOfferings)
-                                                            .Select(co => co.Offering)
-                                                            .Where(o => o.AccessType == AccessTypes.UniversityOnly).ToListAsync();
-                offerings.AddRange(university_offerings);
-
-                // Get all offering that this user is a member
-                var member_offerings = await _context.UserOfferings.Where(uo => uo.ApplicationUserId == user.Id && uo.Offering.AccessType == AccessTypes.StudentsOnly)
-                    .Select(uo => uo.Offering).ToListAsync();
-                offerings.AddRange(member_offerings);
-            }
             // Filter out offerings where there is no media items available.
-            var filteredOfferings = offerings.FindAll(o => o.Playlists.SelectMany(m => m.Medias).Count() > 0).OrderBy(o => o.Term.StartDate).ToList();
+            var filteredOfferings = offerings.FindAll(o => o.Playlists.SelectMany(m => m.Medias).Any()).OrderBy(o => o.Term.StartDate).ToList();
 
             var offeringListDTO = filteredOfferings.Select(o => new OfferingListDTO
             {
@@ -82,11 +53,9 @@ namespace ClassTranscribeServer.Controllers
                     DepartmentId = co.Course.DepartmentId,
                     DepartmentAcronym = co.Course.Department.Acronym
                 }).ToList(),
-                //Courses = await _context.CourseOfferings.Where(co => co.OfferingId == o.Id).Select(co => co.Course).ToListAsync(),
                 Term = o.Term
             }).ToList();
 
-            // return the combined result
             return offeringListDTO;
         }
 
@@ -122,6 +91,10 @@ namespace ClassTranscribeServer.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> PutOffering(string id, Offering offering)
         {
+            if (offering == null || offering.Id == null || id != offering.Id)
+            {
+                return BadRequest("Invalid Offering.Id");
+            }
             var authorizationResult = await _authorizationService.AuthorizeAsync(this.User, id, Globals.POLICY_UPDATE_OFFERING);
             if (!authorizationResult.Succeeded)
             {
@@ -133,10 +106,6 @@ namespace ClassTranscribeServer.Controllers
                 {
                     return new ChallengeResult();
                 }
-            }
-            if (id != offering.Id)
-            {
-                return BadRequest();
             }
 
             _context.Entry(offering).State = EntityState.Modified;
@@ -167,6 +136,10 @@ namespace ClassTranscribeServer.Controllers
         [Authorize(Roles = Globals.ROLE_ADMIN + "," + Globals.ROLE_INSTRUCTOR + "," + Globals.ROLE_TEACHING_ASSISTANT)]
         public async Task<ActionResult<Offering>> PostNewOffering(NewOfferingDTO newOfferingDTO)
         {
+            if (newOfferingDTO == null)
+            {
+                return BadRequest();
+            }
             _context.Offerings.Add(newOfferingDTO.Offering);
             await _context.SaveChangesAsync();
             _context.CourseOfferings.Add(new CourseOffering
@@ -192,6 +165,10 @@ namespace ClassTranscribeServer.Controllers
         [HttpPost("AddUsers/{offeringId}/{roleName}")]
         public async Task<ActionResult<IEnumerable<UserOffering>>> AddUsersToOffering(string offeringId, string roleName, List<string> mailIds)
         {
+            if (mailIds == null || !mailIds.Any())
+            {
+                return BadRequest();
+            }
             var authorizationResult = await _authorizationService.AuthorizeAsync(this.User, offeringId, Globals.POLICY_UPDATE_OFFERING);
             if (!authorizationResult.Succeeded)
             {
