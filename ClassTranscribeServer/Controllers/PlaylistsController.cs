@@ -33,9 +33,10 @@ namespace ClassTranscribeServer.Controllers
         public async Task<ActionResult<IEnumerable<PlaylistDTO>>> GetPlaylists(string offeringId)
         {
             var authorizationResult = await _authorizationService.AuthorizeAsync(this.User, offeringId, Globals.POLICY_READ_OFFERING);
+            var offering = await _context.Offerings.FindAsync(offeringId);
             if (!authorizationResult.Succeeded)
             {
-                return Unauthorized();
+                return Unauthorized(new { Reason = "Insufficient Permission", AccessType = offering.AccessType });
             }
             var temp = await _context.Playlists
                 .Where(p => p.OfferingId == offeringId)
