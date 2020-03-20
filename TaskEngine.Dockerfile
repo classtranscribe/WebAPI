@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/core/sdk:3.1-bionic as build
+FROM mcr.microsoft.com/dotnet/core/sdk:3.1.100-bionic as build
 
 WORKDIR /
 RUN git clone https://github.com/eficode/wait-for.git
