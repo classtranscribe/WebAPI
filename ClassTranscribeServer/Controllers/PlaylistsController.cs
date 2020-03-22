@@ -33,16 +33,10 @@ namespace ClassTranscribeServer.Controllers
         public async Task<ActionResult<IEnumerable<PlaylistDTO>>> GetPlaylists(string offeringId)
         {
             var authorizationResult = await _authorizationService.AuthorizeAsync(this.User, offeringId, Globals.POLICY_READ_OFFERING);
+            var offering = await _context.Offerings.FindAsync(offeringId);
             if (!authorizationResult.Succeeded)
             {
-                if (User.Identity.IsAuthenticated)
-                {
-                    return new ForbidResult();
-                }
-                else
-                {
-                    return new ChallengeResult();
-                }
+                return Unauthorized(new { Reason = "Insufficient Permission", AccessType = offering.AccessType });
             }
             var temp = await _context.Playlists
                 .Where(p => p.OfferingId == offeringId)
@@ -53,32 +47,21 @@ namespace ClassTranscribeServer.Controllers
                 CreatedAt = p.CreatedAt,
                 SourceType = p.SourceType,
                 OfferingId = p.OfferingId,
-                Name = p.Name,
-                Medias = p.Medias.Where(m => m.Video != null).Select(m => new MediaDTO
-                {
-                    Id = m.Id,
-                    Name = m.Name,
-                    JsonMetadata = m.JsonMetadata,
-                    CreatedAt = m.CreatedAt,
-                    Ready = m.Video.Transcriptions.Any(),
-                    SourceType = m.SourceType,
-                    Video = new VideoDTO
-                    {
-                        Id = m.Video.Id,
-                        Video1Path = m.Video.Video1 != null ? m.Video.Video1.Path : null,
-                        Video2Path = m.Video.Video2 != null ? m.Video.Video2.Path : null,
-                    },
-                    Transcriptions = m.Video.Transcriptions.Select(t => new TranscriptionDTO
-                    {
-                        Id = t.Id,
-                        Path = t.File.Path,
-                        Language = t.Language
-                    }).ToList()
-                }).ToList()
+                Name = p.Name
             }).ToList();
-            // Sorting by descending.
-            playlists.ForEach(p => p.Medias.Sort((x, y) => -1 * x.CreatedAt.CompareTo(y.CreatedAt)));
             return playlists;
+        }
+
+        [HttpGet("SearchForMedia/{offeringId}/{query}")]
+        public async Task<ActionResult<IEnumerable<MediaSearchDTO>>> SearchForMedia(string offeringId, string query)
+        {
+            var mediaSearches = await _context.Medias.Where(m => m.Playlist.OfferingId == offeringId &&
+            EF.Functions.ToTsVector("english", m.Name).Matches(query))
+                .Select(m => new MediaSearchDTO { Name = m.Name, MediaId = m.Id, PlaylistName = m.Playlist.Name, PlaylistId = m.PlaylistId })
+                .Take(50)
+                .ToListAsync();
+
+            return mediaSearches;
         }
 
         // GET: api/Playlists/5
@@ -130,6 +113,10 @@ namespace ClassTranscribeServer.Controllers
         [Authorize]
         public async Task<IActionResult> PutPlaylist(string id, Playlist playlist)
         {
+            if (playlist == null || playlist.Id == null || id != playlist.Id)
+            {
+                return BadRequest();
+            }
             var authorizationResult = await _authorizationService.AuthorizeAsync(this.User, playlist.OfferingId, Globals.POLICY_UPDATE_OFFERING);
             if (!authorizationResult.Succeeded)
             {
@@ -141,10 +128,6 @@ namespace ClassTranscribeServer.Controllers
                 {
                     return new ChallengeResult();
                 }
-            }
-            if (id != playlist.Id)
-            {
-                return BadRequest();
             }
 
             _context.Entry(playlist).State = EntityState.Modified;
@@ -174,6 +157,10 @@ namespace ClassTranscribeServer.Controllers
         [Authorize]
         public async Task<ActionResult<Playlist>> PostPlaylist(Playlist playlist)
         {
+            if (playlist == null)
+            {
+                return BadRequest();
+            }
             var authorizationResult = await _authorizationService.AuthorizeAsync(this.User, playlist.OfferingId, Globals.POLICY_UPDATE_OFFERING);
             if (!authorizationResult.Succeeded)
             {
@@ -230,28 +217,6 @@ namespace ClassTranscribeServer.Controllers
         {
             return _context.Playlists.Any(e => e.Id == id);
         }
-
-        [NonAction]
-        public List<VideoDTO> GetVideoDTOs(List<Video> vs)
-        {
-            return vs.Select(v => new VideoDTO
-            {
-                Id = v.Id,
-                Video1Path = v.Video1.Path,
-                Video2Path = v.Video2.Path
-            }).ToList();
-        }
-
-        [NonAction]
-        public List<TranscriptionDTO> GetTranscriptionDTOs(List<Transcription> ts)
-        {
-            return ts.Select(t => new TranscriptionDTO
-            {
-                Id = t.Id,
-                Path = t.File.Path,
-                Language = t.Language
-            }).ToList();
-        }
     }
 
     public class VideoDTO
@@ -289,5 +254,13 @@ namespace ClassTranscribeServer.Controllers
         public VideoDTO Video { get; set; }
         public List<TranscriptionDTO> Transcriptions { get; set; }
         public string Name { get; set; }
+    }
+
+    public class MediaSearchDTO
+    {
+        public string Name { get; set; }
+        public string MediaId { get; set; }
+        public string PlaylistName { get; set; }
+        public string PlaylistId { get; set; }
     }
 }
