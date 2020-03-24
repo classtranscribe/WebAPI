@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using static ClassTranscribeDatabase.CommonUtils;
 
 namespace ClassTranscribeServer.Controllers
 {
@@ -28,8 +27,8 @@ namespace ClassTranscribeServer.Controllers
         {
             public string Image { get; set; }
             public string Text { get; set; }
-            public TimeSpan Start {get; set; }
-            public TimeSpan End {get; set; }
+            public TimeSpan Start { get; set; }
+            public TimeSpan End { get; set; }
         }
 
 
@@ -62,12 +61,12 @@ namespace ClassTranscribeServer.Controllers
         /// </summary>
         /// 
         [HttpGet("GetEpubData")]
-        public async Task<ActionResult<List<EPubChapter>>> GetEpubData(string mediaId)
+        public async Task<ActionResult<List<EPubChapter>>> GetEpubData(string mediaId, string language)
         {
             var media = _context.Medias.Find(mediaId);
             EPub epub = new EPub
             {
-                Language = Languages.ENGLISH,
+                Language = language,
                 VideoId = media.VideoId
             };
             Video video = await _context.Videos.FindAsync(epub.VideoId);
