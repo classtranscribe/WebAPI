@@ -19,7 +19,7 @@ namespace TaskEngine
         private readonly CTDbContext context;
         private readonly CreateBoxTokenTask _createBoxTokenTask;
         private readonly UpdateBoxTokenTask _updateBoxTokenTask;
-        private readonly EPubGeneratorTask _ePubGeneratorTask;
+        private readonly SceneDetectionTask _sceneDetectionTask;
         private readonly ProcessVideoTask _processVideoTask;
         private readonly GenerateVTTFileTask _generateVTTFileTask;
         private readonly TranscriptionTask _transcriptionTask;
@@ -29,14 +29,14 @@ namespace TaskEngine
         private readonly QueueAwakerTask _queueAwakerTask;
 
         public TempCode(CTDbContext c, CreateBoxTokenTask createBoxTokenTask, UpdateBoxTokenTask updateBoxTokenTask,
-            EPubGeneratorTask ePubGeneratorTask, ProcessVideoTask processVideoTask, GenerateVTTFileTask generateVTTFileTask,
+            SceneDetectionTask ePubGeneratorTask, ProcessVideoTask processVideoTask, GenerateVTTFileTask generateVTTFileTask,
             TranscriptionTask transcriptionTask, ConvertVideoToWavTask convertVideoToWavTask, DownloadMediaTask downloadMediaTask,
             DownloadPlaylistInfoTask downloadPlaylistInfoTask, QueueAwakerTask queueAwakerTask)
         {
             context = c;
             _createBoxTokenTask = createBoxTokenTask;
             _updateBoxTokenTask = updateBoxTokenTask;
-            _ePubGeneratorTask = ePubGeneratorTask;
+            _sceneDetectionTask = ePubGeneratorTask;
             _processVideoTask = processVideoTask;
             _generateVTTFileTask = generateVTTFileTask;
             _transcriptionTask = transcriptionTask;
@@ -105,13 +105,16 @@ namespace TaskEngine
         {
             // A dummy awaited function call.
             await Task.Delay(0);
-
             // Add any temporary code.
+            var videos = context.Medias.Where(m => m.Video != null).Select(m => m.Video).ToList();
+            videos.ForEach(v => _processVideoTask.Publish(new JobObject<Video> { Data = v }));
+            videos.ForEach(v => _sceneDetectionTask.Publish(new JobObject<Video> { Data = v }));
 
         }
 
         public void CronJob()
         {
+            Temp();
             while (true)
             {
                 PeriodicCheck();
