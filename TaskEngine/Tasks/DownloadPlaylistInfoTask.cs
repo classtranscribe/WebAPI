@@ -14,7 +14,7 @@ using static ClassTranscribeDatabase.CommonUtils;
 
 namespace TaskEngine.Tasks
 {
-    class DownloadPlaylistInfoTask : RabbitMQTask<Playlist>
+    class DownloadPlaylistInfoTask : RabbitMQTask<JobObject<Playlist>>
     {
         private readonly RpcClient _rpcClient;
         private readonly DownloadMediaTask _downloadMediaTask;
@@ -32,20 +32,24 @@ namespace TaskEngine.Tasks
             _slack = slack;
         }
 
-        protected override async Task OnConsume(Playlist p)
+        protected override async Task OnConsume(JobObject<Playlist> j)
         {
+            var playlist = j.Data;
             using (var _context = CTDbContext.CreateDbContext())
             {
                 List<Media> medias = new List<Media>();
-                switch (p.SourceType)
+                switch (playlist.SourceType)
                 {
-                    case SourceType.Echo360: medias = await GetEchoPlaylist(p, _context); break;
-                    case SourceType.Youtube: medias = await GetYoutubePlaylist(p, _context); break;
-                    case SourceType.Local: medias = await GetLocalPlaylist(p, _context); break;
-                    case SourceType.Kaltura: medias = await GetKalturaPlaylist(p, _context); break;
-                    case SourceType.Box: medias = await GetBoxPlaylist(p, _context); break;
+                    case SourceType.Echo360: medias = await GetEchoPlaylist(playlist, _context); break;
+                    case SourceType.Youtube: medias = await GetYoutubePlaylist(playlist, _context); break;
+                    case SourceType.Local: medias = await GetLocalPlaylist(playlist, _context); break;
+                    case SourceType.Kaltura: medias = await GetKalturaPlaylist(playlist, _context); break;
+                    case SourceType.Box: medias = await GetBoxPlaylist(playlist, _context); break;
                 }
-                medias.ForEach(m => _downloadMediaTask.Publish(m));
+                medias.ForEach(m => _downloadMediaTask.Publish(new JobObject<Media>
+                {
+                    Data = m
+                }));
             }
         }
 

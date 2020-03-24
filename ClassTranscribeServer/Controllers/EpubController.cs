@@ -85,7 +85,7 @@ namespace ClassTranscribeServer.Controllers
         [HttpGet("RequestEpubCreation")]
         public ActionResult RequestEpubCreation(string mediaId)
         {
-            _wakeDownloader.GenerateEpub(mediaId);
+            _wakeDownloader.GenerateScenes(mediaId);
             return Ok();
         }
     }

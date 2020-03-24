@@ -7,7 +7,7 @@ using static ClassTranscribeDatabase.CommonUtils;
 
 namespace TaskEngine.Tasks
 {
-    class ProcessVideoTask : RabbitMQTask<Video>
+    class ProcessVideoTask : RabbitMQTask<JobObject<Video>>
     {
         private readonly RpcClient _rpcClient;
 
@@ -16,24 +16,31 @@ namespace TaskEngine.Tasks
         {
             _rpcClient = rpcClient;
         }
-        protected async override Task OnConsume(Video video)
+        protected async override Task OnConsume(JobObject<Video> j)
         {
+            var video = j.Data;
             _logger.LogInformation("Consuming" + video);
             if (video.Video1 != null)
             {
-                var file = await _rpcClient.NodeServerClient.ProcessVideoRPCAsync(new CTGrpc.File
+                if (video.ProcessedVideo1 != null || j.Force)
                 {
-                    FilePath = video.Video1.VMPath
-                });
-                video.ProcessedVideo1 = new FileRecord(file.FilePath);
+                    var file = await _rpcClient.NodeServerClient.ProcessVideoRPCAsync(new CTGrpc.File
+                    {
+                        FilePath = video.Video1.VMPath
+                    });
+                    video.ProcessedVideo1 = new FileRecord(file.FilePath);
+                }
             }
             if (video.Video2 != null)
             {
-                var file = await _rpcClient.NodeServerClient.ProcessVideoRPCAsync(new CTGrpc.File
+                if (video.ProcessedVideo2 != null || j.Force)
                 {
-                    FilePath = video.Video2.VMPath
-                });
-                video.ProcessedVideo2 = new FileRecord(file.FilePath);
+                    var file = await _rpcClient.NodeServerClient.ProcessVideoRPCAsync(new CTGrpc.File
+                    {
+                        FilePath = video.Video2.VMPath
+                    });
+                    video.ProcessedVideo2 = new FileRecord(file.FilePath);
+                }
             }
             using (var _context = CTDbContext.CreateDbContext())
             {

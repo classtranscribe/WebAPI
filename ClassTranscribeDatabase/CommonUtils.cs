@@ -17,7 +17,7 @@ namespace ClassTranscribeDatabase
             Aggregator,
             GenerateVTTFile,
             QueueAwaker,
-            GenerateEPubFile,
+            SceneDetection,
             UpdateBoxToken,
             CreateBoxToken,
             UpdateOffering

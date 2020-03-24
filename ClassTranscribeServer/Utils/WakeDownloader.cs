@@ -50,10 +50,10 @@ namespace ClassTranscribeServer
             Wake(msg);
         }
 
-        public void GenerateEpub(string mediaId)
+        public void GenerateScenes(string mediaId)
         {
             JObject msg = new JObject();
-            msg.Add("Type", TaskType.GenerateEPubFile.ToString());
+            msg.Add("Type", TaskType.SceneDetection.ToString());
             msg.Add("mediaId", mediaId);
             Wake(msg);
         }
