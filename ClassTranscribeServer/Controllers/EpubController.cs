@@ -28,6 +28,8 @@ namespace ClassTranscribeServer.Controllers
         {
             public string Image { get; set; }
             public string Text { get; set; }
+            public TimeSpan Start {get; set; }
+            public TimeSpan End {get; set; }
         }
 
 
@@ -46,6 +48,8 @@ namespace ClassTranscribeServer.Controllers
                 chapters.Add(new EPubChapter
                 {
                     Image = scene["img_file"].ToString(),
+                    Start = TimeSpan.Parse(scene["start"].ToString()),
+                    End = TimeSpan.Parse(scene["end"].ToString()),
                     Text = allText
                 });
                 nextStart = endTime;
