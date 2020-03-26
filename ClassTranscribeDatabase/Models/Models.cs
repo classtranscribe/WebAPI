@@ -117,6 +117,7 @@ namespace ClassTranscribeDatabase.Models
         public bool LogEventsFlag { get; set; }
         public string CourseName { get; set; }
         public string Description { get; set; }
+        public JObject JsonMetadata { get; set; }
     }
 
     public class Playlist : Entity
@@ -267,6 +268,17 @@ namespace ClassTranscribeDatabase.Models
         public string VideoId { get; set; }
         [IgnoreDataMember]
         public virtual Video Video { get; set; }
+    }
+
+    public class WatchHistory : Entity
+    {
+        public string MediaId { get; set; }
+        [IgnoreDataMember]
+        public virtual Media Media { get; set; }
+        public string ApplicationUserId { get; set; }
+        [IgnoreDataMember]
+        public virtual ApplicationUser ApplicationUser { get; set; }
+        public JObject Json { get; set; }
     }
 
     public class Dictionary : Entity
