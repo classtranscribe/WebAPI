@@ -35,7 +35,7 @@ namespace ClassTranscribeServer.Controllers
         /// Gets all Offerings for a student by userId
         /// </summary>
         [HttpGet("ByStudent")]
-        public async Task<ActionResult<IEnumerable<OfferingListDTO>>> GetOfferingsByStudent()
+        public async Task<ActionResult<IEnumerable<OfferingDTO>>> GetOfferingsByStudent()
         {
             // Store the results
             List<Offering> offerings = await _context.Offerings.ToListAsync();
@@ -44,7 +44,7 @@ namespace ClassTranscribeServer.Controllers
             // Filter out offerings where there is no media items available.
             var filteredOfferings = offerings.FindAll(o => o.Playlists.SelectMany(m => m.Medias).Any()).OrderBy(o => o.Term.StartDate).ToList();
 
-            var offeringListDTO = filteredOfferings.Select(o => new OfferingListDTO
+            var offeringListDTO = filteredOfferings.Select(o => new OfferingDTO
             {
                 Offering = o,
                 Courses = o.CourseOfferings.Select(co => new CourseDTO
@@ -53,7 +53,16 @@ namespace ClassTranscribeServer.Controllers
                     DepartmentId = co.Course.DepartmentId,
                     DepartmentAcronym = co.Course.Department.Acronym
                 }).ToList(),
-                Term = o.Term
+                Term = o.Term,
+                InstructorIds = o.OfferingUsers
+                .Where(uo => uo.IdentityRole.Name == Globals.ROLE_INSTRUCTOR)
+                .Select(uo => new ApplicationUser
+                {
+                    Id = uo.ApplicationUser.Id,
+                    Email = uo.ApplicationUser.Email,
+                    FirstName = uo.ApplicationUser.FirstName,
+                    LastName = uo.ApplicationUser.LastName
+                }).ToList()
             }).ToList();
 
             return offeringListDTO;
@@ -74,14 +83,23 @@ namespace ClassTranscribeServer.Controllers
             OfferingDTO offeringDTO = new OfferingDTO
             {
                 Offering = offering,
-                Courses = await _context.CourseOfferings.Where(co => co.OfferingId == offering.Id).Select(co => co.Course).ToListAsync(),
-                InstructorIds = await _context.UserOfferings
-                .Where(uo => uo.OfferingId == offering.Id && uo.IdentityRole.Name == Globals.ROLE_INSTRUCTOR)
+                Courses = offering.CourseOfferings
+                .Select(co => new CourseDTO
+                {
+                    CourseNumber = co.Course.CourseNumber,
+                    DepartmentId = co.Course.DepartmentId,
+                    DepartmentAcronym = co.Course.Department.Acronym
+                }).ToList(),
+                Term = offering.Term,
+                InstructorIds = offering.OfferingUsers
+                .Where(uo => uo.IdentityRole.Name == Globals.ROLE_INSTRUCTOR)
                 .Select(uo => new ApplicationUser
                 {
                     Id = uo.ApplicationUser.Id,
-                    Email = uo.ApplicationUser.Email
-                }).ToListAsync()
+                    Email = uo.ApplicationUser.Email,
+                    FirstName = uo.ApplicationUser.FirstName,
+                    LastName = uo.ApplicationUser.LastName
+                }).ToList()
             };
 
             return offeringDTO;
@@ -254,15 +272,8 @@ namespace ClassTranscribeServer.Controllers
         public class OfferingDTO
         {
             public Offering Offering { get; set; }
-            public List<Course> Courses { get; set; }
-            public List<ApplicationUser> InstructorIds { get; set; }
-            public Term Term { get; set; }
-        }
-
-        public class OfferingListDTO
-        {
-            public Offering Offering { get; set; }
             public List<CourseDTO> Courses { get; set; }
+            public List<ApplicationUser> InstructorIds { get; set; }
             public Term Term { get; set; }
         }
 
