@@ -114,7 +114,6 @@ namespace TaskEngine
 
         public void CronJob()
         {
-            Temp();
             while (true)
             {
                 PeriodicCheck();
