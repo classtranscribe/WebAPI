@@ -30,7 +30,6 @@ namespace ClassTranscribeServer.Controllers
         /// Gets all Playlists for offeringId
         /// </summary>
         [HttpGet("ByOffering/{offeringId}")]
-        [Authorize]
         public async Task<ActionResult<IEnumerable<PlaylistDTO>>> GetPlaylists(string offeringId)
         {
             var authorizationResult = await _authorizationService.AuthorizeAsync(this.User, offeringId, Globals.POLICY_READ_OFFERING);
@@ -49,6 +48,54 @@ namespace ClassTranscribeServer.Controllers
                 SourceType = p.SourceType,
                 OfferingId = p.OfferingId,
                 Name = p.Name
+            }).ToList();
+            return playlists;
+        }
+
+        // GET: api/Playlists
+        /// <summary>
+        /// Gets all Playlists for offeringId
+        /// </summary>
+        [HttpGet("ByOffering2/{offeringId}")]
+        public async Task<ActionResult<IEnumerable<PlaylistDTO>>> GetPlaylists2(string offeringId)
+        {
+            var authorizationResult = await _authorizationService.AuthorizeAsync(this.User, offeringId, Globals.POLICY_READ_OFFERING);
+            var offering = await _context.Offerings.FindAsync(offeringId);
+            if (!authorizationResult.Succeeded)
+            {
+                return Unauthorized(new { Reason = "Insufficient Permission", AccessType = offering.AccessType });
+            }
+            var temp = await _context.Playlists
+                .Where(p => p.OfferingId == offeringId)
+                .OrderBy(p => p.CreatedAt).ToListAsync();
+            var playlists = temp.Select(p => new PlaylistDTO
+            {
+                Id = p.Id,
+                CreatedAt = p.CreatedAt,
+                SourceType = p.SourceType,
+                OfferingId = p.OfferingId,
+                Name = p.Name,
+                Medias = p.Medias.Where(m => m.Video != null).Select(m => new MediaDTO
+                {
+                    Id = m.Id,
+                    Name = m.Name,
+                    JsonMetadata = m.JsonMetadata,
+                    CreatedAt = m.CreatedAt,
+                    Ready = m.Video.Transcriptions.Any(),
+                    SourceType = m.SourceType,
+                    Video = new VideoDTO
+                    {
+                        Id = m.Video.Id,
+                        Video1Path = m.Video.Video1 != null ? m.Video.Video1.Path : null,
+                        Video2Path = m.Video.Video2 != null ? m.Video.Video2.Path : null,
+                    },
+                    Transcriptions = m.Video.Transcriptions.Select(t => new TranscriptionDTO
+                    {
+                        Id = t.Id,
+                        Path = t.File.Path,
+                        Language = t.Language
+                    }).ToList()
+                }).ToList()
             }).ToList();
             return playlists;
         }
@@ -83,14 +130,14 @@ namespace ClassTranscribeServer.Controllers
                 CreatedAt = m.CreatedAt,
                 JsonMetadata = m.JsonMetadata,
                 SourceType = m.SourceType,
-                Ready = m.Video == null ? false : m.Video.Transcriptions.Any(),
-                Video = m.Video == null ? null : new VideoDTO
+                Ready = m.Video.Transcriptions.Any(),
+                Video = new VideoDTO
                 {
                     Id = m.Video.Id,
                     Video1Path = m.Video.Video1?.Path,
                     Video2Path = m.Video.Video2?.Path
                 },
-                Transcriptions = m.Video == null ? null : m.Video.Transcriptions.Select(t => new TranscriptionDTO
+                Transcriptions = m.Video.Transcriptions.Select(t => new TranscriptionDTO
                 {
                     Id = t.Id,
                     Path = t.File != null ? t.File.Path : null,
