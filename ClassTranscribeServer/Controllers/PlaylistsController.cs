@@ -130,19 +130,19 @@ namespace ClassTranscribeServer.Controllers
                 CreatedAt = m.CreatedAt,
                 JsonMetadata = m.JsonMetadata,
                 SourceType = m.SourceType,
-                Ready = m.Video.Transcriptions.Any(),
-                Video = new VideoDTO
+                Ready = m.Video == null ? false : m.Video.Transcriptions.Any(),
+                Video = m.Video == null ? null : new VideoDTO
                 {
                     Id = m.Video.Id,
                     Video1Path = m.Video.Video1?.Path,
                     Video2Path = m.Video.Video2?.Path
                 },
-                Transcriptions = m.Video.Transcriptions.Select(t => new TranscriptionDTO
+                Transcriptions = m.Video == null ? null : m.Video.Transcriptions.Select(t => new TranscriptionDTO
                 {
                     Id = t.Id,
                     Path = t.File != null ? t.File.Path : null,
                     Language = t.Language
-                }).ToList()
+                }).ToList(),
             }).ToList();
 
             return new PlaylistDTO
