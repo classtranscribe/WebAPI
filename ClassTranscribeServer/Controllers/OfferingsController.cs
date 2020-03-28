@@ -229,6 +229,32 @@ namespace ClassTranscribeServer.Controllers
             return userOfferings;
         }
 
+        [HttpGet("GetUsersOfOffering/{offeringId}/{roleName}")]
+        public async Task<ActionResult<IEnumerable<string>>> GetUsersOfOffering(string offeringId, string roleName)
+        {
+            if (roleName == null || offeringId == null)
+            {
+                return BadRequest();
+            }
+            var authorizationResult = await _authorizationService.AuthorizeAsync(this.User, offeringId, Globals.POLICY_UPDATE_OFFERING);
+            if (!authorizationResult.Succeeded)
+            {
+                if (User.Identity.IsAuthenticated)
+                {
+                    return new ForbidResult();
+                }
+                else
+                {
+                    return new ChallengeResult();
+                }
+            }
+
+            IdentityRole identityRole = _context.Roles.Where(r => r.Name == roleName).FirstOrDefault();
+            return await _context.UserOfferings
+                .Where(uo => uo.OfferingId == offeringId && uo.IdentityRoleId == identityRole.Id)
+                .Select(uo => uo.ApplicationUser.Email).ToListAsync();
+        }
+
         // DELETE: api/Offerings/5
         [HttpDelete("{id}")]
         public async Task<ActionResult<Offering>> DeleteOffering(string id)
