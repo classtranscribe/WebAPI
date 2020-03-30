@@ -42,7 +42,7 @@ namespace TaskEngine
                 .AddSingleton<RpcClient>()
                 .AddSingleton<ProcessVideoTask>()
                 .AddSingleton<MSTranscriptionService>()
-                .AddSingleton<EPubGeneratorTask>()
+                .AddSingleton<SceneDetectionTask>()
                 .AddSingleton<UpdateBoxTokenTask>()
                 .AddSingleton<CreateBoxTokenTask>()
                 .AddSingleton<BoxAPI>()
@@ -76,7 +76,7 @@ namespace TaskEngine
             serviceProvider.GetService<QueueAwakerTask>().Consume();
             serviceProvider.GetService<GenerateVTTFileTask>().Consume();
             serviceProvider.GetService<ProcessVideoTask>().Consume();
-            serviceProvider.GetService<EPubGeneratorTask>().Consume();
+            serviceProvider.GetService<SceneDetectionTask>().Consume();
             serviceProvider.GetService<UpdateBoxTokenTask>().Consume();
             serviceProvider.GetService<CreateBoxTokenTask>().Consume();
 

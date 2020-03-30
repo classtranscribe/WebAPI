@@ -9,7 +9,7 @@ using static ClassTranscribeDatabase.CommonUtils;
 
 namespace TaskEngine.Tasks
 {
-    class ConvertVideoToWavTask : RabbitMQTask<Video>
+    class ConvertVideoToWavTask : RabbitMQTask<JobObject<Video>>
     {
         private readonly RpcClient _rpcClient;
         private readonly TranscriptionTask _transcriptionTask;
@@ -20,11 +20,11 @@ namespace TaskEngine.Tasks
             _rpcClient = rpcClient;
             _transcriptionTask = transcriptionTask;
         }
-        protected async override Task OnConsume(Video v)
+        protected async override Task OnConsume(JobObject<Video> j)
         {
             using (var _context = CTDbContext.CreateDbContext())
             {
-                var video = await _context.Videos.FindAsync(v.Id);
+                var video = await _context.Videos.FindAsync(j.Data.Id);
                 _logger.LogInformation("Consuming" + video);
                 var file = await _rpcClient.NodeServerClient.ConvertVideoToWavRPCAsync(new CTGrpc.File
                 {
@@ -38,7 +38,10 @@ namespace TaskEngine.Tasks
                     {
                         videoLatest.Audio = fileRecord;
                         await _context.SaveChangesAsync();
-                        _transcriptionTask.Publish(videoLatest);
+                        _transcriptionTask.Publish(new JobObject<Video>
+                        {
+                            Data = videoLatest
+                        });
                     }
                 }
                 else

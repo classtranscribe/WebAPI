@@ -1,8 +1,6 @@
 ﻿using ClassTranscribeDatabase;
 using ClassTranscribeDatabase.Models;
-using ClassTranscribeServer.Utils;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -19,15 +17,11 @@ namespace ClassTranscribeServer.Controllers
     public class OfferingsController : BaseController
     {
         private readonly IAuthorizationService _authorizationService;
-        private readonly UserUtils _userUtils;
-        private readonly UserManager<ApplicationUser> _userManager;
 
-        public OfferingsController(IAuthorizationService authorizationService, UserManager<ApplicationUser> userManager,
+        public OfferingsController(IAuthorizationService authorizationService,
             CTDbContext context, ILogger<OfferingsController> logger) : base(context, logger)
         {
             _authorizationService = authorizationService;
-            _userManager = userManager;
-            _userUtils = new UserUtils(userManager, context);
         }
 
         // GET: api/Offerings/ByStudent
@@ -228,55 +222,6 @@ namespace ClassTranscribeServer.Controllers
             }
 
             return CreatedAtAction("GetOffering", new { id = newOfferingDTO.Offering.Id }, newOfferingDTO.Offering);
-        }
-
-        [HttpPost("AddUsers/{offeringId}/{roleName}")]
-        public async Task<ActionResult<IEnumerable<UserOffering>>> AddUsersToOffering(string offeringId, string roleName, List<string> mailIds)
-        {
-            if (mailIds == null || !mailIds.Any())
-            {
-                return BadRequest();
-            }
-            var authorizationResult = await _authorizationService.AuthorizeAsync(this.User, offeringId, Globals.POLICY_UPDATE_OFFERING);
-            if (!authorizationResult.Succeeded)
-            {
-                if (User.Identity.IsAuthenticated)
-                {
-                    return new ForbidResult();
-                }
-                else
-                {
-                    return new ChallengeResult();
-                }
-            }
-            List<UserOffering> userOfferings = new List<UserOffering>();
-            IdentityRole identityRole = _context.Roles.Where(r => r.Name == roleName).FirstOrDefault();
-            foreach (string mailId in mailIds)
-            {
-                var user = await _userManager.FindByEmailAsync(mailId);
-                if (user == null)
-                {
-                    user = await _userUtils.CreateNonExistentUser(mailId);
-                }
-                userOfferings.Add(new UserOffering
-                {
-                    ApplicationUserId = user.Id,
-                    IdentityRole = identityRole,
-                    OfferingId = offeringId
-                });
-            }
-
-            foreach (var uo in userOfferings)
-            {
-                if (!(await _context.UserOfferings.Where(u => u.ApplicationUserId == uo.ApplicationUserId
-                 && u.IdentityRoleId == uo.IdentityRole.Id
-                 && u.OfferingId == uo.OfferingId).AnyAsync()))
-                {
-                    await _context.UserOfferings.AddAsync(uo);
-                }
-            }
-            await _context.SaveChangesAsync();
-            return userOfferings;
         }
 
         // DELETE: api/Offerings/5

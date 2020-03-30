@@ -11,27 +11,29 @@ using static ClassTranscribeDatabase.CommonUtils;
 
 namespace TaskEngine.Tasks
 {
-    class DownloadMediaTask : RabbitMQTask<Media>
+    class DownloadMediaTask : RabbitMQTask<JobObject<Media>>
     {
         private readonly RpcClient _rpcClient;
         private readonly ConvertVideoToWavTask _convertVideoToWavTask;
+        private readonly ProcessVideoTask _processVideoTask;
         private readonly BoxAPI _box;
         private readonly SlackLogger _slack;
 
         public DownloadMediaTask(RabbitMQConnection rabbitMQ, RpcClient rpcClient,
-            ConvertVideoToWavTask convertVideoToWavTask, BoxAPI box,
+            ConvertVideoToWavTask convertVideoToWavTask, ProcessVideoTask processVideoTask, BoxAPI box,
             ILogger<DownloadMediaTask> logger, SlackLogger slack)
             : base(rabbitMQ, TaskType.DownloadMedia, logger)
         {
             _rpcClient = rpcClient;
             _convertVideoToWavTask = convertVideoToWavTask;
+            _processVideoTask = processVideoTask;
             _box = box;
             _slack = slack;
         }
 
-        protected override async Task OnConsume(Media media)
+        protected override async Task OnConsume(JobObject<Media> j)
         {
-
+            Media media = j.Data;
             _logger.LogInformation("Consuming" + media);
             Video video = new Video();
             switch (media.SourceType)
@@ -63,7 +65,14 @@ namespace TaskEngine.Tasks
                         latestMedia.VideoId = video.Id;
                         await _context.SaveChangesAsync();
                         _logger.LogInformation("Downloaded:" + video);
-                        _convertVideoToWavTask.Publish(video);
+                        _convertVideoToWavTask.Publish(new JobObject<Video>
+                        {
+                            Data = video
+                        });
+                        _processVideoTask.Publish(new JobObject<Video>
+                        {
+                            Data = video
+                        });
                     }
                     else
                     {
@@ -80,7 +89,14 @@ namespace TaskEngine.Tasks
                             latestMedia.VideoId = video.Id;
                             await _context.SaveChangesAsync();
                             _logger.LogInformation("Downloaded:" + video);
-                            _convertVideoToWavTask.Publish(video);
+                            _convertVideoToWavTask.Publish(new JobObject<Video>
+                            {
+                                Data = video
+                            });
+                            _processVideoTask.Publish(new JobObject<Video>
+                            {
+                                Data = video
+                            });
                         }
                         // If video and file both exist.
                         else

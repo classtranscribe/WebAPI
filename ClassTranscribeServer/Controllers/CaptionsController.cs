@@ -158,6 +158,7 @@ namespace ClassTranscribeServer.Controllers
             captions.ForEach(c =>
             {
                 var v = allVideos.Where(v => v.VideoId == c.VideoId).First();
+                c.Caption.Transcription = null;
                 c.MediaId = v.MediaId;
                 c.PlaylistId = v.PlaylistId;
                 c.MediaName = v.MediaName;

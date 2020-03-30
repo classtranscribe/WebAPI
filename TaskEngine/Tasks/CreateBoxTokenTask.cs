@@ -5,7 +5,7 @@ using static ClassTranscribeDatabase.CommonUtils;
 
 namespace TaskEngine.Tasks
 {
-    class CreateBoxTokenTask : RabbitMQTask<string>
+    class CreateBoxTokenTask : RabbitMQTask<JobObject<string>>
     {
         private readonly BoxAPI _box;
         public CreateBoxTokenTask(RabbitMQConnection rabbitMQ, BoxAPI box, ILogger<CreateBoxTokenTask> logger)
@@ -14,9 +14,9 @@ namespace TaskEngine.Tasks
             _box = box;
         }
 
-        protected async override Task OnConsume(string authCode = "")
+        protected async override Task OnConsume(JobObject<string> j)
         {
-            await _box.CreateAccessTokenAsync(authCode);
+            await _box.CreateAccessTokenAsync(j.Data);
         }
     }
 }

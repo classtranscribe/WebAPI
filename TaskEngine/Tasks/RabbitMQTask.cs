@@ -1,5 +1,6 @@
 ﻿using ClassTranscribeDatabase;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Threading.Tasks;
 using static ClassTranscribeDatabase.CommonUtils;
@@ -45,5 +46,12 @@ namespace TaskEngine
                 _logger.LogError(e, "RabbitMQTask Error Occured");
             }
         }
+    }
+
+    public class JobObject<T>
+    {
+        public T Data { get; set; }
+        public bool Force { get; set; }
+        public JObject Metadata { get; set; }
     }
 }
