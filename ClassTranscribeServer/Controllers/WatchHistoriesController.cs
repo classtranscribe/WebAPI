@@ -93,6 +93,7 @@ namespace ClassTranscribeServer.Controllers
             return NoContent();
         }
 
+        [HttpDelete]
         public async Task<ActionResult<WatchHistory>> DeleteWatchHistory(string id)
         {
             var watchHistory = await _context.WatchHistories.FindAsync(id);
