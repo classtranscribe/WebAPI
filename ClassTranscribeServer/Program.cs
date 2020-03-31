@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
-using System;
 
 namespace ClassTranscribeServer
 {
@@ -16,10 +15,6 @@ namespace ClassTranscribeServer
         public static IWebHostBuilder CreateWebHostBuilder(string[] args)
         {
             return WebHost.CreateDefaultBuilder(args)
-                .ConfigureKestrel(serverOptions =>
-                {
-                    serverOptions.Limits.KeepAliveTimeout = TimeSpan.FromMinutes(10);
-                })
                 .ConfigureServices(c => c.AddOptions().Configure<AppSettings>(CTDbContext.GetConfigurations()))
                 .UseStartup<Startup>();
         }

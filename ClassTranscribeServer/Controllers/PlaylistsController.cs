@@ -40,7 +40,8 @@ namespace ClassTranscribeServer.Controllers
             }
             var temp = await _context.Playlists
                 .Where(p => p.OfferingId == offeringId)
-                .OrderBy(p => p.CreatedAt).ToListAsync();
+                .OrderBy(p => p.Index)
+                .ThenBy(p => p.CreatedAt).ToListAsync();
             var playlists = temp.Select(p => new PlaylistDTO
             {
                 Id = p.Id,
@@ -67,7 +68,8 @@ namespace ClassTranscribeServer.Controllers
             }
             var temp = await _context.Playlists
                 .Where(p => p.OfferingId == offeringId)
-                .OrderBy(p => p.CreatedAt).ToListAsync();
+                .OrderBy(p => p.Index)
+                .ThenBy(p => p.CreatedAt).ToListAsync();
             var playlists = temp.Select(p => new PlaylistDTO
             {
                 Id = p.Id,
@@ -122,28 +124,30 @@ namespace ClassTranscribeServer.Controllers
             {
                 return NotFound();
             }
-            List<MediaDTO> medias = p.Medias.OrderBy(m => m.CreatedAt).Select(m => new MediaDTO
-            {
-                Id = m.Id,
-                Name = m.Name,
-                PlaylistId = m.PlaylistId,
-                CreatedAt = m.CreatedAt,
-                JsonMetadata = m.JsonMetadata,
-                SourceType = m.SourceType,
-                Ready = m.Video == null ? false : m.Video.Transcriptions.Any(),
-                Video = m.Video == null ? null : new VideoDTO
+            List<MediaDTO> medias = p.Medias
+                .OrderBy(m => m.Index)
+                .ThenBy(m => m.CreatedAt).Select(m => new MediaDTO
                 {
-                    Id = m.Video.Id,
-                    Video1Path = m.Video.Video1?.Path,
-                    Video2Path = m.Video.Video2?.Path
-                },
-                Transcriptions = m.Video == null ? null : m.Video.Transcriptions.Select(t => new TranscriptionDTO
-                {
-                    Id = t.Id,
-                    Path = t.File != null ? t.File.Path : null,
-                    Language = t.Language
-                }).ToList(),
-            }).ToList();
+                    Id = m.Id,
+                    Name = m.Name,
+                    PlaylistId = m.PlaylistId,
+                    CreatedAt = m.CreatedAt,
+                    JsonMetadata = m.JsonMetadata,
+                    SourceType = m.SourceType,
+                    Ready = m.Video == null ? false : m.Video.Transcriptions.Any(),
+                    Video = m.Video == null ? null : new VideoDTO
+                    {
+                        Id = m.Video.Id,
+                        Video1Path = m.Video.Video1?.Path,
+                        Video2Path = m.Video.Video2?.Path
+                    },
+                    Transcriptions = m.Video == null ? null : m.Video.Transcriptions.Select(t => new TranscriptionDTO
+                    {
+                        Id = t.Id,
+                        Path = t.File != null ? t.File.Path : null,
+                        Language = t.Language
+                    }).ToList(),
+                }).ToList();
 
             return new PlaylistDTO
             {

@@ -156,10 +156,10 @@ namespace ClassTranscribeServer.Controllers
                 using (var stream = new FileStream(filePath, FileMode.Create))
                 {
                     await video1.CopyToAsync(stream);
-                    media.UniqueMediaIdentifier = FileRecord.ComputeSha256HashForFile(filePath);
-                    media.JsonMetadata.Add("video1", JsonConvert.SerializeObject(video1));
-                    media.JsonMetadata.Add("video1Path", filePath);
                 }
+                media.UniqueMediaIdentifier = FileRecord.ComputeSha256HashForFile(filePath);
+                media.JsonMetadata.Add("video1", JsonConvert.SerializeObject(video1));
+                media.JsonMetadata.Add("video1Path", filePath);
             }
             // Copy second File
             if (video2 != null && video2.Length > 0)
@@ -172,10 +172,9 @@ namespace ClassTranscribeServer.Controllers
                 using (var stream = new FileStream(filePath, FileMode.Create))
                 {
                     await video2.CopyToAsync(stream);
-
-                    media.JsonMetadata.Add("video2", JsonConvert.SerializeObject(video2));
-                    media.JsonMetadata.Add("video2Path", filePath);
                 }
+                media.JsonMetadata.Add("video2", JsonConvert.SerializeObject(video2));
+                media.JsonMetadata.Add("video2Path", filePath);
             }
 
             _context.Medias.Add(media);

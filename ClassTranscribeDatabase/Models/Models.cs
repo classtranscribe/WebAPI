@@ -130,6 +130,7 @@ namespace ClassTranscribeDatabase.Models
         [IgnoreDataMember]
         public virtual Offering Offering { get; set; }
         public JObject JsonMetadata { get; set; }
+        public int Index { get; set; }
     }
 
     public class Media : Entity
@@ -144,6 +145,7 @@ namespace ClassTranscribeDatabase.Models
         [IgnoreDataMember]
         public virtual Playlist Playlist { get; set; }
         public string Name { get; set; }
+        public int Index { get; set; }
     }
 
     public class Transcription : Entity
