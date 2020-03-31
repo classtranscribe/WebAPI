@@ -48,7 +48,8 @@ namespace ClassTranscribeServer.Controllers
                 CreatedAt = p.CreatedAt,
                 SourceType = p.SourceType,
                 OfferingId = p.OfferingId,
-                Name = p.Name
+                Name = p.Name,
+                Index = p.Index
             }).ToList();
             return playlists;
         }
@@ -77,9 +78,11 @@ namespace ClassTranscribeServer.Controllers
                 SourceType = p.SourceType,
                 OfferingId = p.OfferingId,
                 Name = p.Name,
+                Index = p.Index,
                 Medias = p.Medias.Where(m => m.Video != null).Select(m => new MediaDTO
                 {
                     Id = m.Id,
+                    Index = m.Index,
                     Name = m.Name,
                     JsonMetadata = m.JsonMetadata,
                     CreatedAt = m.CreatedAt,
@@ -129,6 +132,7 @@ namespace ClassTranscribeServer.Controllers
                 .ThenBy(m => m.CreatedAt).Select(m => new MediaDTO
                 {
                     Id = m.Id,
+                    Index = m.Index,
                     Name = m.Name,
                     PlaylistId = m.PlaylistId,
                     CreatedAt = m.CreatedAt,
@@ -292,6 +296,7 @@ namespace ClassTranscribeServer.Controllers
         public SourceType SourceType { get; set; }
         public string OfferingId { get; set; }
         public string Name { get; set; }
+        public int Index { get; set; }
         public List<MediaDTO> Medias { get; set; }
     }
 
@@ -306,6 +311,7 @@ namespace ClassTranscribeServer.Controllers
         public VideoDTO Video { get; set; }
         public List<TranscriptionDTO> Transcriptions { get; set; }
         public string Name { get; set; }
+        public int Index { get; set; }
     }
 
     public class MediaSearchDTO
