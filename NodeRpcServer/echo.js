@@ -95,13 +95,24 @@ async function downloadEchoPlaylistInfo(playlist) {
             var audioUrl = media['media']['current']['audioFiles'][0]['s3Url'];
             var videoUrl;
             var altVideoUrl;
-            if (stream == 0) {
-                videoUrl = media['media']['current']['primaryFiles'][1]['s3Url']; // 0 for SD, 1 for HD
-                altVideoUrl = media['media']['current']['secondaryFiles'][1]['s3Url']; // 0 for SD, 1 for HD
-            } else {
-                videoUrl = media['media']['current']['secondaryFiles'][1]['s3Url']; // 0 for SD, 1 for HD
-                altVideoUrl = media['media']['current']['primaryFiles'][1]['s3Url']; // 0 for SD, 1 for HD
+
+            var primaryFiles = media['media']['current']['primaryFiles'];
+            var secondaryFiles = media['media']['current']['secondaryFiles'];
+            if (secondaryFiles === undefined || secondaryFiles.length == 0) {
+                // secondary empty or does not exist
+                videoUrl = primaryFiles[1]['s3Url'];
+                altVideoUrl = null;
             }
+            else{
+                if (stream == 0) {
+                    videoUrl = primaryFiles[1]['s3Url']; // 0 for SD, 1 for HD
+                    altVideoUrl = secondaryFiles[1]['s3Url']; // 0 for SD, 1 for HD
+                } else {
+                    videoUrl = secondaryFiles[1]['s3Url']; // 0 for SD, 1 for HD
+                    altVideoUrl = primaryFiles[1]['s3Url']; // 0 for SD, 1 for HD
+                }
+            }
+            
             var termName = audio_data['lesson']['video']['published']['termName'];
             var lessonName = audio_data['lesson']['video']['published']['lessonName'];
             var courseName = audio_data['lesson']['video']['published']['courseName'];
