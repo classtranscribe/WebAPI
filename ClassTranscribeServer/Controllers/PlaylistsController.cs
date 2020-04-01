@@ -177,8 +177,8 @@ namespace ClassTranscribeServer.Controllers
                     return new ChallengeResult();
                 }
             }
-
-            _context.Entry(playlist).State = EntityState.Modified;
+            var p = await _context.Playlists.FindAsync(playlist.Id);
+            p.Name = playlist.Name;
 
             try
             {
