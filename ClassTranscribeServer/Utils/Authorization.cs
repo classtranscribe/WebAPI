@@ -12,9 +12,8 @@ namespace ClassTranscribeServer.Authorization
 {
     public class ReadOfferingRequirement : IAuthorizationRequirement { }
     public class UpdateOfferingRequirement : IAuthorizationRequirement { }
-    public class CreateOfferingRequirement : IAuthorizationRequirement { }
     public class UpdateOfferingAuthorizationHandler :
-    AuthorizationHandler<UpdateOfferingRequirement, string>
+    AuthorizationHandler<UpdateOfferingRequirement, Offering>
     {
         CTDbContext _ctDbContext;
         RoleManager<IdentityRole> _roleManager;
@@ -29,9 +28,8 @@ namespace ClassTranscribeServer.Authorization
 
         protected override async Task HandleRequirementAsync(AuthorizationHandlerContext context,
                                                        UpdateOfferingRequirement requirement,
-                                                       string offeringId)
+                                                       Offering offering)
         {
-            var offering = await _ctDbContext.Offerings.FindAsync(offeringId);
             ApplicationUser user = null;
             if (context.User == null || context.User.FindFirst(ClaimTypes.NameIdentifier) == null)
             {
@@ -51,15 +49,13 @@ namespace ClassTranscribeServer.Authorization
             {
                 context.Succeed(requirement);
             }
-            // Detach object after using
-            _ctDbContext.Entry(offering).State = EntityState.Detached;
             _ctDbContext.Entry(user).State = EntityState.Detached;
         }
 
     }
 
     public class ReadOfferingAuthorizationHandler :
-    AuthorizationHandler<ReadOfferingRequirement, string>
+    AuthorizationHandler<ReadOfferingRequirement, Offering>
     {
         CTDbContext _ctDbContext;
         RoleManager<IdentityRole> _roleManager;
@@ -73,9 +69,8 @@ namespace ClassTranscribeServer.Authorization
         }
         protected override async Task HandleRequirementAsync(AuthorizationHandlerContext context,
                                                        ReadOfferingRequirement requirement,
-                                                       string offeringId)
+                                                       Offering offering)
         {
-            var offering = await _ctDbContext.Offerings.FindAsync(offeringId);
             ApplicationUser user = null;
             if (context.User != null && context.User.FindFirst(ClaimTypes.NameIdentifier) != null)
             {
@@ -93,7 +88,7 @@ namespace ClassTranscribeServer.Authorization
             }
             else if (offering.AccessType == AccessTypes.UniversityOnly)
             {
-                var universityId = await _ctDbContext.CourseOfferings.Where(co => co.OfferingId == offeringId)
+                var universityId = await _ctDbContext.CourseOfferings.Where(co => co.OfferingId == offering.Id)
                     .Select(c => c.Course.Department.UniversityId).FirstAsync();
                 if (user.UniversityId == universityId)
                 {
@@ -108,8 +103,6 @@ namespace ClassTranscribeServer.Authorization
             {
                 context.Succeed(requirement);
             }
-            // Detach object after using
-            _ctDbContext.Entry(offering).State = EntityState.Detached;
             if (user != null)
             {
                 _ctDbContext.Entry(user).State = EntityState.Detached;

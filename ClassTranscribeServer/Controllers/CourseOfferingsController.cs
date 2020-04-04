@@ -73,7 +73,12 @@ namespace ClassTranscribeServer.Controllers
         [Authorize]
         public async Task<ActionResult<List<CourseOffering>>> DeleteCourseOffering(string courseId, string offeringId)
         {
-            var authorizationResult = await _authorizationService.AuthorizeAsync(this.User, offeringId, Globals.POLICY_UPDATE_OFFERING);
+            var offering = await _context.Offerings.FindAsync(offeringId);
+            if (offering == null)
+            {
+                return BadRequest();
+            }
+            var authorizationResult = await _authorizationService.AuthorizeAsync(this.User, offering, Globals.POLICY_UPDATE_OFFERING);
             if (!authorizationResult.Succeeded)
             {
                 if (User.Identity.IsAuthenticated)

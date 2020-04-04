@@ -42,7 +42,12 @@ namespace ClassTranscribeServer.Controllers
         [Authorize]
         public async Task<ActionResult<UserOffering>> PostUserOffering(UserOfferingDTO userOfferingDTO)
         {
-            var authorizationResult = await _authorizationService.AuthorizeAsync(this.User, userOfferingDTO.OfferingId, Globals.POLICY_UPDATE_OFFERING);
+            var offering = await _context.Offerings.FindAsync(userOfferingDTO.OfferingId);
+            if (offering == null)
+            {
+                return BadRequest();
+            }
+            var authorizationResult = await _authorizationService.AuthorizeAsync(this.User, offering, Globals.POLICY_UPDATE_OFFERING);
             if (!authorizationResult.Succeeded)
             {
                 if (User.Identity.IsAuthenticated)
@@ -86,7 +91,12 @@ namespace ClassTranscribeServer.Controllers
         [Authorize]
         public async Task<ActionResult<UserOffering>> DeleteUserOffering(string offeringId, string userId)
         {
-            var authorizationResult = await _authorizationService.AuthorizeAsync(this.User, offeringId, Globals.POLICY_UPDATE_OFFERING);
+            var offering = await _context.Offerings.FindAsync(offeringId);
+            if (offering == null)
+            {
+                return BadRequest();
+            }
+            var authorizationResult = await _authorizationService.AuthorizeAsync(this.User, offering, Globals.POLICY_UPDATE_OFFERING);
             if (!authorizationResult.Succeeded)
             {
                 if (User.Identity.IsAuthenticated)
@@ -115,11 +125,12 @@ namespace ClassTranscribeServer.Controllers
         [HttpPost("AddUsers/{offeringId}/{roleName}")]
         public async Task<ActionResult<IEnumerable<UserOffering>>> AddUsersToOffering(string offeringId, string roleName, List<string> mailIds)
         {
-            if (mailIds == null || !mailIds.Any())
+            var offering = await _context.Offerings.FindAsync(offeringId);
+            if (offering == null || mailIds == null || !mailIds.Any())
             {
                 return BadRequest();
             }
-            var authorizationResult = await _authorizationService.AuthorizeAsync(this.User, offeringId, Globals.POLICY_UPDATE_OFFERING);
+            var authorizationResult = await _authorizationService.AuthorizeAsync(this.User, offering, Globals.POLICY_UPDATE_OFFERING);
             if (!authorizationResult.Succeeded)
             {
                 if (User.Identity.IsAuthenticated)
@@ -164,11 +175,12 @@ namespace ClassTranscribeServer.Controllers
         [HttpGet("GetUsersOfOffering/{offeringId}/{roleName}")]
         public async Task<ActionResult<IEnumerable<string>>> GetUsersOfOffering(string offeringId, string roleName)
         {
-            if (roleName == null || offeringId == null)
+            var offering = await _context.Offerings.FindAsync(offeringId);
+            if (roleName == null || offering == null)
             {
                 return BadRequest();
             }
-            var authorizationResult = await _authorizationService.AuthorizeAsync(this.User, offeringId, Globals.POLICY_UPDATE_OFFERING);
+            var authorizationResult = await _authorizationService.AuthorizeAsync(this.User, offering, Globals.POLICY_UPDATE_OFFERING);
             if (!authorizationResult.Succeeded)
             {
                 if (User.Identity.IsAuthenticated)
@@ -190,11 +202,12 @@ namespace ClassTranscribeServer.Controllers
         [HttpDelete("DeleteUserFromOffering/{offeringId}/{roleName}")]
         public async Task<ActionResult> DeleteUserFromOffering(string offeringId, string roleName, List<string> mailIds)
         {
-            if (roleName == null || offeringId == null || mailIds == null || !mailIds.Any())
+            var offering = await _context.Offerings.FindAsync(offeringId);
+            if (roleName == null || offering == null || mailIds == null || !mailIds.Any())
             {
                 return BadRequest();
             }
-            var authorizationResult = await _authorizationService.AuthorizeAsync(this.User, offeringId, Globals.POLICY_UPDATE_OFFERING);
+            var authorizationResult = await _authorizationService.AuthorizeAsync(this.User, offering, Globals.POLICY_UPDATE_OFFERING);
             if (!authorizationResult.Succeeded)
             {
                 if (User.Identity.IsAuthenticated)

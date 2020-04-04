@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -18,9 +19,11 @@ namespace ClassTranscribeServer.Controllers
     public class MediaController : BaseController
     {
         private readonly WakeDownloader _wakeDownloader;
+        private readonly IAuthorizationService _authorizationService;
 
-        public MediaController(WakeDownloader wakeDownloader, CTDbContext context, ILogger<MediaController> logger) : base(context, logger)
+        public MediaController(IAuthorizationService authorizationService, WakeDownloader wakeDownloader, CTDbContext context, ILogger<MediaController> logger) : base(context, logger)
         {
+            _authorizationService = authorizationService;
             _wakeDownloader = wakeDownloader;
         }
 
@@ -197,6 +200,43 @@ namespace ClassTranscribeServer.Controllers
             await _context.SaveChangesAsync();
 
             return media;
+        }
+
+        // POST /api/Media/Reorder/{playlistId}
+        [HttpPost("Reorder/{playlistId}")]
+        public async Task<ActionResult> Reorder(string playlistId, List<string> mediaIds)
+        {
+            var playlist = await _context.Playlists.FindAsync(playlistId);
+            if (mediaIds == null || !mediaIds.Any() || playlist == null || playlist.Medias.Count != mediaIds.Count)
+            {
+                return BadRequest();
+            }
+            var authorizationResult = await _authorizationService.AuthorizeAsync(this.User, playlist.Offering, Globals.POLICY_UPDATE_OFFERING);
+            if (!authorizationResult.Succeeded)
+            {
+                if (User.Identity.IsAuthenticated)
+                {
+                    return new ForbidResult();
+                }
+                else
+                {
+                    return new ChallengeResult();
+                }
+            }
+            var medias = new List<Media>();
+            for (int i = 0; i < mediaIds.Count; i++)
+            {
+                var media = await _context.Medias.FindAsync(mediaIds[i]);
+                if (media == null || media.PlaylistId != playlistId)
+                {
+                    return BadRequest("Invalid mediaIds");
+                }
+                media.Index = i;
+                medias.Add(media);
+            }
+            _context.Medias.UpdateRange(medias);
+            await _context.SaveChangesAsync();
+            return RedirectToAction("GetPlaylist", "Playlists", new { id = playlistId });
         }
 
         private bool MediaExists(string id)

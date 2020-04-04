@@ -108,7 +108,7 @@ namespace ClassTranscribeServer.Controllers
             {
                 return BadRequest("Invalid Offering.Id");
             }
-            var authorizationResult = await _authorizationService.AuthorizeAsync(this.User, id, Globals.POLICY_UPDATE_OFFERING);
+            var authorizationResult = await _authorizationService.AuthorizeAsync(this.User, offering, Globals.POLICY_UPDATE_OFFERING);
             if (!authorizationResult.Succeeded)
             {
                 if (User.Identity.IsAuthenticated)
@@ -147,16 +147,12 @@ namespace ClassTranscribeServer.Controllers
         [HttpPut("JsonMetadata/{id}")]
         public async Task<IActionResult> PutOffering(string id, JObject jsonMetadata)
         {
-            if (id == null)
-            {
-                return BadRequest("Invalid Offering.Id");
-            }
             var offering = await _context.Offerings.FindAsync(id);
             if (offering == null)
             {
                 return BadRequest("Invalid Offering.Id");
             }
-            var authorizationResult = await _authorizationService.AuthorizeAsync(this.User, id, Globals.POLICY_UPDATE_OFFERING);
+            var authorizationResult = await _authorizationService.AuthorizeAsync(this.User, offering, Globals.POLICY_UPDATE_OFFERING);
             if (!authorizationResult.Succeeded)
             {
                 if (User.Identity.IsAuthenticated)
@@ -228,7 +224,12 @@ namespace ClassTranscribeServer.Controllers
         [HttpDelete("{id}")]
         public async Task<ActionResult<Offering>> DeleteOffering(string id)
         {
-            var authorizationResult = await _authorizationService.AuthorizeAsync(this.User, id, Globals.POLICY_UPDATE_OFFERING);
+            var offering = await _context.Offerings.FindAsync(id);
+            if (offering == null)
+            {
+                return BadRequest();
+            }
+            var authorizationResult = await _authorizationService.AuthorizeAsync(this.User, offering, Globals.POLICY_UPDATE_OFFERING);
             if (!authorizationResult.Succeeded)
             {
                 if (User.Identity.IsAuthenticated)
@@ -239,11 +240,6 @@ namespace ClassTranscribeServer.Controllers
                 {
                     return new ChallengeResult();
                 }
-            }
-            var offering = await _context.Offerings.FindAsync(id);
-            if (offering == null)
-            {
-                return NotFound();
             }
 
             _context.Offerings.Remove(offering);

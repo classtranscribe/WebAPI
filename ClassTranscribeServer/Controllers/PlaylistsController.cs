@@ -32,8 +32,12 @@ namespace ClassTranscribeServer.Controllers
         [HttpGet("ByOffering/{offeringId}")]
         public async Task<ActionResult<IEnumerable<PlaylistDTO>>> GetPlaylists(string offeringId)
         {
-            var authorizationResult = await _authorizationService.AuthorizeAsync(this.User, offeringId, Globals.POLICY_READ_OFFERING);
             var offering = await _context.Offerings.FindAsync(offeringId);
+            if (offering == null)
+            {
+                return BadRequest();
+            }
+            var authorizationResult = await _authorizationService.AuthorizeAsync(this.User, offering, Globals.POLICY_READ_OFFERING);
             if (!authorizationResult.Succeeded)
             {
                 return Unauthorized(new { Reason = "Insufficient Permission", AccessType = offering.AccessType });
@@ -61,8 +65,12 @@ namespace ClassTranscribeServer.Controllers
         [HttpGet("ByOffering2/{offeringId}")]
         public async Task<ActionResult<IEnumerable<PlaylistDTO>>> GetPlaylists2(string offeringId)
         {
-            var authorizationResult = await _authorizationService.AuthorizeAsync(this.User, offeringId, Globals.POLICY_READ_OFFERING);
             var offering = await _context.Offerings.FindAsync(offeringId);
+            if (offering == null)
+            {
+                return BadRequest();
+            }
+            var authorizationResult = await _authorizationService.AuthorizeAsync(this.User, offering, Globals.POLICY_READ_OFFERING);
             if (!authorizationResult.Succeeded)
             {
                 return Unauthorized(new { Reason = "Insufficient Permission", AccessType = offering.AccessType });
@@ -173,7 +181,7 @@ namespace ClassTranscribeServer.Controllers
             {
                 return BadRequest();
             }
-            var authorizationResult = await _authorizationService.AuthorizeAsync(this.User, playlist.OfferingId, Globals.POLICY_UPDATE_OFFERING);
+            var authorizationResult = await _authorizationService.AuthorizeAsync(this.User, playlist.Offering, Globals.POLICY_UPDATE_OFFERING);
             if (!authorizationResult.Succeeded)
             {
                 if (User.Identity.IsAuthenticated)
@@ -217,7 +225,7 @@ namespace ClassTranscribeServer.Controllers
             {
                 return BadRequest();
             }
-            var authorizationResult = await _authorizationService.AuthorizeAsync(this.User, playlist.OfferingId, Globals.POLICY_UPDATE_OFFERING);
+            var authorizationResult = await _authorizationService.AuthorizeAsync(this.User, playlist.Offering, Globals.POLICY_UPDATE_OFFERING);
             if (!authorizationResult.Succeeded)
             {
                 if (User.Identity.IsAuthenticated)
@@ -246,7 +254,7 @@ namespace ClassTranscribeServer.Controllers
         public async Task<ActionResult<Playlist>> DeletePlaylist(string id)
         {
             var playlist = await _context.Playlists.FindAsync(id);
-            var authorizationResult = await _authorizationService.AuthorizeAsync(this.User, playlist.OfferingId, Globals.POLICY_UPDATE_OFFERING);
+            var authorizationResult = await _authorizationService.AuthorizeAsync(this.User, playlist.Offering, Globals.POLICY_UPDATE_OFFERING);
             if (!authorizationResult.Succeeded)
             {
                 if (User.Identity.IsAuthenticated)
@@ -267,6 +275,43 @@ namespace ClassTranscribeServer.Controllers
             await _context.SaveChangesAsync();
 
             return playlist;
+        }
+
+        // POST /api/Playlist/Reorder/{offeringId}
+        [HttpPost("Reorder/{offeringId}")]
+        public async Task<ActionResult> Reorder(string offeringId, List<string> playlistIds)
+        {
+            var offering = await _context.Offerings.FindAsync(offeringId);
+            if (playlistIds == null || !playlistIds.Any() || offering == null || offering.Playlists.Count != playlistIds.Count)
+            {
+                return BadRequest();
+            }
+            var authorizationResult = await _authorizationService.AuthorizeAsync(this.User, offering, Globals.POLICY_UPDATE_OFFERING);
+            if (!authorizationResult.Succeeded)
+            {
+                if (User.Identity.IsAuthenticated)
+                {
+                    return new ForbidResult();
+                }
+                else
+                {
+                    return new ChallengeResult();
+                }
+            }
+            var playlists = new List<Playlist>();
+            for (int i = 0; i < playlistIds.Count; i++)
+            {
+                var playlist = await _context.Playlists.FindAsync(playlistIds[i]);
+                if (playlist == null || playlist.OfferingId != offeringId)
+                {
+                    return BadRequest("Invalid playlistIds");
+                }
+                playlist.Index = i;
+                playlists.Add(playlist);
+            }
+            _context.Playlists.UpdateRange(playlists);
+            await _context.SaveChangesAsync();
+            return RedirectToAction("GetPlaylists", new { offeringId = offeringId });
         }
 
         private bool PlaylistExists(string id)
