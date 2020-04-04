@@ -8,7 +8,7 @@ using static ClassTranscribeDatabase.CommonUtils;
 
 namespace TaskEngine.Tasks
 {
-    class SceneDetectionTask : RabbitMQTask<JobObject<Video>>
+    class SceneDetectionTask : RabbitMQTask<string>
     {
         private readonly RpcClient _rpcClient;
 
@@ -18,14 +18,14 @@ namespace TaskEngine.Tasks
             _rpcClient = rpcClient;
         }
 
-        protected async override Task OnConsume(JobObject<Video> j)
+        protected async override Task OnConsume(string videoId, TaskParameters taskParameters)
         {
 
             using (var _context = CTDbContext.CreateDbContext())
             {
-                Video video = await _context.Videos.FindAsync(j.Data.Id);
+                Video video = await _context.Videos.FindAsync(videoId);
 
-                if (video.SceneData == null || j.Force)
+                if (video.SceneData == null || taskParameters.Force)
                 {
                     var jsonString = await _rpcClient.PythonServerClient.GetScenesRPCAsync(new CTGrpc.File
                     {

@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
+using Newtonsoft.Json.Linq;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System;
@@ -26,17 +27,18 @@ namespace ClassTranscribeDatabase
             prefetchCount = Convert.ToUInt16(Globals.appSettings.RABBITMQ_PREFETCH_COUNT ?? "10");
         }
 
-        public void PublishTask<T>(string queueName, T message)
+        public void PublishTask<T>(string queueName, T data, TaskParameters taskParameters)
         {
             _channel.QueueDeclare(queue: queueName, durable: true, exclusive: false, autoDelete: false, arguments: null);
-            var body = CommonUtils.MessageToBytes(message);
+            var taskObject = new TaskObject<T> { Data = data, TaskParameters = taskParameters };
+            var body = CommonUtils.MessageToBytes(taskObject);
             var properties = _channel.CreateBasicProperties();
             properties.Persistent = true;
 
             _channel.BasicPublish(exchange: "", routingKey: queueName, basicProperties: properties, body: body);
         }
 
-        public void ConsumeTask<T>(string queueName, Func<T, Task> OnConsume)
+        public void ConsumeTask<T>(string queueName, Func<T, TaskParameters, Task> OnConsume)
         {
 
             _channel.QueueDeclare(queue: queueName,
@@ -51,18 +53,18 @@ namespace ClassTranscribeDatabase
             var consumer = new EventingBasicConsumer(_channel);
             consumer.Received += async (model, ea) =>
             {
-                var message = CommonUtils.BytesToMessage<T>(ea.Body);
-                _logger.LogInformation(" [x] Received {0}", message);
+                var taskObject = CommonUtils.BytesToMessage<TaskObject<T>>(ea.Body);
+                _logger.LogInformation(" [x] Received {0}", taskObject);
                 try
                 {
-                    await OnConsume(message);
+                    await OnConsume(taskObject.Data, taskObject.TaskParameters);
                 }
                 catch (Exception e)
                 {
-                    _logger.LogError(e, "Error occured in RabbitMQConnection for message {0}", message.ToString());
+                    _logger.LogError(e, "Error occured in RabbitMQConnection for message {0}", taskObject.ToString());
                 }
 
-                _logger.LogInformation(" [x] Done {0}", message);
+                _logger.LogInformation(" [x] Done {0}", taskObject);
 
                 _channel.BasicAck(deliveryTag: ea.DeliveryTag, multiple: false);
             };
@@ -117,5 +119,16 @@ namespace ClassTranscribeDatabase
             // GC.SuppressFinalize(this);
         }
         #endregion
+    }
+    public class TaskParameters
+    {
+        public bool Force { get; set; }
+        public JObject Metadata { get; set; }
+    }
+
+    public class TaskObject<T>
+    {
+        public T Data { get; set; }
+        public TaskParameters TaskParameters { get; set; }
     }
 }

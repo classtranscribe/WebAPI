@@ -14,7 +14,10 @@ using static ClassTranscribeDatabase.CommonUtils;
 
 namespace TaskEngine.Tasks
 {
-    class DownloadPlaylistInfoTask : RabbitMQTask<JobObject<Playlist>>
+    /// <summary>
+    /// This task fetches all the info about a media under a given playlist
+    /// </summary>
+    class DownloadPlaylistInfoTask : RabbitMQTask<string>
     {
         private readonly RpcClient _rpcClient;
         private readonly DownloadMediaTask _downloadMediaTask;
@@ -32,11 +35,11 @@ namespace TaskEngine.Tasks
             _slack = slack;
         }
 
-        protected override async Task OnConsume(JobObject<Playlist> j)
+        protected override async Task OnConsume(string playlistId, TaskParameters taskParameters)
         {
-            var playlist = j.Data;
             using (var _context = CTDbContext.CreateDbContext())
             {
+                var playlist = await _context.Playlists.FindAsync(playlistId);
                 List<Media> medias = new List<Media>();
                 switch (playlist.SourceType)
                 {
@@ -46,10 +49,7 @@ namespace TaskEngine.Tasks
                     case SourceType.Kaltura: medias = await GetKalturaPlaylist(playlist, _context); break;
                     case SourceType.Box: medias = await GetBoxPlaylist(playlist, _context); break;
                 }
-                medias.ForEach(m => _downloadMediaTask.Publish(new JobObject<Media>
-                {
-                    Data = m
-                }));
+                medias.ForEach(m => _downloadMediaTask.Publish(m.Id));
             }
         }
 
@@ -64,7 +64,11 @@ namespace TaskEngine.Tasks
             List<Media> newMedia = new List<Media>();
             foreach (JObject jObject in jArray)
             {
-                if (jObject["id"].ToString().Length > 0 && !await _context.Medias.Where(m => m.UniqueMediaIdentifier == jObject["id"].ToString() && m.SourceType == playlist.SourceType && m.PlaylistId == playlist.Id).AnyAsync())
+                // Check if there is a valid Id, and for the same playlist the same media does not exist.
+                if (jObject["id"].ToString().Length > 0 &&
+                    !await _context.Medias.Where(m => m.UniqueMediaIdentifier == jObject["id"].ToString() &&
+                    m.SourceType == playlist.SourceType &&
+                    m.PlaylistId == playlist.Id).AnyAsync())
                 {
                     newMedia.Add(new Media
                     {
@@ -95,7 +99,11 @@ namespace TaskEngine.Tasks
             List<Media> newMedia = new List<Media>();
             foreach (JObject jObject in jArray)
             {
-                if (jObject["mediaId"].ToString().Length > 0 && !await _context.Medias.Where(m => m.UniqueMediaIdentifier == jObject["mediaId"].ToString() && m.SourceType == playlist.SourceType && m.PlaylistId == playlist.Id).AnyAsync())
+                // Check if there is a valid Id, and for the same playlist the same media does not exist.
+                if (jObject["mediaId"].ToString().Length > 0 &&
+                    !await _context.Medias.Where(m => m.UniqueMediaIdentifier == jObject["mediaId"].ToString() &&
+                    m.SourceType == playlist.SourceType &&
+                    m.PlaylistId == playlist.Id).AnyAsync())
                 {
                     newMedia.Add(new Media
                     {
@@ -124,7 +132,11 @@ namespace TaskEngine.Tasks
             List<Media> newMedia = new List<Media>();
             foreach (JObject jObject in jArray)
             {
-                if (!await _context.Medias.Where(m => m.UniqueMediaIdentifier == jObject["videoId"].ToString() && m.SourceType == playlist.SourceType && m.PlaylistId == playlist.Id).AnyAsync())
+                // Check if there is a valid videoId, and for the same playlist the same media does not exist.
+                if (jObject["videoId"].ToString().Length > 0 &&
+                    !await _context.Medias.Where(m => m.UniqueMediaIdentifier == jObject["videoId"].ToString() &&
+                m.SourceType == playlist.SourceType &&
+                m.PlaylistId == playlist.Id).AnyAsync())
                 {
                     newMedia.Add(new Media
                     {
@@ -166,7 +178,11 @@ namespace TaskEngine.Tasks
                 foreach (var item in items)
                 {
                     var file = await client.FilesManager.GetInformationAsync(item.Id);
-                    if (file.Id.Length > 0 && !await _context.Medias.Where(m => m.UniqueMediaIdentifier == file.Id && m.SourceType == playlist.SourceType && m.PlaylistId == playlist.Id).AnyAsync())
+                    // Check if there is a valid file.Id, and for the same playlist the same media does not exist.
+                    if (file.Id.Length > 0 &&
+                        !await _context.Medias.Where(m => m.UniqueMediaIdentifier == file.Id &&
+                        m.SourceType == playlist.SourceType &&
+                        m.PlaylistId == playlist.Id).AnyAsync())
                     {
                         newMedia.Add(new Media
                         {

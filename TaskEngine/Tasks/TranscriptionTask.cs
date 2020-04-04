@@ -9,7 +9,10 @@ using static ClassTranscribeDatabase.CommonUtils;
 
 namespace TaskEngine.Tasks
 {
-    class TranscriptionTask : RabbitMQTask<JobObject<Video>>
+    /// <summary>
+    /// This task produces the transcriptions for a Video item.
+    /// </summary>
+    class TranscriptionTask : RabbitMQTask<string>
     {
         private readonly MSTranscriptionService _msTranscriptionService;
         private readonly GenerateVTTFileTask _generateVTTFileTask;
@@ -23,9 +26,14 @@ namespace TaskEngine.Tasks
             _generateVTTFileTask = generateVTTFileTask;
             _sceneDetectionTask = sceneDetectionTask;
         }
-        protected async override Task OnConsume(JobObject<Video> j)
+        protected async override Task OnConsume(string videoId, TaskParameters taskParameters)
         {
-            var video = j.Data;
+            Video video;
+            using (var _context = CTDbContext.CreateDbContext())
+            {
+                video = await _context.Videos.FindAsync(videoId);
+            }
+
             if (!File.Exists(video.Audio.Path) || new FileInfo(video.Audio.Path).Length < 1000)
             {
                 // As file does not exist remove record of it.
@@ -60,16 +68,10 @@ namespace TaskEngine.Tasks
                     latestVideo.TranscriptionStatus = result.Item2;
                     latestVideo.TranscribingAttempts += 1;
                     await _context.SaveChangesAsync();
-                    transcriptions.ForEach(t => _generateVTTFileTask.Publish(new JobObject<Transcription>
-                    {
-                        Data = t
-                    }));
+                    transcriptions.ForEach(t => _generateVTTFileTask.Publish(t.Id));
                 }
             }
-            _sceneDetectionTask.Publish(new JobObject<Video>
-            {
-                Data = video
-            });
+            _sceneDetectionTask.Publish(video.Id);
         }
     }
 }

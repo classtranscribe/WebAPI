@@ -7,18 +7,18 @@ using static ClassTranscribeDatabase.CommonUtils;
 
 namespace TaskEngine.Tasks
 {
-    class GenerateVTTFileTask : RabbitMQTask<JobObject<Transcription>>
+    class GenerateVTTFileTask : RabbitMQTask<string>
     {
         public GenerateVTTFileTask(RabbitMQConnection rabbitMQ, ILogger<GenerateVTTFileTask> logger)
             : base(rabbitMQ, TaskType.GenerateVTTFile, logger)
         {
 
         }
-        protected async override Task OnConsume(JobObject<Transcription> j)
+        protected async override Task OnConsume(string transcriptionId, TaskParameters taskParameters)
         {
             using (var _context = CTDbContext.CreateDbContext())
             {
-                var transcription = await _context.Transcriptions.FindAsync(j.Data.Id);
+                var transcription = await _context.Transcriptions.FindAsync(transcriptionId);
                 var captions = await (new CaptionQueries(_context)).GetCaptionsAsync(transcription.Id);
                 var audioPath = transcription.Video.Audio.Path;
                 var vttFile = Caption.GenerateWebVTTFile(captions, audioPath, transcription.Language);

@@ -106,9 +106,6 @@ namespace TaskEngine
             // A dummy awaited function call.
             await Task.Delay(0);
             // Add any temporary code.
-            var videos = context.Medias.Where(m => m.Video != null).Select(m => m.Video).ToList();
-            videos.ForEach(v => _processVideoTask.Publish(new JobObject<Video> { Data = v }));
-            videos.ForEach(v => _sceneDetectionTask.Publish(new JobObject<Video> { Data = v }));
 
         }
 

@@ -14,7 +14,7 @@ namespace TaskEngine.Tasks
             _box = box;
         }
 
-        protected async override Task OnConsume(string emptyString = "")
+        protected async override Task OnConsume(string emptyString, TaskParameters taskParameters)
         {
             await _box.RefreshAccessTokenAsync();
         }

@@ -90,10 +90,10 @@ namespace ClassTranscribeServer
             Wake(msg);
         }
 
-        private void Wake(JObject message)
+        private void Wake(JObject message, TaskParameters taskParameters = null)
         {
             var queueName = TaskType.QueueAwaker.ToString();
-            _rabbitMQ.PublishTask(queueName, message);
+            _rabbitMQ.PublishTask(queueName, message, taskParameters);
         }
     }
 }

@@ -1,6 +1,5 @@
 ﻿using ClassTranscribeDatabase;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json.Linq;
 using System;
 using System.Threading.Tasks;
 using static ClassTranscribeDatabase.CommonUtils;
@@ -22,11 +21,11 @@ namespace TaskEngine
             _logger = logger;
         }
 
-        public void Publish(T obj)
+        public void Publish(T data, TaskParameters taskParameters = null)
         {
             try
             {
-                _rabbitMQ.PublishTask(_queueName, obj);
+                _rabbitMQ.PublishTask(_queueName, data, taskParameters);
             }
             catch (Exception e)
             {
@@ -34,7 +33,7 @@ namespace TaskEngine
             }
         }
 
-        protected abstract Task OnConsume(T obj);
+        protected abstract Task OnConsume(T data, TaskParameters taskParameters = null);
         public void Consume()
         {
             try
@@ -46,12 +45,5 @@ namespace TaskEngine
                 _logger.LogError(e, "RabbitMQTask Error Occured");
             }
         }
-    }
-
-    public class JobObject<T>
-    {
-        public T Data { get; set; }
-        public bool Force { get; set; }
-        public JObject Metadata { get; set; }
     }
 }
