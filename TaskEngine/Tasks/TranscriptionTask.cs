@@ -1,8 +1,10 @@
 ﻿using ClassTranscribeDatabase;
 using ClassTranscribeDatabase.Models;
 using Microsoft.Extensions.Logging;
+using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using TaskEngine.MSTranscription;
 using static ClassTranscribeDatabase.CommonUtils;
@@ -62,16 +64,35 @@ namespace TaskEngine.Tasks
             using (var _context = CTDbContext.CreateDbContext())
             {
                 var latestVideo = await _context.Videos.FindAsync(video.Id);
-                if (latestVideo.TranscriptionStatus != "NoError")
+                if (result.Item2 == "NoError")
                 {
-                    await _context.Transcriptions.AddRangeAsync(transcriptions);
+                    if (latestVideo.TranscriptionStatus != "NoError")
+                    {
+                        // If any present, remove them.
+                        if (latestVideo.Transcriptions.Any())
+                        {
+                            var oldTranscriptions = latestVideo.Transcriptions;
+                            var oldCaptions = latestVideo.Transcriptions.SelectMany(t => t.Captions);
+                            _context.Captions.RemoveRange(oldCaptions);
+                            await _context.SaveChangesAsync();
+                            _context.Transcriptions.RemoveRange(oldTranscriptions);
+                            await _context.SaveChangesAsync();
+                        }
+
+                        // Add the latest transcriptions.
+                        await _context.Transcriptions.AddRangeAsync(transcriptions);
+                        transcriptions.ForEach(t => _generateVTTFileTask.Publish(t.Id));
+                        _sceneDetectionTask.Publish(video.Id);
+                    }
                     latestVideo.TranscriptionStatus = result.Item2;
                     latestVideo.TranscribingAttempts += 1;
                     await _context.SaveChangesAsync();
-                    transcriptions.ForEach(t => _generateVTTFileTask.Publish(t.Id));
+                }
+                else
+                {
+                    throw new Exception("Transcription failed" + result.Item2);
                 }
             }
-            _sceneDetectionTask.Publish(video.Id);
         }
     }
 }
