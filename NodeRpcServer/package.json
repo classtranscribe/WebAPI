@@ -15,7 +15,7 @@
     "fs-promise": "^2.0.3",
     "grpc": "^1.21.1",
     "lodash": "^4.17.15",
-    "minimist": "^1.2.0",
+    "minimist": "^1.2.3",
     "path": "^0.12.7",
     "request": "^2.88.0",
     "request-promise": "^4.2.4"
