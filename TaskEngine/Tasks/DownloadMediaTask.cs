@@ -140,29 +140,50 @@ namespace TaskEngine.Tasks
 
         public async Task<Video> DownloadEchoVideo(Media media)
         {
+            Video video = new Video();
+            bool video1Success = false, video2Success = false;
             var mediaResponse = await _rpcClient.NodeServerClient.DownloadEchoVideoRPCAsync(new CTGrpc.MediaRequest
             {
                 Id = media.Id,
                 VideoUrl = media.JsonMetadata["videoUrl"].ToString(),
                 AdditionalInfo = media.JsonMetadata["download_header"].ToString()
             });
-
-            var mediaResponse2 = await _rpcClient.NodeServerClient.DownloadEchoVideoRPCAsync(new CTGrpc.MediaRequest
+            video1Success = mediaResponse.FilePath.Length > 0 &&
+                File.Exists(mediaResponse.FilePath) &&
+                new FileInfo(mediaResponse.FilePath).Length > 1000;
+            if (video1Success)
             {
-                Id = media.Id,
-                VideoUrl = media.JsonMetadata["altVideoUrl"].ToString(),
-                AdditionalInfo = media.JsonMetadata["download_header"].ToString()
-            });
+                video.Video1 = new FileRecord(mediaResponse.FilePath);
+            }
 
-            if (mediaResponse.FilePath.Length > 0 && mediaResponse2.FilePath.Length > 0 &&
-                File.Exists(mediaResponse.FilePath) && File.Exists(mediaResponse2.FilePath) &&
-                new FileInfo(mediaResponse.FilePath).Length > 1000 && new FileInfo(mediaResponse2.FilePath).Length > 1000)
+
+            if (!string.IsNullOrEmpty(media.JsonMetadata["altVideoUrl"].ToString()))
             {
-                Video video = new Video
+
+                var mediaResponse2 = await _rpcClient.NodeServerClient.DownloadEchoVideoRPCAsync(new CTGrpc.MediaRequest
                 {
-                    Video1 = new FileRecord(mediaResponse.FilePath),
-                    Video2 = new FileRecord(mediaResponse2.FilePath)
-                };
+                    Id = media.Id,
+                    VideoUrl = media.JsonMetadata["altVideoUrl"].ToString(),
+                    AdditionalInfo = media.JsonMetadata["download_header"].ToString()
+                });
+                video2Success = mediaResponse2.FilePath.Length > 0 &&
+                File.Exists(mediaResponse2.FilePath)
+                 && new FileInfo(mediaResponse2.FilePath).Length > 1000;
+                if (video2Success)
+                {
+                    video.Video2 = new FileRecord(mediaResponse2.FilePath);
+                }
+            }
+            else
+            {
+                // As there is no file to download, it's "successfull"
+                video2Success = true;
+            }
+
+
+
+            if (video1Success && video2Success)
+            {
                 return video;
             }
             else
