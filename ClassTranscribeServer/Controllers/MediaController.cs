@@ -207,11 +207,16 @@ namespace ClassTranscribeServer.Controllers
         public async Task<ActionResult> Reorder(string playlistId, List<string> mediaIds)
         {
             var playlist = await _context.Playlists.FindAsync(playlistId);
-            if (mediaIds == null || !mediaIds.Any() || playlist == null || playlist.Medias.Count != mediaIds.Count)
+            if (mediaIds == null || !mediaIds.Any() || playlist == null || playlist.Medias.Count != mediaIds.Count || playlist.OfferingId == null)
             {
                 return BadRequest();
             }
-            var authorizationResult = await _authorizationService.AuthorizeAsync(this.User, playlist.Offering, Globals.POLICY_UPDATE_OFFERING);
+            var offering = await _context.Offerings.FindAsync(playlist.OfferingId);
+            if (offering == null)
+            {
+                return BadRequest();
+            }
+            var authorizationResult = await _authorizationService.AuthorizeAsync(this.User, offering, Globals.POLICY_UPDATE_OFFERING);
             if (!authorizationResult.Succeeded)
             {
                 if (User.Identity.IsAuthenticated)

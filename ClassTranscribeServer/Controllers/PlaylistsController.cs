@@ -177,11 +177,16 @@ namespace ClassTranscribeServer.Controllers
         [Authorize]
         public async Task<IActionResult> PutPlaylist(string id, Playlist playlist)
         {
-            if (playlist == null || playlist.Id == null || id != playlist.Id)
+            if (playlist == null || playlist.Id == null || id != playlist.Id || playlist.OfferingId == null)
             {
                 return BadRequest();
             }
-            var authorizationResult = await _authorizationService.AuthorizeAsync(this.User, playlist.Offering, Globals.POLICY_UPDATE_OFFERING);
+            var offering = await _context.Offerings.FindAsync(playlist.OfferingId);
+            if (offering == null)
+            {
+                return BadRequest();
+            }
+            var authorizationResult = await _authorizationService.AuthorizeAsync(this.User, offering, Globals.POLICY_UPDATE_OFFERING);
             if (!authorizationResult.Succeeded)
             {
                 if (User.Identity.IsAuthenticated)
@@ -221,11 +226,16 @@ namespace ClassTranscribeServer.Controllers
         [Authorize]
         public async Task<ActionResult<Playlist>> PostPlaylist(Playlist playlist)
         {
-            if (playlist == null)
+            if (playlist.OfferingId == null)
             {
                 return BadRequest();
             }
-            var authorizationResult = await _authorizationService.AuthorizeAsync(this.User, playlist.Offering, Globals.POLICY_UPDATE_OFFERING);
+            var offering = await _context.Offerings.FindAsync(playlist.OfferingId);
+            if (offering == null)
+            {
+                return BadRequest();
+            }
+            var authorizationResult = await _authorizationService.AuthorizeAsync(this.User, offering, Globals.POLICY_UPDATE_OFFERING);
             if (!authorizationResult.Succeeded)
             {
                 if (User.Identity.IsAuthenticated)
@@ -253,6 +263,10 @@ namespace ClassTranscribeServer.Controllers
         [Authorize]
         public async Task<ActionResult<Playlist>> DeletePlaylist(string id)
         {
+            if (id == null)
+            {
+                return BadRequest();
+            }
             var playlist = await _context.Playlists.FindAsync(id);
             var authorizationResult = await _authorizationService.AuthorizeAsync(this.User, playlist.Offering, Globals.POLICY_UPDATE_OFFERING);
             if (!authorizationResult.Succeeded)

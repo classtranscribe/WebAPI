@@ -29,16 +29,16 @@ namespace ClassTranscribeServer.Controllers
         // POST: api/Roles
         [HttpPost]
         [Authorize(Roles = Globals.ROLE_ADMIN)]
-        public async Task<ActionResult> PostNewInstructor(string mailId)
+        public async Task<ActionResult> AddUserToRole(string mailId, string role)
         {
             ApplicationUser user = await _userManager.FindByEmailAsync(mailId);
             if (user == null)
             {
                 user = await _userutils.CreateNonExistentUser(mailId);
             }
-            if (!(await _userManager.IsInRoleAsync(user, Globals.ROLE_INSTRUCTOR)))
+            if (await _roleManager.RoleExistsAsync(role) && !(await _userManager.IsInRoleAsync(user, role)))
             {
-                await _userManager.AddToRoleAsync(user, Globals.ROLE_INSTRUCTOR);
+                await _userManager.AddToRoleAsync(user, role);
             }
             return Ok();
         }
