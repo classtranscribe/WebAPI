@@ -53,7 +53,8 @@ namespace ClassTranscribeServer.Controllers
                 SourceType = p.SourceType,
                 OfferingId = p.OfferingId,
                 Name = p.Name,
-                Index = p.Index
+                Index = p.Index,
+                PlaylistIdentifier = p.PlaylistIdentifier
             }).ToList();
             return playlists;
         }
@@ -356,6 +357,7 @@ namespace ClassTranscribeServer.Controllers
         public string OfferingId { get; set; }
         public string Name { get; set; }
         public int Index { get; set; }
+        public string PlaylistIdentifier { get; set; }
         public List<MediaDTO> Medias { get; set; }
     }
 
