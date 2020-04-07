@@ -19,11 +19,12 @@ namespace ClassTranscribeServer.Controllers
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly UserUtils _userutils;
 
-        public RolesController(RoleManager<IdentityRole> roleManager, UserManager<ApplicationUser> userManager, CTDbContext context, ILogger<RolesController> logger) : base(context, logger)
+        public RolesController(RoleManager<IdentityRole> roleManager, UserManager<ApplicationUser> userManager, 
+            CTDbContext context, ILogger<RolesController> logger, UserUtils userUtils) : base(context, logger)
         {
             _roleManager = roleManager;
             _userManager = userManager;
-            _userutils = new UserUtils(userManager, context);
+            _userutils = userUtils;
         }
 
         // POST: api/Roles

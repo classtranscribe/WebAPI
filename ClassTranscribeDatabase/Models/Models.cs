@@ -146,6 +146,7 @@ namespace ClassTranscribeDatabase.Models
         public virtual Playlist Playlist { get; set; }
         public string Name { get; set; }
         public int Index { get; set; }
+        public virtual List<WatchHistory> WatchHistories { get; set; }
     }
 
     public class Transcription : Entity

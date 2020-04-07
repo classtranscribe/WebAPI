@@ -1,5 +1,6 @@
 ﻿using ClassTranscribeDatabase;
 using ClassTranscribeDatabase.Models;
+using ClassTranscribeServer.Utils;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -18,11 +19,17 @@ namespace ClassTranscribeServer.Controllers
     {
         private readonly IAuthorizationService _authorizationService;
         private readonly WakeDownloader _wakeDownloader;
+        private readonly UserUtils _userUtils;
 
-        public PlaylistsController(IAuthorizationService authorizationService, WakeDownloader wakeDownloader, CTDbContext context, ILogger<PlaylistsController> logger) : base(context, logger)
+        public PlaylistsController(IAuthorizationService authorizationService, 
+            WakeDownloader wakeDownloader, 
+            CTDbContext context, 
+            UserUtils userUtils,
+            ILogger<PlaylistsController> logger) : base(context, logger)
         {
             _authorizationService = authorizationService;
             _wakeDownloader = wakeDownloader;
+            _userUtils = userUtils;
         }
 
         // GET: api/Playlists
@@ -131,7 +138,7 @@ namespace ClassTranscribeServer.Controllers
         public async Task<ActionResult<PlaylistDTO>> GetPlaylist(string id)
         {
             var p = await _context.Playlists.FindAsync(id);
-
+            var user = _userUtils.GetUser(User);
             if (p == null)
             {
                 return NotFound();
@@ -160,6 +167,7 @@ namespace ClassTranscribeServer.Controllers
                         Path = t.File != null ? t.File.Path : null,
                         Language = t.Language
                     }).ToList(),
+                    WatchHistory = m.WatchHistories.Where(w => w.ApplicationUserId == user.Id).FirstOrDefault()
                 }).ToList();
 
             return new PlaylistDTO
@@ -169,7 +177,8 @@ namespace ClassTranscribeServer.Controllers
                 SourceType = p.SourceType,
                 OfferingId = p.OfferingId,
                 Name = p.Name,
-                Medias = medias
+                Medias = medias,
+                PlaylistIdentifier = p.PlaylistIdentifier
             };
         }
 
@@ -227,7 +236,7 @@ namespace ClassTranscribeServer.Controllers
         [Authorize]
         public async Task<ActionResult<Playlist>> PostPlaylist(Playlist playlist)
         {
-            if (playlist.OfferingId == null)
+            if (playlist == null || playlist.OfferingId == null)
             {
                 return BadRequest();
             }
@@ -373,6 +382,7 @@ namespace ClassTranscribeServer.Controllers
         public List<TranscriptionDTO> Transcriptions { get; set; }
         public string Name { get; set; }
         public int Index { get; set; }
+        public WatchHistory WatchHistory { get; set; }
     }
 
     public class MediaSearchDTO

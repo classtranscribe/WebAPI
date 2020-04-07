@@ -1,5 +1,6 @@
 ﻿using ClassTranscribeDatabase;
 using ClassTranscribeDatabase.Models;
+using ClassTranscribeServer.Utils;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -20,11 +21,17 @@ namespace ClassTranscribeServer.Controllers
     {
         private readonly WakeDownloader _wakeDownloader;
         private readonly IAuthorizationService _authorizationService;
+        private readonly UserUtils _userUtils;
 
-        public MediaController(IAuthorizationService authorizationService, WakeDownloader wakeDownloader, CTDbContext context, ILogger<MediaController> logger) : base(context, logger)
+        public MediaController(IAuthorizationService authorizationService, 
+            WakeDownloader wakeDownloader, 
+            CTDbContext context,
+            UserUtils userUtils,
+            ILogger<MediaController> logger) : base(context, logger)
         {
             _authorizationService = authorizationService;
             _wakeDownloader = wakeDownloader;
+            _userUtils = userUtils;
         }
 
         // GET: api/Media/5
@@ -33,14 +40,13 @@ namespace ClassTranscribeServer.Controllers
         {
             var media = await _context.Medias.FindAsync(id);
 
-
             if (media == null)
             {
                 return NotFound();
             }
 
             var v = await _context.Videos.FindAsync(media.VideoId);
-
+            var user = _userUtils.GetUser(this.User);
             var mediaDTO = new MediaDTO
             {
                 Id = media.Id,
@@ -62,6 +68,7 @@ namespace ClassTranscribeServer.Controllers
                     Video1Path = media.Video.Video1?.Path,
                     Video2Path = media.Video.Video2?.Path
                 },
+                WatchHistory = media.WatchHistories.Where(w => w.ApplicationUserId == user.Id).FirstOrDefault()
             };
 
             return mediaDTO;

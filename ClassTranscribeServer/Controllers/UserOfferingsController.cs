@@ -20,11 +20,12 @@ namespace ClassTranscribeServer.Controllers
         private readonly UserUtils _userUtils;
         private readonly UserManager<ApplicationUser> _userManager;
 
-        public UserOfferingsController(IAuthorizationService authorizationService, CTDbContext context, UserManager<ApplicationUser> userManager, ILogger<UserOfferingsController> logger) : base(context, logger)
+        public UserOfferingsController(IAuthorizationService authorizationService, CTDbContext context, 
+            UserManager<ApplicationUser> userManager, UserUtils userUtils, ILogger<UserOfferingsController> logger) : base(context, logger)
         {
             _authorizationService = authorizationService;
             _userManager = userManager;
-            _userUtils = new UserUtils(userManager, context);
+            _userUtils = userUtils;
         }
 
         // GET: api/Courses/
@@ -42,6 +43,10 @@ namespace ClassTranscribeServer.Controllers
         [Authorize]
         public async Task<ActionResult<UserOffering>> PostUserOffering(UserOfferingDTO userOfferingDTO)
         {
+            if(userOfferingDTO == null)
+            {
+                return BadRequest();
+            }
             var offering = await _context.Offerings.FindAsync(userOfferingDTO.OfferingId);
             if (offering == null)
             {

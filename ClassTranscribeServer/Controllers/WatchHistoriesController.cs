@@ -1,8 +1,10 @@
 ﻿using ClassTranscribeDatabase;
 using ClassTranscribeDatabase.Models;
+using ClassTranscribeServer.Utils;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json.Linq;
+using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
@@ -14,10 +16,12 @@ namespace ClassTranscribeServer.Controllers
     public class WatchHistoriesController : ControllerBase
     {
         private readonly CTDbContext _context;
+        private readonly UserUtils _userUtils;
 
-        public WatchHistoriesController(CTDbContext context)
+        public WatchHistoriesController(CTDbContext context, UserUtils userUtils)
         {
             _context = context;
+            _userUtils = userUtils;
         }
 
         // GET: api/WatchHistories/5
@@ -29,11 +33,11 @@ namespace ClassTranscribeServer.Controllers
             {
                 return BadRequest();
             }
-            if (User.Identity.IsAuthenticated && this.User.FindFirst(ClaimTypes.NameIdentifier) != null)
+            var user = _userUtils.GetUser(User);
+            if (user != null)
             {
-                var userId = this.User.FindFirst(ClaimTypes.NameIdentifier).Value;
                 var watchHistory = await _context.WatchHistories
-                    .Where(w => w.MediaId == mediaId && w.ApplicationUserId == userId)
+                    .Where(w => w.MediaId == mediaId && w.ApplicationUserId == user.Id)
                     .FirstOrDefaultAsync();
 
                 if (watchHistory == null)
@@ -41,6 +45,26 @@ namespace ClassTranscribeServer.Controllers
                     return NotFound();
                 }
                 return watchHistory;
+
+            }
+            else
+            {
+                return Unauthorized();
+            }
+        }
+
+        // GET: api/WatchHistories/GetAllWatchHistoryForUser
+        [HttpGet("GetAllWatchHistoryForUser")]
+        public async Task<ActionResult<IEnumerable<WatchHistory>>> GetAllWatchHistoryForUser()
+        {
+            var user = _userUtils.GetUser(User);
+            if (user != null)
+            {
+                var watchHistories = await _context.WatchHistories
+                    .Where(w => w.ApplicationUserId == user.Id)
+                    .ToListAsync();
+
+                return watchHistories;
 
             }
             else
@@ -60,18 +84,18 @@ namespace ClassTranscribeServer.Controllers
             {
                 return BadRequest();
             }
-            if (User.Identity.IsAuthenticated && this.User.FindFirst(ClaimTypes.NameIdentifier) != null)
+            var user = _userUtils.GetUser(User);
+            if (user != null)
             {
-                var userId = this.User.FindFirst(ClaimTypes.NameIdentifier).Value;
                 var watchHistory = await _context.WatchHistories
-                    .Where(w => w.MediaId == mediaId && w.ApplicationUserId == userId)
+                    .Where(w => w.MediaId == mediaId && w.ApplicationUserId == user.Id)
                     .FirstOrDefaultAsync();
 
                 if (watchHistory == null)
                 {
                     watchHistory = new WatchHistory
                     {
-                        ApplicationUserId = userId,
+                        ApplicationUserId = user.Id,
                         MediaId = mediaId,
                         Json = json
                     };
