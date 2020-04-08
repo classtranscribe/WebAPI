@@ -1,6 +1,8 @@
 ﻿using ClassTranscribeDatabase;
 using ClassTranscribeDatabase.Models;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using System.Linq;
 using System.Threading.Tasks;
 using TaskEngine.Grpc;
 using static ClassTranscribeDatabase.CommonUtils;
@@ -24,7 +26,7 @@ namespace TaskEngine.Tasks
             Video video;
             using (var _context = CTDbContext.CreateDbContext())
             {
-                video = await _context.Videos.FindAsync(videoId);
+                video = await _context.Videos.Include(v => v.Video1).Include(v => v.Video2).Where(v => v.Id == videoId).FirstAsync();
             }
             _logger.LogInformation("Consuming" + video);
             if (video.Video1 != null)
@@ -51,6 +53,7 @@ namespace TaskEngine.Tasks
             }
             using (var _context = CTDbContext.CreateDbContext())
             {
+                _context.Entry(video).State = EntityState.Modified;
                 await _context.SaveChangesAsync();
             }
         }

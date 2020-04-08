@@ -1,5 +1,6 @@
 ﻿using ClassTranscribeDatabase;
 using ClassTranscribeDatabase.Models;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -33,7 +34,7 @@ namespace TaskEngine.Tasks
             Video video;
             using (var _context = CTDbContext.CreateDbContext())
             {
-                video = await _context.Videos.FindAsync(videoId);
+                video = await _context.Videos.Include(v => v.Audio).Where(v => v.Id == videoId).FirstAsync();
             }
 
             if (!File.Exists(video.Audio.Path) || new FileInfo(video.Audio.Path).Length < 1000)
@@ -87,6 +88,7 @@ namespace TaskEngine.Tasks
                     latestVideo.TranscriptionStatus = result.Item2;
                     latestVideo.TranscribingAttempts += 1;
                     await _context.SaveChangesAsync();
+
                 }
                 else
                 {
