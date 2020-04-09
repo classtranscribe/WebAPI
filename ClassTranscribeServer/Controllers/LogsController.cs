@@ -40,8 +40,12 @@ namespace ClassTranscribeServer.Controllers
         [Authorize]
         public async Task<ActionResult<IEnumerable<SearchDTO>>> GetSearchLogs(string offeringId)
         {
-            // Get the user
-            var authorizationResult = await _authorizationService.AuthorizeAsync(this.User, offeringId, Globals.POLICY_UPDATE_OFFERING);
+            var offering = await _context.Offerings.FindAsync(offeringId);
+            if (offering == null)
+            {
+                return BadRequest();
+            }
+            var authorizationResult = await _authorizationService.AuthorizeAsync(this.User, offering, Globals.POLICY_UPDATE_OFFERING);
             if (!authorizationResult.Succeeded)
             {
                 if (User.Identity.IsAuthenticated)
@@ -70,8 +74,13 @@ namespace ClassTranscribeServer.Controllers
         [Authorize]
         public async Task<ActionResult<IEnumerable<SearchDTO>>> UserSearchHistory(string offeringId)
         {
+            var offering = await _context.Offerings.FindAsync(offeringId);
+            if (offering == null)
+            {
+                return BadRequest();
+            }
             // Get the user
-            var authorizationResult = await _authorizationService.AuthorizeAsync(this.User, offeringId, Globals.POLICY_READ_OFFERING);
+            var authorizationResult = await _authorizationService.AuthorizeAsync(this.User, offering, Globals.POLICY_READ_OFFERING);
             if (!authorizationResult.Succeeded)
             {
                 if (User.Identity.IsAuthenticated)
@@ -184,7 +193,12 @@ namespace ClassTranscribeServer.Controllers
         public async Task<ActionResult<IEnumerable<CourseLog>>> GetCourseLogs(string offeringId, string eventType,
             DateTime? start = null, DateTime? end = null)
         {
-            var authorizationResult = await _authorizationService.AuthorizeAsync(this.User, offeringId, Globals.POLICY_UPDATE_OFFERING);
+            var offering = await _context.Offerings.FindAsync(offeringId);
+            if (offering == null)
+            {
+                return BadRequest();
+            }
+            var authorizationResult = await _authorizationService.AuthorizeAsync(this.User, offering, Globals.POLICY_UPDATE_OFFERING);
             if (!authorizationResult.Succeeded)
             {
                 if (User.Identity.IsAuthenticated)

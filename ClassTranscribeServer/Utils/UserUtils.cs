@@ -5,6 +5,7 @@ using Newtonsoft.Json.Linq;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace ClassTranscribeServer.Utils
@@ -36,8 +37,6 @@ namespace ClassTranscribeServer.Utils
             await _context.SaveChangesAsync();
             return await _userManager.FindByEmailAsync(emailId);
         }
-
-
 
         public async Task<University> GetUniversity(string mailId)
         {
@@ -86,6 +85,21 @@ namespace ClassTranscribeServer.Utils
                     return "";
                 }
 
+            }
+        }
+
+        public ApplicationUser GetUser(ClaimsPrincipal claims)
+        {
+            ApplicationUser user = null;
+            if (claims != null && claims.Identity.IsAuthenticated && claims.FindFirst(ClaimTypes.NameIdentifier) != null)
+            {
+                var currentUserID = claims.FindFirst(ClaimTypes.NameIdentifier).Value;
+                user = _context.Users.Where(u => u.Id == currentUserID).First();
+                return user;
+            }
+            else
+            {
+                return null;
             }
         }
     }

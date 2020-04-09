@@ -1,15 +1,21 @@
 ﻿using ClassTranscribeDatabase;
 using ClassTranscribeDatabase.Models;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using TaskEngine.MSTranscription;
 using static ClassTranscribeDatabase.CommonUtils;
 
 namespace TaskEngine.Tasks
 {
-    class TranscriptionTask : RabbitMQTask<JobObject<Video>>
+    /// <summary>
+    /// This task produces the transcriptions for a Video item.
+    /// </summary>
+    class TranscriptionTask : RabbitMQTask<string>
     {
         private readonly MSTranscriptionService _msTranscriptionService;
         private readonly GenerateVTTFileTask _generateVTTFileTask;
@@ -23,9 +29,14 @@ namespace TaskEngine.Tasks
             _generateVTTFileTask = generateVTTFileTask;
             _sceneDetectionTask = sceneDetectionTask;
         }
-        protected async override Task OnConsume(JobObject<Video> j)
+        protected async override Task OnConsume(string videoId, TaskParameters taskParameters)
         {
-            var video = j.Data;
+            Video video;
+            using (var _context = CTDbContext.CreateDbContext())
+            {
+                video = await _context.Videos.Include(v => v.Audio).Where(v => v.Id == videoId).FirstAsync();
+            }
+
             if (!File.Exists(video.Audio.Path) || new FileInfo(video.Audio.Path).Length < 1000)
             {
                 // As file does not exist remove record of it.
@@ -54,22 +65,36 @@ namespace TaskEngine.Tasks
             using (var _context = CTDbContext.CreateDbContext())
             {
                 var latestVideo = await _context.Videos.FindAsync(video.Id);
-                if (latestVideo.TranscriptionStatus != "NoError")
+                if (result.Item2 == "NoError")
                 {
-                    await _context.Transcriptions.AddRangeAsync(transcriptions);
+                    if (latestVideo.TranscriptionStatus != "NoError")
+                    {
+                        // If any present, remove them.
+                        if (latestVideo.Transcriptions.Any())
+                        {
+                            var oldTranscriptions = latestVideo.Transcriptions;
+                            var oldCaptions = latestVideo.Transcriptions.SelectMany(t => t.Captions);
+                            _context.Captions.RemoveRange(oldCaptions);
+                            await _context.SaveChangesAsync();
+                            _context.Transcriptions.RemoveRange(oldTranscriptions);
+                            await _context.SaveChangesAsync();
+                        }
+
+                        // Add the latest transcriptions.
+                        await _context.Transcriptions.AddRangeAsync(transcriptions);
+                        transcriptions.ForEach(t => _generateVTTFileTask.Publish(t.Id));
+                        _sceneDetectionTask.Publish(video.Id);
+                    }
                     latestVideo.TranscriptionStatus = result.Item2;
                     latestVideo.TranscribingAttempts += 1;
                     await _context.SaveChangesAsync();
-                    transcriptions.ForEach(t => _generateVTTFileTask.Publish(new JobObject<Transcription>
-                    {
-                        Data = t
-                    }));
+
+                }
+                else
+                {
+                    throw new Exception("Transcription failed" + result.Item2);
                 }
             }
-            _sceneDetectionTask.Publish(new JobObject<Video>
-            {
-                Data = video
-            });
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using ClassTranscribeDatabase;
 using ClassTranscribeDatabase.Models;
+using ClassTranscribeServer.Utils;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -18,11 +19,17 @@ namespace ClassTranscribeServer.Controllers
     {
         private readonly IAuthorizationService _authorizationService;
         private readonly WakeDownloader _wakeDownloader;
+        private readonly UserUtils _userUtils;
 
-        public PlaylistsController(IAuthorizationService authorizationService, WakeDownloader wakeDownloader, CTDbContext context, ILogger<PlaylistsController> logger) : base(context, logger)
+        public PlaylistsController(IAuthorizationService authorizationService, 
+            WakeDownloader wakeDownloader, 
+            CTDbContext context, 
+            UserUtils userUtils,
+            ILogger<PlaylistsController> logger) : base(context, logger)
         {
             _authorizationService = authorizationService;
             _wakeDownloader = wakeDownloader;
+            _userUtils = userUtils;
         }
 
         // GET: api/Playlists
@@ -32,22 +39,29 @@ namespace ClassTranscribeServer.Controllers
         [HttpGet("ByOffering/{offeringId}")]
         public async Task<ActionResult<IEnumerable<PlaylistDTO>>> GetPlaylists(string offeringId)
         {
-            var authorizationResult = await _authorizationService.AuthorizeAsync(this.User, offeringId, Globals.POLICY_READ_OFFERING);
             var offering = await _context.Offerings.FindAsync(offeringId);
+            if (offering == null)
+            {
+                return BadRequest();
+            }
+            var authorizationResult = await _authorizationService.AuthorizeAsync(this.User, offering, Globals.POLICY_READ_OFFERING);
             if (!authorizationResult.Succeeded)
             {
                 return Unauthorized(new { Reason = "Insufficient Permission", AccessType = offering.AccessType });
             }
             var temp = await _context.Playlists
                 .Where(p => p.OfferingId == offeringId)
-                .OrderBy(p => p.CreatedAt).ToListAsync();
+                .OrderBy(p => p.Index)
+                .ThenBy(p => p.CreatedAt).ToListAsync();
             var playlists = temp.Select(p => new PlaylistDTO
             {
                 Id = p.Id,
                 CreatedAt = p.CreatedAt,
                 SourceType = p.SourceType,
                 OfferingId = p.OfferingId,
-                Name = p.Name
+                Name = p.Name,
+                Index = p.Index,
+                PlaylistIdentifier = p.PlaylistIdentifier
             }).ToList();
             return playlists;
         }
@@ -59,15 +73,20 @@ namespace ClassTranscribeServer.Controllers
         [HttpGet("ByOffering2/{offeringId}")]
         public async Task<ActionResult<IEnumerable<PlaylistDTO>>> GetPlaylists2(string offeringId)
         {
-            var authorizationResult = await _authorizationService.AuthorizeAsync(this.User, offeringId, Globals.POLICY_READ_OFFERING);
             var offering = await _context.Offerings.FindAsync(offeringId);
+            if (offering == null)
+            {
+                return BadRequest();
+            }
+            var authorizationResult = await _authorizationService.AuthorizeAsync(this.User, offering, Globals.POLICY_READ_OFFERING);
             if (!authorizationResult.Succeeded)
             {
                 return Unauthorized(new { Reason = "Insufficient Permission", AccessType = offering.AccessType });
             }
             var temp = await _context.Playlists
                 .Where(p => p.OfferingId == offeringId)
-                .OrderBy(p => p.CreatedAt).ToListAsync();
+                .OrderBy(p => p.Index)
+                .ThenBy(p => p.CreatedAt).ToListAsync();
             var playlists = temp.Select(p => new PlaylistDTO
             {
                 Id = p.Id,
@@ -75,9 +94,11 @@ namespace ClassTranscribeServer.Controllers
                 SourceType = p.SourceType,
                 OfferingId = p.OfferingId,
                 Name = p.Name,
+                Index = p.Index,
                 Medias = p.Medias.Where(m => m.Video != null).Select(m => new MediaDTO
                 {
                     Id = m.Id,
+                    Index = m.Index,
                     Name = m.Name,
                     JsonMetadata = m.JsonMetadata,
                     CreatedAt = m.CreatedAt,
@@ -117,33 +138,37 @@ namespace ClassTranscribeServer.Controllers
         public async Task<ActionResult<PlaylistDTO>> GetPlaylist(string id)
         {
             var p = await _context.Playlists.FindAsync(id);
-
+            var user = _userUtils.GetUser(User);
             if (p == null)
             {
                 return NotFound();
             }
-            List<MediaDTO> medias = p.Medias.OrderBy(m => m.CreatedAt).Select(m => new MediaDTO
-            {
-                Id = m.Id,
-                Name = m.Name,
-                PlaylistId = m.PlaylistId,
-                CreatedAt = m.CreatedAt,
-                JsonMetadata = m.JsonMetadata,
-                SourceType = m.SourceType,
-                Ready = m.Video == null ? false : m.Video.Transcriptions.Any(),
-                Video = m.Video == null ? null : new VideoDTO
+            List<MediaDTO> medias = p.Medias
+                .OrderBy(m => m.Index)
+                .ThenBy(m => m.CreatedAt).Select(m => new MediaDTO
                 {
-                    Id = m.Video.Id,
-                    Video1Path = m.Video.Video1?.Path,
-                    Video2Path = m.Video.Video2?.Path
-                },
-                Transcriptions = m.Video == null ? null : m.Video.Transcriptions.Select(t => new TranscriptionDTO
-                {
-                    Id = t.Id,
-                    Path = t.File != null ? t.File.Path : null,
-                    Language = t.Language
-                }).ToList(),
-            }).ToList();
+                    Id = m.Id,
+                    Index = m.Index,
+                    Name = m.Name,
+                    PlaylistId = m.PlaylistId,
+                    CreatedAt = m.CreatedAt,
+                    JsonMetadata = m.JsonMetadata,
+                    SourceType = m.SourceType,
+                    Ready = m.Video == null ? false : m.Video.Transcriptions.Any(),
+                    Video = m.Video == null ? null : new VideoDTO
+                    {
+                        Id = m.Video.Id,
+                        Video1Path = m.Video.Video1?.Path,
+                        Video2Path = m.Video.Video2?.Path
+                    },
+                    Transcriptions = m.Video == null ? null : m.Video.Transcriptions.Select(t => new TranscriptionDTO
+                    {
+                        Id = t.Id,
+                        Path = t.File != null ? t.File.Path : null,
+                        Language = t.Language
+                    }).ToList(),
+                    WatchHistory = m.WatchHistories.Where(w => w.ApplicationUserId == user.Id).FirstOrDefault()
+                }).ToList();
 
             return new PlaylistDTO
             {
@@ -152,7 +177,8 @@ namespace ClassTranscribeServer.Controllers
                 SourceType = p.SourceType,
                 OfferingId = p.OfferingId,
                 Name = p.Name,
-                Medias = medias
+                Medias = medias,
+                PlaylistIdentifier = p.PlaylistIdentifier
             };
         }
 
@@ -161,11 +187,16 @@ namespace ClassTranscribeServer.Controllers
         [Authorize]
         public async Task<IActionResult> PutPlaylist(string id, Playlist playlist)
         {
-            if (playlist == null || playlist.Id == null || id != playlist.Id)
+            if (playlist == null || playlist.Id == null || id != playlist.Id || playlist.OfferingId == null)
             {
                 return BadRequest();
             }
-            var authorizationResult = await _authorizationService.AuthorizeAsync(this.User, playlist.OfferingId, Globals.POLICY_UPDATE_OFFERING);
+            var offering = await _context.Offerings.FindAsync(playlist.OfferingId);
+            if (offering == null)
+            {
+                return BadRequest();
+            }
+            var authorizationResult = await _authorizationService.AuthorizeAsync(this.User, offering, Globals.POLICY_UPDATE_OFFERING);
             if (!authorizationResult.Succeeded)
             {
                 if (User.Identity.IsAuthenticated)
@@ -205,11 +236,16 @@ namespace ClassTranscribeServer.Controllers
         [Authorize]
         public async Task<ActionResult<Playlist>> PostPlaylist(Playlist playlist)
         {
-            if (playlist == null)
+            if (playlist == null || playlist.OfferingId == null)
             {
                 return BadRequest();
             }
-            var authorizationResult = await _authorizationService.AuthorizeAsync(this.User, playlist.OfferingId, Globals.POLICY_UPDATE_OFFERING);
+            var offering = await _context.Offerings.FindAsync(playlist.OfferingId);
+            if (offering == null)
+            {
+                return BadRequest();
+            }
+            var authorizationResult = await _authorizationService.AuthorizeAsync(this.User, offering, Globals.POLICY_UPDATE_OFFERING);
             if (!authorizationResult.Succeeded)
             {
                 if (User.Identity.IsAuthenticated)
@@ -237,8 +273,12 @@ namespace ClassTranscribeServer.Controllers
         [Authorize]
         public async Task<ActionResult<Playlist>> DeletePlaylist(string id)
         {
+            if (id == null)
+            {
+                return BadRequest();
+            }
             var playlist = await _context.Playlists.FindAsync(id);
-            var authorizationResult = await _authorizationService.AuthorizeAsync(this.User, playlist.OfferingId, Globals.POLICY_UPDATE_OFFERING);
+            var authorizationResult = await _authorizationService.AuthorizeAsync(this.User, playlist.Offering, Globals.POLICY_UPDATE_OFFERING);
             if (!authorizationResult.Succeeded)
             {
                 if (User.Identity.IsAuthenticated)
@@ -259,6 +299,43 @@ namespace ClassTranscribeServer.Controllers
             await _context.SaveChangesAsync();
 
             return playlist;
+        }
+
+        // POST /api/Playlist/Reorder/{offeringId}
+        [HttpPost("Reorder/{offeringId}")]
+        public async Task<ActionResult> Reorder(string offeringId, List<string> playlistIds)
+        {
+            var offering = await _context.Offerings.FindAsync(offeringId);
+            if (playlistIds == null || !playlistIds.Any() || offering == null || offering.Playlists.Count != playlistIds.Count)
+            {
+                return BadRequest();
+            }
+            var authorizationResult = await _authorizationService.AuthorizeAsync(this.User, offering, Globals.POLICY_UPDATE_OFFERING);
+            if (!authorizationResult.Succeeded)
+            {
+                if (User.Identity.IsAuthenticated)
+                {
+                    return new ForbidResult();
+                }
+                else
+                {
+                    return new ChallengeResult();
+                }
+            }
+            var playlists = new List<Playlist>();
+            for (int i = 0; i < playlistIds.Count; i++)
+            {
+                var playlist = await _context.Playlists.FindAsync(playlistIds[i]);
+                if (playlist == null || playlist.OfferingId != offeringId)
+                {
+                    return BadRequest("Invalid playlistIds");
+                }
+                playlist.Index = i;
+                playlists.Add(playlist);
+            }
+            _context.Playlists.UpdateRange(playlists);
+            await _context.SaveChangesAsync();
+            return RedirectToAction("GetPlaylists", new { offeringId = offeringId });
         }
 
         private bool PlaylistExists(string id)
@@ -288,6 +365,8 @@ namespace ClassTranscribeServer.Controllers
         public SourceType SourceType { get; set; }
         public string OfferingId { get; set; }
         public string Name { get; set; }
+        public int Index { get; set; }
+        public string PlaylistIdentifier { get; set; }
         public List<MediaDTO> Medias { get; set; }
     }
 
@@ -302,6 +381,8 @@ namespace ClassTranscribeServer.Controllers
         public VideoDTO Video { get; set; }
         public List<TranscriptionDTO> Transcriptions { get; set; }
         public string Name { get; set; }
+        public int Index { get; set; }
+        public WatchHistory WatchHistory { get; set; }
     }
 
     public class MediaSearchDTO

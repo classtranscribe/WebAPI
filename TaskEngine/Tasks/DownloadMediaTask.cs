@@ -11,7 +11,10 @@ using static ClassTranscribeDatabase.CommonUtils;
 
 namespace TaskEngine.Tasks
 {
-    class DownloadMediaTask : RabbitMQTask<JobObject<Media>>
+    /// <summary>
+    /// This task fetches downloads the video file for a given media.
+    /// </summary>
+    class DownloadMediaTask : RabbitMQTask<string>
     {
         private readonly RpcClient _rpcClient;
         private readonly ConvertVideoToWavTask _convertVideoToWavTask;
@@ -31,9 +34,13 @@ namespace TaskEngine.Tasks
             _slack = slack;
         }
 
-        protected override async Task OnConsume(JobObject<Media> j)
+        protected override async Task OnConsume(string mediaId, TaskParameters taskParameters)
         {
-            Media media = j.Data;
+            Media media;
+            using (var _context = CTDbContext.CreateDbContext())
+            {
+                media = await _context.Medias.FindAsync(mediaId);
+            }
             _logger.LogInformation("Consuming" + media);
             Video video = new Video();
             switch (media.SourceType)
@@ -44,7 +51,11 @@ namespace TaskEngine.Tasks
                 case SourceType.Kaltura: video = await DownloadKalturaVideo(media); break;
                 case SourceType.Box: video = await DownloadBoxVideo(media); break;
             }
-            if (video == null || new FileInfo(video.Video1.Path).Length < 1000 || (video.Video2 != null && new FileInfo(video.Video2.Path).Length < 1000))
+            // If no valid video1, or if a video2 object exists but not a valid file - fail the task.
+            if (video == null ||
+                !File.Exists(video.Video1.Path)
+                || new FileInfo(video.Video1.Path).Length < 1000
+                || (video.Video2 != null && (!File.Exists(video.Video2.Path) || new FileInfo(video.Video2.Path).Length < 1000)))
             {
                 throw new Exception("DownloadMediaTask failed for mediaId " + media.Id);
             }
@@ -65,14 +76,8 @@ namespace TaskEngine.Tasks
                         latestMedia.VideoId = video.Id;
                         await _context.SaveChangesAsync();
                         _logger.LogInformation("Downloaded:" + video);
-                        _convertVideoToWavTask.Publish(new JobObject<Video>
-                        {
-                            Data = video
-                        });
-                        _processVideoTask.Publish(new JobObject<Video>
-                        {
-                            Data = video
-                        });
+                        _convertVideoToWavTask.Publish(video.Id);
+                        _processVideoTask.Publish(video.Id);
                     }
                     else
                     {
@@ -89,14 +94,8 @@ namespace TaskEngine.Tasks
                             latestMedia.VideoId = video.Id;
                             await _context.SaveChangesAsync();
                             _logger.LogInformation("Downloaded:" + video);
-                            _convertVideoToWavTask.Publish(new JobObject<Video>
-                            {
-                                Data = video
-                            });
-                            _processVideoTask.Publish(new JobObject<Video>
-                            {
-                                Data = video
-                            });
+                            _convertVideoToWavTask.Publish(video.Id);
+                            _processVideoTask.Publish(video.Id);
                         }
                         // If video and file both exist.
                         else

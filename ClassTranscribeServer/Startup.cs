@@ -145,6 +145,7 @@ namespace ClassTranscribeServer
             services.AddScoped<RabbitMQConnection>();
             services.AddScoped<WakeDownloader>();
             services.AddScoped<Seeder>();
+            services.AddScoped<UserUtils>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

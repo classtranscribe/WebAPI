@@ -43,6 +43,7 @@ namespace ClassTranscribeDatabase
         public DbSet<Log> Logs { get; set; }
         public DbSet<EPub> EPubs { get; set; }
         public DbSet<Dictionary> Dictionaries { get; set; }
+        public DbSet<WatchHistory> WatchHistories { get; set; }
 
         public static string ConnectionStringBuilder()
         {
@@ -111,6 +112,7 @@ namespace ClassTranscribeDatabase
             builder.Entity<Caption>().HasQueryFilter(m => m.IsDeletedStatus == Status.Active);
             builder.Entity<Log>().HasQueryFilter(m => m.IsDeletedStatus == Status.Active);
             builder.Entity<Dictionary>().HasQueryFilter(m => m.IsDeletedStatus == Status.Active);
+            builder.Entity<WatchHistory>().HasQueryFilter(m => m.IsDeletedStatus == Status.Active);
 
 
             builder.Entity<CourseOffering>()
@@ -147,6 +149,8 @@ namespace ClassTranscribeDatabase
             builder.Entity<ApplicationUser>().Property(m => m.Metadata).HasJsonValueConversion();
             builder.Entity<Video>().Property(m => m.SceneData).HasJsonValueConversion();
             builder.Entity<Video>().Property(m => m.JsonMetadata).HasJsonValueConversion();
+            builder.Entity<Offering>().Property(m => m.JsonMetadata).HasJsonValueConversion();
+            builder.Entity<WatchHistory>().Property(m => m.Json).HasJsonValueConversion();
         }
         public override int SaveChanges(bool acceptAllChangesOnSuccess)
         {

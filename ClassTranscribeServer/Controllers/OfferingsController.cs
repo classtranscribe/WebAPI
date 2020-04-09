@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
@@ -107,7 +108,7 @@ namespace ClassTranscribeServer.Controllers
             {
                 return BadRequest("Invalid Offering.Id");
             }
-            var authorizationResult = await _authorizationService.AuthorizeAsync(this.User, id, Globals.POLICY_UPDATE_OFFERING);
+            var authorizationResult = await _authorizationService.AuthorizeAsync(this.User, offering, Globals.POLICY_UPDATE_OFFERING);
             if (!authorizationResult.Succeeded)
             {
                 if (User.Identity.IsAuthenticated)
@@ -126,6 +127,51 @@ namespace ClassTranscribeServer.Controllers
             {
                 await _context.SaveChangesAsync();
             }
+
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!OfferingExists(id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+
+            return NoContent();
+        }
+
+        // PUT: api/Offerings/5
+        [HttpPut("JsonMetadata/{id}")]
+        public async Task<IActionResult> PutOffering(string id, JObject jsonMetadata)
+        {
+            var offering = await _context.Offerings.FindAsync(id);
+            if (offering == null)
+            {
+                return BadRequest("Invalid Offering.Id");
+            }
+            var authorizationResult = await _authorizationService.AuthorizeAsync(this.User, offering, Globals.POLICY_UPDATE_OFFERING);
+            if (!authorizationResult.Succeeded)
+            {
+                if (User.Identity.IsAuthenticated)
+                {
+                    return new ForbidResult();
+                }
+                else
+                {
+                    return new ChallengeResult();
+                }
+            }
+            offering.JsonMetadata = jsonMetadata;
+            _context.Entry(offering).State = EntityState.Modified;
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+
             catch (DbUpdateConcurrencyException)
             {
                 if (!OfferingExists(id))
@@ -178,7 +224,12 @@ namespace ClassTranscribeServer.Controllers
         [HttpDelete("{id}")]
         public async Task<ActionResult<Offering>> DeleteOffering(string id)
         {
-            var authorizationResult = await _authorizationService.AuthorizeAsync(this.User, id, Globals.POLICY_UPDATE_OFFERING);
+            var offering = await _context.Offerings.FindAsync(id);
+            if (offering == null)
+            {
+                return BadRequest();
+            }
+            var authorizationResult = await _authorizationService.AuthorizeAsync(this.User, offering, Globals.POLICY_UPDATE_OFFERING);
             if (!authorizationResult.Succeeded)
             {
                 if (User.Identity.IsAuthenticated)
@@ -189,11 +240,6 @@ namespace ClassTranscribeServer.Controllers
                 {
                     return new ChallengeResult();
                 }
-            }
-            var offering = await _context.Offerings.FindAsync(id);
-            if (offering == null)
-            {
-                return NotFound();
             }
 
             _context.Offerings.Remove(offering);

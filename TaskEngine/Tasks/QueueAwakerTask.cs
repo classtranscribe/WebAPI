@@ -1,5 +1,4 @@
 ﻿using ClassTranscribeDatabase;
-using ClassTranscribeDatabase.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
@@ -52,16 +51,16 @@ namespace TaskEngine.Tasks
             using (var context = CTDbContext.CreateDbContext())
             {
                 // Medias for which no videos have downloaded
-                (await context.Medias.Where(m => m.Video == null).ToListAsync()).ForEach(m => _downloadMediaTask.Publish(new JobObject<Media> { Data = m }));
+                (await context.Medias.Where(m => m.Video == null).ToListAsync()).ForEach(m => _downloadMediaTask.Publish(m.Id));
                 // Videos which haven't been converted to wav 
-                (await context.Videos.Where(v => v.Medias.Any() && v.Audio == null).ToListAsync()).ForEach(v => _convertVideoToWavTask.Publish(new JobObject<Video> { Data = v }));
+                (await context.Videos.Where(v => v.Medias.Any() && v.Audio == null).ToListAsync()).ForEach(v => _convertVideoToWavTask.Publish(v.Id));
                 // Videos which have failed in transcribing
                 (await context.Videos.Where(v => v.TranscribingAttempts < 3 && v.TranscriptionStatus != "NoError" && v.Medias.Any() && v.Audio != null)
-                    .ToListAsync()).ForEach(v => _transcriptionTask.Publish(new JobObject<Video> { Data = v }));
+                    .ToListAsync()).ForEach(v => _transcriptionTask.Publish(v.Id));
                 // Completed Transcriptions which haven't generated vtt files
                 (await context.Transcriptions.Where(t => t.Captions.Count > 0 && t.File == null)
                     .ToListAsync())
-                    .ForEach(t => _generateVTTFileTask.Publish(new JobObject<Transcription> { Data = t }));
+                    .ForEach(t => _generateVTTFileTask.Publish(t.Id));
             }
         }
 
@@ -71,11 +70,11 @@ namespace TaskEngine.Tasks
             {
                 var period = DateTime.Now.AddMonths(-6);
                 var playlists = await _context.Offerings.Where(o => o.Term.StartDate >= period).SelectMany(o => o.Playlists).ToListAsync();
-                playlists.ForEach(p => _downloadPlaylistInfoTask.Publish(new JobObject<Playlist> { Data = p }));
+                playlists.ForEach(p => _downloadPlaylistInfoTask.Publish(p.Id));
             }
         }
 
-        protected async override Task OnConsume(JObject jObject)
+        protected async override Task OnConsume(JObject jObject, TaskParameters taskParameters)
         {
             using (var _context = CTDbContext.CreateDbContext())
             {
@@ -95,48 +94,48 @@ namespace TaskEngine.Tasks
                 {
                     var playlistId = jObject["PlaylistId"].ToString();
                     var playlist = await _context.Playlists.FindAsync(playlistId);
-                    _downloadPlaylistInfoTask.Publish(new JobObject<Playlist> { Data = playlist });
+                    _downloadPlaylistInfoTask.Publish(playlist.Id);
                 }
                 else if (type == TaskType.GenerateVTTFile.ToString())
                 {
                     var transcriptionId = jObject["TranscriptionId"].ToString();
                     var transcription = await _context.Transcriptions.FindAsync(transcriptionId);
-                    _generateVTTFileTask.Publish(new JobObject<Transcription> { Data = transcription });
+                    _generateVTTFileTask.Publish(transcription.Id);
                 }
                 else if (type == TaskType.SceneDetection.ToString())
                 {
                     var mediaId = jObject["mediaId"].ToString();
                     var media = _context.Medias.Find(mediaId);
-                    _scenedDetectionTask.Publish(new JobObject<Video> { Data = media.Video });
+                    _scenedDetectionTask.Publish(media.Video.Id);
                 }
                 else if (type == TaskType.CreateBoxToken.ToString())
                 {
                     var authCode = jObject["authCode"].ToString();
-                    _createBoxTokenTask.Publish(new JobObject<string> { Data = authCode });
+                    _createBoxTokenTask.Publish(authCode);
                 }
                 else if (type == TaskType.DownloadMedia.ToString())
                 {
                     var mediaId = jObject["mediaId"].ToString();
                     var media = await _context.Medias.FindAsync(mediaId);
-                    _downloadMediaTask.Publish(new JobObject<Media> { Data = media });
+                    _downloadMediaTask.Publish(media.Id);
                 }
                 else if (type == TaskType.ConvertMedia.ToString())
                 {
                     var videoId = jObject["videoId"].ToString();
                     var video = await _context.Videos.FindAsync(videoId);
-                    _convertVideoToWavTask.Publish(new JobObject<Video> { Data = video });
+                    _convertVideoToWavTask.Publish(video.Id);
                 }
                 else if (type == TaskType.Transcribe.ToString())
                 {
                     var videoId = jObject["videoId"].ToString();
                     var video = await _context.Videos.FindAsync(videoId);
-                    _transcriptionTask.Publish(new JobObject<Video> { Data = video });
+                    _transcriptionTask.Publish(video.Id);
                 }
                 else if (type == TaskType.UpdateOffering.ToString())
                 {
                     var offeringId = jObject["offeringId"].ToString();
                     (await _context.Playlists.Where(o => o.OfferingId == offeringId).ToListAsync())
-                        .ForEach(p => _downloadPlaylistInfoTask.Publish(new JobObject<Playlist> { Data = p }));
+                        .ForEach(p => _downloadPlaylistInfoTask.Publish(p.Id));
                 }
             }
         }

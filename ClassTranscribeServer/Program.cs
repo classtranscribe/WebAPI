@@ -14,7 +14,9 @@ namespace ClassTranscribeServer
 
         public static IWebHostBuilder CreateWebHostBuilder(string[] args)
         {
-            return WebHost.CreateDefaultBuilder(args).ConfigureServices(c => c.AddOptions().Configure<AppSettings>(CTDbContext.GetConfigurations())).UseStartup<Startup>();
+            return WebHost.CreateDefaultBuilder(args)
+                .ConfigureServices(c => c.AddOptions().Configure<AppSettings>(CTDbContext.GetConfigurations()))
+                .UseStartup<Startup>();
         }
     }
 }

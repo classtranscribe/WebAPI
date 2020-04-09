@@ -3,15 +3,17 @@ using System;
 using ClassTranscribeDatabase;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace ClassTranscribeDatabase.Migrations
 {
     [DbContext(typeof(CTDbContext))]
-    partial class CTDbContextModelSnapshot : ModelSnapshot
+    [Migration("20200326193756_Offering-JsonMetadata")]
+    partial class OfferingJsonMetadata
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -416,9 +418,6 @@ namespace ClassTranscribeDatabase.Migrations
                     b.Property<string>("CreatedBy")
                         .HasColumnType("text");
 
-                    b.Property<int>("Index")
-                        .HasColumnType("integer");
-
                     b.Property<int>("IsDeletedStatus")
                         .HasColumnType("integer");
 
@@ -515,9 +514,6 @@ namespace ClassTranscribeDatabase.Migrations
 
                     b.Property<string>("CreatedBy")
                         .HasColumnType("text");
-
-                    b.Property<int>("Index")
-                        .HasColumnType("integer");
 
                     b.Property<int>("IsDeletedStatus")
                         .HasColumnType("integer");
@@ -772,45 +768,6 @@ namespace ClassTranscribeDatabase.Migrations
                     b.HasIndex("Video2Id");
 
                     b.ToTable("Videos");
-                });
-
-            modelBuilder.Entity("ClassTranscribeDatabase.Models.WatchHistory", b =>
-                {
-                    b.Property<string>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("text");
-
-                    b.Property<string>("ApplicationUserId")
-                        .HasColumnType("text");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp without time zone");
-
-                    b.Property<string>("CreatedBy")
-                        .HasColumnType("text");
-
-                    b.Property<int>("IsDeletedStatus")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("Json")
-                        .HasColumnType("text");
-
-                    b.Property<DateTime>("LastUpdatedAt")
-                        .HasColumnType("timestamp without time zone");
-
-                    b.Property<string>("LastUpdatedBy")
-                        .HasColumnType("text");
-
-                    b.Property<string>("MediaId")
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ApplicationUserId");
-
-                    b.HasIndex("MediaId");
-
-                    b.ToTable("WatchHistories");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -1084,17 +1041,6 @@ namespace ClassTranscribeDatabase.Migrations
                     b.HasOne("ClassTranscribeDatabase.Models.FileRecord", "Video2")
                         .WithMany()
                         .HasForeignKey("Video2Id");
-                });
-
-            modelBuilder.Entity("ClassTranscribeDatabase.Models.WatchHistory", b =>
-                {
-                    b.HasOne("ClassTranscribeDatabase.Models.ApplicationUser", "ApplicationUser")
-                        .WithMany()
-                        .HasForeignKey("ApplicationUserId");
-
-                    b.HasOne("ClassTranscribeDatabase.Models.Media", "Media")
-                        .WithMany()
-                        .HasForeignKey("MediaId");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>

@@ -30,17 +30,17 @@ namespace ClassTranscribeServer.Controllers
         public AccountController(
             UserManager<ApplicationUser> userManager,
             SignInManager<ApplicationUser> signInManager,
-            CTDbContext context, ILogger<AccountController> logger) : base(context, logger)
+            CTDbContext context, UserUtils userUtils,
+            ILogger<AccountController> logger) : base(context, logger)
         {
             _userManager = userManager;
             _signInManager = signInManager;
-            _userUtils = new UserUtils(_userManager, _context);
+            _userUtils = userUtils;
         }
 
         [NonAction]
         public async Task<LoggedInDTO> Login(ApplicationUser user)
         {
-
             var result = await _signInManager.PasswordSignInAsync(user.Email, user.Email, false, false);
 
             if (result.Succeeded)
@@ -86,6 +86,10 @@ namespace ClassTranscribeServer.Controllers
         [Authorize(Roles = Globals.ROLE_ADMIN)]
         public async Task<ActionResult<LoggedInDTO>> LoginAs([FromBody] LoginAsDTO model)
         {
+            if (model == null)
+            {
+                return BadRequest();
+            }
             LoggedInDTO loggedInDTO;
             try
             {

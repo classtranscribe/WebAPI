@@ -1,5 +1,6 @@
 ﻿using ClassTranscribeDatabase;
 using ClassTranscribeDatabase.Models;
+using ClassTranscribeServer.Utils;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -7,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -18,10 +20,18 @@ namespace ClassTranscribeServer.Controllers
     public class MediaController : BaseController
     {
         private readonly WakeDownloader _wakeDownloader;
+        private readonly IAuthorizationService _authorizationService;
+        private readonly UserUtils _userUtils;
 
-        public MediaController(WakeDownloader wakeDownloader, CTDbContext context, ILogger<MediaController> logger) : base(context, logger)
+        public MediaController(IAuthorizationService authorizationService, 
+            WakeDownloader wakeDownloader, 
+            CTDbContext context,
+            UserUtils userUtils,
+            ILogger<MediaController> logger) : base(context, logger)
         {
+            _authorizationService = authorizationService;
             _wakeDownloader = wakeDownloader;
+            _userUtils = userUtils;
         }
 
         // GET: api/Media/5
@@ -30,14 +40,13 @@ namespace ClassTranscribeServer.Controllers
         {
             var media = await _context.Medias.FindAsync(id);
 
-
             if (media == null)
             {
                 return NotFound();
             }
 
             var v = await _context.Videos.FindAsync(media.VideoId);
-
+            var user = _userUtils.GetUser(this.User);
             var mediaDTO = new MediaDTO
             {
                 Id = media.Id,
@@ -59,6 +68,7 @@ namespace ClassTranscribeServer.Controllers
                     Video1Path = media.Video.Video1?.Path,
                     Video2Path = media.Video.Video2?.Path
                 },
+                WatchHistory = media.WatchHistories.Where(w => w.ApplicationUserId == user.Id).FirstOrDefault()
             };
 
             return mediaDTO;
@@ -156,10 +166,10 @@ namespace ClassTranscribeServer.Controllers
                 using (var stream = new FileStream(filePath, FileMode.Create))
                 {
                     await video1.CopyToAsync(stream);
-                    media.UniqueMediaIdentifier = FileRecord.ComputeSha256HashForFile(filePath);
-                    media.JsonMetadata.Add("video1", JsonConvert.SerializeObject(video1));
-                    media.JsonMetadata.Add("video1Path", filePath);
                 }
+                media.UniqueMediaIdentifier = FileRecord.ComputeSha256HashForFile(filePath);
+                media.JsonMetadata.Add("video1", JsonConvert.SerializeObject(video1));
+                media.JsonMetadata.Add("video1Path", filePath);
             }
             // Copy second File
             if (video2 != null && video2.Length > 0)
@@ -172,10 +182,9 @@ namespace ClassTranscribeServer.Controllers
                 using (var stream = new FileStream(filePath, FileMode.Create))
                 {
                     await video2.CopyToAsync(stream);
-
-                    media.JsonMetadata.Add("video2", JsonConvert.SerializeObject(video2));
-                    media.JsonMetadata.Add("video2Path", filePath);
                 }
+                media.JsonMetadata.Add("video2", JsonConvert.SerializeObject(video2));
+                media.JsonMetadata.Add("video2Path", filePath);
             }
 
             _context.Medias.Add(media);
@@ -198,6 +207,48 @@ namespace ClassTranscribeServer.Controllers
             await _context.SaveChangesAsync();
 
             return media;
+        }
+
+        // POST /api/Media/Reorder/{playlistId}
+        [HttpPost("Reorder/{playlistId}")]
+        public async Task<ActionResult> Reorder(string playlistId, List<string> mediaIds)
+        {
+            var playlist = await _context.Playlists.FindAsync(playlistId);
+            if (mediaIds == null || !mediaIds.Any() || playlist == null || playlist.Medias.Count != mediaIds.Count || playlist.OfferingId == null)
+            {
+                return BadRequest();
+            }
+            var offering = await _context.Offerings.FindAsync(playlist.OfferingId);
+            if (offering == null)
+            {
+                return BadRequest();
+            }
+            var authorizationResult = await _authorizationService.AuthorizeAsync(this.User, offering, Globals.POLICY_UPDATE_OFFERING);
+            if (!authorizationResult.Succeeded)
+            {
+                if (User.Identity.IsAuthenticated)
+                {
+                    return new ForbidResult();
+                }
+                else
+                {
+                    return new ChallengeResult();
+                }
+            }
+            var medias = new List<Media>();
+            for (int i = 0; i < mediaIds.Count; i++)
+            {
+                var media = await _context.Medias.FindAsync(mediaIds[i]);
+                if (media == null || media.PlaylistId != playlistId)
+                {
+                    return BadRequest("Invalid mediaIds");
+                }
+                media.Index = i;
+                medias.Add(media);
+            }
+            _context.Medias.UpdateRange(medias);
+            await _context.SaveChangesAsync();
+            return RedirectToAction("GetPlaylist", "Playlists", new { id = playlistId });
         }
 
         private bool MediaExists(string id)
