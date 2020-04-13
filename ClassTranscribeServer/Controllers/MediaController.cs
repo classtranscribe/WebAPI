@@ -68,7 +68,7 @@ namespace ClassTranscribeServer.Controllers
                     Video1Path = media.Video.Video1?.Path,
                     Video2Path = media.Video.Video2?.Path
                 },
-                WatchHistory = media.WatchHistories.Where(w => w.ApplicationUserId == user.Id).FirstOrDefault()
+                WatchHistory = user != null ? media.WatchHistories.Where(w => w.ApplicationUserId == user.Id).FirstOrDefault() : null
             };
 
             return mediaDTO;

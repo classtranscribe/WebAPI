@@ -167,7 +167,7 @@ namespace ClassTranscribeServer.Controllers
                         Path = t.File != null ? t.File.Path : null,
                         Language = t.Language
                     }).ToList(),
-                    WatchHistory = m.WatchHistories.Where(w => w.ApplicationUserId == user.Id).FirstOrDefault()
+                    WatchHistory = user != null ? m.WatchHistories.Where(w => w.ApplicationUserId == user.Id).FirstOrDefault() : null
                 }).ToList();
 
             return new PlaylistDTO
