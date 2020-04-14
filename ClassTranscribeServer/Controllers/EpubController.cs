@@ -16,14 +16,19 @@ namespace ClassTranscribeServer.Controllers
     public class EpubController : BaseController
     {
         private readonly WakeDownloader _wakeDownloader;
+        private readonly CaptionQueries _captionQueries;
 
-        public EpubController(WakeDownloader wakeDownloader, CTDbContext context, ILogger<EpubController> logger) : base(context, logger)
+        public EpubController(WakeDownloader wakeDownloader, 
+            CTDbContext context, 
+            CaptionQueries captionQueries,
+            ILogger<EpubController> logger) : base(context, logger)
         {
+            _captionQueries = captionQueries;
             _wakeDownloader = wakeDownloader;
         }
 
 
-        public class EPubChapter
+        public class EPubSceneData
         {
             public string Image { get; set; }
             public string Text { get; set; }
@@ -33,9 +38,9 @@ namespace ClassTranscribeServer.Controllers
 
 
         [NonAction]
-        public List<EPubChapter> GetEPubChapters(JArray scenes, List<Caption> captions)
+        public static List<EPubSceneData> GetSceneData(JArray scenes, List<Caption> captions)
         {
-            var chapters = new List<EPubChapter>();
+            var chapters = new List<EPubSceneData>();
             var nextStart = new TimeSpan(0);
             foreach (JObject scene in scenes)
             {
@@ -44,7 +49,7 @@ namespace ClassTranscribeServer.Controllers
                 StringBuilder sb = new StringBuilder();
                 subset.ForEach(c => sb.Append(c.Text + " "));
                 string allText = sb.ToString();
-                chapters.Add(new EPubChapter
+                chapters.Add(new EPubSceneData
                 {
                     Image = scene["img_file"].ToString(),
                     Start = TimeSpan.Parse(scene["start"].ToString()),
@@ -61,7 +66,7 @@ namespace ClassTranscribeServer.Controllers
         /// </summary>
         /// 
         [HttpGet("GetEpubData")]
-        public async Task<ActionResult<List<EPubChapter>>> GetEpubData(string mediaId, string language)
+        public async Task<ActionResult<List<EPubSceneData>>> GetEpubData(string mediaId, string language)
         {
             var media = _context.Medias.Find(mediaId);
             EPub epub = new EPub
@@ -76,10 +81,9 @@ namespace ClassTranscribeServer.Controllers
                 return NotFound();
             }
 
-            var query = new CaptionQueries(_context);
-            var captions = await query.GetCaptionsAsync(epub.VideoId, epub.Language);
+            var captions = await _captionQueries.GetCaptionsAsync(epub.VideoId, epub.Language);
 
-            return GetEPubChapters(video.SceneData["Scenes"] as JArray, captions);
+            return GetSceneData(video.SceneData["Scenes"] as JArray, captions);
         }
 
         [HttpGet("RequestEpubCreation")]

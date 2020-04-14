@@ -146,6 +146,7 @@ namespace ClassTranscribeServer
             services.AddScoped<WakeDownloader>();
             services.AddScoped<Seeder>();
             services.AddScoped<UserUtils>();
+            services.AddScoped<CaptionQueries>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

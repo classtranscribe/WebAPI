@@ -143,6 +143,18 @@ namespace ClassTranscribeServer.Controllers
             {
                 return NotFound();
             }
+            var authorizationResult = await _authorizationService.AuthorizeAsync(User, p.Offering, Globals.POLICY_UPDATE_OFFERING);
+            if (!authorizationResult.Succeeded)
+            {
+                if (User.Identity.IsAuthenticated)
+                {
+                    return new ForbidResult();
+                }
+                else
+                {
+                    return new ChallengeResult();
+                }
+            }
             List<MediaDTO> medias = p.Medias
                 .OrderBy(m => m.Index)
                 .ThenBy(m => m.CreatedAt).Select(m => new MediaDTO
