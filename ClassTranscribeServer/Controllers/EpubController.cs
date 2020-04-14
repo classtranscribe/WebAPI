@@ -1,6 +1,7 @@
 ﻿using ClassTranscribeDatabase;
 using ClassTranscribeDatabase.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
 using System;
@@ -91,6 +92,92 @@ namespace ClassTranscribeServer.Controllers
         {
             _wakeDownloader.GenerateScenes(mediaId);
             return Ok();
+        }
+
+        // GET: api/EPubs
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<EPub>>> GetEPubs()
+        {
+            return await _context.EPubs.ToListAsync();
+        }
+
+        // GET: api/EPubs/5
+        [HttpGet("{id}")]
+        public async Task<ActionResult<EPub>> GetEPub(string id)
+        {
+            var ePub = await _context.EPubs.FindAsync(id);
+
+            if (ePub == null)
+            {
+                return NotFound();
+            }
+
+            return ePub;
+        }
+
+        // PUT: api/EPubs/5
+        // To protect from overposting attacks, please enable the specific properties you want to bind to, for
+        // more details see https://aka.ms/RazorPagesCRUD.
+        [HttpPut("{id}")]
+        public async Task<IActionResult> PutEPub(string id, EPub ePub)
+        {
+            if (id != ePub.Id)
+            {
+                return BadRequest();
+            }
+
+            _context.Entry(ePub).State = EntityState.Modified;
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!EPubExists(id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+
+            return NoContent();
+        }
+
+        // POST: api/EPubs
+        // To protect from overposting attacks, please enable the specific properties you want to bind to, for
+        // more details see https://aka.ms/RazorPagesCRUD.
+        [HttpPost]
+        public async Task<ActionResult<EPub>> PostEPub(EPub ePub)
+        {
+            _context.EPubs.Add(ePub);
+            await _context.SaveChangesAsync();
+
+            return CreatedAtAction("GetEPub", new { id = ePub.Id }, ePub);
+        }
+
+        // DELETE: api/EPubs/5
+        [HttpDelete("{id}")]
+        public async Task<ActionResult<EPub>> DeleteEPub(string id)
+        {
+            var ePub = await _context.EPubs.FindAsync(id);
+            if (ePub == null)
+            {
+                return NotFound();
+            }
+
+            _context.EPubs.Remove(ePub);
+            await _context.SaveChangesAsync();
+
+            return ePub;
+        }
+
+        private bool EPubExists(string id)
+        {
+            return _context.EPubs.Any(e => e.Id == id);
         }
     }
 }
