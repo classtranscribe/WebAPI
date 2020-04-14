@@ -45,7 +45,7 @@ namespace ClassTranscribeServer.Controllers
                 return NotFound();
             }
 
-            var authorizationResult = await _authorizationService.AuthorizeAsync(User, media.Playlist.Offering, Globals.POLICY_UPDATE_OFFERING);
+            var authorizationResult = await _authorizationService.AuthorizeAsync(User, media.Playlist.Offering, Globals.POLICY_READ_OFFERING);
             if (!authorizationResult.Succeeded)
             {
                 if (User.Identity.IsAuthenticated)
