@@ -47,7 +47,7 @@ namespace ClassTranscribeServer.Controllers
             var authorizationResult = await _authorizationService.AuthorizeAsync(this.User, offering, Globals.POLICY_READ_OFFERING);
             if (!authorizationResult.Succeeded)
             {
-                return BadRequest();
+                return Unauthorized(new { Reason = "Insufficient Permission", AccessType = offering.AccessType });
             }
             var temp = await _context.Playlists
                 .Where(p => p.OfferingId == offeringId)
