@@ -24,15 +24,16 @@ namespace TaskEngine.Tasks
             {
                 var transcription = await _context.Transcriptions.FindAsync(transcriptionId);
                 var captions = await _captionQueries.GetCaptionsAsync(transcription.Id);
-                var vttFile = Caption.GenerateWebVTTFile(captions, transcription.Language);
-                var srtFile = Caption.GenerateSrtFile(captions);
-                _context.Entry(transcription).State = EntityState.Modified;
-                var vttfile = FileRecord.GetNewFileRecord(vttFile, ".vtt");
-                var srtfile = FileRecord.GetNewFileRecord(srtFile, ".srt");
-                await _context.FileRecords.AddAsync(srtfile);
+
+                var vttfile = FileRecord.GetNewFileRecord(Caption.GenerateWebVTTFile(captions, transcription.Language), ".vtt");
                 await _context.FileRecords.AddAsync(vttfile);
                 transcription.File = vttfile;
+
+                var srtfile = FileRecord.GetNewFileRecord(Caption.GenerateSrtFile(captions), ".srt");
+                await _context.FileRecords.AddAsync(srtfile);
                 transcription.SrtFile = srtfile;
+
+                _context.Entry(transcription).State = EntityState.Modified;
                 await _context.SaveChangesAsync();
             }
         }
