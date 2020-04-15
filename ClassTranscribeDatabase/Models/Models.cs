@@ -319,17 +319,6 @@ namespace ClassTranscribeDatabase.Models
         public JObject Json { get; set; }
     }
 
-    public class WatchHistory : Entity
-    {
-        public string MediaId { get; set; }
-        [IgnoreDataMember]
-        public virtual Media Media { get; set; }
-        public string ApplicationUserId { get; set; }
-        [IgnoreDataMember]
-        public virtual ApplicationUser ApplicationUser { get; set; }
-        public JObject Json { get; set; }
-    }
-
     public class Dictionary : Entity
     {
         public string Key { get; set; }
