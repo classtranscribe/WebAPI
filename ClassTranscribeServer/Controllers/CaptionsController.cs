@@ -14,9 +14,14 @@ namespace ClassTranscribeServer.Controllers
     public class CaptionsController : BaseController
     {
         private readonly WakeDownloader _wakeDownloader;
+        private readonly CaptionQueries _captionQueries;
 
-        public CaptionsController(WakeDownloader wakeDownloader, CTDbContext context, ILogger<CaptionsController> logger) : base(context, logger)
+        public CaptionsController(WakeDownloader wakeDownloader, 
+            CTDbContext context, 
+            CaptionQueries captionQueries,
+            ILogger<CaptionsController> logger) : base(context, logger)
         {
+            _captionQueries = captionQueries;
             _wakeDownloader = wakeDownloader;
         }
 
@@ -24,7 +29,7 @@ namespace ClassTranscribeServer.Controllers
         [HttpGet("ByTranscription/{TranscriptionId}")]
         public async Task<ActionResult<IEnumerable<Caption>>> GetCaptions(string TranscriptionId)
         {
-            return await new CaptionQueries(_context).GetCaptionsAsync(TranscriptionId);
+            return await _captionQueries.GetCaptionsAsync(TranscriptionId);
         }
 
         // GET: api/Captions

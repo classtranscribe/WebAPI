@@ -45,6 +45,19 @@ namespace ClassTranscribeServer.Controllers
                 return NotFound();
             }
 
+            var authorizationResult = await _authorizationService.AuthorizeAsync(User, media.Playlist.Offering, Globals.POLICY_READ_OFFERING);
+            if (!authorizationResult.Succeeded)
+            {
+                if (User.Identity.IsAuthenticated)
+                {
+                    return new ForbidResult();
+                }
+                else
+                {
+                    return new ChallengeResult();
+                }
+            }
+
             var v = await _context.Videos.FindAsync(media.VideoId);
             var user = _userUtils.GetUser(this.User);
             var mediaDTO = new MediaDTO
@@ -68,7 +81,7 @@ namespace ClassTranscribeServer.Controllers
                     Video1Path = media.Video.Video1?.Path,
                     Video2Path = media.Video.Video2?.Path
                 },
-                WatchHistory = media.WatchHistories.Where(w => w.ApplicationUserId == user.Id).FirstOrDefault()
+                WatchHistory = user != null ? media.WatchHistories.Where(w => w.ApplicationUserId == user.Id).FirstOrDefault() : null
             };
 
             return mediaDTO;
@@ -223,7 +236,7 @@ namespace ClassTranscribeServer.Controllers
             {
                 return BadRequest();
             }
-            var authorizationResult = await _authorizationService.AuthorizeAsync(this.User, offering, Globals.POLICY_UPDATE_OFFERING);
+            var authorizationResult = await _authorizationService.AuthorizeAsync(User, offering, Globals.POLICY_UPDATE_OFFERING);
             if (!authorizationResult.Succeeded)
             {
                 if (User.Identity.IsAuthenticated)

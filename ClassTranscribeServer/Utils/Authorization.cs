@@ -86,7 +86,7 @@ namespace ClassTranscribeServer.Authorization
             {
                 context.Succeed(requirement);
             }
-            else if (offering.AccessType == AccessTypes.UniversityOnly)
+            else if (offering.AccessType == AccessTypes.UniversityOnly && user != null)
             {
                 var universityId = await _ctDbContext.CourseOfferings.Where(co => co.OfferingId == offering.Id)
                     .Select(c => c.Course.Department.UniversityId).FirstAsync();
@@ -95,7 +95,7 @@ namespace ClassTranscribeServer.Authorization
                     context.Succeed(requirement);
                 }
             }
-            else if (offering.AccessType == AccessTypes.StudentsOnly && offering.OfferingUsers.Select(ou => ou.ApplicationUser).Contains(user))
+            else if (offering.AccessType == AccessTypes.StudentsOnly && user != null && offering.OfferingUsers.Select(ou => ou.ApplicationUser).Contains(user))
             {
                 context.Succeed(requirement);
             }

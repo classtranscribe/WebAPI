@@ -3,15 +3,17 @@ using System;
 using ClassTranscribeDatabase;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace ClassTranscribeDatabase.Migrations
 {
     [DbContext(typeof(CTDbContext))]
-    partial class CTDbContextModelSnapshot : ModelSnapshot
+    [Migration("20200414071209_Epubchapter")]
+    partial class Epubchapter
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -483,9 +485,6 @@ namespace ClassTranscribeDatabase.Migrations
                     b.Property<string>("VideoId")
                         .HasColumnType("text");
 
-                    b.Property<int>("Visibility")
-                        .HasColumnType("integer");
-
                     b.HasKey("Id");
 
                     b.HasIndex("PlaylistId");
@@ -493,46 +492,6 @@ namespace ClassTranscribeDatabase.Migrations
                     b.HasIndex("VideoId");
 
                     b.ToTable("Medias");
-                });
-
-            modelBuilder.Entity("ClassTranscribeDatabase.Models.Message", b =>
-                {
-                    b.Property<string>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("text");
-
-                    b.Property<int>("Ack")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("ApplicationUserId")
-                        .HasColumnType("text");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp without time zone");
-
-                    b.Property<string>("CreatedBy")
-                        .HasColumnType("text");
-
-                    b.Property<int>("IsDeletedStatus")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTime>("LastUpdatedAt")
-                        .HasColumnType("timestamp without time zone");
-
-                    b.Property<string>("LastUpdatedBy")
-                        .HasColumnType("text");
-
-                    b.Property<int>("LogLevel")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("Payload")
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ApplicationUserId");
-
-                    b.ToTable("Messages");
                 });
 
             modelBuilder.Entity("ClassTranscribeDatabase.Models.Offering", b =>
@@ -576,9 +535,6 @@ namespace ClassTranscribeDatabase.Migrations
 
                     b.Property<string>("TermId")
                         .HasColumnType("text");
-
-                    b.Property<int>("Visibility")
-                        .HasColumnType("integer");
 
                     b.HasKey("Id");
 
@@ -626,55 +582,11 @@ namespace ClassTranscribeDatabase.Migrations
                     b.Property<int>("SourceType")
                         .HasColumnType("integer");
 
-                    b.Property<int>("Visibility")
-                        .HasColumnType("integer");
-
                     b.HasKey("Id");
 
                     b.HasIndex("OfferingId");
 
                     b.ToTable("Playlists");
-                });
-
-            modelBuilder.Entity("ClassTranscribeDatabase.Models.Subscription", b =>
-                {
-                    b.Property<string>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("text");
-
-                    b.Property<string>("ApplicationUserId")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp without time zone");
-
-                    b.Property<string>("CreatedBy")
-                        .HasColumnType("text");
-
-                    b.Property<int>("IsDeletedStatus")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTime>("LastUpdatedAt")
-                        .HasColumnType("timestamp without time zone");
-
-                    b.Property<string>("LastUpdatedBy")
-                        .HasColumnType("text");
-
-                    b.Property<string>("ResourceId")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<int>("ResourceType")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.HasAlternateKey("ResourceType", "ResourceId", "ApplicationUserId");
-
-                    b.HasIndex("ApplicationUserId");
-
-                    b.ToTable("Subscriptions");
                 });
 
             modelBuilder.Entity("ClassTranscribeDatabase.Models.Term", b =>
@@ -1142,13 +1054,6 @@ namespace ClassTranscribeDatabase.Migrations
                         .HasForeignKey("VideoId");
                 });
 
-            modelBuilder.Entity("ClassTranscribeDatabase.Models.Message", b =>
-                {
-                    b.HasOne("ClassTranscribeDatabase.Models.ApplicationUser", "ApplicationUser")
-                        .WithMany()
-                        .HasForeignKey("ApplicationUserId");
-                });
-
             modelBuilder.Entity("ClassTranscribeDatabase.Models.Offering", b =>
                 {
                     b.HasOne("ClassTranscribeDatabase.Models.Term", "Term")
@@ -1161,15 +1066,6 @@ namespace ClassTranscribeDatabase.Migrations
                     b.HasOne("ClassTranscribeDatabase.Models.Offering", "Offering")
                         .WithMany("Playlists")
                         .HasForeignKey("OfferingId");
-                });
-
-            modelBuilder.Entity("ClassTranscribeDatabase.Models.Subscription", b =>
-                {
-                    b.HasOne("ClassTranscribeDatabase.Models.ApplicationUser", "ApplicationUser")
-                        .WithMany()
-                        .HasForeignKey("ApplicationUserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
                 });
 
             modelBuilder.Entity("ClassTranscribeDatabase.Models.Term", b =>

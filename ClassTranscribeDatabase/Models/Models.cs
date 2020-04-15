@@ -296,6 +296,27 @@ namespace ClassTranscribeDatabase.Models
         public string VideoId { get; set; }
         [IgnoreDataMember]
         public virtual Video Video { get; set; }
+        public JObject Json { get; set; }
+        public virtual List<EPubChapter> EPubChapters { get; set; }
+    }
+
+    public class EPubChapter : Entity
+    {
+        public string EPubId { get; set; }
+        [IgnoreDataMember]
+        public virtual EPub EPub { get; set; }
+        public JObject Data { get; set; }
+    }
+
+    public class WatchHistory : Entity
+    {
+        public string MediaId { get; set; }
+        [IgnoreDataMember]
+        public virtual Media Media { get; set; }
+        public string ApplicationUserId { get; set; }
+        [IgnoreDataMember]
+        public virtual ApplicationUser ApplicationUser { get; set; }
+        public JObject Json { get; set; }
     }
 
     public class WatchHistory : Entity
