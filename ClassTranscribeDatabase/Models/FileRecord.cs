@@ -10,16 +10,37 @@ namespace ClassTranscribeDatabase.Models
 
     public class FileRecord : Entity
     {
-        public FileRecord(string path)
+        private FileRecord(string path)
         {
-            char separator = System.IO.Path.DirectorySeparatorChar;
-            this.Path = path;
-            this.FileName = path.Substring(path.LastIndexOf(separator) + 1);
-            if (File.Exists(this.Path))
-            {
-                this.Hash = ComputeSha256HashForFile(this.Path);
-            }
+            Path = path;            
+            FileName = System.IO.Path.GetFileName(path);
         }
+
+        public static FileRecord GetNewFileRecord(string filepath, string ext)
+        {
+            // Rename file.
+            var tmpFile = new FileRecord(filepath);
+            var uuid = System.Guid.NewGuid().ToString();
+            var newFilePath = System.IO.Path.Combine(Globals.appSettings.DATA_DIRECTORY, uuid + ext);
+            File.Move(tmpFile.Path, newFilePath);
+            var fileRecord = new FileRecord(newFilePath);
+            fileRecord.Hash = ComputeSha256HashForFile(fileRecord.Path);
+            fileRecord.Id = uuid;
+            return fileRecord;
+        }
+
+        public static bool IsValidFile(string filepath, int minLen = 100)
+        {
+            var temp = new FileRecord(filepath);
+            // Checks if the filepath is valid and the file at least has "minLen" bytes.
+            return temp.Path.Length > 0 && File.Exists(temp.Path) && new FileInfo(temp.Path).Length > minLen;
+        }
+
+        public bool IsValidFile(int minLen = 100)
+        {
+            return IsValidFile(Path, minLen);
+        }
+
         public FileRecord() { }
         public string FileName { get; set; }
         [IgnoreDataMember]

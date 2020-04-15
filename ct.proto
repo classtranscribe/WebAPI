@@ -2,22 +2,20 @@
 
 package CTGrpc;
 
-// The greeting service definition.
-service NodeServer {
-  // Sends a greeting
-  rpc GetEchoPlaylistRPC (PlaylistRequest) returns (JsonString) {}
-  rpc GetYoutubePlaylistRPC (PlaylistRequest) returns (JsonString) {}
-  rpc DownloadYoutubeVideoRPC (MediaRequest) returns (File) {}
-  rpc DownloadEchoVideoRPC (MediaRequest) returns (File) {}
-  rpc DownloadKalturaVideoRPC (MediaRequest) returns (File) {}
-  rpc ConvertVideoToWavRPC (File) returns (File) {}
-  rpc ProcessVideoRPC (File) returns (File) {}
-  rpc CreateEPubRPC (EPubData) returns (JsonString) {}  
-}
-
 service PythonServer {
   rpc GetScenesRPC (File) returns (JsonString) {}
+
   rpc GetKalturaChannelEntriesRPC (PlaylistRequest) returns (JsonString) {}
+  rpc DownloadKalturaVideoRPC (MediaRequest) returns (File) {}
+
+  rpc GetEchoPlaylistRPC (PlaylistRequest) returns (JsonString) {}
+  rpc DownloadEchoVideoRPC (MediaRequest) returns (File) {}
+
+  rpc GetYoutubePlaylistRPC (PlaylistRequest) returns (JsonString) {}
+  rpc DownloadYoutubeVideoRPC (MediaRequest) returns (File) {}
+
+  rpc ConvertVideoToWavRPC (File) returns (File) {}
+  rpc ProcessVideoRPC (File) returns (File) {}  
 }
 
 // The request message containing the user's name.
@@ -27,19 +25,18 @@ message JsonString {
 
 // The response message containing the greetings.
 message PlaylistRequest {
-  string Id = 1;
-  string Url = 2;
-  int32 Stream = 3;  
+  string Url = 1;
+  int32 Stream = 2;  
 }
 
 message MediaRequest {
-	string Id = 1;
-	string videoUrl = 2;
-	string additionalInfo = 3;
+	string videoUrl = 1;
+	string additionalInfo = 2;
 }
 
 message File {
 	string filePath = 1;
+  string ext = 2;
 }
 
 message EPubData {

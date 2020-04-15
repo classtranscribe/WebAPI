@@ -95,6 +95,7 @@ namespace ClassTranscribeServer.Controllers
                 OfferingId = p.OfferingId,
                 Name = p.Name,
                 Index = p.Index,
+                PlaylistIdentifier = p.PlaylistIdentifier,
                 Medias = p.Medias.Where(m => m.Video != null).Select(m => new MediaDTO
                 {
                     Id = m.Id,

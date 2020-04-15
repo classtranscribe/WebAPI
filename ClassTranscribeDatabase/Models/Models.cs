@@ -1,7 +1,9 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
@@ -29,6 +31,13 @@ namespace ClassTranscribeDatabase.Models
         Kaltura,
         Box
     }
+
+    public enum Visibility 
+    {
+        Visible,
+        Hidden
+    }
+
     public class ApplicationUser : IdentityUser
     {
         public string FirstName { get; set; }
@@ -57,6 +66,19 @@ namespace ClassTranscribeDatabase.Models
         public string LastUpdatedBy { get; set; }
         [IgnoreDataMember]
         public Status IsDeletedStatus { get; set; }
+
+        public ResourceType GetResourceType()
+        {
+            switch (this)
+            {
+                case Course _:
+                    return ResourceType.Course;
+                case Offering _: return ResourceType.Offering;
+                case Playlist _: return ResourceType.Playlist;
+                case Media _: return ResourceType.Media;
+            }
+            throw new InvalidOperationException("Invalid Type passed" + this);
+        }
 
     }
     public class University : Entity
@@ -118,6 +140,7 @@ namespace ClassTranscribeDatabase.Models
         public string CourseName { get; set; }
         public string Description { get; set; }
         public JObject JsonMetadata { get; set; }
+        public Visibility Visibility { get; set; }
     }
 
     public class Playlist : Entity
@@ -131,6 +154,7 @@ namespace ClassTranscribeDatabase.Models
         public virtual Offering Offering { get; set; }
         public JObject JsonMetadata { get; set; }
         public int Index { get; set; }
+        public Visibility Visibility { get; set; }
     }
 
     public class Media : Entity
@@ -147,6 +171,7 @@ namespace ClassTranscribeDatabase.Models
         public string Name { get; set; }
         public int Index { get; set; }
         public virtual List<WatchHistory> WatchHistories { get; set; }
+        public Visibility Visibility { get; set; }
     }
 
     public class Transcription : Entity
@@ -298,5 +323,36 @@ namespace ClassTranscribeDatabase.Models
     {
         public string Key { get; set; }
         public string Value { get; set; }
+    }
+
+    public enum ResourceType 
+    {
+        Offering,
+        Course,
+        Media,
+        Playlist
+    }
+
+    public enum Ack
+    {
+        Pending,
+        Seen
+    }
+    
+    public class Subscription : Entity
+    {
+        public ResourceType ResourceType { get; set; }
+        public string ResourceId { get; set; }
+        public virtual ApplicationUser ApplicationUser { get; set; }
+        public string ApplicationUserId { get; set; }
+    }
+
+    public class Message : Entity
+    {
+        public virtual ApplicationUser ApplicationUser { get; set; }
+        public string ApplicationUserId { get; set; }
+        public JObject Payload { get; set; }
+        public LogLevel LogLevel { get; set; }
+        public Ack Ack { get; set; }
     }
 }

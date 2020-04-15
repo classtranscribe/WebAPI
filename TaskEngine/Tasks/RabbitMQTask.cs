@@ -25,6 +25,10 @@ namespace TaskEngine
         {
             try
             {
+                if(taskParameters == null)
+                {
+                    taskParameters = new TaskParameters();
+                }
                 _rabbitMQ.PublishTask(_queueName, data, taskParameters);
             }
             catch (Exception e)

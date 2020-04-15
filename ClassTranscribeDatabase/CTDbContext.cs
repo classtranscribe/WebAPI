@@ -44,6 +44,8 @@ namespace ClassTranscribeDatabase
         public DbSet<EPub> EPubs { get; set; }
         public DbSet<Dictionary> Dictionaries { get; set; }
         public DbSet<WatchHistory> WatchHistories { get; set; }
+        public DbSet<Subscription> Subscriptions { get; set; }
+        public DbSet<Message> Messages { get; set; }
         public DbSet<EPubChapter> EPubChapters { get; set; }
 
         public static string ConnectionStringBuilder()
@@ -114,6 +116,8 @@ namespace ClassTranscribeDatabase
             builder.Entity<Log>().HasQueryFilter(m => m.IsDeletedStatus == Status.Active);
             builder.Entity<Dictionary>().HasQueryFilter(m => m.IsDeletedStatus == Status.Active);
             builder.Entity<WatchHistory>().HasQueryFilter(m => m.IsDeletedStatus == Status.Active);
+            builder.Entity<Subscription>().HasQueryFilter(m => m.IsDeletedStatus == Status.Active);
+            builder.Entity<Message>().HasQueryFilter(m => m.IsDeletedStatus == Status.Active);
             builder.Entity<EPubChapter>().HasQueryFilter(m => m.IsDeletedStatus == Status.Active);
             builder.Entity<EPub>().HasQueryFilter(m => m.IsDeletedStatus == Status.Active);
 
@@ -154,8 +158,11 @@ namespace ClassTranscribeDatabase
             builder.Entity<Video>().Property(m => m.JsonMetadata).HasJsonValueConversion();
             builder.Entity<Offering>().Property(m => m.JsonMetadata).HasJsonValueConversion();
             builder.Entity<WatchHistory>().Property(m => m.Json).HasJsonValueConversion();
+            builder.Entity<Message>().Property(m => m.Payload).HasJsonValueConversion();
             builder.Entity<EPub>().Property(m => m.Json).HasJsonValueConversion();
             builder.Entity<EPubChapter>().Property(m => m.Data).HasJsonValueConversion();
+
+            builder.Entity<Subscription>().HasAlternateKey(s => new { s.ResourceType, s.ResourceId, s.ApplicationUserId });            
         }
         public override int SaveChanges(bool acceptAllChangesOnSuccess)
         {

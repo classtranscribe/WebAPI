@@ -1,4 +1,7 @@
 ﻿using Newtonsoft.Json;
+using System;
+using System.IO;
+using System.Linq;
 using System.Text;
 
 namespace ClassTranscribeDatabase
@@ -42,6 +45,19 @@ namespace ClassTranscribeDatabase
         public static T BytesToMessage<T>(byte[] bytes)
         {
             return JsonConvert.DeserializeObject<T>(Encoding.UTF8.GetString(bytes));
+        }
+
+        public static string RandomString(int length)
+        {
+            Random random = new Random();
+            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+            return new string(Enumerable.Repeat(chars, length)
+              .Select(s => s[random.Next(s.Length)]).ToArray());
+        }
+
+        public static string GetTmpFile()
+        {
+            return Path.Combine(Globals.appSettings.DATA_DIRECTORY, RandomString(8));
         }
     }
 }

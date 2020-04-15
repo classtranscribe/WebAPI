@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/core/sdk:3.1.100-bionic as build
+FROM mcr.microsoft.com/dotnet/core/sdk:3.1.201-bionic as build
 
 WORKDIR /
 RUN git clone https://github.com/eficode/wait-for.git
@@ -18,7 +18,7 @@ COPY ./TaskEngine ./TaskEngine
 WORKDIR /src/TaskEngine
 RUN dotnet publish TaskEngine.csproj -c Release -o /app --no-restore
 
-FROM mcr.microsoft.com/dotnet/core/runtime:3.1-bionic as publish_base
+FROM mcr.microsoft.com/dotnet/core/runtime:3.1.3-bionic as publish_base
 RUN apt-get update
 RUN apt-get install -y build-essential
 RUN apt-get install -y libasound2 

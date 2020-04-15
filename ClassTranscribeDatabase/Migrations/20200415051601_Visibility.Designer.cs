@@ -3,15 +3,17 @@ using System;
 using ClassTranscribeDatabase;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace ClassTranscribeDatabase.Migrations
 {
     [DbContext(typeof(CTDbContext))]
-    partial class CTDbContextModelSnapshot : ModelSnapshot
+    [Migration("20200415051601_Visibility")]
+    partial class Visibility
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -307,9 +309,6 @@ namespace ClassTranscribeDatabase.Migrations
                     b.Property<int>("IsDeletedStatus")
                         .HasColumnType("integer");
 
-                    b.Property<string>("Json")
-                        .HasColumnType("text");
-
                     b.Property<string>("Language")
                         .HasColumnType("text");
 
@@ -329,40 +328,6 @@ namespace ClassTranscribeDatabase.Migrations
                     b.HasIndex("VideoId");
 
                     b.ToTable("EPubs");
-                });
-
-            modelBuilder.Entity("ClassTranscribeDatabase.Models.EPubChapter", b =>
-                {
-                    b.Property<string>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("text");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp without time zone");
-
-                    b.Property<string>("CreatedBy")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Data")
-                        .HasColumnType("text");
-
-                    b.Property<string>("EPubId")
-                        .HasColumnType("text");
-
-                    b.Property<int>("IsDeletedStatus")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTime>("LastUpdatedAt")
-                        .HasColumnType("timestamp without time zone");
-
-                    b.Property<string>("LastUpdatedBy")
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("EPubId");
-
-                    b.ToTable("EPubChapters");
                 });
 
             modelBuilder.Entity("ClassTranscribeDatabase.Models.FileRecord", b =>
@@ -1122,13 +1087,6 @@ namespace ClassTranscribeDatabase.Migrations
                     b.HasOne("ClassTranscribeDatabase.Models.Video", "Video")
                         .WithMany("EPubs")
                         .HasForeignKey("VideoId");
-                });
-
-            modelBuilder.Entity("ClassTranscribeDatabase.Models.EPubChapter", b =>
-                {
-                    b.HasOne("ClassTranscribeDatabase.Models.EPub", "EPub")
-                        .WithMany("EPubChapters")
-                        .HasForeignKey("EPubId");
                 });
 
             modelBuilder.Entity("ClassTranscribeDatabase.Models.Media", b =>

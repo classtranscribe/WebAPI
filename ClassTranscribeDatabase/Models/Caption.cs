@@ -143,9 +143,9 @@ namespace ClassTranscribeDatabase.Models
             }
         }
 
-        public static string GenerateSrtFile(List<Caption> captions, string file, string language)
+        public static string GenerateSrtFile(List<Caption> captions)
         {
-            string srtFile = file.Substring(0, file.IndexOf('.')) + "_" + language + ".srt";
+            string srtFile = CommonUtils.GetTmpFile();
             string Subtitle = "";
             foreach (Caption caption in captions)
             {
@@ -155,9 +155,9 @@ namespace ClassTranscribeDatabase.Models
             return srtFile;
         }
 
-        public static string GenerateWebVTTFile(List<Caption> captions, String file, string language)
+        public static string GenerateWebVTTFile(List<Caption> captions, string language)
         {
-            string vttFile = file.Substring(0, file.IndexOf('.')) + "_" + language + ".vtt";
+            string vttFile = CommonUtils.GetTmpFile();
             string Subtitle = "WEBVTT\nKind: subtitles\nLanguage: " + language + "\n\n";
             foreach (Caption caption in captions)
             {

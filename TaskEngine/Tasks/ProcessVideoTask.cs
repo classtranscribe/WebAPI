@@ -26,29 +26,33 @@ namespace TaskEngine.Tasks
             Video video;
             using (var _context = CTDbContext.CreateDbContext())
             {
-                video = await _context.Videos.Include(v => v.Video1).Include(v => v.Video2).Where(v => v.Id == videoId).FirstAsync();
+                video = await _context.Videos.Include(v => v.Video1)
+                    .Include(v => v.Video2)
+                    .Include(v => v.ProcessedVideo1)
+                    .Include(v => v.ProcessedVideo2)
+                    .Where(v => v.Id == videoId).FirstAsync();
             }
             _logger.LogInformation("Consuming" + video);
             if (video.Video1 != null)
             {
-                if (video.ProcessedVideo1 != null || taskParameters.Force)
+                if (video.ProcessedVideo1 == null || taskParameters.Force)
                 {
-                    var file = await _rpcClient.NodeServerClient.ProcessVideoRPCAsync(new CTGrpc.File
+                    var file = await _rpcClient.PythonServerClient.ProcessVideoRPCAsync(new CTGrpc.File
                     {
                         FilePath = video.Video1.VMPath
                     });
-                    video.ProcessedVideo1 = new FileRecord(file.FilePath);
+                    video.ProcessedVideo1 = FileRecord.GetNewFileRecord(file.FilePath, file.Ext);
                 }
             }
             if (video.Video2 != null)
             {
-                if (video.ProcessedVideo2 != null || taskParameters.Force)
+                if (video.ProcessedVideo2 == null || taskParameters.Force)
                 {
-                    var file = await _rpcClient.NodeServerClient.ProcessVideoRPCAsync(new CTGrpc.File
+                    var file = await _rpcClient.PythonServerClient.ProcessVideoRPCAsync(new CTGrpc.File
                     {
                         FilePath = video.Video2.VMPath
                     });
-                    video.ProcessedVideo2 = new FileRecord(file.FilePath);
+                    video.ProcessedVideo2 = FileRecord.GetNewFileRecord(file.FilePath, file.Ext);
                 }
             }
             using (var _context = CTDbContext.CreateDbContext())
