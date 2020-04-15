@@ -66,61 +66,6 @@ namespace ClassTranscribeServer.Controllers
             return playlists;
         }
 
-        // GET: api/Playlists
-        /// <summary>
-        /// Gets all Playlists for offeringId
-        /// </summary>
-        [HttpGet("ByOffering2/{offeringId}")]
-        public async Task<ActionResult<IEnumerable<PlaylistDTO>>> GetPlaylists2(string offeringId)
-        {
-            var offering = await _context.Offerings.FindAsync(offeringId);
-            if (offering == null)
-            {
-                return BadRequest();
-            }
-            var authorizationResult = await _authorizationService.AuthorizeAsync(this.User, offering, Globals.POLICY_READ_OFFERING);
-            if (!authorizationResult.Succeeded)
-            {
-                return Unauthorized(new { Reason = "Insufficient Permission", AccessType = offering.AccessType });
-            }
-            var temp = await _context.Playlists
-                .Where(p => p.OfferingId == offeringId)
-                .OrderBy(p => p.Index)
-                .ThenBy(p => p.CreatedAt).ToListAsync();
-            var playlists = temp.Select(p => new PlaylistDTO
-            {
-                Id = p.Id,
-                CreatedAt = p.CreatedAt,
-                SourceType = p.SourceType,
-                OfferingId = p.OfferingId,
-                Name = p.Name,
-                Index = p.Index,
-                Medias = p.Medias.Where(m => m.Video != null).Select(m => new MediaDTO
-                {
-                    Id = m.Id,
-                    Index = m.Index,
-                    Name = m.Name,
-                    JsonMetadata = m.JsonMetadata,
-                    CreatedAt = m.CreatedAt,
-                    Ready = m.Video.Transcriptions.Any(),
-                    SourceType = m.SourceType,
-                    Video = new VideoDTO
-                    {
-                        Id = m.Video.Id,
-                        Video1Path = m.Video.Video1 != null ? m.Video.Video1.Path : null,
-                        Video2Path = m.Video.Video2 != null ? m.Video.Video2.Path : null,
-                    },
-                    Transcriptions = m.Video.Transcriptions.Select(t => new TranscriptionDTO
-                    {
-                        Id = t.Id,
-                        Path = t.File.Path,
-                        Language = t.Language
-                    }).ToList()
-                }).ToList()
-            }).ToList();
-            return playlists;
-        }
-
         [HttpGet("SearchForMedia/{offeringId}/{query}")]
         public async Task<ActionResult<IEnumerable<MediaSearchDTO>>> SearchForMedia(string offeringId, string query)
         {

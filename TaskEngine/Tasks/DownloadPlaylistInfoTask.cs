@@ -57,11 +57,12 @@ namespace TaskEngine.Tasks
         {
             var jsonString = await _rpcClient.PythonServerClient.GetKalturaChannelEntriesRPCAsync(new CTGrpc.PlaylistRequest
             {
-                Url = playlist.PlaylistIdentifier,
-                Id = playlist.Id
+                Url = playlist.PlaylistIdentifier
             });
             JArray jArray = JArray.Parse(jsonString.Json);
             List<Media> newMedia = new List<Media>();
+
+            
             foreach (JObject jObject in jArray)
             {
                 // Check if there is a valid Id, and for the same playlist the same media does not exist.
@@ -89,13 +90,30 @@ namespace TaskEngine.Tasks
 
         public async Task<List<Media>> GetEchoPlaylist(Playlist playlist, CTDbContext _context)
         {
-            var jsonString = await _rpcClient.NodeServerClient.GetEchoPlaylistRPCAsync(new CTGrpc.PlaylistRequest
+            var jsonString = await _rpcClient.PythonServerClient.GetEchoPlaylistRPCAsync(new CTGrpc.PlaylistRequest
             {
                 Url = playlist.PlaylistIdentifier,
-                Id = playlist.Id,
                 Stream = 0
             });
-            JArray jArray = JArray.Parse(jsonString.Json);
+            JObject res = JObject.Parse(jsonString.Json);
+
+            // Add DownloadHeader to playlist, required for downloading media.
+            if (playlist.JsonMetadata == null)
+            {
+                playlist.JsonMetadata = new JObject();
+            }
+
+            if (playlist.JsonMetadata.ContainsKey("downloadHeader"))
+            {
+                playlist.JsonMetadata["downloadHeader"] = res["downloadHeader"].ToString();
+            }
+            else
+            {
+                playlist.JsonMetadata.Add("downloadHeader", res["downloadHeader"].ToString());
+            }
+                        
+            JArray jArray = res["medias"] as JArray;
+
             List<Media> newMedia = new List<Media>();
             foreach (JObject jObject in jArray)
             {
@@ -123,10 +141,9 @@ namespace TaskEngine.Tasks
 
         public async Task<List<Media>> GetYoutubePlaylist(Playlist playlist, CTDbContext _context)
         {
-            var jsonString = await _rpcClient.NodeServerClient.GetYoutubePlaylistRPCAsync(new CTGrpc.PlaylistRequest
+            var jsonString = await _rpcClient.PythonServerClient.GetYoutubePlaylistRPCAsync(new CTGrpc.PlaylistRequest
             {
-                Url = playlist.PlaylistIdentifier,
-                Id = playlist.Id,
+                Url = playlist.PlaylistIdentifier
             });
             JArray jArray = JArray.Parse(jsonString.Json);
             List<Media> newMedia = new List<Media>();

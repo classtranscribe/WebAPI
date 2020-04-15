@@ -15,7 +15,6 @@ namespace ClassTranscribeDatabase
         public string ADMIN_PASSWORD { get; set; }
         public string RabbitMQServer { get; set; }
         public string RABBITMQ_PREFETCH_COUNT { get; set; }
-        public string NODE_RPC_SERVER { get; set; }
         public string PYTHON_RPC_SERVER { get; set; }
         public string AZURE_SUBSCRIPTION_KEYS { get; set; }
         public string DATA_DIRECTORY { get; set; }

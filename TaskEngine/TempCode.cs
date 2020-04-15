@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using TaskEngine.Grpc;
 using TaskEngine.Tasks;
 using static ClassTranscribeDatabase.CommonUtils;
 
@@ -26,12 +27,13 @@ namespace TaskEngine
         private readonly ConvertVideoToWavTask _convertVideoToWavTask;
         private readonly DownloadMediaTask _downloadMediaTask;
         private readonly DownloadPlaylistInfoTask _downloadPlaylistInfoTask;
+        private readonly RpcClient _rpcClient;
         private readonly QueueAwakerTask _queueAwakerTask;
 
         public TempCode(CTDbContext c, CreateBoxTokenTask createBoxTokenTask, UpdateBoxTokenTask updateBoxTokenTask,
             SceneDetectionTask ePubGeneratorTask, ProcessVideoTask processVideoTask, GenerateVTTFileTask generateVTTFileTask,
             TranscriptionTask transcriptionTask, ConvertVideoToWavTask convertVideoToWavTask, DownloadMediaTask downloadMediaTask,
-            DownloadPlaylistInfoTask downloadPlaylistInfoTask, QueueAwakerTask queueAwakerTask)
+            DownloadPlaylistInfoTask downloadPlaylistInfoTask, QueueAwakerTask queueAwakerTask, RpcClient rpcClient)
         {
             context = c;
             _createBoxTokenTask = createBoxTokenTask;
@@ -44,6 +46,7 @@ namespace TaskEngine
             _downloadMediaTask = downloadMediaTask;
             _downloadPlaylistInfoTask = downloadPlaylistInfoTask;
             _queueAwakerTask = queueAwakerTask;
+            _rpcClient = rpcClient;
         }
 
         public void CleanUpInvalidVideos()

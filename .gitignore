@@ -98,7 +98,6 @@ TestResult.xml
 Data/
 data/
 /NodeRpcServer/cookies.txt
-*.txt
 nginx/app.conf
 NodeRpcServer/ct.proto
 /NodeRpcServer

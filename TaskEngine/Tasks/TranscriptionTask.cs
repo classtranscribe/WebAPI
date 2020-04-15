@@ -37,7 +37,7 @@ namespace TaskEngine.Tasks
                 video = await _context.Videos.Include(v => v.Audio).Where(v => v.Id == videoId).FirstAsync();
             }
 
-            if (!File.Exists(video.Audio.Path) || new FileInfo(video.Audio.Path).Length < 1000)
+            if (!video.Audio.IsValidFile())
             {
                 // As file does not exist remove record of it.
                 using (var context = CTDbContext.CreateDbContext())
@@ -82,6 +82,7 @@ namespace TaskEngine.Tasks
 
                         // Add the latest transcriptions.
                         await _context.Transcriptions.AddRangeAsync(transcriptions);
+                        await _context.SaveChangesAsync();
                         transcriptions.ForEach(t => _generateVTTFileTask.Publish(t.Id));
                         _sceneDetectionTask.Publish(video.Id);
                     }

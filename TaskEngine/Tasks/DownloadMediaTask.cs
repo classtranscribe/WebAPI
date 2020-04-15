@@ -39,7 +39,8 @@ namespace TaskEngine.Tasks
             Media media;
             using (var _context = CTDbContext.CreateDbContext())
             {
-                media = await _context.Medias.FindAsync(mediaId);
+                media = await _context.Medias.Where(m => m.Id == mediaId)
+                    .Include(m => m.Playlist).FirstAsync();
             }
             _logger.LogInformation("Consuming" + media);
             Video video = new Video();
@@ -52,10 +53,8 @@ namespace TaskEngine.Tasks
                 case SourceType.Box: video = await DownloadBoxVideo(media); break;
             }
             // If no valid video1, or if a video2 object exists but not a valid file - fail the task.
-            if (video == null ||
-                !File.Exists(video.Video1.Path)
-                || new FileInfo(video.Video1.Path).Length < 1000
-                || (video.Video2 != null && (!File.Exists(video.Video2.Path) || new FileInfo(video.Video2.Path).Length < 1000)))
+            if (video == null || video.Video1 == null || !video.Video1.IsValidFile()
+                || (video.Video2 != null && !video.Video2.IsValidFile()))
             {
                 throw new Exception("DownloadMediaTask failed for mediaId " + media.Id);
             }
@@ -116,18 +115,17 @@ namespace TaskEngine.Tasks
 
         public async Task<Video> DownloadKalturaVideo(Media media)
         {
-            var mediaResponse = await _rpcClient.NodeServerClient.DownloadKalturaVideoRPCAsync(new CTGrpc.MediaRequest
+            var mediaResponse = await _rpcClient.PythonServerClient.DownloadKalturaVideoRPCAsync(new CTGrpc.MediaRequest
             {
-                Id = media.Id,
                 VideoUrl = media.JsonMetadata["downloadUrl"].ToString()
             });
 
             Video video;
-            if (mediaResponse.FilePath.Length > 0)
+            if (FileRecord.IsValidFile(mediaResponse.FilePath))
             {
                 video = new Video
                 {
-                    Video1 = new FileRecord(mediaResponse.FilePath)
+                    Video1 = FileRecord.GetNewFileRecord(mediaResponse.FilePath, mediaResponse.Ext)
                 };
             }
             else
@@ -142,36 +140,32 @@ namespace TaskEngine.Tasks
         {
             Video video = new Video();
             bool video1Success = false, video2Success = false;
-            var mediaResponse = await _rpcClient.NodeServerClient.DownloadEchoVideoRPCAsync(new CTGrpc.MediaRequest
+
+            var mediaResponse = await _rpcClient.PythonServerClient.DownloadEchoVideoRPCAsync(new CTGrpc.MediaRequest
             {
-                Id = media.Id,
                 VideoUrl = media.JsonMetadata["videoUrl"].ToString(),
-                AdditionalInfo = media.JsonMetadata["download_header"].ToString()
+                AdditionalInfo = media.Playlist.JsonMetadata["downloadHeader"].ToString()
             });
-            video1Success = mediaResponse.FilePath.Length > 0 &&
-                File.Exists(mediaResponse.FilePath) &&
-                new FileInfo(mediaResponse.FilePath).Length > 1000;
+
+            video1Success = FileRecord.IsValidFile(mediaResponse.FilePath);
             if (video1Success)
             {
-                video.Video1 = new FileRecord(mediaResponse.FilePath);
+                video.Video1 = FileRecord.GetNewFileRecord(mediaResponse.FilePath, mediaResponse.Ext);
             }
 
 
             if (!string.IsNullOrEmpty(media.JsonMetadata["altVideoUrl"].ToString()))
             {
 
-                var mediaResponse2 = await _rpcClient.NodeServerClient.DownloadEchoVideoRPCAsync(new CTGrpc.MediaRequest
+                var mediaResponse2 = await _rpcClient.PythonServerClient.DownloadEchoVideoRPCAsync(new CTGrpc.MediaRequest
                 {
-                    Id = media.Id,
                     VideoUrl = media.JsonMetadata["altVideoUrl"].ToString(),
-                    AdditionalInfo = media.JsonMetadata["download_header"].ToString()
+                    AdditionalInfo = media.Playlist.JsonMetadata["downloadHeader"].ToString()
                 });
-                video2Success = mediaResponse2.FilePath.Length > 0 &&
-                File.Exists(mediaResponse2.FilePath)
-                 && new FileInfo(mediaResponse2.FilePath).Length > 1000;
+                video2Success = FileRecord.IsValidFile(mediaResponse2.FilePath);
                 if (video2Success)
                 {
-                    video.Video2 = new FileRecord(mediaResponse2.FilePath);
+                    video.Video2 = FileRecord.GetNewFileRecord(mediaResponse2.FilePath, mediaResponse.Ext);
                 }
             }
             else
@@ -202,18 +196,16 @@ namespace TaskEngine.Tasks
 
         public async Task<Video> DownloadYoutubeVideo(Media media)
         {
-            var mediaResponse = await _rpcClient.NodeServerClient.DownloadYoutubeVideoRPCAsync(new CTGrpc.MediaRequest
+            var mediaResponse = await _rpcClient.PythonServerClient.DownloadYoutubeVideoRPCAsync(new CTGrpc.MediaRequest
             {
-                Id = media.Id,
                 VideoUrl = media.JsonMetadata["videoUrl"].ToString()
             });
 
-            if (mediaResponse.FilePath.Length > 0 &&
-                File.Exists(mediaResponse.FilePath) && new FileInfo(mediaResponse.FilePath).Length > 1000)
+            if (FileRecord.IsValidFile(mediaResponse.FilePath))
             {
                 Video video = new Video
                 {
-                    Video1 = new FileRecord(mediaResponse.FilePath)
+                    Video1 = FileRecord.GetNewFileRecord(mediaResponse.FilePath, mediaResponse.Ext)
                 };
                 return video;
             }
@@ -239,17 +231,12 @@ namespace TaskEngine.Tasks
                 if (media.JsonMetadata.ContainsKey("video1Path"))
                 {
                     var video1Path = media.JsonMetadata["video1Path"].ToString();
-                    var newPath = Path.Combine(Globals.appSettings.DATA_DIRECTORY, Guid.NewGuid().ToString() + ".mp4");
-                    File.Copy(video1Path, newPath);
-                    video.Video1 = new FileRecord(newPath);
-
+                    video.Video1 = FileRecord.GetNewFileRecord(video1Path, Path.GetExtension(video1Path));
                 }
                 if (media.JsonMetadata.ContainsKey("video2Path"))
                 {
                     var video2Path = media.JsonMetadata["video2Path"].ToString();
-                    var newPath = Path.Combine(Globals.appSettings.DATA_DIRECTORY, Guid.NewGuid().ToString() + ".mp4");
-                    File.Copy(video2Path, newPath);
-                    video.Video1 = new FileRecord(newPath);
+                    video.Video2 = FileRecord.GetNewFileRecord(video2Path, Path.GetExtension(video2Path));
                 }
 
                 return video;
@@ -278,11 +265,11 @@ namespace TaskEngine.Tasks
                 {
                     stream.CopyTo(fileStream);
                 }
-                if (File.Exists(newPath) && new FileInfo(newPath).Length > 1000)
+                if (FileRecord.IsValidFile(newPath))
                 {
                     Video video = new Video
                     {
-                        Video1 = new FileRecord(newPath)
+                        Video1 = FileRecord.GetNewFileRecord(newPath, Path.GetExtension(newPath))
                     };
                     return video;
                 }

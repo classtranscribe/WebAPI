@@ -3,6 +3,7 @@ from KalturaClient.Plugins.Core import *
 import hashlib
 import json
 import os
+from utils import download_file
 
 DATA_DIR = os.getenv('DATA_DIRECTORY')
 KALTURA_PARTNER_ID = int(os.getenv('KALTURA_PARTNER_ID', default = 0))
@@ -66,3 +67,7 @@ class Kaltura:
         for entry in entries.objects:
             res.append(self.getMediaInfo(entry.entryId))    
         return json.dumps(res)
+    
+    def downloadLecture(self, url):        
+        filePath, extension = download_file(url)
+        return filePath, extension

@@ -2,6 +2,7 @@
 using ClassTranscribeDatabase.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using static ClassTranscribeDatabase.CommonUtils;
 
@@ -20,12 +21,15 @@ namespace TaskEngine.Tasks
             {
                 var transcription = await _context.Transcriptions.FindAsync(transcriptionId);
                 var captions = await (new CaptionQueries(_context)).GetCaptionsAsync(transcription.Id);
-                var audioPath = transcription.Video.Audio.Path;
-                var vttFile = Caption.GenerateWebVTTFile(captions, audioPath, transcription.Language);
-                var srtFile = Caption.GenerateSrtFile(captions, audioPath, transcription.Language);
+                var vttFile = Caption.GenerateWebVTTFile(captions, transcription.Language);
+                var srtFile = Caption.GenerateSrtFile(captions);
                 _context.Entry(transcription).State = EntityState.Modified;
-                transcription.File = new FileRecord(vttFile);
-                transcription.SrtFile = new FileRecord(srtFile);
+                var vttfile = FileRecord.GetNewFileRecord(vttFile, ".vtt");
+                var srtfile = FileRecord.GetNewFileRecord(srtFile, ".srt");
+                await _context.FileRecords.AddAsync(srtfile);
+                await _context.FileRecords.AddAsync(vttfile);
+                transcription.File = vttfile;
+                transcription.SrtFile = srtfile;
                 await _context.SaveChangesAsync();
             }
         }
