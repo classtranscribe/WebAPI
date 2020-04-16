@@ -10,20 +10,18 @@ namespace TaskEngine.Tasks
 {
     class GenerateVTTFileTask : RabbitMQTask<string>
     {
-        private readonly CaptionQueries _captionQueries;
         public GenerateVTTFileTask(RabbitMQConnection rabbitMQ, 
-            CaptionQueries captionQueries,
             ILogger<GenerateVTTFileTask> logger)
             : base(rabbitMQ, TaskType.GenerateVTTFile, logger)
         {
-            _captionQueries = captionQueries;
         }
         protected async override Task OnConsume(string transcriptionId, TaskParameters taskParameters)
         {
             using (var _context = CTDbContext.CreateDbContext())
             {
                 var transcription = await _context.Transcriptions.FindAsync(transcriptionId);
-                var captions = await _captionQueries.GetCaptionsAsync(transcription.Id);
+                CaptionQueries captionQueries = new CaptionQueries(_context);
+                var captions = await captionQueries.GetCaptionsAsync(transcription.Id);
 
                 var vttfile = FileRecord.GetNewFileRecord(Caption.GenerateWebVTTFile(captions, transcription.Language), ".vtt");
                 await _context.FileRecords.AddAsync(vttfile);
