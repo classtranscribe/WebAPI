@@ -65,7 +65,7 @@ namespace ClassTranscribeDatabase
                         maxRetryCount: 10,
                         maxRetryDelay: TimeSpan.FromSeconds(30),
                         errorCodesToAdd: null);
-            }, npgsql);
+            });
             return optionsBuilder;
         }
         public static CTDbContext CreateDbContext()
