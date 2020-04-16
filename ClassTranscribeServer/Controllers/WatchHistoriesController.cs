@@ -62,6 +62,7 @@ namespace ClassTranscribeServer.Controllers
             {
                 var watchHistories = await _context.WatchHistories
                     .Where(w => w.ApplicationUserId == user.Id)
+                    .OrderByDescending(w => w.CreatedAt)
                     .ToListAsync();
 
                 return watchHistories;
