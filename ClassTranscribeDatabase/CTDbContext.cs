@@ -53,7 +53,7 @@ namespace ClassTranscribeDatabase
             // Sample connection string -> Server=<POSTGRES_SERVER_NAME>;Port=5432;Database=<POSTGRES_DB_NAME>;User Id=<POSTGRES_USER>;Password=<POSTGRES_PASSWORD>;
             var configurations = CTDbContext.GetConfigurations();
             return "Server=" + configurations["POSTGRES_SERVER_NAME"] + ";Port=5432;Database="
-                + configurations["POSTGRES_DB"] + ";User Id=" + configurations["ADMIN_USER_ID"] + ";Password=" + configurations["ADMIN_PASSWORD"] + ";";
+                + configurations["POSTGRES_DB"] + ";User Id=" + configurations["ADMIN_USER_ID"] + ";Password=" + configurations["ADMIN_PASSWORD"] + ";MaxPoolSize=1000;";
         }
 
         public static DbContextOptionsBuilder<CTDbContext> GetDbContextOptionsBuilder()
@@ -65,7 +65,7 @@ namespace ClassTranscribeDatabase
                         maxRetryCount: 10,
                         maxRetryDelay: TimeSpan.FromSeconds(30),
                         errorCodesToAdd: null);
-            });
+            }, npgsql);
             return optionsBuilder;
         }
         public static CTDbContext CreateDbContext()
