@@ -24,7 +24,6 @@ def get_youtube_playlist(playlistIdentifier):
 
     medias = []
     items = request1.json()['items']
-
     for item in items:
         publishedAt = item['snippet']['publishedAt']
         channelId = item['snippet']['channelId']
@@ -45,9 +44,7 @@ def get_youtube_playlist(playlistIdentifier):
             "videoId": videoId,
             "createdAt": publishedAt
         }
-
-    medias.append(media)
-
+        medias.append(media)    
     return json.dumps(medias)
 
 def download_youtube_video(youtubeUrl):
