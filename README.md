@@ -41,5 +41,5 @@ To build this repository,
   ```docker-compose up --build classtranscribeserver```
 2. After making any code changes to rebuild code, just re-run the service,
   ```docker-compose up classtranscribeserver```
-    
+3. Refer [gotchas.md](./gotchas.md) for known coding blunders.
     

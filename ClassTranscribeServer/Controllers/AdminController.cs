@@ -119,7 +119,7 @@ namespace ClassTranscribeServer.Controllers
                 l.EventType,
                 l.Json
             }).ToListAsync();
-            var path = Path.GetTempFileName();
+            var path = CommonUtils.GetTmpFile();
             using (var writer = new StreamWriter(path))
             {
                 using (var csv = new CsvWriter(writer, System.Globalization.CultureInfo.CurrentCulture))

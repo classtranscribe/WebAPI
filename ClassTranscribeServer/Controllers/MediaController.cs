@@ -175,7 +175,7 @@ namespace ClassTranscribeServer.Controllers
                 {
                     return BadRequest("File Format not permitted");
                 }
-                var filePath = Path.GetTempFileName();
+                var filePath = CommonUtils.GetTmpFile();
                 using (var stream = new FileStream(filePath, FileMode.Create))
                 {
                     await video1.CopyToAsync(stream);
@@ -191,7 +191,7 @@ namespace ClassTranscribeServer.Controllers
                 {
                     return BadRequest("File Format not permitted");
                 }
-                var filePath = Path.GetTempFileName();
+                var filePath = CommonUtils.GetTmpFile();
                 using (var stream = new FileStream(filePath, FileMode.Create))
                 {
                     await video2.CopyToAsync(stream);
