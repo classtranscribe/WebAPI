@@ -93,6 +93,9 @@ namespace TaskEngine.Tasks
                 }
                 else
                 {
+                    latestVideo.TranscriptionStatus = result.Item2;
+                    latestVideo.TranscribingAttempts += 1;
+                    await _context.SaveChangesAsync();
                     throw new Exception("Transcription failed" + result.Item2);
                 }
             }

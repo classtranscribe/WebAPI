@@ -36,6 +36,7 @@ namespace TaskEngine.MSTranscription
             _speechConfig.AddTargetLanguage(Languages.SIMPLIFIED_CHINESE);
             _speechConfig.AddTargetLanguage(Languages.KOREAN);
             _speechConfig.AddTargetLanguage(Languages.SPANISH);
+            _speechConfig.AddTargetLanguage(Languages.FRENCH);
             _speechConfig.OutputFormat = OutputFormat.Detailed;
 
             string errorCode = "";
@@ -45,7 +46,8 @@ namespace TaskEngine.MSTranscription
                 { Languages.ENGLISH, new List<Caption>() },
                 { Languages.SIMPLIFIED_CHINESE, new List<Caption>() },
                 { Languages.KOREAN, new List<Caption>() },
-                { Languages.SPANISH, new List<Caption>() }
+                { Languages.SPANISH, new List<Caption>() },
+                { Languages.FRENCH, new List<Caption>() }
             };
 
 

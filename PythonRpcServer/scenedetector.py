@@ -55,7 +55,7 @@ def find_scenes(video_path):
         video_manager.start()
 
         # Perform scene detection on video_manager.
-        scene_manager.detect_scenes(frame_source=video_manager)
+        scene_manager.detect_scenes(frame_source=video_manager, frame_skip=2)
 
         # Obtain list of detected scenes.
         scene_list = scene_manager.get_scene_list(base_timecode)
