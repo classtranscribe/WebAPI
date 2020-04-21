@@ -53,19 +53,29 @@ namespace ClassTranscribeServer.Controllers
             }
         }
 
-        // GET: api/WatchHistories/GetAllWatchHistoryForUser
-        [HttpGet("GetAllWatchHistoryForUser")]
-        public async Task<ActionResult<IEnumerable<WatchHistory>>> GetAllWatchHistoryForUser()
+        // GET: api/WatchHistories/GetAllWatchedMediaForUser
+        [HttpGet("GetAllWatchedMediaForUser")]
+        public async Task<ActionResult<IEnumerable<MediaDTO>>> GetAllWatchHistoryForUser()
         {
             var user = _userUtils.GetUser(User);
             if (user != null)
             {
-                var watchHistories = await _context.WatchHistories
+                var watchedMedias = await _context.WatchHistories
                     .Where(w => w.ApplicationUserId == user.Id)
+                    .OrderByDescending(w => w.CreatedAt)
+                    .Select(w => new MediaDTO
+                    {
+                        Id = w.Media.Id,
+                        Name = w.Media.Name,
+                        PlaylistId = w.Media.PlaylistId,
+                        CreatedAt = w.Media.CreatedAt,
+                        JsonMetadata = w.Media.JsonMetadata,
+                        SourceType = w.Media.SourceType,                        
+                        WatchHistory = w
+                    })
                     .ToListAsync();
 
-                return watchHistories;
-
+                return watchedMedias;
             }
             else
             {
