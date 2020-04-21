@@ -4,6 +4,7 @@ import hashlib
 import json
 import os
 from utils import download_file
+from mediaprovider import MediaProvider, InvalidPlaylistInfoException
 
 DATA_DIR = os.getenv('DATA_DIRECTORY')
 KALTURA_PARTNER_ID = int(os.getenv('KALTURA_PARTNER_ID', default = 0))
@@ -13,10 +14,9 @@ KATLURA_APP_TOKEN = os.getenv('KALTURA_APP_TOKEN', default = None)
 if KALTURA_PARTNER_ID == 0 or not KALTURA_TOKEN_ID or not KATLURA_APP_TOKEN:
     print("INVALID KALTURA CREDENTIALS, check KALTURA environment variables.")
 
-class Kaltura:
+class KalturaProvider(MediaProvider):
     def __init__(self):
         self.client = self.getClient(KALTURA_PARTNER_ID, KALTURA_TOKEN_ID, KATLURA_APP_TOKEN)
-
 
     def getClient(self, partnerId, tokenId, appToken):
         config = KalturaConfiguration(partnerId)
@@ -66,8 +66,21 @@ class Kaltura:
         res = []
         for entry in entries.objects:
             res.append(self.getMediaInfo(entry.entryId))    
-        return json.dumps(res)
+        return res
     
     def downloadLecture(self, url):        
         filePath, extension = download_file(url)
         return filePath, extension
+
+    def getPlaylistItems(self, request):
+        channelId = int(request.Url)
+        try:
+            channel = self.getKalturaChannel(channelId)
+        except Exception as e:
+            raise InvalidPlaylistInfoException(e.message)
+
+        res = self.getKalturaChannelEntries(channelId)
+        return json.dumps(res)
+    
+    def getMedia(self, request):
+        return self.downloadLecture(request.videoUrl)

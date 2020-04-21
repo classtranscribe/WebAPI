@@ -62,7 +62,6 @@ namespace ClassTranscribeServer.Controllers
             {
                 var watchedMedias = await _context.WatchHistories
                     .Where(w => w.ApplicationUserId == user.Id)
-                    .OrderByDescending(w => w.CreatedAt)
                     .Select(w => new MediaDTO
                     {
                         Id = w.Media.Id,
@@ -73,6 +72,7 @@ namespace ClassTranscribeServer.Controllers
                         SourceType = w.Media.SourceType,                        
                         WatchHistory = w
                     })
+                    .OrderByDescending(m => m.WatchHistory.LastUpdatedAt)
                     .ToListAsync();
 
                 return watchedMedias;
