@@ -1,11 +1,13 @@
 ﻿using Box.V2.Models;
 using ClassTranscribeDatabase;
 using ClassTranscribeDatabase.Models;
+using Grpc.Core;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
@@ -55,14 +57,30 @@ namespace TaskEngine.Tasks
 
         public async Task<List<Media>> GetKalturaPlaylist(Playlist playlist, CTDbContext _context)
         {
-            var jsonString = await _rpcClient.PythonServerClient.GetKalturaChannelEntriesRPCAsync(new CTGrpc.PlaylistRequest
+            CTGrpc.JsonString jsonString = null;
+            try
             {
-                Url = playlist.PlaylistIdentifier
-            });
+                jsonString = await _rpcClient.PythonServerClient.GetKalturaChannelEntriesRPCAsync(new CTGrpc.PlaylistRequest
+                {
+                    Url = playlist.PlaylistIdentifier
+                });
+            }
+            catch (RpcException e)
+            {
+                if (e.Status.StatusCode == StatusCode.InvalidArgument)
+                {
+                    if (e.Status.Detail == "INVALID_PLAYLIST_IDENTIFIER")
+                    {
+                        // Notification to Instructor.
+                    }
+                    _logger.LogError(e.Message);
+                }
+                throw;
+            }
             JArray jArray = JArray.Parse(jsonString.Json);
             List<Media> newMedia = new List<Media>();
 
-            
+
             foreach (JObject jObject in jArray)
             {
                 // Check if there is a valid Id, and for the same playlist the same media does not exist.
@@ -90,11 +108,27 @@ namespace TaskEngine.Tasks
 
         public async Task<List<Media>> GetEchoPlaylist(Playlist playlist, CTDbContext _context)
         {
-            var jsonString = await _rpcClient.PythonServerClient.GetEchoPlaylistRPCAsync(new CTGrpc.PlaylistRequest
+            CTGrpc.JsonString jsonString = null;
+            try
             {
-                Url = playlist.PlaylistIdentifier,
-                Stream = 0
-            });
+                jsonString = await _rpcClient.PythonServerClient.GetEchoPlaylistRPCAsync(new CTGrpc.PlaylistRequest
+                {
+                    Url = playlist.PlaylistIdentifier,
+                    Stream = 0
+                });
+            }
+            catch (RpcException e)
+            {
+                if (e.Status.StatusCode == StatusCode.InvalidArgument)
+                {
+                    if (e.Status.Detail == "INVALID_PLAYLIST_IDENTIFIER")
+                    {
+                        // Notification to Instructor.
+                    }
+                    _logger.LogError(e.Message);
+                }
+                throw;
+            }
             JObject res = JObject.Parse(jsonString.Json);
 
             // Add DownloadHeader to playlist, required for downloading media.
@@ -111,7 +145,7 @@ namespace TaskEngine.Tasks
             {
                 playlist.JsonMetadata.Add("downloadHeader", res["downloadHeader"].ToString());
             }
-                        
+
             JArray jArray = res["medias"] as JArray;
 
             List<Media> newMedia = new List<Media>();
@@ -141,10 +175,26 @@ namespace TaskEngine.Tasks
 
         public async Task<List<Media>> GetYoutubePlaylist(Playlist playlist, CTDbContext _context)
         {
-            var jsonString = await _rpcClient.PythonServerClient.GetYoutubePlaylistRPCAsync(new CTGrpc.PlaylistRequest
+            CTGrpc.JsonString jsonString = null;
+            try
             {
-                Url = playlist.PlaylistIdentifier
-            });
+                jsonString = await _rpcClient.PythonServerClient.GetYoutubePlaylistRPCAsync(new CTGrpc.PlaylistRequest
+                {
+                    Url = playlist.PlaylistIdentifier
+                });
+            }
+            catch (RpcException e)
+            {
+                if (e.Status.StatusCode == StatusCode.InvalidArgument)
+                {
+                    if (e.Status.Detail == "INVALID_PLAYLIST_IDENTIFIER")
+                    {
+                        // Notification to Instructor.
+                    }
+                    _logger.LogError(e.Message);
+                }
+                throw;
+            }
             JArray jArray = JArray.Parse(jsonString.Json);
             List<Media> newMedia = new List<Media>();
             foreach (JObject jObject in jArray)

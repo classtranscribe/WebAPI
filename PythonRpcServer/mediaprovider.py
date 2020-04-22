@@ -6,4 +6,6 @@ class MediaProvider:
         raise NotImplementedError("To be implemented")
 
 class InvalidPlaylistInfoException(Exception):
-    pass
+    def __init__(self, message = 'INVALID_PLAYLIST_IDENTIFIER'):
+        self.message = message
+
