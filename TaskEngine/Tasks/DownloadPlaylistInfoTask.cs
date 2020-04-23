@@ -57,6 +57,7 @@ namespace TaskEngine.Tasks
 
         public async Task<List<Media>> GetKalturaPlaylist(Playlist playlist, CTDbContext _context)
         {
+            List<Media> newMedia = new List<Media>();
             CTGrpc.JsonString jsonString = null;
             try
             {
@@ -75,11 +76,9 @@ namespace TaskEngine.Tasks
                     }
                     _logger.LogError(e.Message);
                 }
-                throw;
+                return newMedia;
             }
             JArray jArray = JArray.Parse(jsonString.Json);
-            List<Media> newMedia = new List<Media>();
-
 
             foreach (JObject jObject in jArray)
             {
@@ -108,6 +107,7 @@ namespace TaskEngine.Tasks
 
         public async Task<List<Media>> GetEchoPlaylist(Playlist playlist, CTDbContext _context)
         {
+            List<Media> newMedia = new List<Media>();
             CTGrpc.JsonString jsonString = null;
             try
             {
@@ -127,7 +127,7 @@ namespace TaskEngine.Tasks
                     }
                     _logger.LogError(e.Message);
                 }
-                throw;
+                return newMedia;
             }
             JObject res = JObject.Parse(jsonString.Json);
 
@@ -148,7 +148,7 @@ namespace TaskEngine.Tasks
 
             JArray jArray = res["medias"] as JArray;
 
-            List<Media> newMedia = new List<Media>();
+            
             foreach (JObject jObject in jArray)
             {
                 // Check if there is a valid Id, and for the same playlist the same media does not exist.
@@ -175,6 +175,7 @@ namespace TaskEngine.Tasks
 
         public async Task<List<Media>> GetYoutubePlaylist(Playlist playlist, CTDbContext _context)
         {
+            List<Media> newMedia = new List<Media>();
             CTGrpc.JsonString jsonString = null;
             try
             {
@@ -193,10 +194,9 @@ namespace TaskEngine.Tasks
                     }
                     _logger.LogError(e.Message);
                 }
-                throw;
+                return newMedia;
             }
-            JArray jArray = JArray.Parse(jsonString.Json);
-            List<Media> newMedia = new List<Media>();
+            JArray jArray = JArray.Parse(jsonString.Json);            
             foreach (JObject jObject in jArray)
             {
                 // Check if there is a valid videoId, and for the same playlist the same media does not exist.
