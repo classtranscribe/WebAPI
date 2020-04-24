@@ -191,6 +191,7 @@ namespace ClassTranscribeServer.Controllers
                 OfferingId = p.OfferingId,
                 Name = p.Name,
                 Medias = medias,
+                JsonMetadata = p.JsonMetadata,
                 PlaylistIdentifier = p.PlaylistIdentifier
             };
         }
@@ -381,6 +382,7 @@ namespace ClassTranscribeServer.Controllers
         public int Index { get; set; }
         public string PlaylistIdentifier { get; set; }
         public List<MediaDTO> Medias { get; set; }
+        public JObject JsonMetadata { get; set; }
     }
 
     public class MediaDTO
