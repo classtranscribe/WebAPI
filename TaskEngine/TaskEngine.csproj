@@ -20,7 +20,6 @@
   </ItemGroup>
   
   <ItemGroup>
-    <PackageReference Include="Box.V2.Core" Version="3.21.0" />
     <PackageReference Include="CsvHelper" Version="14.0.0" />
     <PackageReference Include="Microsoft.CodeAnalysis.FxCopAnalyzers" Version="2.9.8">
       <PrivateAssets>all</PrivateAssets>

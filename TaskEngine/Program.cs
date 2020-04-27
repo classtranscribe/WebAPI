@@ -8,6 +8,7 @@ using System;
 using CTCommons.Grpc;
 using CTCommons.MSTranscription;
 using TaskEngine.Tasks;
+using CTCommons;
 
 namespace TaskEngine
 {
