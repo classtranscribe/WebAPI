@@ -5,8 +5,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
-using TaskEngine.Grpc;
-using TaskEngine.MSTranscription;
+using CTCommons.Grpc;
+using CTCommons.MSTranscription;
 using TaskEngine.Tasks;
 
 namespace TaskEngine

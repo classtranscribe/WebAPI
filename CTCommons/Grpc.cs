@@ -3,9 +3,9 @@ using CTGrpc;
 using Grpc.Core;
 using System;
 
-namespace TaskEngine.Grpc
+namespace CTCommons.Grpc
 {
-    class RpcClient
+    public class RpcClient
     {
         AppSettings _appSettings;
         public PythonServer.PythonServerClient PythonServerClient;

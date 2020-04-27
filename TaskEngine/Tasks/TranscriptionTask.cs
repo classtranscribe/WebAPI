@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using TaskEngine.MSTranscription;
+using CTCommons.MSTranscription;
 using static ClassTranscribeDatabase.CommonUtils;
 
 namespace TaskEngine.Tasks
@@ -48,7 +48,9 @@ namespace TaskEngine.Tasks
                 }
                 throw new FileNotFoundException("Wav file not found.", video.Audio.Path);
             }
-            var result = await _msTranscriptionService.RecognitionWithAudioStreamAsync(video);
+            Key key = TaskEngineGlobals.KeyProvider.GetKey(video.Id);
+            var result = await _msTranscriptionService.RecognitionWithAudioStreamAsync(video.Audio, key);
+            TaskEngineGlobals.KeyProvider.ReleaseKey(key, video.Id);
             List<Transcription> transcriptions = new List<Transcription>();
             foreach (var language in result.Item1)
             {

@@ -3,7 +3,7 @@ using ClassTranscribeDatabase.Models;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
 using System.Threading.Tasks;
-using TaskEngine.Grpc;
+using CTCommons.Grpc;
 using static ClassTranscribeDatabase.CommonUtils;
 
 namespace TaskEngine.Tasks
