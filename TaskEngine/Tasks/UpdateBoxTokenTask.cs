@@ -16,7 +16,7 @@ namespace TaskEngine.Tasks
 
         protected async override Task OnConsume(string emptyString, TaskParameters taskParameters)
         {
-            await _box.RefreshAccessTokenAsync();
+            //await _box.RefreshAccessTokenAsync();
         }
     }
 }
