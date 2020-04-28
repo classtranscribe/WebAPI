@@ -138,6 +138,29 @@ namespace TaskEngine.Tasks
                     (await _context.Playlists.Where(o => o.OfferingId == offeringId).ToListAsync())
                         .ForEach(p => _downloadPlaylistInfoTask.Publish(p.Id));
                 }
+                else if (type == TaskType.ReTranscribePlaylist.ToString())
+                {
+                    var playlistId = jObject["PlaylistId"].ToString();
+
+                    // Get all videos 
+                    var videos = _context.Playlists.Where(p => p.Id == playlistId).SelectMany(p => p.Medias).Select(m => m.Video);
+                    // Delete all captions
+                    var captions = await videos.SelectMany(v => v.Transcriptions).SelectMany(t => t.Captions).ToListAsync();
+                    _context.Captions.RemoveRange(captions);
+                    // Delete all Transcriptions
+                    var transcriptions = await videos.SelectMany(v => v.Transcriptions).ToListAsync();
+                    _context.Transcriptions.RemoveRange(transcriptions);
+
+                    (await videos.ToListAsync()).ForEach(v =>
+                    {
+                        v.TranscribingAttempts = 0;
+                        v.TranscriptionStatus = null;
+                    });
+
+                    await _context.SaveChangesAsync();
+                    var playlist = await _context.Playlists.FindAsync(playlistId);
+                    _downloadPlaylistInfoTask.Publish(playlist.Id);
+                }
             }
         }
     }

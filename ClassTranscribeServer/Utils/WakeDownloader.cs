@@ -95,5 +95,13 @@ namespace ClassTranscribeServer
             var queueName = TaskType.QueueAwaker.ToString();
             _rabbitMQ.PublishTask(queueName, message, taskParameters);
         }
+
+        public void ReTranscribePlaylist(string playlistId)
+        {
+            JObject msg = new JObject();
+            msg.Add("Type", TaskType.ReTranscribePlaylist.ToString());
+            msg.Add("PlaylistId", playlistId);
+            Wake(msg);
+        }
     }
 }

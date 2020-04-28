@@ -89,6 +89,13 @@ namespace ClassTranscribeServer.Controllers
             return Ok();
         }
 
+        [HttpPost("ReTranscribePlaylist")]
+        public ActionResult ReTranscribePlaylist(string playlistId)
+        {
+            _wakeDownloader.ReTranscribePlaylist(playlistId);
+            return Ok();
+        }
+
         [HttpPost("PeriodicCheck")]
         [Authorize(Roles = Globals.ROLE_ADMIN)]
         public ActionResult PeriodicCheck()

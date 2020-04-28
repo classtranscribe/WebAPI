@@ -23,7 +23,8 @@ namespace ClassTranscribeDatabase
             SceneDetection,
             UpdateBoxToken,
             CreateBoxToken,
-            UpdateOffering
+            UpdateOffering,
+            ReTranscribePlaylist
         }
 
         public class Languages
