@@ -20,6 +20,7 @@ namespace TaskEngine
         static void Main(string[] args)
         {
             var configuration = CTDbContext.GetConfigurations();
+            
             //setup our DI
             var serviceProvider = new ServiceCollection()
                 .AddLogging(builder =>
