@@ -1,11 +1,12 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using ClassTranscribeDatabase;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System;
 using System.Threading.Tasks;
 
-namespace ClassTranscribeDatabase
+namespace CTCommons
 {
     public class RabbitMQConnection : IDisposable
     {

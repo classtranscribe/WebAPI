@@ -1,5 +1,6 @@
 ﻿using ClassTranscribeDatabase;
 using ClassTranscribeDatabase.Models;
+using CTCommons;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System.Runtime.InteropServices;

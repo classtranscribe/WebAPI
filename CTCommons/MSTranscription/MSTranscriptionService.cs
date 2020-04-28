@@ -11,7 +11,7 @@ using System.Text;
 using System.Threading.Tasks;
 using static ClassTranscribeDatabase.CommonUtils;
 
-namespace TaskEngine.MSTranscription
+namespace CTCommons.MSTranscription
 {
     public class MSTranscriptionService
     {
@@ -23,12 +23,11 @@ namespace TaskEngine.MSTranscription
             _logger = logger;
             _slackLogger = slackLogger;
         }
-        public async Task<Tuple<Dictionary<string, List<Caption>>, string>> RecognitionWithAudioStreamAsync(Video video)
+        public async Task<Tuple<Dictionary<string, List<Caption>>, string>> RecognitionWithAudioStreamAsync(FileRecord audioFile, Key key)
         {
-            string file = video.Audio.Path;
+            string file = audioFile.Path;
             AppSettings _appSettings = Globals.appSettings;
 
-            Key key = TaskEngineGlobals.KeyProvider.GetKey(video.Id);
             SpeechTranslationConfig _speechConfig = SpeechTranslationConfig.FromSubscription(key.ApiKey, key.Region);
             _speechConfig.RequestWordLevelTimestamps();
             // Sets source and target languages.
@@ -50,7 +49,7 @@ namespace TaskEngine.MSTranscription
                 { Languages.FRENCH, new List<Caption>() }
             };
 
-
+            
             var stopRecognition = new TaskCompletionSource<int>();
             // Create an audio stream from a wav file.
             // Replace with your own audio file name.
@@ -64,24 +63,24 @@ namespace TaskEngine.MSTranscription
                         if (e.Result.Reason == ResultReason.TranslatedSpeech)
                         {
                             JObject jObject = JObject.Parse(e.Result.Properties.GetProperty(PropertyId.SpeechServiceResponse_JsonResult));
-                            var words = jObject["Words"]
+                            var wordLevelCaptions = jObject["Words"]
                             .ToObject<List<MSTWord>>()
                             .OrderBy(w => w.Offset)
                             .ToList();
 
-                            // To fix bug with MS Cognitive Services
-                            if (words.Any())
+                            if (wordLevelCaptions.Any())
                             {
-                                var offsetDifference = e.Result.OffsetInTicks - words.FirstOrDefault().Offset;
-                                words.ForEach(w => w.Offset += offsetDifference);
+                                var offsetDifference = e.Result.OffsetInTicks - wordLevelCaptions.FirstOrDefault().Offset;
+                                wordLevelCaptions.ForEach(w => w.Offset += offsetDifference);
                             }
 
+                            var sentenceLevelCaptions = MSTWord.WordLevelTimingsToSentenceLevelTimings(e.Result.Text, wordLevelCaptions);
 
                             TimeSpan offset = new TimeSpan(e.Result.OffsetInTicks);
                             _logger.LogInformation($"Begin={offset.Minutes}:{offset.Seconds},{offset.Milliseconds}", offset);
                             TimeSpan end = e.Result.Duration.Add(offset);
                             _logger.LogInformation($"End={end.Minutes}:{end.Seconds},{end.Milliseconds}");
-                            Caption.AppendCaptions(captions[Languages.ENGLISH], words);
+                            Caption.AppendCaptions(captions[Languages.ENGLISH], sentenceLevelCaptions);
 
                             foreach (var element in e.Result.Translations)
                             {
@@ -105,8 +104,8 @@ namespace TaskEngine.MSTranscription
                             if (e.ErrorCode == CancellationErrorCode.AuthenticationFailure)
                             {
                                 _logger.LogInformation($"CANCELED: ErrorCode={e.ErrorCode.ToString()} Reason={e.Reason}");
-                                _slackLogger.PostErrorAsync(new Exception($"Transcription Failure, Authentication failure, VideoId {video.Id}"),
-                                    $"Transcription Failure, Authentication failure, VideoId {video.Id}").GetAwaiter().GetResult();
+                                _slackLogger.PostErrorAsync(new Exception($"Transcription Failure, Authentication failure, VideoId {audioFile.Id}"),
+                                    $"Transcription Failure, Authentication failure, VideoId {audioFile.Id}").GetAwaiter().GetResult();
                             }
                         }
 
@@ -134,7 +133,6 @@ namespace TaskEngine.MSTranscription
 
                     // Stops recognition.
                     await recognizer.StopContinuousRecognitionAsync().ConfigureAwait(false);
-                    TaskEngineGlobals.KeyProvider.ReleaseKey(key, video.Id);
                     return new Tuple<Dictionary<string, List<Caption>>, string>(captions, errorCode);
                 }
             }
