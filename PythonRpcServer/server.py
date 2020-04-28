@@ -7,10 +7,16 @@ import time
 import logging
 from concurrent import futures
 import scenedetector
-from kaltura import Kaltura
 import echo
-import youtube
+from youtube import YoutubeProvider
+from echo import EchoProvider
+from kaltura import KalturaProvider
+from mediaprovider import InvalidPlaylistInfoException
 import ffmpeg
+
+youtubeprovider = YoutubeProvider()
+echoprovider = EchoProvider()
+kalturaprovider = KalturaProvider()
 
 _ONE_DAY_IN_SECONDS = 60 * 60 * 24
 
@@ -20,27 +26,43 @@ class PythonServerServicer(ct_pb2_grpc.PythonServerServicer):
         return ct_pb2.JsonString(json = res)
     
     def GetKalturaChannelEntriesRPC(self, request, context):
-        res = Kaltura().getKalturaChannelEntries(int(request.Url))
-        return ct_pb2.JsonString(json = res)
+        try:
+            res = kalturaprovider.getPlaylistItems(request)
+            return ct_pb2.JsonString(json = res)
+        except InvalidPlaylistInfoException as e:
+            context.set_code(grpc.StatusCode.INVALID_ARGUMENT)
+            context.set_details(e.message)
+            return ct_pb2.JsonString()
     
     def DownloadKalturaVideoRPC(self, request, context):
-        filePath, ext = Kaltura().downloadLecture(request.videoUrl)
+        filePath, ext = kalturaprovider.getMedia(request)
         return ct_pb2.File(filePath = filePath, ext = ext)
         
     def GetEchoPlaylistRPC(self, request, context):
-        res = echo.get_syllabus(request.Url, stream = request.Stream)
-        return ct_pb2.JsonString(json = res)
+        try:
+            res = echoprovider.getPlaylistItems(request)
+            return ct_pb2.JsonString(json = res)
+        except InvalidPlaylistInfoException as e:
+            context.set_code(grpc.StatusCode.INVALID_ARGUMENT)
+            context.set_details(e.message)
+            return ct_pb2.JsonString()
+        
     
     def DownloadEchoVideoRPC(self, request, context):
-        filePath, ext = echo.downloadLecture(request.videoUrl, request.additionalInfo)
+        filePath, ext = echoprovider.getMedia(request)
         return ct_pb2.File(filePath = filePath, ext = ext)
     
     def GetYoutubePlaylistRPC(self, request, context):
-        res = youtube.get_youtube_playlist(request.Url)
-        return ct_pb2.JsonString(json = res)
+        try:
+            res = youtubeprovider.getPlaylistItems(request)
+            return ct_pb2.JsonString(json = res)
+        except InvalidPlaylistInfoException as e:
+            context.set_code(grpc.StatusCode.INVALID_ARGUMENT)
+            context.set_details(e.message)
+            return ct_pb2.JsonString()
     
     def DownloadYoutubeVideoRPC(self, request, context):
-        filePath, ext = youtube.download_youtube_video(request.videoUrl)
+        filePath, ext = youtubeprovider.getMedia(request)
         return ct_pb2.File(filePath = filePath, ext = ext)
     
     def ConvertVideoToWavRPC(self, request, context):
