@@ -69,7 +69,7 @@ namespace ClassTranscribeServer.Controllers
                         PlaylistId = w.Media.PlaylistId,
                         CreatedAt = w.Media.CreatedAt,
                         JsonMetadata = w.Media.JsonMetadata,
-                        SourceType = w.Media.SourceType,                        
+                        SourceType = w.Media.SourceType,
                         WatchHistory = w
                     })
                     .OrderByDescending(m => m.WatchHistory.LastUpdatedAt)
