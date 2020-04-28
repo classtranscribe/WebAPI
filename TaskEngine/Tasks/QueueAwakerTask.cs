@@ -143,23 +143,28 @@ namespace TaskEngine.Tasks
                     var playlistId = jObject["PlaylistId"].ToString();
 
                     // Get all videos 
-                    var videos = _context.Playlists.Where(p => p.Id == playlistId).SelectMany(p => p.Medias).Select(m => m.Video);
+                    var videos = await _context.Playlists.Where(p => p.Id == playlistId).SelectMany(p => p.Medias).Select(m => m.Video)
+                        .Include(v => v.Transcriptions)
+                        .ThenInclude(t => t.Captions).ToListAsync();
                     // Delete all captions
-                    var captions = await videos.SelectMany(v => v.Transcriptions).SelectMany(t => t.Captions).ToListAsync();
+                    var captions = videos.SelectMany(v => v.Transcriptions).SelectMany(t => t.Captions).ToList();
                     _context.Captions.RemoveRange(captions);
                     // Delete all Transcriptions
-                    var transcriptions = await videos.SelectMany(v => v.Transcriptions).ToListAsync();
+                    var transcriptions = videos.SelectMany(v => v.Transcriptions).ToList();
                     _context.Transcriptions.RemoveRange(transcriptions);
 
-                    (await videos.ToListAsync()).ForEach(v =>
+                    videos.ForEach(v =>
                     {
                         v.TranscribingAttempts = 0;
                         v.TranscriptionStatus = null;
                     });
 
                     await _context.SaveChangesAsync();
-                    var playlist = await _context.Playlists.FindAsync(playlistId);
-                    _downloadPlaylistInfoTask.Publish(playlist.Id);
+
+                    videos.ForEach(v =>
+                    {
+                        _transcriptionTask.Publish(v.Id);
+                    });
                 }
             }
         }
