@@ -12,8 +12,8 @@ using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using CTCommons.Grpc;
-using static ClassTranscribeDatabase.CommonUtils;
 using CTCommons;
+using static ClassTranscribeDatabase.CommonUtils;
 
 namespace TaskEngine.Tasks
 {
