@@ -80,7 +80,7 @@ namespace CTCommons.MSTranscription
                             _logger.LogInformation($"Begin={offset.Minutes}:{offset.Seconds},{offset.Milliseconds}", offset);
                             TimeSpan end = e.Result.Duration.Add(offset);
                             _logger.LogInformation($"End={end.Minutes}:{end.Seconds},{end.Milliseconds}");
-                            Caption.AppendCaptions(captions[Languages.ENGLISH], sentenceLevelCaptions);
+                            MSTWord.AppendCaptions(captions[Languages.ENGLISH], sentenceLevelCaptions);
 
                             foreach (var element in e.Result.Translations)
                             {
