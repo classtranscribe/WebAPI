@@ -144,8 +144,7 @@ namespace TaskEngine.Tasks
 
                     // Get all videos 
                     var videos = await _context.Playlists.Where(p => p.Id == playlistId).SelectMany(p => p.Medias).Select(m => m.Video)
-                        .Include(v => v.Transcriptions)
-                        .ThenInclude(t => t.Captions).ToListAsync();
+                        .ToListAsync();
                     // Delete all captions
                     var captions = videos.SelectMany(v => v.Transcriptions).SelectMany(t => t.Captions).ToList();
                     _context.Captions.RemoveRange(captions);

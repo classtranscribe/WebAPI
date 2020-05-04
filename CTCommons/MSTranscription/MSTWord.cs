@@ -17,6 +17,7 @@ namespace CTCommons.MSTranscription
         public int Count { get; set; }
         public bool Tagged { get; set; }
         public long End { get; set; }
+
         public static List<MSTWord> WordLevelTimingsToSentenceLevelTimings(string sentenceCaption, List<MSTWord> wordTimingWords)
         {
             List<MSTWord> sentenceTimingWords = SentenceToWords(sentenceCaption);

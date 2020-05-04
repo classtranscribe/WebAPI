@@ -112,7 +112,7 @@ namespace ClassTranscribeDatabase.Models
         public static string GenerateWebVTTFile(List<Caption> captions, string language)
         {
             string vttFile = CommonUtils.GetTmpFile();
-            string Subtitle = "WEBVTT\nKind: subtitles\nLanguage: " + language + "\n\n";
+            string Subtitle = "WEBVTT Kind: captions; Language: " + language + "\n\n";
             foreach (Caption caption in captions)
             {
                 Subtitle += caption.WebVTTSubtitle();
