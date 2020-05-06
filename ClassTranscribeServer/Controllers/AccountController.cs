@@ -258,7 +258,7 @@ namespace ClassTranscribeServer.Controllers
             string cilogonDomain = "https://" + Globals.appSettings.CILOGON_DOMAIN + "/"; // Your Auth0 domain
             string cilogonClientId = Globals.appSettings.CILOGON_CLIENT_ID; // Your API Identifier
             string cilogonClientSecret = Globals.appSettings.CILOGON_CLIENT_SECRET;
-            string cilogonCallbackURL = Globals.appSettings.CILOGON_CALLBACK_URL;
+            string cilogonCallbackURL = "https://" + Globals.appSettings.HOST_NAME + "/cilogon-callback";
 
             // Get id_token from authorization code.
             var client = new RestClient($"{cilogonDomain}oauth2/token");
