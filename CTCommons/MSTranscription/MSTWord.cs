@@ -18,6 +18,32 @@ namespace CTCommons.MSTranscription
         public bool Tagged { get; set; }
         public long End { get; set; }
 
+        /// <summary>
+        /// A brief explanation of the algorithm below.
+        /// For a sample caption - “A man and, a woman.”
+        ///        The captions are in the form of a tuple - (text, start_time, end_time)
+        ///
+        ///        The word-level captions are - 
+        ///(“a”, 00:00:00, 00:00:50) , (“man”, 00:00:50, 00:01:00), (“and”, 00:01:00, 00:01:50), (“a”, 00:01:50, 00:02:00), (“woman”, 00:02:00, 00:02:50)
+        ///Notice the lack of capitalization and punctuations in the word-level captions
+        ///
+        ///The sentence-level captions are - 
+        ///(“A man and, a woman.”, 00:00:00, 00:01:50)
+        ///
+        ///Step 1. Split the sentence level captions into words and add blank words at start and end with the original timing information of the sentence.
+        ///
+        ///Output -> (START, 00:00:00, 00:00:00), (“A”, ?, ?) , (“man”, ?, ?), (“and,”, ?, ?), (“a”, ?, ?), (“woman.”, ?, ?), (END, 00:02:50, 00:02:50)
+        ///
+        ///Step 2. Find words that occur only once in both captions and copy the timing information from word-level to sentence-level captions.The string comparisons are done with ignoring case and punctuation.
+        ///
+        ///Output -> (START, 00:00:00, 00:00:00), (“A”, ?, ?) , (“man”, 00:00:50, 00:01:00), (“and,”, 00:01:00, 00:01:50), (“a”, ?, ?), (“woman.”, 00:02:00, 00:02:50), (END, 00:02:50, 00:02:50)
+        ///
+        ///Step 3. Extrapolate the timing for the missing words.
+        ///
+        ///Output -> (START, 00:00:00, 00:00:00), (“A”, 00:00:00, 00:00:50) , (“man”, 00:00:50, 00:01:00), (“and,”, 00:01:00, 00:01:50), (“a”, 00:01:50, 00:02:00), (“woman.”, 00:02:00, 00:02:50), (END, 00:02:50, 00:02:50)
+        /// </summary>
+        
+
         public static List<MSTWord> WordLevelTimingsToSentenceLevelTimings(string sentenceCaption, List<MSTWord> wordTimingWords)
         {
             List<MSTWord> sentenceTimingWords = SentenceToWords(sentenceCaption);
@@ -96,6 +122,11 @@ namespace CTCommons.MSTranscription
             return sentenceTimingWords;
         }
 
+        /// <summary>
+        /// Convert a string to a list of MSTWord
+        /// </summary>
+        /// <param name="s"></param>
+        /// <returns></returns>
         public static List<MSTWord> SentenceToWords(string s)
         {
             return s.Split().ToList().Select(w => new MSTWord
@@ -105,7 +136,9 @@ namespace CTCommons.MSTranscription
             }).ToList();
         }
 
-
+        /// <summary>
+        /// For every word add the number of times it occurs in the list.
+        /// </summary>
         public static void AddCount(List<MSTWord> words)
         {
             var grouped = words.GroupBy(w => w.Token).ToList();
@@ -115,6 +148,9 @@ namespace CTCommons.MSTranscription
             }
         }
 
+        /// <summary>
+        /// Compute a lower case and punctuation free representation of the string s
+        /// </summary>
         public static string Tokenize(string s)
         {
             var sb = new StringBuilder();
