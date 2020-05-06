@@ -25,6 +25,10 @@ namespace ClassTranscribeDatabase
         public string APPLICATION_INSIGHTS_KEY { get; set; }
         public string SLACK_WEBHOOK_URL { get; set; }
         public string TEST_SIGN_IN { get; set; }
+        public string CILOGON_CLIENT_ID { get; set; }
+        public string CILOGON_CLIENT_SECRET { get; set; }
+        public string CILOGON_CALLBACK_URL { get; set; }
+        public string CILOGON_DOMAIN { get; set; }
     }
 
     public static class Globals

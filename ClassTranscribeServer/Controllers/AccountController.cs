@@ -9,6 +9,7 @@ using Microsoft.IdentityModel.Protocols;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json.Linq;
+using RestSharp;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -173,7 +174,12 @@ namespace ClassTranscribeServer.Controllers
             LoggedInDTO loggedInDTO;
             try
             {
-                ApplicationUser user = await Validate(model.auth0Token);
+                ApplicationUser user = null;
+                switch (model.AuthMethod)
+                {
+                    case AuthMethod.Auth0: user = await ValidateAuth0IDToken(model.Token); break;
+                    case AuthMethod.CILogon: user = await ValidateCILogonAuthCode(model.Token); break;
+                }
                 ApplicationUser applicationUser = await _userManager.FindByEmailAsync(user.Email);
                 if (applicationUser == null)
                 {
@@ -194,7 +200,7 @@ namespace ClassTranscribeServer.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error signing in User with authToken {0}.", model.auth0Token);
+                _logger.LogError(ex, "Error signing in User with authToken {0}.", model.Token);
                 return Unauthorized();
             }
 
@@ -238,19 +244,45 @@ namespace ClassTranscribeServer.Controllers
         }
 
         [NonAction]
-        public async Task<ApplicationUser> Validate(string token)
+        public async Task<ApplicationUser> ValidateAuth0IDToken(string idToken)
         {
             string auth0Domain = "https://" + Globals.appSettings.AUTH0_DOMAIN + "/"; // Your Auth0 domain
             string auth0Audience = Globals.appSettings.AUTH0_CLIENT_ID; // Your API Identifier
 
-            IConfigurationManager<OpenIdConnectConfiguration> configurationManager = new ConfigurationManager<OpenIdConnectConfiguration>($"{auth0Domain}.well-known/openid-configuration", new OpenIdConnectConfigurationRetriever());
+            return await ValidateIdToken(auth0Domain, auth0Audience, idToken);
+        }
+
+        [NonAction]
+        public async Task<ApplicationUser> ValidateCILogonAuthCode(string authCode)
+        {
+            string cilogonDomain = "https://" + Globals.appSettings.CILOGON_DOMAIN + "/"; // Your Auth0 domain
+            string cilogonClientId = Globals.appSettings.CILOGON_CLIENT_ID; // Your API Identifier
+            string cilogonClientSecret = Globals.appSettings.CILOGON_CLIENT_SECRET;
+            string cilogonCallbackURL = Globals.appSettings.CILOGON_CALLBACK_URL;
+
+            // Get id_token from authorization code.
+            var client = new RestClient($"{cilogonDomain}oauth2/token");
+            var request = new RestRequest(Method.POST);
+            request.AddHeader("content-type", "application/x-www-form-urlencoded");
+            request.AddParameter("application/x-www-form-urlencoded", $"grant_type=authorization_code&client_id={cilogonClientId}&client_secret={cilogonClientSecret}&code={authCode}&redirect_uri={cilogonCallbackURL}", ParameterType.RequestBody);
+            IRestResponse response = client.Execute(request);
+            var id_token = JObject.Parse(response.Content)["id_token"].ToString();
+
+            return await ValidateIdToken(cilogonDomain, cilogonClientId, id_token);            
+        }
+
+        [NonAction]
+        public static async Task<ApplicationUser> ValidateIdToken(string domain, string audience, string idToken)
+        {
+            // Validate the id_token
+            IConfigurationManager<OpenIdConnectConfiguration> configurationManager = new ConfigurationManager<OpenIdConnectConfiguration>($"{domain}.well-known/openid-configuration", new OpenIdConnectConfigurationRetriever());
             OpenIdConnectConfiguration openIdConfig = await configurationManager.GetConfigurationAsync(CancellationToken.None);
 
             TokenValidationParameters validationParameters =
             new TokenValidationParameters
             {
-                ValidIssuer = auth0Domain,
-                ValidAudiences = new[] { auth0Audience },
+                ValidIssuer = openIdConfig.Issuer,
+                ValidAudiences = new[] { audience },
                 IssuerSigningKeys = openIdConfig.SigningKeys,
                 ValidateIssuer = true,
                 ValidateAudience = true,
@@ -258,14 +290,14 @@ namespace ClassTranscribeServer.Controllers
             };
             SecurityToken validatedToken;
             JwtSecurityTokenHandler handler = new JwtSecurityTokenHandler();
-            var claims = handler.ValidateToken(token, validationParameters, out validatedToken);
+            var claims = handler.ValidateToken(idToken, validationParameters, out validatedToken);
 
             var applicationUser = new ApplicationUser
             {
-                UserName = claims.FindFirstValue("email"),
-                Email = claims.FindFirstValue("email"),
-                FirstName = claims.FindFirstValue("given_name"),
-                LastName = claims.FindFirstValue("family_name"),
+                UserName = claims.FindFirstValue(ClaimTypes.Email),
+                Email = claims.FindFirstValue(ClaimTypes.Email),
+                FirstName = claims.FindFirstValue(ClaimTypes.GivenName),
+                LastName = claims.FindFirstValue(ClaimTypes.Surname),
                 EmailConfirmed = true
             };
 
@@ -275,7 +307,14 @@ namespace ClassTranscribeServer.Controllers
         public class LoginDto
         {
             [Required]
-            public string auth0Token { get; set; }
+            public string Token { get; set; }
+            public AuthMethod AuthMethod { get; set; }
+        }
+
+        public enum AuthMethod
+        {
+            Auth0,
+            CILogon
         }
 
         public class LoginAsDTO
