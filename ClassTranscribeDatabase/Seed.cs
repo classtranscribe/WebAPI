@@ -38,12 +38,12 @@ namespace ClassTranscribeDatabase
                 }
             }
 
-            University university1 = new University
+            University sampleUniversity = new University
             {
                 // University Id begins with 1
                 Id = "1001",
-                Name = "University of Illinois at Urbana-Champaign",
-                Domain = "illinois.edu"
+                Name = "ClassTranscribe Test University",
+                Domain = "classtranscribe.com"
                 // Departments = { department1, department2 }
             };
 
@@ -55,7 +55,7 @@ namespace ClassTranscribeDatabase
                 Domain = "UNK"
             };
 
-            List<University> universities = new List<University> { university1, unknownUniversity };
+            List<University> universities = new List<University> { sampleUniversity, unknownUniversity };
 
             foreach (var t in universities)
             {
@@ -65,56 +65,24 @@ namespace ClassTranscribeDatabase
                 }
             }
 
-            ApplicationUser shawn = new ApplicationUser
-            {
-                Id = "1",
-                UserName = "ruihua.sui@gmail.com",
-                Email = "ruihua.sui@gmail.com",
-                FirstName = "Ruihua",
-                LastName = "Sui",
-                UniversityId = university1.Id,
-                NormalizedEmail = "RUIHUA.SUI@GMAIL.COM",
-                NormalizedUserName = "RUIHUA.SUI@GMAIL.COM",
-                EmailConfirmed = true,
-                LockoutEnabled = false,
-                SecurityStamp = Guid.NewGuid().ToString()
-            };
-
-            ApplicationUser chirantan = new ApplicationUser
-            {
-                Id = "2",
-                UserName = "mahipal2@illinois.edu",
-                Email = "mahipal2@illinois.edu",
-                FirstName = "Chirantan",
-                LastName = "Mahipal",
-                UniversityId = university1.Id,
-                NormalizedEmail = "MAHIPAL2@ILLINOIS.EDU",
-                NormalizedUserName = "MAHIPAL2@ILLINOIS.EDU",
-                EmailConfirmed = true,
-                LockoutEnabled = false,
-                SecurityStamp = Guid.NewGuid().ToString()
-            };
-
             ApplicationUser testuser = new ApplicationUser
             {
-                Id = "9",
-                UserName = "testuser999@illinois.edu",
-                Email = "testuser999@illinois.edu",
+                Id = "99",
+                UserName = "testuser999@classtranscribe.com",
+                Email = "testuser999@classtranscribe.com",
                 FirstName = "Test",
                 LastName = "User",
-                UniversityId = university1.Id,
-                NormalizedEmail = "TESTUSER999@ILLINOIS.EDU",
-                NormalizedUserName = "TESTUSER999@ILLINOIS.EDU",
+                UniversityId = sampleUniversity.Id,
+                NormalizedEmail = "TESTUSER999@CLASSTRANSCRIBE.COM",
+                NormalizedUserName = "TESTUSER999@CLASSTRANSCRIBE.COM",
                 EmailConfirmed = true,
                 LockoutEnabled = false,
                 SecurityStamp = Guid.NewGuid().ToString()
             };
 
-            chirantan.PasswordHash = new PasswordHasher<ApplicationUser>().HashPassword(chirantan, chirantan.Email);
-            shawn.PasswordHash = new PasswordHasher<ApplicationUser>().HashPassword(shawn, shawn.Email);
             testuser.PasswordHash = new PasswordHasher<ApplicationUser>().HashPassword(testuser, testuser.Email);
 
-            List<ApplicationUser> users = new List<ApplicationUser> { shawn, chirantan, testuser };
+            List<ApplicationUser> users = new List<ApplicationUser> { testuser };
             foreach (ApplicationUser user in users)
             {
                 if (!_context.Users.IgnoreQueryFilters().Any(u => u.Email == user.Email))
@@ -137,7 +105,7 @@ namespace ClassTranscribeDatabase
                 // Offerings, University, UniversityId
             };
 
-            term1.UniversityId = university1.Id;
+            term1.UniversityId = sampleUniversity.Id;
 
             Department department1 = new Department
             {
@@ -145,7 +113,7 @@ namespace ClassTranscribeDatabase
                 Id = "2001",
                 Name = "Computer Science",
                 Acronym = "CS",
-                UniversityId = university1.Id
+                UniversityId = sampleUniversity.Id
             };
 
             Department department2 = new Department
@@ -154,7 +122,7 @@ namespace ClassTranscribeDatabase
                 Id = "2002",
                 Name = "Electrical and Computer Engineering",
                 Acronym = "ECE",
-                UniversityId = university1.Id
+                UniversityId = sampleUniversity.Id
             };
 
             Course test_course = new Course
@@ -235,14 +203,7 @@ namespace ClassTranscribeDatabase
                 IdentityRoleId = Instructor.Id
             };
 
-            UserOffering userOffering6 = new UserOffering
-            {
-                OfferingId = offering2.Id,
-                ApplicationUserId = users[1].Id,
-                IdentityRoleId = Instructor.Id
-            };
-
-            List<UserOffering> userOfferings = new List<UserOffering> { userOffering2, userOffering6 };
+            List<UserOffering> userOfferings = new List<UserOffering> { userOffering2 };
 
             foreach (var t in userOfferings)
             {

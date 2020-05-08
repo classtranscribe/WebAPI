@@ -211,13 +211,13 @@ namespace ClassTranscribeDatabase
         private string GetCurrentUser()
         {
             var user = _httpContextAccessor?.HttpContext?.User;
-            if (user == null || user.FindFirst(ClaimTypes.NameIdentifier) == null)
+            if (user == null || user.FindFirst(Globals.CLAIM_USER_ID) == null)
             {
                 return null;
             }
             else
             {
-                return user.FindFirst(ClaimTypes.NameIdentifier).Value;
+                return user.FindFirst(Globals.CLAIM_USER_ID).Value;
             }
         }
     }

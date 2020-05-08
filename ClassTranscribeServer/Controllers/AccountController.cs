@@ -47,7 +47,7 @@ namespace ClassTranscribeServer.Controllers
             if (result.Succeeded)
             {
                 var appUser = _userManager.Users.SingleOrDefault(r => r.Email == user.Email);
-                return await GenerateJwtToken(user.Email, appUser);
+                return await GenerateJwtToken(appUser);
             }
 
             throw new ApplicationException("INVALID_LOGIN_ATTEMPT");
@@ -77,7 +77,7 @@ namespace ClassTranscribeServer.Controllers
             if (result.Succeeded)
             {
                 await _signInManager.SignInAsync(user, false);
-                return await GenerateJwtToken(user.Email, user);
+                return await GenerateJwtToken(user);
             }
 
             throw new ApplicationException("UNKNOWN_ERROR");
@@ -96,7 +96,7 @@ namespace ClassTranscribeServer.Controllers
             {
                 ApplicationUser user = await _userManager.FindByEmailAsync(model.emailId);
                 await _signInManager.SignInAsync(user, false);
-                loggedInDTO = await GenerateJwtToken(user.Email, user);
+                loggedInDTO = await GenerateJwtToken(user);
             }
             catch (Exception)
             {
@@ -117,7 +117,7 @@ namespace ClassTranscribeServer.Controllers
                 {
                     ApplicationUser user = await _userManager.FindByEmailAsync("testuser999@illinois.edu");
                     await _signInManager.SignInAsync(user, false);
-                    loggedInDTO = await GenerateJwtToken(user.Email, user);
+                    loggedInDTO = await GenerateJwtToken(user);
                 }
                 else
                 {
@@ -136,11 +136,9 @@ namespace ClassTranscribeServer.Controllers
         [Authorize]
         public async Task<ActionResult<JObject>> GetUserMetadata()
         {
-            ApplicationUser user = null;
-            if (User.Identity.IsAuthenticated && this.User.FindFirst(ClaimTypes.NameIdentifier) != null)
+            ApplicationUser user = await _userUtils.GetUser(User);
+            if (user != null)
             {
-                var userId = this.User.FindFirst(ClaimTypes.NameIdentifier).Value;
-                user = await _context.Users.FindAsync(userId);
                 return user.Metadata;
             }
             else
@@ -153,11 +151,9 @@ namespace ClassTranscribeServer.Controllers
         [Authorize]
         public async Task<ActionResult> PostUserMetadata([FromBody]JObject metadata)
         {
-            ApplicationUser user = null;
-            if (User.Identity.IsAuthenticated && this.User.FindFirst(ClaimTypes.NameIdentifier) != null)
+            var user = await _userUtils.GetUser(User);
+            if (user != null)
             {
-                var userId = this.User.FindFirst(ClaimTypes.NameIdentifier).Value;
-                user = await _context.Users.FindAsync(userId);
                 user.Metadata = metadata;
                 await _context.SaveChangesAsync();
                 return Ok();
@@ -208,14 +204,17 @@ namespace ClassTranscribeServer.Controllers
         }
 
         [NonAction]
-        private async Task<LoggedInDTO> GenerateJwtToken(string email, ApplicationUser user)
+        private async Task<LoggedInDTO> GenerateJwtToken(ApplicationUser user)
         {
             var claims = new List<Claim>
             {
-                new Claim(JwtRegisteredClaimNames.Sub, email),
+                new Claim(JwtRegisteredClaimNames.Sub, user.Email),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                new Claim(ClaimTypes.NameIdentifier, user.Id)
-            };
+                new Claim(ClaimTypes.GivenName, user.FirstName),
+                new Claim(ClaimTypes.Surname, user.LastName),
+                new Claim(ClaimTypes.Email, user.Email),
+                new Claim(Globals.CLAIM_USER_ID, user.Id),
+        };
             foreach (var role in await _userManager.GetRolesAsync(user))
             {
                 claims.Add(new Claim(ClaimTypes.Role, role));
@@ -237,14 +236,14 @@ namespace ClassTranscribeServer.Controllers
             {
                 AuthToken = new JwtSecurityTokenHandler().WriteToken(token),
                 UserId = user.Id,
-                EmailId = email,
+                EmailId = user.Email,
                 UniversityId = user.UniversityId,
                 Metadata = user.Metadata
             };
         }
 
         [NonAction]
-        public async Task<ApplicationUser> ValidateAuth0IDToken(string idToken)
+        public static async Task<ApplicationUser> ValidateAuth0IDToken(string idToken)
         {
             string auth0Domain = "https://" + Globals.appSettings.AUTH0_DOMAIN + "/"; // Your Auth0 domain
             string auth0Audience = Globals.appSettings.AUTH0_CLIENT_ID; // Your API Identifier
@@ -253,7 +252,7 @@ namespace ClassTranscribeServer.Controllers
         }
 
         [NonAction]
-        public async Task<ApplicationUser> ValidateCILogonAuthCode(string authCode)
+        public static async Task<ApplicationUser> ValidateCILogonAuthCode(string authCode)
         {
             string cilogonDomain = "https://" + Globals.appSettings.CILOGON_DOMAIN + "/"; // Your Auth0 domain
             string cilogonClientId = Globals.appSettings.CILOGON_CLIENT_ID; // Your API Identifier

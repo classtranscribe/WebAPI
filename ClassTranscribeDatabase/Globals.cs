@@ -42,6 +42,7 @@ namespace ClassTranscribeDatabase
         public const string ROLE_ADVISORS = "Advisors";
         public const string POLICY_UPDATE_OFFERING = "UpdateOffering";
         public const string POLICY_READ_OFFERING = "ReadOffering";
+        public const string CLAIM_USER_ID = "classtranscribe/UserId";
 
         public const int captionLength = 40;
     }

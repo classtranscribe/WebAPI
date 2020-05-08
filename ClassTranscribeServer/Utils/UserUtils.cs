@@ -88,14 +88,12 @@ namespace ClassTranscribeServer.Utils
             }
         }
 
-        public ApplicationUser GetUser(ClaimsPrincipal claims)
+        public async Task<ApplicationUser> GetUser(ClaimsPrincipal claims)
         {
-            ApplicationUser user = null;
-            if (claims != null && claims.Identity.IsAuthenticated && claims.FindFirst(ClaimTypes.NameIdentifier) != null)
+            if (claims != null && claims.Identity.IsAuthenticated && claims.FindFirst(Globals.CLAIM_USER_ID) != null)
             {
-                var currentUserID = claims.FindFirst(ClaimTypes.NameIdentifier).Value;
-                user = _context.Users.Where(u => u.Id == currentUserID).First();
-                return user;
+                var currentUserID = claims.FindFirst(Globals.CLAIM_USER_ID).Value;
+                return await _context.Users.FindAsync(currentUserID);
             }
             else
             {

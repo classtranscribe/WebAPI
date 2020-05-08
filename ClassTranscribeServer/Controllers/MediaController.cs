@@ -59,7 +59,7 @@ namespace ClassTranscribeServer.Controllers
             }
 
             var v = await _context.Videos.FindAsync(media.VideoId);
-            var user = _userUtils.GetUser(this.User);
+            var user = await _userUtils.GetUser(User);
             var mediaDTO = new MediaDTO
             {
                 Id = media.Id,

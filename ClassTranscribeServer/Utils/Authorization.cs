@@ -1,5 +1,6 @@
 ﻿using ClassTranscribeDatabase;
 using ClassTranscribeDatabase.Models;
+using ClassTranscribeServer.Utils;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -15,31 +16,23 @@ namespace ClassTranscribeServer.Authorization
     public class UpdateOfferingAuthorizationHandler :
     AuthorizationHandler<UpdateOfferingRequirement, Offering>
     {
-        CTDbContext _ctDbContext;
-        RoleManager<IdentityRole> _roleManager;
-        UserManager<ApplicationUser> _userManager;
+        private readonly CTDbContext _ctDbContext;
+        private readonly RoleManager<IdentityRole> _roleManager;
+        private readonly UserUtils _userUtils;
 
-        public UpdateOfferingAuthorizationHandler(CTDbContext ctDbContext, RoleManager<IdentityRole> roleManager, UserManager<ApplicationUser> userManager)
+        public UpdateOfferingAuthorizationHandler(CTDbContext ctDbContext, RoleManager<IdentityRole> roleManager, UserUtils userUtils)
         {
             _ctDbContext = ctDbContext;
             _roleManager = roleManager;
-            _userManager = userManager;
+            _userUtils = userUtils;
         }
 
         protected override async Task HandleRequirementAsync(AuthorizationHandlerContext context,
                                                        UpdateOfferingRequirement requirement,
                                                        Offering offering)
         {
-            ApplicationUser user = null;
-            if (context.User == null || context.User.FindFirst(ClaimTypes.NameIdentifier) == null)
-            {
-                return;
-            }
-            else
-            {
-                var currentUserID = context.User.FindFirst(ClaimTypes.NameIdentifier).Value;
-                user = _ctDbContext.Users.Where(u => u.Id == currentUserID).First();
-            }
+
+            var user = await _userUtils.GetUser(context.User);
             var InstructorRole = await _roleManager.FindByNameAsync(Globals.ROLE_INSTRUCTOR);
             if (context.User.IsInRole(Globals.ROLE_ADMIN))
             {
@@ -49,35 +42,30 @@ namespace ClassTranscribeServer.Authorization
             {
                 context.Succeed(requirement);
             }
-            _ctDbContext.Entry(user).State = EntityState.Detached;
+            if (user != null)
+            {
+                _ctDbContext.Entry(user).State = EntityState.Detached;
+            }
         }
-
     }
 
     public class ReadOfferingAuthorizationHandler :
     AuthorizationHandler<ReadOfferingRequirement, Offering>
     {
-        CTDbContext _ctDbContext;
-        RoleManager<IdentityRole> _roleManager;
-        UserManager<ApplicationUser> _userManager;
+        private readonly CTDbContext _ctDbContext;
+        private readonly UserUtils _userUtils;
 
-        public ReadOfferingAuthorizationHandler(CTDbContext ctDbContext, RoleManager<IdentityRole> roleManager, UserManager<ApplicationUser> userManager)
+        public ReadOfferingAuthorizationHandler(CTDbContext ctDbContext, UserUtils userUtils)
         {
             _ctDbContext = ctDbContext;
-            _roleManager = roleManager;
-            _userManager = userManager;
+            _userUtils = userUtils;
         }
         protected override async Task HandleRequirementAsync(AuthorizationHandlerContext context,
                                                        ReadOfferingRequirement requirement,
                                                        Offering offering)
         {
-            ApplicationUser user = null;
-            if (context.User != null && context.User.FindFirst(ClaimTypes.NameIdentifier) != null)
-            {
-                var currentUserID = context.User.FindFirst(ClaimTypes.NameIdentifier).Value;
-                user = await _ctDbContext.Users.Where(u => u.Id == currentUserID).FirstAsync();
-            }
-
+            var user = await _userUtils.GetUser(context.User);
+            
             if (offering.AccessType == AccessTypes.Public)
             {
                 context.Succeed(requirement);
