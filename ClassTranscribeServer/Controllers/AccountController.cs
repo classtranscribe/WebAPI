@@ -174,7 +174,7 @@ namespace ClassTranscribeServer.Controllers
                 switch (model.AuthMethod)
                 {
                     case AuthMethod.Auth0: user = await ValidateAuth0IDToken(model.Token); break;
-                    case AuthMethod.CILogon: user = await ValidateCILogonAuthCode(model.Token); break;
+                    case AuthMethod.CILogon: user = await ValidateCILogonAuthCode(model.Token, model.CallbackURL); break;
                 }
                 ApplicationUser applicationUser = await _userManager.FindByEmailAsync(user.Email);
                 if (applicationUser == null)
@@ -252,18 +252,17 @@ namespace ClassTranscribeServer.Controllers
         }
 
         [NonAction]
-        public static async Task<ApplicationUser> ValidateCILogonAuthCode(string authCode)
+        public static async Task<ApplicationUser> ValidateCILogonAuthCode(string authCode, string callbackURL)
         {
             string cilogonDomain = "https://" + Globals.appSettings.CILOGON_DOMAIN + "/"; // Your Auth0 domain
             string cilogonClientId = Globals.appSettings.CILOGON_CLIENT_ID; // Your API Identifier
             string cilogonClientSecret = Globals.appSettings.CILOGON_CLIENT_SECRET;
-            string cilogonCallbackURL = "https://" + Globals.appSettings.HOST_NAME + "/cilogon-callback";
-
+            
             // Get id_token from authorization code.
             var client = new RestClient($"{cilogonDomain}oauth2/token");
             var request = new RestRequest(Method.POST);
             request.AddHeader("content-type", "application/x-www-form-urlencoded");
-            request.AddParameter("application/x-www-form-urlencoded", $"grant_type=authorization_code&client_id={cilogonClientId}&client_secret={cilogonClientSecret}&code={authCode}&redirect_uri={cilogonCallbackURL}", ParameterType.RequestBody);
+            request.AddParameter("application/x-www-form-urlencoded", $"grant_type=authorization_code&client_id={cilogonClientId}&client_secret={cilogonClientSecret}&code={authCode}&redirect_uri={callbackURL}", ParameterType.RequestBody);
             IRestResponse response = client.Execute(request);
             var id_token = JObject.Parse(response.Content)["id_token"].ToString();
 
@@ -308,6 +307,7 @@ namespace ClassTranscribeServer.Controllers
             [Required]
             public string Token { get; set; }
             public AuthMethod AuthMethod { get; set; }
+            public string CallbackURL { get; set; }
         }
 
         public enum AuthMethod
