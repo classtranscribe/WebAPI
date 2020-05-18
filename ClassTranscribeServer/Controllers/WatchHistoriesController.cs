@@ -33,7 +33,7 @@ namespace ClassTranscribeServer.Controllers
             {
                 return BadRequest();
             }
-            var user = _userUtils.GetUser(User);
+            var user = await _userUtils.GetUser(User);
             if (user != null)
             {
                 var watchHistory = await _context.WatchHistories
@@ -57,7 +57,7 @@ namespace ClassTranscribeServer.Controllers
         [HttpGet("GetAllWatchedMediaForUser")]
         public async Task<ActionResult<IEnumerable<MediaDTO>>> GetAllWatchHistoryForUser()
         {
-            var user = _userUtils.GetUser(User);
+            var user = await _userUtils.GetUser(User);
             if (user != null)
             {
                 var watchedMedias = await _context.WatchHistories
@@ -94,7 +94,7 @@ namespace ClassTranscribeServer.Controllers
             {
                 return BadRequest();
             }
-            var user = _userUtils.GetUser(User);
+            var user = await _userUtils.GetUser(User);
             if (user != null)
             {
                 var watchHistory = await _context.WatchHistories

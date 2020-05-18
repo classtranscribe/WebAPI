@@ -1,17 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Runtime.Serialization;
 using System.Text;
 
 namespace ClassTranscribeDatabase.Models
 {
-    public class MSTWord
-    {
-        public long Duration { get; set; }
-        public long Offset { get; set; }
-        public string Word { get; set; }
-    }
     public enum CaptionType
     {
         TextCaption,
@@ -29,8 +24,7 @@ namespace ClassTranscribeDatabase.Models
         [IgnoreDataMember]
         public virtual Transcription Transcription { get; set; }
         public CaptionType CaptionType { get; set; }
-        public static int subLength = 40;
-
+        
         public string SrtSubtitle()
         {
             string a = "";
@@ -47,51 +41,11 @@ namespace ClassTranscribeDatabase.Models
             a += string.Format("{0:hh\\:mm\\:ss\\.fff} --> {1:hh\\:mm\\:ss\\.fff}\n", Begin, End);
             a += Text + "\n\n";
             return a;
-        }
-
-        public static void AppendCaptions(List<Caption> captions, List<MSTWord> words)
-        {
-            int currCounter = captions.Count + 1;
-            int currLength = 0;
-            StringBuilder currSentence = new StringBuilder();
-            TimeSpan? startTime = null;
-            foreach (MSTWord word in words)
-            {
-                if (startTime == null)
-                {
-                    startTime = new TimeSpan(word.Offset);
-                }
-                currSentence.Append(word.Word + " ");
-                currLength += word.Word.Length;
-
-                if (currLength > subLength)
-                {
-                    captions.Add(new Caption
-                    {
-                        Index = currCounter++,
-                        Begin = startTime ?? new TimeSpan(),
-                        End = new TimeSpan(word.Offset + word.Duration),
-                        Text = currSentence.ToString().Trim()
-                    });
-                    currSentence.Clear();
-                    currLength = 0;
-                    startTime = null;
-                }
-            }
-            if (currLength > 0)
-            {
-                captions.Add(new Caption
-                {
-                    Index = currCounter++,
-                    Begin = startTime ?? new TimeSpan(),
-                    End = new TimeSpan(words[words.Count - 1].Offset + words[words.Count - 1].Duration),
-                    Text = currSentence.ToString().Trim()
-                });
-            }
-        }
+        }        
 
         public static void AppendCaptions(List<Caption> captions, TimeSpan Begin, TimeSpan End, string Caption)
         {
+            int captionLength = Globals.captionLength;
             int currCounter = captions.Count + 1;
             int length = Caption.Length;
             string tempCaption = Caption;
@@ -100,10 +54,10 @@ namespace ClassTranscribeDatabase.Models
             TimeSpan curBegin = Begin;
             TimeSpan curDuration = End.Subtract(Begin);
             TimeSpan curEnd;
-            while (tempCaption.Length > subLength)
+            while (tempCaption.Length > captionLength)
             {
-                newDuration = Convert.ToInt32(subLength * curDuration.TotalMilliseconds / tempCaption.Length);
-                int index = tempCaption.IndexOf(' ', subLength);
+                newDuration = Convert.ToInt32(captionLength * curDuration.TotalMilliseconds / tempCaption.Length);
+                int index = tempCaption.IndexOf(' ', captionLength);
 
                 if (index == -1)
                 {
@@ -129,7 +83,7 @@ namespace ClassTranscribeDatabase.Models
             }
             if (tempCaption.Length > 0)
             {
-                newDuration = Convert.ToInt32(subLength * curDuration.TotalMilliseconds / tempCaption.Length);
+                newDuration = Convert.ToInt32(captionLength * curDuration.TotalMilliseconds / tempCaption.Length);
                 curEnd = curBegin.Add(new TimeSpan(0, 0, 0, 0, newDuration));
                 captions.Add(new Caption
                 {
@@ -158,7 +112,7 @@ namespace ClassTranscribeDatabase.Models
         public static string GenerateWebVTTFile(List<Caption> captions, string language)
         {
             string vttFile = CommonUtils.GetTmpFile();
-            string Subtitle = "WEBVTT\nKind: subtitles\nLanguage: " + language + "\n\n";
+            string Subtitle = "WEBVTT Kind: captions; Language: " + language + "\n\n";
             foreach (Caption caption in captions)
             {
                 Subtitle += caption.WebVTTSubtitle();

@@ -1,5 +1,6 @@
 ﻿using ClassTranscribeDatabase;
 using ClassTranscribeDatabase.Models;
+using ClassTranscribeServer.Utils;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -17,9 +18,11 @@ namespace ClassTranscribeServer.Controllers
     public class LogsController : BaseController
     {
         private readonly IAuthorizationService _authorizationService;
-        public LogsController(IAuthorizationService authorizationService, CTDbContext context, ILogger<LogsController> logger) : base(context, logger)
+        private readonly UserUtils _userUtils;
+        public LogsController(IAuthorizationService authorizationService, CTDbContext context, UserUtils userUtils, ILogger<LogsController> logger) : base(context, logger)
         {
             _authorizationService = authorizationService;
+            _userUtils = userUtils;
         }
 
         // POST: api/Logs
@@ -80,7 +83,7 @@ namespace ClassTranscribeServer.Controllers
                 return BadRequest();
             }
             // Get the user
-            var authorizationResult = await _authorizationService.AuthorizeAsync(this.User, offering, Globals.POLICY_READ_OFFERING);
+            var authorizationResult = await _authorizationService.AuthorizeAsync(User, offering, Globals.POLICY_READ_OFFERING);
             if (!authorizationResult.Succeeded)
             {
                 if (User.Identity.IsAuthenticated)
@@ -93,8 +96,8 @@ namespace ClassTranscribeServer.Controllers
                 }
             }
             // Get the user
-            var userId = this.User.FindFirst(ClaimTypes.NameIdentifier).Value;
-            var temp = await _context.Logs.Where(l => l.OfferingId == offeringId && l.UserId == userId && l.EventType == "filtertrans").ToListAsync();
+            var user = await _userUtils.GetUser(User);
+            var temp = await _context.Logs.Where(l => l.OfferingId == offeringId && l.UserId == user.Id && l.EventType == "filtertrans").ToListAsync();
             return temp.GroupBy(l => l.Json["value"].ToString())
             .Select(g => new SearchDTO
             {
@@ -110,10 +113,10 @@ namespace ClassTranscribeServer.Controllers
         [Authorize]
         public async Task<IEnumerable<Log>> GetUserLogs()
         {
-            if (User.Identity.IsAuthenticated && this.User.FindFirst(ClaimTypes.NameIdentifier) != null)
+            var user = await _userUtils.GetUser(User);
+            if (user != null)
             {
-                var userId = this.User.FindFirst(ClaimTypes.NameIdentifier).Value;
-                return await _context.Logs.Where(u => u.UserId == userId).ToListAsync();
+                return await _context.Logs.Where(u => u.UserId == user.Id).ToListAsync();
             }
             else
             {
@@ -130,25 +133,21 @@ namespace ClassTranscribeServer.Controllers
         [Authorize]
         public async Task<IEnumerable<StudentLog>> GetUserLogsByEvent(string eventType, DateTime? start = null, DateTime? end = null)
         {
-            string userId;
-            if (User.Identity.IsAuthenticated && this.User.FindFirst(ClaimTypes.NameIdentifier) != null)
-            {
-                userId = this.User.FindFirst(ClaimTypes.NameIdentifier).Value;
-            }
-            else
+            var user = await _userUtils.GetUser(User);
+            if (user == null)
             {
                 return null;
             }
 
             DateTime startTime = start ?? DateTime.Now.AddMonths(-1);
             DateTime endTime = end ?? DateTime.Now;
-            var timeUpdateEvents = await _context.Logs.Where(l => l.CreatedAt >= startTime && l.CreatedAt <= endTime && l.UserId == userId && l.EventType == eventType)
+            var timeUpdateEvents = await _context.Logs.Where(l => l.CreatedAt >= startTime && l.CreatedAt <= endTime && l.UserId == user.Id && l.EventType == eventType)
                 .Select(l => new
                 {
-                    UserId = l.UserId,
-                    OfferingId = l.OfferingId,
-                    MediaId = l.MediaId,
-                    CreatedAt = l.CreatedAt
+                    l.UserId,
+                    l.OfferingId,
+                    l.MediaId,
+                    l.CreatedAt
                 }).ToListAsync();
 
             IEnumerable<StudentLog> logs;

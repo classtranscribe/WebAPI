@@ -25,6 +25,9 @@ namespace ClassTranscribeDatabase
         public string APPLICATION_INSIGHTS_KEY { get; set; }
         public string SLACK_WEBHOOK_URL { get; set; }
         public string TEST_SIGN_IN { get; set; }
+        public string CILOGON_CLIENT_ID { get; set; }
+        public string CILOGON_CLIENT_SECRET { get; set; }
+        public string CILOGON_DOMAIN { get; set; }
     }
 
     public static class Globals
@@ -39,5 +42,8 @@ namespace ClassTranscribeDatabase
         public const string ROLE_ADVISORS = "Advisors";
         public const string POLICY_UPDATE_OFFERING = "UpdateOffering";
         public const string POLICY_READ_OFFERING = "ReadOffering";
+        public const string CLAIM_USER_ID = "classtranscribe/UserId";
+
+        public const int captionLength = 40;
     }
 }

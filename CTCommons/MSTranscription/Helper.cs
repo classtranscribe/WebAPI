@@ -2,7 +2,7 @@
 using System.Diagnostics;
 using System.IO;
 
-namespace TaskEngine.MSTranscription
+namespace CTCommons.MSTranscription
 {
     public class Helper
     {

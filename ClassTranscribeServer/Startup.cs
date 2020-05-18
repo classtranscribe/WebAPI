@@ -2,6 +2,7 @@
 using ClassTranscribeDatabase.Models;
 using ClassTranscribeServer.Authorization;
 using ClassTranscribeServer.Utils;
+using CTCommons;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
@@ -62,7 +63,6 @@ namespace ClassTranscribeServer
                 .AddDefaultTokenProviders();
             // ===== Add Jwt Authentication ========
             var jwt_issuer = "https://" + Globals.appSettings.HOST_NAME;
-            JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear(); // => remove default claims
             services
                 .AddAuthentication(options =>
                 {

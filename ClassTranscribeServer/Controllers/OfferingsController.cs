@@ -1,5 +1,6 @@
 ﻿using ClassTranscribeDatabase;
 using ClassTranscribeDatabase.Models;
+using ClassTranscribeServer.Utils;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -17,11 +18,13 @@ namespace ClassTranscribeServer.Controllers
     public class OfferingsController : BaseController
     {
         private readonly IAuthorizationService _authorizationService;
+        private readonly UserUtils _userUtils;
 
         public OfferingsController(IAuthorizationService authorizationService,
-            CTDbContext context, ILogger<OfferingsController> logger) : base(context, logger)
+            CTDbContext context, UserUtils userUtils, ILogger<OfferingsController> logger) : base(context, logger)
         {
             _authorizationService = authorizationService;
+            _userUtils = userUtils;
         }
 
         // GET: api/Offerings/ByStudent
@@ -205,12 +208,12 @@ namespace ClassTranscribeServer.Controllers
                 CourseId = newOfferingDTO.CourseId,
                 OfferingId = newOfferingDTO.Offering.Id
             });
-            if (User.Identity.IsAuthenticated && this.User.FindFirst(ClaimTypes.NameIdentifier) != null)
+            var user = await _userUtils.GetUser(User);
+            if (user != null)
             {
-                var userId = this.User.FindFirst(ClaimTypes.NameIdentifier).Value;
                 await _context.UserOfferings.AddAsync(new UserOffering
                 {
-                    ApplicationUserId = userId,
+                    ApplicationUserId = user.Id,
                     IdentityRole = _context.Roles.Where(r => r.Name == Globals.ROLE_INSTRUCTOR).FirstOrDefault(),
                     OfferingId = newOfferingDTO.Offering.Id
                 });

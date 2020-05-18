@@ -139,7 +139,7 @@ namespace ClassTranscribeServer.Controllers
         public async Task<ActionResult<PlaylistDTO>> GetPlaylist(string id)
         {
             var p = await _context.Playlists.FindAsync(id);
-            var user = _userUtils.GetUser(User);
+            var user = await _userUtils.GetUser(User);
             if (p == null)
             {
                 return NotFound();

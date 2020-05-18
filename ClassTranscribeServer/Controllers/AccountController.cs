@@ -9,6 +9,7 @@ using Microsoft.IdentityModel.Protocols;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json.Linq;
+using RestSharp;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -46,7 +47,7 @@ namespace ClassTranscribeServer.Controllers
             if (result.Succeeded)
             {
                 var appUser = _userManager.Users.SingleOrDefault(r => r.Email == user.Email);
-                return await GenerateJwtToken(user.Email, appUser);
+                return await GenerateJwtToken(appUser);
             }
 
             throw new ApplicationException("INVALID_LOGIN_ATTEMPT");
@@ -76,7 +77,7 @@ namespace ClassTranscribeServer.Controllers
             if (result.Succeeded)
             {
                 await _signInManager.SignInAsync(user, false);
-                return await GenerateJwtToken(user.Email, user);
+                return await GenerateJwtToken(user);
             }
 
             throw new ApplicationException("UNKNOWN_ERROR");
@@ -95,7 +96,7 @@ namespace ClassTranscribeServer.Controllers
             {
                 ApplicationUser user = await _userManager.FindByEmailAsync(model.emailId);
                 await _signInManager.SignInAsync(user, false);
-                loggedInDTO = await GenerateJwtToken(user.Email, user);
+                loggedInDTO = await GenerateJwtToken(user);
             }
             catch (Exception)
             {
@@ -116,7 +117,7 @@ namespace ClassTranscribeServer.Controllers
                 {
                     ApplicationUser user = await _userManager.FindByEmailAsync("testuser999@illinois.edu");
                     await _signInManager.SignInAsync(user, false);
-                    loggedInDTO = await GenerateJwtToken(user.Email, user);
+                    loggedInDTO = await GenerateJwtToken(user);
                 }
                 else
                 {
@@ -135,11 +136,9 @@ namespace ClassTranscribeServer.Controllers
         [Authorize]
         public async Task<ActionResult<JObject>> GetUserMetadata()
         {
-            ApplicationUser user = null;
-            if (User.Identity.IsAuthenticated && this.User.FindFirst(ClaimTypes.NameIdentifier) != null)
+            ApplicationUser user = await _userUtils.GetUser(User);
+            if (user != null)
             {
-                var userId = this.User.FindFirst(ClaimTypes.NameIdentifier).Value;
-                user = await _context.Users.FindAsync(userId);
                 return user.Metadata;
             }
             else
@@ -152,11 +151,9 @@ namespace ClassTranscribeServer.Controllers
         [Authorize]
         public async Task<ActionResult> PostUserMetadata([FromBody]JObject metadata)
         {
-            ApplicationUser user = null;
-            if (User.Identity.IsAuthenticated && this.User.FindFirst(ClaimTypes.NameIdentifier) != null)
+            var user = await _userUtils.GetUser(User);
+            if (user != null)
             {
-                var userId = this.User.FindFirst(ClaimTypes.NameIdentifier).Value;
-                user = await _context.Users.FindAsync(userId);
                 user.Metadata = metadata;
                 await _context.SaveChangesAsync();
                 return Ok();
@@ -173,7 +170,12 @@ namespace ClassTranscribeServer.Controllers
             LoggedInDTO loggedInDTO;
             try
             {
-                ApplicationUser user = await Validate(model.auth0Token);
+                ApplicationUser user = null;
+                switch (model.AuthMethod)
+                {
+                    case AuthMethod.Auth0: user = await ValidateAuth0IDToken(model.Token); break;
+                    case AuthMethod.CILogon: user = await ValidateCILogonAuthCode(model.Token); break;
+                }
                 ApplicationUser applicationUser = await _userManager.FindByEmailAsync(user.Email);
                 if (applicationUser == null)
                 {
@@ -194,7 +196,7 @@ namespace ClassTranscribeServer.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error signing in User with authToken {0}.", model.auth0Token);
+                _logger.LogError(ex, "Error signing in User with authToken {0}.", model.Token);
                 return Unauthorized();
             }
 
@@ -202,14 +204,17 @@ namespace ClassTranscribeServer.Controllers
         }
 
         [NonAction]
-        private async Task<LoggedInDTO> GenerateJwtToken(string email, ApplicationUser user)
+        private async Task<LoggedInDTO> GenerateJwtToken(ApplicationUser user)
         {
             var claims = new List<Claim>
             {
-                new Claim(JwtRegisteredClaimNames.Sub, email),
+                new Claim(JwtRegisteredClaimNames.Sub, user.Email),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                new Claim(ClaimTypes.NameIdentifier, user.Id)
-            };
+                new Claim(ClaimTypes.GivenName, user.FirstName),
+                new Claim(ClaimTypes.Surname, user.LastName),
+                new Claim(ClaimTypes.Email, user.Email),
+                new Claim(Globals.CLAIM_USER_ID, user.Id),
+        };
             foreach (var role in await _userManager.GetRolesAsync(user))
             {
                 claims.Add(new Claim(ClaimTypes.Role, role));
@@ -231,26 +236,52 @@ namespace ClassTranscribeServer.Controllers
             {
                 AuthToken = new JwtSecurityTokenHandler().WriteToken(token),
                 UserId = user.Id,
-                EmailId = email,
+                EmailId = user.Email,
                 UniversityId = user.UniversityId,
                 Metadata = user.Metadata
             };
         }
 
         [NonAction]
-        public async Task<ApplicationUser> Validate(string token)
+        public static async Task<ApplicationUser> ValidateAuth0IDToken(string idToken)
         {
             string auth0Domain = "https://" + Globals.appSettings.AUTH0_DOMAIN + "/"; // Your Auth0 domain
             string auth0Audience = Globals.appSettings.AUTH0_CLIENT_ID; // Your API Identifier
 
-            IConfigurationManager<OpenIdConnectConfiguration> configurationManager = new ConfigurationManager<OpenIdConnectConfiguration>($"{auth0Domain}.well-known/openid-configuration", new OpenIdConnectConfigurationRetriever());
+            return await ValidateIdToken(auth0Domain, auth0Audience, idToken);
+        }
+
+        [NonAction]
+        public static async Task<ApplicationUser> ValidateCILogonAuthCode(string authCode)
+        {
+            string cilogonDomain = "https://" + Globals.appSettings.CILOGON_DOMAIN + "/"; // Your Auth0 domain
+            string cilogonClientId = Globals.appSettings.CILOGON_CLIENT_ID; // Your API Identifier
+            string cilogonClientSecret = Globals.appSettings.CILOGON_CLIENT_SECRET;
+            string cilogonCallbackURL = "https://" + Globals.appSettings.HOST_NAME + "/cilogon-callback";
+
+            // Get id_token from authorization code.
+            var client = new RestClient($"{cilogonDomain}oauth2/token");
+            var request = new RestRequest(Method.POST);
+            request.AddHeader("content-type", "application/x-www-form-urlencoded");
+            request.AddParameter("application/x-www-form-urlencoded", $"grant_type=authorization_code&client_id={cilogonClientId}&client_secret={cilogonClientSecret}&code={authCode}&redirect_uri={cilogonCallbackURL}", ParameterType.RequestBody);
+            IRestResponse response = client.Execute(request);
+            var id_token = JObject.Parse(response.Content)["id_token"].ToString();
+
+            return await ValidateIdToken(cilogonDomain, cilogonClientId, id_token);            
+        }
+
+        [NonAction]
+        public static async Task<ApplicationUser> ValidateIdToken(string domain, string audience, string idToken)
+        {
+            // Validate the id_token
+            IConfigurationManager<OpenIdConnectConfiguration> configurationManager = new ConfigurationManager<OpenIdConnectConfiguration>($"{domain}.well-known/openid-configuration", new OpenIdConnectConfigurationRetriever());
             OpenIdConnectConfiguration openIdConfig = await configurationManager.GetConfigurationAsync(CancellationToken.None);
 
             TokenValidationParameters validationParameters =
             new TokenValidationParameters
             {
-                ValidIssuer = auth0Domain,
-                ValidAudiences = new[] { auth0Audience },
+                ValidIssuer = openIdConfig.Issuer,
+                ValidAudiences = new[] { audience },
                 IssuerSigningKeys = openIdConfig.SigningKeys,
                 ValidateIssuer = true,
                 ValidateAudience = true,
@@ -258,14 +289,14 @@ namespace ClassTranscribeServer.Controllers
             };
             SecurityToken validatedToken;
             JwtSecurityTokenHandler handler = new JwtSecurityTokenHandler();
-            var claims = handler.ValidateToken(token, validationParameters, out validatedToken);
+            var claims = handler.ValidateToken(idToken, validationParameters, out validatedToken);
 
             var applicationUser = new ApplicationUser
             {
-                UserName = claims.FindFirstValue("email"),
-                Email = claims.FindFirstValue("email"),
-                FirstName = claims.FindFirstValue("given_name"),
-                LastName = claims.FindFirstValue("family_name"),
+                UserName = claims.FindFirstValue(ClaimTypes.Email),
+                Email = claims.FindFirstValue(ClaimTypes.Email),
+                FirstName = claims.FindFirstValue(ClaimTypes.GivenName),
+                LastName = claims.FindFirstValue(ClaimTypes.Surname),
                 EmailConfirmed = true
             };
 
@@ -275,7 +306,14 @@ namespace ClassTranscribeServer.Controllers
         public class LoginDto
         {
             [Required]
-            public string auth0Token { get; set; }
+            public string Token { get; set; }
+            public AuthMethod AuthMethod { get; set; }
+        }
+
+        public enum AuthMethod
+        {
+            Auth0,
+            CILogon
         }
 
         public class LoginAsDTO

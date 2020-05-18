@@ -1,4 +1,5 @@
 ﻿using ClassTranscribeDatabase;
+using CTCommons;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
@@ -136,6 +137,33 @@ namespace TaskEngine.Tasks
                     var offeringId = jObject["offeringId"].ToString();
                     (await _context.Playlists.Where(o => o.OfferingId == offeringId).ToListAsync())
                         .ForEach(p => _downloadPlaylistInfoTask.Publish(p.Id));
+                }
+                else if (type == TaskType.ReTranscribePlaylist.ToString())
+                {
+                    var playlistId = jObject["PlaylistId"].ToString();
+
+                    // Get all videos 
+                    var videos = await _context.Playlists.Where(p => p.Id == playlistId).SelectMany(p => p.Medias).Select(m => m.Video)
+                        .ToListAsync();
+                    // Delete all captions
+                    var captions = videos.SelectMany(v => v.Transcriptions).SelectMany(t => t.Captions).ToList();
+                    _context.Captions.RemoveRange(captions);
+                    // Delete all Transcriptions
+                    var transcriptions = videos.SelectMany(v => v.Transcriptions).ToList();
+                    _context.Transcriptions.RemoveRange(transcriptions);
+
+                    videos.ForEach(v =>
+                    {
+                        v.TranscribingAttempts = 0;
+                        v.TranscriptionStatus = null;
+                    });
+
+                    await _context.SaveChangesAsync();
+
+                    videos.ForEach(v =>
+                    {
+                        _transcriptionTask.Publish(v.Id);
+                    });
                 }
             }
         }
