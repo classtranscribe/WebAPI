@@ -44,6 +44,6 @@ namespace ClassTranscribeDatabase
         public const string POLICY_READ_OFFERING = "ReadOffering";
         public const string CLAIM_USER_ID = "classtranscribe/UserId";
 
-        public const int captionLength = 40;
+        public const int CAPTION_LENGTH = 40;
     }
 }

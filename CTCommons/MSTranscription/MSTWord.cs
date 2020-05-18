@@ -165,7 +165,7 @@ namespace CTCommons.MSTranscription
 
         public static void AppendCaptions(List<Caption> captions, List<MSTWord> words)
         {
-            int captionLength = Globals.captionLength;
+            int captionLength = Globals.CAPTION_LENGTH;
             int currCounter = captions.Count + 1;
             int currLength = 0;
             StringBuilder currSentence = new StringBuilder();

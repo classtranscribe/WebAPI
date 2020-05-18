@@ -45,7 +45,7 @@ namespace ClassTranscribeDatabase.Models
 
         public static void AppendCaptions(List<Caption> captions, TimeSpan Begin, TimeSpan End, string Caption)
         {
-            int captionLength = Globals.captionLength;
+            int captionLength = Globals.CAPTION_LENGTH;
             int currCounter = captions.Count + 1;
             int length = Caption.Length;
             string tempCaption = Caption;
