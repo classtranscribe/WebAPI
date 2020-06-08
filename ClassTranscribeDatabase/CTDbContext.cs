@@ -14,7 +14,6 @@ using System.Threading.Tasks;
 
 namespace ClassTranscribeDatabase
 {
-
     public class CTContextFactory : IDesignTimeDbContextFactory<CTDbContext>
     {
         public CTDbContext CreateDbContext(string[] args)
@@ -23,6 +22,11 @@ namespace ClassTranscribeDatabase
         }
     }
 
+    /// <summary>
+    /// This class is the primary class responsible for all the interactions with the database.
+    /// For general info on DbContext - https://www.entityframeworktutorial.net/entityframework6/dbcontext.aspx
+    /// Each member of this class corresponds to a Database Table.
+    /// </summary>
     public class CTDbContext : IdentityDbContext<ApplicationUser>
     {
         private readonly IHttpContextAccessor _httpContextAccessor;
@@ -48,6 +52,10 @@ namespace ClassTranscribeDatabase
         public DbSet<Message> Messages { get; set; }
         public DbSet<EPubChapter> EPubChapters { get; set; }
 
+        /// <summary>
+        /// This method builds a connectionstring to connect with the database.
+        /// More info, https://www.learnentityframeworkcore.com/connection-strings
+        /// </summary>        
         public static string ConnectionStringBuilder()
         {
             // Sample connection string -> Server=<POSTGRES_SERVER_NAME>;Port=5432;Database=<POSTGRES_DB_NAME>;User Id=<POSTGRES_USER>;Password=<POSTGRES_PASSWORD>;
@@ -56,6 +64,11 @@ namespace ClassTranscribeDatabase
                 + configurations["POSTGRES_DB"] + ";User Id=" + configurations["ADMIN_USER_ID"] + ";Password=" + configurations["ADMIN_PASSWORD"] + ";MaxPoolSize=1000;";
         }
 
+        /// <summary>
+        /// Additional options for configuing the database itself are defined here.
+        /// For more info, https://docs.microsoft.com/en-us/ef/core/miscellaneous/configuring-dbcontext
+        /// </summary>
+        /// <returns></returns>
         public static DbContextOptionsBuilder<CTDbContext> GetDbContextOptionsBuilder()
         {
             var optionsBuilder = new DbContextOptionsBuilder<CTDbContext>();
@@ -73,6 +86,12 @@ namespace ClassTranscribeDatabase
             return new CTDbContext(GetDbContextOptionsBuilder().Options, null);
         }
 
+        /// <summary>
+        /// The configurations are key-value pairs that are either read in from 
+        ///  - environment variables if this application is deployed via docker on a server.
+        ///  - or from vs_appsettings.json file if the application is executed directly from using Visual Studio.
+        /// </summary>
+        /// <returns> The configurations </returns>
         public static IConfiguration GetConfigurations()
         {
             var configuration = new ConfigurationBuilder().AddEnvironmentVariables().Build();
@@ -96,6 +115,12 @@ namespace ClassTranscribeDatabase
             _httpContextAccessor = httpContextAccessor;
         }
 
+        /// <summary>
+        /// These are additional modifications made in setting up the various tables of the database.
+        /// Things like many-to-many relationships and queryfilters and alternative keys are defined here.
+        /// These options are defined using the fluentAPI,
+        /// For more info on fluentAPI - https://www.entityframeworktutorial.net/efcore/fluent-api-in-entity-framework-core.aspx
+        /// </summary>
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
