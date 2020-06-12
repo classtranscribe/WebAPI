@@ -40,6 +40,15 @@ namespace CTCommons
             // Add any temporary code.
 
             Console.WriteLine("Hi");
+            
+            var filepath = "";
+            Key key = new Key
+            {
+                ApiKey = "",
+                Region = ""
+            };
+            var x = await _transcriptionService.RecognitionWithAudioStreamAsync(new FileRecord { PrivatePath = filepath }, key);
+            Console.WriteLine("Hi");
         }
     }
 }
