@@ -3,13 +3,25 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
 
 namespace ClassTranscribeDatabase.Models
 {
+    /// <summary>
+    /// The models of ClassTranscribe are defined using Code-First approach.
+    /// For more info, https://www.entityframeworktutorial.net/code-first/what-is-code-first.aspx
+    /// 
+    /// To make any changes to the database schema, the corresponding classes would have to be changed and 
+    /// migrations, for more info.
+    /// 
+    /// https://docs.microsoft.com/en-us/ef/core/managing-schemas/migrations/?tabs=dotnet-core-cli
+    /// https://www.learnentityframeworkcore.com/migrations
+    /// 
+    /// Note: To apply migration using the Package Manager Console, ensure that the selected "Default Project" is 
+    /// "ClassTranscribeDatabase"
+    /// </summary>
     public enum AccessTypes
     {
         Public,
@@ -38,6 +50,9 @@ namespace ClassTranscribeDatabase.Models
         Hidden
     }
 
+    /// <summary>
+    /// This class represents a User of ClassTranscribe.
+    /// </summary>
     public class ApplicationUser : IdentityUser
     {
         public string FirstName { get; set; }
@@ -51,7 +66,10 @@ namespace ClassTranscribeDatabase.Models
         public JObject Metadata { get; set; }
     }
 
-
+    /// <summary>
+    /// This is a base class to define common properties for all Tables.
+    /// 
+    /// </summary>
     public abstract class Entity
     {
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
@@ -79,8 +97,8 @@ namespace ClassTranscribeDatabase.Models
             }
             throw new InvalidOperationException("Invalid Type passed" + this);
         }
-
     }
+
     public class University : Entity
     {
         public string Name { get; set; }

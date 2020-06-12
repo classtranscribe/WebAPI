@@ -4,7 +4,10 @@ using System.IO;
 
 namespace CTCommons.MSTranscription
 {
-    public class Helper
+    /// <summary>
+    /// Helper methods to open wav files.
+    /// </summary>
+    public class WavHelper
     {
         public static AudioConfig OpenWavFile(string filename)
         {

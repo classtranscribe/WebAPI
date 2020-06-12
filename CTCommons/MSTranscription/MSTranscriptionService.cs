@@ -53,7 +53,7 @@ namespace CTCommons.MSTranscription
             var stopRecognition = new TaskCompletionSource<int>();
             // Create an audio stream from a wav file.
             // Replace with your own audio file name.
-            using (var audioInput = Helper.OpenWavFile(file))
+            using (var audioInput = WavHelper.OpenWavFile(file))
             {
                 // Creates a speech recognizer using audio stream input.
                 using (var recognizer = new TranslationRecognizer(_speechConfig, audioInput))
