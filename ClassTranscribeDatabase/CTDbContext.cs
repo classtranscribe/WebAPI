@@ -8,7 +8,6 @@ using Microsoft.Extensions.Configuration;
 using System;
 using System.IO;
 using System.Reflection;
-using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -26,6 +25,15 @@ namespace ClassTranscribeDatabase
     /// This class is the primary class responsible for all the interactions with the database.
     /// For general info on DbContext - https://www.entityframeworktutorial.net/entityframework6/dbcontext.aspx
     /// Each member of this class corresponds to a Database Table.
+    /// 
+    /// Steps to add a new entity/table to the database.
+    /// 1. Define the model class under Models.cs, ensure this model class is derived from "Entity".
+    /// 2. Add a DbSet member variable to CTDbContext for this new model.
+    /// 3. Add the queryfilter statement under OnModelCreating()
+    /// 4. If there are any m-to-n relationships define them under OnModelCreating(), more info, https://www.learnentityframeworkcore.com/configuration/many-to-many-relationship-configuration
+    /// 5. If there are any JObject properties in the new model, add the HasJsonValueConversion() for that property,
+    /// see OnModelCreating() for other models having such properties.
+    /// 6. Define any other model modifications using fluentAPI under OnModelCreating(), more info, https://www.learnentityframeworkcore.com/configuration/fluent-api
     /// </summary>
     public class CTDbContext : IdentityDbContext<ApplicationUser>
     {
@@ -51,6 +59,7 @@ namespace ClassTranscribeDatabase
         public DbSet<Subscription> Subscriptions { get; set; }
         public DbSet<Message> Messages { get; set; }
         public DbSet<EPubChapter> EPubChapters { get; set; }
+        public DbSet<TaskItem> TaskItems { get; set; }
 
         /// <summary>
         /// This method builds a connectionstring to connect with the database.
@@ -124,6 +133,16 @@ namespace ClassTranscribeDatabase
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
+
+            
+            // This query filter is added to facilitate the soft-delete feature.
+            // Soft-Delete implies that know row is actually every deleted, just their "Status" columns are tagged
+            // as inactive.
+            // This query filter is added so that every query made has a default where clause added to them,
+            // i.e. to search only the "Active" rows of the table.
+            // For more info, google "Soft Delete EntityFramework Core"
+            //
+            // A similar statement must be added for every new table added.
             builder.Entity<ApplicationUser>().HasQueryFilter(m => m.Status == Status.Active);
             builder.Entity<University>().HasQueryFilter(m => m.IsDeletedStatus == Status.Active);
             builder.Entity<Department>().HasQueryFilter(m => m.IsDeletedStatus == Status.Active);
@@ -145,8 +164,9 @@ namespace ClassTranscribeDatabase
             builder.Entity<Message>().HasQueryFilter(m => m.IsDeletedStatus == Status.Active);
             builder.Entity<EPubChapter>().HasQueryFilter(m => m.IsDeletedStatus == Status.Active);
             builder.Entity<EPub>().HasQueryFilter(m => m.IsDeletedStatus == Status.Active);
+            builder.Entity<TaskItem>().HasQueryFilter(m => m.IsDeletedStatus == Status.Active);
 
-
+            // Configure m-to-n relationships.
             builder.Entity<CourseOffering>()
             .HasKey(t => new { t.CourseId, t.OfferingId });
 
@@ -173,8 +193,11 @@ namespace ClassTranscribeDatabase
                 .WithMany(t => t.UserOfferings)
                 .HasForeignKey(pt => pt.ApplicationUserId);
 
-            builder.Entity<Media>().HasOne(m => m.Video).WithMany(v => v.Medias).HasForeignKey(m => m.VideoId);
+            builder.Entity<Media>().HasOne(m => m.Video)
+                .WithMany(v => v.Medias)
+                .HasForeignKey(m => m.VideoId);
 
+            // Configure Entities which have a JObject.
             builder.Entity<Playlist>().Property(m => m.JsonMetadata).HasJsonValueConversion();
             builder.Entity<Media>().Property(m => m.JsonMetadata).HasJsonValueConversion();
             builder.Entity<Log>().Property(m => m.Json).HasJsonValueConversion();
@@ -186,8 +209,11 @@ namespace ClassTranscribeDatabase
             builder.Entity<Message>().Property(m => m.Payload).HasJsonValueConversion();
             builder.Entity<EPub>().Property(m => m.Json).HasJsonValueConversion();
             builder.Entity<EPubChapter>().Property(m => m.Data).HasJsonValueConversion();
+            builder.Entity<TaskItem>().Property(m => m.TaskParameters).HasJsonValueConversion();
+            builder.Entity<TaskItem>().Property(m => m.Result).HasJsonValueConversion();
 
-            builder.Entity<Subscription>().HasAlternateKey(s => new { s.ResourceType, s.ResourceId, s.ApplicationUserId });            
+            builder.Entity<Subscription>().HasAlternateKey(s => new { s.ResourceType, s.ResourceId, s.ApplicationUserId });
+            builder.Entity<TaskItem>().HasAlternateKey(t => new { t.UniqueId, t.TaskType });
         }
         public override int SaveChanges(bool acceptAllChangesOnSuccess)
         {

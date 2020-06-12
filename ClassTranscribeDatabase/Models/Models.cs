@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
+using static ClassTranscribeDatabase.CommonUtils;
 
 namespace ClassTranscribeDatabase.Models
 {
@@ -372,5 +373,16 @@ namespace ClassTranscribeDatabase.Models
         public JObject Payload { get; set; }
         public LogLevel LogLevel { get; set; }
         public Ack Ack { get; set; }
+    }
+
+    public class TaskItem : Entity
+    {
+        public string UniqueId { get; set; }
+        public TaskType TaskType { get; set; }
+        public int Attempts { get; set; }
+        public JObject TaskParameters { get; set; }
+        public bool Result { get; set; }
+        public bool Retry { get; set; }
+        public JObject ResultData { get; set; }
     }
 }
