@@ -47,7 +47,7 @@ namespace CTCommons
                 ApiKey = "",
                 Region = ""
             };
-            var x = await _transcriptionService.RecognitionWithAudioStreamAsync(new FileRecord { PrivatePath = filepath }, key);
+            var x = await _transcriptionService.RecognitionWithAudioStreamAsync(filepath, key);
             Console.WriteLine("Hi");
         }
     }

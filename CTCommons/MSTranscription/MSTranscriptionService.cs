@@ -23,9 +23,15 @@ namespace CTCommons.MSTranscription
             _logger = logger;
             _slackLogger = slackLogger;
         }
+
         public async Task<Tuple<Dictionary<string, List<Caption>>, string>> RecognitionWithAudioStreamAsync(FileRecord audioFile, Key key)
         {
-            string file = audioFile.Path;
+            return await RecognitionWithAudioStreamAsync(audioFile.Path, key);
+        }
+
+        public async Task<Tuple<Dictionary<string, List<Caption>>, string>> RecognitionWithAudioStreamAsync(string filePath, Key key)
+        {
+            string file = filePath;
             AppSettings _appSettings = Globals.appSettings;
 
             SpeechTranslationConfig _speechConfig = SpeechTranslationConfig.FromSubscription(key.ApiKey, key.Region);
@@ -104,8 +110,8 @@ namespace CTCommons.MSTranscription
                             if (e.ErrorCode == CancellationErrorCode.AuthenticationFailure)
                             {
                                 _logger.LogInformation($"CANCELED: ErrorCode={e.ErrorCode.ToString()} Reason={e.Reason}");
-                                _slackLogger.PostErrorAsync(new Exception($"Transcription Failure, Authentication failure, VideoId {audioFile.Id}"),
-                                    $"Transcription Failure, Authentication failure, VideoId {audioFile.Id}").GetAwaiter().GetResult();
+                                _slackLogger.PostErrorAsync(new Exception($"Transcription Failure, Authentication failure"),
+                                    $"Transcription Failure, Authentication failure").GetAwaiter().GetResult();
                             }
                         }
 
