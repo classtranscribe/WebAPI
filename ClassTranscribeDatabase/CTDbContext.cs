@@ -210,7 +210,7 @@ namespace ClassTranscribeDatabase
             builder.Entity<EPub>().Property(m => m.Json).HasJsonValueConversion();
             builder.Entity<EPubChapter>().Property(m => m.Data).HasJsonValueConversion();
             builder.Entity<TaskItem>().Property(m => m.TaskParameters).HasJsonValueConversion();
-            builder.Entity<TaskItem>().Property(m => m.Result).HasJsonValueConversion();
+            builder.Entity<TaskItem>().Property(m => m.ResultData).HasJsonValueConversion();
 
             builder.Entity<Subscription>().HasAlternateKey(s => new { s.ResourceType, s.ResourceId, s.ApplicationUserId });
             builder.Entity<TaskItem>().HasAlternateKey(t => new { t.UniqueId, t.TaskType });
