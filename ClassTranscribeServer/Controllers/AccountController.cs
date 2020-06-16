@@ -289,13 +289,12 @@ namespace ClassTranscribeServer.Controllers
             SecurityToken validatedToken;
             JwtSecurityTokenHandler handler = new JwtSecurityTokenHandler();
             var claims = handler.ValidateToken(idToken, validationParameters, out validatedToken);
-
             var applicationUser = new ApplicationUser
             {
                 UserName = claims.FindFirstValue(ClaimTypes.Email),
                 Email = claims.FindFirstValue(ClaimTypes.Email),
-                FirstName = claims.FindFirstValue(ClaimTypes.GivenName),
-                LastName = claims.FindFirstValue(ClaimTypes.Surname),
+                FirstName = claims.FindFirstValue(ClaimTypes.GivenName) ?? "",
+                LastName = claims.FindFirstValue(ClaimTypes.Surname) ?? "",
                 EmailConfirmed = true
             };
 
