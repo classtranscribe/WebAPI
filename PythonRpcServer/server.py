@@ -14,9 +14,6 @@ from kaltura import KalturaProvider
 from mediaprovider import InvalidPlaylistInfoException
 import ffmpeg
 
-youtubeprovider = YoutubeProvider()
-echoprovider = EchoProvider()
-kalturaprovider = KalturaProvider()
 
 _ONE_DAY_IN_SECONDS = 60 * 60 * 24
 
@@ -26,6 +23,7 @@ class PythonServerServicer(ct_pb2_grpc.PythonServerServicer):
         return ct_pb2.JsonString(json = res)
     
     def GetKalturaChannelEntriesRPC(self, request, context):
+        kalturaprovider = KalturaProvider()
         try:
             res = kalturaprovider.getPlaylistItems(request)
             return ct_pb2.JsonString(json = res)
@@ -35,10 +33,12 @@ class PythonServerServicer(ct_pb2_grpc.PythonServerServicer):
             return ct_pb2.JsonString()
     
     def DownloadKalturaVideoRPC(self, request, context):
+        kalturaprovider = KalturaProvider()
         filePath, ext = kalturaprovider.getMedia(request)
         return ct_pb2.File(filePath = filePath, ext = ext)
         
     def GetEchoPlaylistRPC(self, request, context):
+        echoprovider = EchoProvider()
         try:
             res = echoprovider.getPlaylistItems(request)
             return ct_pb2.JsonString(json = res)
@@ -49,10 +49,12 @@ class PythonServerServicer(ct_pb2_grpc.PythonServerServicer):
         
     
     def DownloadEchoVideoRPC(self, request, context):
+        echoprovider = EchoProvider()
         filePath, ext = echoprovider.getMedia(request)
         return ct_pb2.File(filePath = filePath, ext = ext)
     
     def GetYoutubePlaylistRPC(self, request, context):
+        youtubeprovider = YoutubeProvider()
         try:
             res = youtubeprovider.getPlaylistItems(request)
             return ct_pb2.JsonString(json = res)
@@ -62,6 +64,7 @@ class PythonServerServicer(ct_pb2_grpc.PythonServerServicer):
             return ct_pb2.JsonString()
     
     def DownloadYoutubeVideoRPC(self, request, context):
+        youtubeprovider = YoutubeProvider()
         filePath, ext = youtubeprovider.getMedia(request)
         return ct_pb2.File(filePath = filePath, ext = ext)
     

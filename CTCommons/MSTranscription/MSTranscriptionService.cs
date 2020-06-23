@@ -102,14 +102,14 @@ namespace CTCommons.MSTranscription
                     recognizer.Canceled += (s, e) =>
                     {
                         errorCode = e.ErrorCode.ToString();
-                        _logger.LogInformation($"CANCELED: ErrorCode={e.ErrorCode.ToString()} Reason={e.Reason}");
+                        _logger.LogInformation($"CANCELED: ErrorCode={e.ErrorCode} Reason={e.Reason}");
 
                         if (e.Reason == CancellationReason.Error)
                         {
-                            _logger.LogInformation($"CANCELED: ErrorCode={e.ErrorCode.ToString()} Reason={e.Reason}");
+                            _logger.LogInformation($"CANCELED: ErrorCode={e.ErrorCode} Reason={e.Reason}");
                             if (e.ErrorCode == CancellationErrorCode.AuthenticationFailure)
                             {
-                                _logger.LogInformation($"CANCELED: ErrorCode={e.ErrorCode.ToString()} Reason={e.Reason}");
+                                _logger.LogInformation($"CANCELED: ErrorCode={e.ErrorCode} Reason={e.Reason}");
                                 _slackLogger.PostErrorAsync(new Exception($"Transcription Failure, Authentication failure"),
                                     $"Transcription Failure, Authentication failure").GetAwaiter().GetResult();
                             }
