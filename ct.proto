@@ -15,6 +15,7 @@ service PythonServer {
   rpc DownloadYoutubeVideoRPC (MediaRequest) returns (File) {}
 
   rpc ConvertVideoToWavRPC (File) returns (File) {}
+  rpc ConvertVideoToWavRPCWithOffset (FileWithOffset) returns (File) {}
   rpc ProcessVideoRPC (File) returns (File) {}  
 }
 
@@ -37,6 +38,11 @@ message MediaRequest {
 message File {
 	string filePath = 1;
   string ext = 2;
+}
+
+message FileWithOffset {
+	string filePath = 1;
+  float offset = 2;
 }
 
 message EPubData {

@@ -11,6 +11,16 @@ def convertVideoToWav(input_filepath):
     ff.run()
     return output_filepath, ext
 
+def convertVideoToWavWithOffset(input_filepath, offset):
+    output_filepath = getTmpFile()
+    ext = '.wav'
+    ff = FFmpeg(
+    inputs={input_filepath: '-ss {}'.format(offset)},
+    outputs={output_filepath: '-c:a pcm_s16le -ac 1 -y -ar 16000 -f wav'}
+    )
+    ff.run()
+    return output_filepath, ext
+
 def processVideo(input_filepath):
     output_filepath = getTmpFile()
     ext = '.mp4'
