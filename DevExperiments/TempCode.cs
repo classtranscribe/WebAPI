@@ -40,18 +40,15 @@ namespace CTCommons
             // Add any temporary code.
 
             Console.WriteLine("Hi");
-            
-            var filepath = "/Users/petersha/Desktop/fd6b893d-ebce-44a9-8446-18fd2d93f41c_row_.wav";
+
+            var filepath = "";
             Key key = new Key
             {
-                ApiKey = "c63829dbd6c7404aa18418cdf3435511",
-                Region = "eastus"
+                ApiKey = "",
+                Region = ""
             };
-            var x = await _transcriptionService.RecognitionWithAudioStreamAsync(filepath, key, TimeSpan.Zero);
-            var error_code = x.ErrorCode;
-            var lastSucceedTime = x.LastSuccessTime;
-            Console.WriteLine(error_code);
-            Console.WriteLine(lastSucceedTime.ToString());
+            var x = await _transcriptionService.RecognitionWithAudioStreamAsync(filepath, key);
+            Console.WriteLine("Hi");
         }
     }
 }
