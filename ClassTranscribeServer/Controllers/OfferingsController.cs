@@ -84,6 +84,7 @@ namespace ClassTranscribeServer.Controllers
                 Courses = offering.CourseOfferings
                 .Select(co => new CourseDTO
                 {
+                    CourseId = co.Course.Id,
                     CourseNumber = co.Course.CourseNumber,
                     DepartmentId = co.Course.DepartmentId,
                     DepartmentAcronym = co.Course.Department.Acronym
@@ -273,6 +274,7 @@ namespace ClassTranscribeServer.Controllers
 
         public class CourseDTO
         {
+            public string CourseId { get; set; }
             public string CourseName { get; set; }
             public string CourseNumber { get; set; }
             public string Description { get; set; }
