@@ -18,18 +18,25 @@ namespace CTCommons.MSTranscription
         readonly ILogger _logger;
         readonly SlackLogger _slackLogger;
 
+        public class MSTResult
+        {
+            public Dictionary<string, List<Caption>> Captions { get; set; }
+            public string ErrorCode { get; set; }
+            public TimeSpan LastSuccessTime { get; set; }
+        }
+
         public MSTranscriptionService(ILogger<MSTranscriptionService> logger, SlackLogger slackLogger)
         {
             _logger = logger;
             _slackLogger = slackLogger;
         }
 
-        public async Task<Tuple<Dictionary<string, List<Caption>>, string>> RecognitionWithAudioStreamAsync(FileRecord audioFile, Key key)
+        public async Task<MSTResult> RecognitionWithAudioStreamAsync(FileRecord audioFile, Key key)
         {
-            return await RecognitionWithAudioStreamAsync(audioFile.Path, key);
+            return await RecognitionWithAudioStreamAsync(audioFile.Path, key, TimeSpan.Zero);
         }
 
-        public async Task<Tuple<Dictionary<string, List<Caption>>, string>> RecognitionWithAudioStreamAsync(string filePath, Key key)
+        public async Task<MSTResult> RecognitionWithAudioStreamAsync(string filePath, Key key, TimeSpan offset)
         {
             string file = filePath;
             AppSettings _appSettings = Globals.appSettings;
@@ -44,6 +51,7 @@ namespace CTCommons.MSTranscription
             _speechConfig.AddTargetLanguage(Languages.FRENCH);
             _speechConfig.OutputFormat = OutputFormat.Detailed;
 
+            TimeSpan lastSuccessfulTime = TimeSpan.Zero;
             string errorCode = "";
             Console.OutputEncoding = Encoding.Unicode;
             Dictionary<string, List<Caption>> captions = new Dictionary<string, List<Caption>>
@@ -107,11 +115,25 @@ namespace CTCommons.MSTranscription
                         if (e.Reason == CancellationReason.Error)
                         {
                             _logger.LogInformation($"CANCELED: ErrorCode={e.ErrorCode.ToString()} Reason={e.Reason}");
-                            if (e.ErrorCode == CancellationErrorCode.AuthenticationFailure)
+
+                            if (e.ErrorCode == CancellationErrorCode.ServiceTimeout
+                            || e.ErrorCode == CancellationErrorCode.ServiceUnavailable
+                            || e.ErrorCode == CancellationErrorCode.ConnectionFailure)
+                            {
+                                TimeSpan lastTime = TimeSpan.Zero;
+                                if (captions.Count != 0)
+                                {
+                                    var lastCaption = captions[Languages.ENGLISH].OrderBy(c => c.End).TakeLast(1).ToList().First();
+                                    lastTime = lastCaption.End;
+                                }
+
+                                _logger.LogInformation($"Retrying, LastSuccessTime={lastTime.ToString()}");
+                                lastSuccessfulTime = lastTime;
+                            } else if (e.ErrorCode != CancellationErrorCode.NoError)
                             {
                                 _logger.LogInformation($"CANCELED: ErrorCode={e.ErrorCode.ToString()} Reason={e.Reason}");
-                                _slackLogger.PostErrorAsync(new Exception($"Transcription Failure, Authentication failure"),
-                                    $"Transcription Failure, Authentication failure").GetAwaiter().GetResult();
+                                _slackLogger.PostErrorAsync(new Exception($"Transcription Failure"),
+                                    $"Transcription Failure").GetAwaiter().GetResult();
                             }
                         }
 
@@ -139,7 +161,12 @@ namespace CTCommons.MSTranscription
 
                     // Stops recognition.
                     await recognizer.StopContinuousRecognitionAsync().ConfigureAwait(false);
-                    return new Tuple<Dictionary<string, List<Caption>>, string>(captions, errorCode);
+
+                    return new MSTResult {
+                        Captions = captions,
+                        ErrorCode = errorCode,
+                        LastSuccessTime = lastSuccessfulTime
+                    };
                 }
             }
             // </recognitionAudioStream>
