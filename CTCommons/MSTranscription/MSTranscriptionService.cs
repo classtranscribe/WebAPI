@@ -23,9 +23,15 @@ namespace CTCommons.MSTranscription
             _logger = logger;
             _slackLogger = slackLogger;
         }
+
         public async Task<Tuple<Dictionary<string, List<Caption>>, string>> RecognitionWithAudioStreamAsync(FileRecord audioFile, Key key)
         {
-            string file = audioFile.Path;
+            return await RecognitionWithAudioStreamAsync(audioFile.Path, key);
+        }
+
+        public async Task<Tuple<Dictionary<string, List<Caption>>, string>> RecognitionWithAudioStreamAsync(string filePath, Key key)
+        {
+            string file = filePath;
             AppSettings _appSettings = Globals.appSettings;
 
             SpeechTranslationConfig _speechConfig = SpeechTranslationConfig.FromSubscription(key.ApiKey, key.Region);
@@ -53,7 +59,7 @@ namespace CTCommons.MSTranscription
             var stopRecognition = new TaskCompletionSource<int>();
             // Create an audio stream from a wav file.
             // Replace with your own audio file name.
-            using (var audioInput = Helper.OpenWavFile(file))
+            using (var audioInput = WavHelper.OpenWavFile(file))
             {
                 // Creates a speech recognizer using audio stream input.
                 using (var recognizer = new TranslationRecognizer(_speechConfig, audioInput))
@@ -96,16 +102,16 @@ namespace CTCommons.MSTranscription
                     recognizer.Canceled += (s, e) =>
                     {
                         errorCode = e.ErrorCode.ToString();
-                        _logger.LogInformation($"CANCELED: ErrorCode={e.ErrorCode.ToString()} Reason={e.Reason}");
+                        _logger.LogInformation($"CANCELED: ErrorCode={e.ErrorCode} Reason={e.Reason}");
 
                         if (e.Reason == CancellationReason.Error)
                         {
-                            _logger.LogInformation($"CANCELED: ErrorCode={e.ErrorCode.ToString()} Reason={e.Reason}");
+                            _logger.LogInformation($"CANCELED: ErrorCode={e.ErrorCode} Reason={e.Reason}");
                             if (e.ErrorCode == CancellationErrorCode.AuthenticationFailure)
                             {
-                                _logger.LogInformation($"CANCELED: ErrorCode={e.ErrorCode.ToString()} Reason={e.Reason}");
-                                _slackLogger.PostErrorAsync(new Exception($"Transcription Failure, Authentication failure, VideoId {audioFile.Id}"),
-                                    $"Transcription Failure, Authentication failure, VideoId {audioFile.Id}").GetAwaiter().GetResult();
+                                _logger.LogInformation($"CANCELED: ErrorCode={e.ErrorCode} Reason={e.Reason}");
+                                _slackLogger.PostErrorAsync(new Exception($"Transcription Failure, Authentication failure"),
+                                    $"Transcription Failure, Authentication failure").GetAwaiter().GetResult();
                             }
                         }
 

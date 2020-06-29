@@ -23,7 +23,7 @@ namespace CTCommons.MSTranscription
         /// For a sample caption - “A man and, a woman.”
         ///        The captions are in the form of a tuple - (text, start_time, end_time)
         ///
-        ///        The word-level captions are - 
+        /// The word-level captions are - 
         ///(“a”, 00:00:00, 00:00:50) , (“man”, 00:00:50, 00:01:00), (“and”, 00:01:00, 00:01:50), (“a”, 00:01:50, 00:02:00), (“woman”, 00:02:00, 00:02:50)
         ///Notice the lack of capitalization and punctuations in the word-level captions
         ///

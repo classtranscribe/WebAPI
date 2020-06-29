@@ -12,6 +12,7 @@ using static ClassTranscribeDatabase.CommonUtils;
 using CTCommons.MSTranscription;
 using System.Text.Json;
 using System.Text;
+using Microsoft.EntityFrameworkCore;
 
 namespace CTCommons
 {
@@ -21,11 +22,13 @@ namespace CTCommons
 
         private readonly CTDbContext context;
         private readonly MSTranscriptionService _transcriptionService;
+        private readonly RpcClient _rpcClient;
         
-        public TempCode(CTDbContext c, MSTranscriptionService transcriptionService)
+        public TempCode(CTDbContext c, MSTranscriptionService transcriptionService, RpcClient rpcClient)
         {
             context = c;
             _transcriptionService = transcriptionService;
+            _rpcClient = rpcClient;
         }
 
         public void Temp()
@@ -38,6 +41,8 @@ namespace CTCommons
             // A dummy awaited function call.
             await Task.Delay(0);
             // Add any temporary code.
+
+            Console.WriteLine("Hi");
 
             Console.WriteLine("Hi");
         }

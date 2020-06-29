@@ -1,11 +1,14 @@
 ﻿using ClassTranscribeDatabase;
+using ClassTranscribeDatabase.Models;
 using CTCommons;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Xml;
 using static ClassTranscribeDatabase.CommonUtils;
 
 namespace TaskEngine.Tasks
@@ -43,6 +46,74 @@ namespace TaskEngine.Tasks
             _createBoxTokenTask = createBoxTokenTask;
             _updateBoxTokenTask = updateBoxTokenTask;
             _slackLogger = slackLogger;
+        }
+
+        private async Task FindPendingJobs()
+        {
+            using (var context = CTDbContext.CreateDbContext())
+            {
+                // Medias for which no videos have downloaded
+                var toDownloadMediaIds = await context.Medias.Where(m => m.Video == null).Select(m =>
+                    new TaskItem
+                    {
+                        UniqueId = m.Id,
+                        ResultData = new JObject(),
+                        TaskParameters = new JObject(),
+                        TaskType = TaskType.DownloadMedia,
+                        Attempts = 0
+                    }).ToListAsync();
+
+                // Videos which haven't been converted to wav 
+                var toConvertVideoIds = await context.Videos.Where(v => v.Medias.Any() && v.Audio == null).Select(v =>
+                    new TaskItem
+                    {
+                        UniqueId = v.Id,
+                        ResultData = new JObject(),
+                        TaskParameters = new JObject(),
+                        TaskType = TaskType.ConvertMedia,
+                        Attempts = 0
+                    }).ToListAsync();
+
+                // Transcribe pending videos.
+                var toTranscribeVideoIds = await context.Videos.Where(v => v.TranscribingAttempts < 3 && 
+                                                                           v.TranscriptionStatus != "NoError" && 
+                                                                           v.Medias.Any() && v.Audio != null).Select(v =>
+                                                                           new TaskItem
+                                                                           {
+                                                                               UniqueId = v.Id,
+                                                                               ResultData = new JObject(),
+                                                                               TaskParameters = new JObject(),
+                                                                               TaskType = TaskType.Transcribe,
+                                                                               Attempts = 0
+                                                                           }).ToListAsync();
+
+                // Completed Transcriptions which haven't generated vtt files
+                var toGenerateVTTsTranscriptionIds = await context.Transcriptions.Where(t => t.Captions.Count > 0 && t.File == null)
+                                                                                .Select(t =>
+                                                                                new TaskItem
+                                                                                {
+                                                                                    UniqueId = t.Id,
+                                                                                    ResultData = new JObject(),
+                                                                                    TaskParameters = new JObject(),
+                                                                                    TaskType = TaskType.GenerateVTTFile,
+                                                                                    Attempts = 0
+                                                                                }).ToListAsync();
+
+                var allTaskItems = new List<TaskItem>();
+                allTaskItems.AddRange(toDownloadMediaIds);
+                allTaskItems.AddRange(toConvertVideoIds);
+                allTaskItems.AddRange(toTranscribeVideoIds);
+                allTaskItems.AddRange(toGenerateVTTsTranscriptionIds);
+
+                foreach(var taskItem in allTaskItems)
+                {
+                    if(!await context.TaskItems.AnyAsync(t => t.TaskType == taskItem.TaskType && t.UniqueId == taskItem.UniqueId))
+                    {
+                        await context.TaskItems.AddAsync(taskItem);
+                    }
+                }
+                await context.SaveChangesAsync();
+            }
         }
 
         private async Task PendingJobs()

@@ -7,7 +7,9 @@ using System.Threading.Tasks;
 
 namespace ClassTranscribeDatabase.Models
 {
-
+    /// <summary>
+    /// This class stores the record of a file in the database.
+    /// </summary>
     public class FileRecord : Entity
     {
         private FileRecord(string path)
@@ -16,6 +18,11 @@ namespace ClassTranscribeDatabase.Models
             FileName = System.IO.Path.GetFileName(path);
         }
 
+        /// <summary>
+        /// Generate a new file record for a given file.
+        /// </summary>
+        /// <param name="filepath">Path of the file</param>
+        /// <param name="ext">Extension of the file</param>
         public static FileRecord GetNewFileRecord(string filepath, string ext)
         {
             // Rename file.
@@ -29,6 +36,9 @@ namespace ClassTranscribeDatabase.Models
             return fileRecord;
         }
 
+        /// <summary>
+        /// Check if a file at "filePath" exists and is of at least "minLen" bytes.
+        /// </summary>
         public static bool IsValidFile(string filepath, int minLen = 100)
         {
             var temp = new FileRecord(filepath);
@@ -36,6 +46,9 @@ namespace ClassTranscribeDatabase.Models
             return temp.Path.Length > 0 && File.Exists(temp.Path) && new FileInfo(temp.Path).Length > minLen;
         }
 
+        /// <summary>
+        /// Check if a file at "Path" exists and is of at least "minLen" bytes.
+        /// </summary>
         public bool IsValidFile(int minLen = 100)
         {
             return IsValidFile(Path, minLen);
@@ -43,6 +56,12 @@ namespace ClassTranscribeDatabase.Models
 
         public FileRecord() { }
         public string FileName { get; set; }
+
+        /// <summary>
+        /// Difference between PrivatePath, Path and VMPath
+        /// 1. PrivatePath is the actual path stored on the database. This path is relative to the 
+        /// 2. Path
+        /// </summary>
         [IgnoreDataMember]
         public string PrivatePath { get; set; }
         [NotMapped]
@@ -80,6 +99,9 @@ namespace ClassTranscribeDatabase.Models
         [IgnoreDataMember]
         public string Hash { get; set; }
 
+        /// <summary>
+        /// Compute the SHA256 Hashsum of a file.
+        /// </summary>
         public static string ComputeSha256HashForFile(string filePath)
         {
             using (FileStream stream = File.OpenRead(filePath))
@@ -100,6 +122,9 @@ namespace ClassTranscribeDatabase.Models
             }
         }
 
+        /// <summary>
+        /// Delete a file record, and its corresponding file.
+        /// </summary>
         public async Task DeleteFileRecordAsync(CTDbContext context)
         {
             if (File.Exists(Path))

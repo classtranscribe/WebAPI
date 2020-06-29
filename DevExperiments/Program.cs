@@ -7,6 +7,7 @@ using CTCommons.MSTranscription;
 using CTCommons;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Logging;
+using CTCommons.Grpc;
 
 namespace DevExperiments
 {
@@ -30,6 +31,7 @@ namespace DevExperiments
                 .AddScoped<SlackLogger>()
                 .AddSingleton<MSTranscriptionService>()
                 .AddSingleton<TempCode>()
+                .AddSingleton<RpcClient>()
                 .BuildServiceProvider();
 
             Globals.appSettings = serviceProvider.GetService<IOptions<AppSettings>>().Value;

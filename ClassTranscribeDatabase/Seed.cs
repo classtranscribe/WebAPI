@@ -8,6 +8,9 @@ using System.Linq;
 
 namespace ClassTranscribeDatabase
 {
+    /// <summary>
+    /// This class "Seeds" the database with some default values when a database in newly created.
+    /// </summary>
     public class Seeder
     {
         private readonly CTDbContext _context;

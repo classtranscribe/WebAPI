@@ -3,6 +3,9 @@ using Microsoft.Extensions.Logging;
 
 namespace ClassTranscribeDatabase
 {
+    /// <summary>
+    /// All the configuration setttins that are supplied either by vs_appsettings.json or by environment variables.
+    /// </summary>
     public class AppSettings
     {
         public string JWT_EXPIRE_DAYS { get; set; }
@@ -30,10 +33,12 @@ namespace ClassTranscribeDatabase
         public string CILOGON_DOMAIN { get; set; }
     }
 
+    /// <summary>
+    /// Global Constants used across the project.
+    /// </summary>
     public static class Globals
     {
         public static AppSettings appSettings;
-        public static ILogger logger;
         public const string ROLE_INSTRUCTOR = "Instructor";
         public const string ROLE_STUDENT = "Student"; // Modifiable
         public const string ROLE_ADMIN = "Admin"; // Unmodifiable
