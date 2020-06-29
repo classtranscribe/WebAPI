@@ -110,7 +110,7 @@ namespace CTCommons.MSTranscription
                     recognizer.Canceled += (s, e) =>
                     {
                         errorCode = e.ErrorCode.ToString();
-                        _logger.LogInformation($"CANCELED: ErrorCode={e.ErrorCode.ToString()} Reason={e.Reason}");
+                        _logger.LogInformation($"CANCELED: ErrorCode={e.ErrorCode} Reason={e.Reason}");
 
                         if (e.Reason == CancellationReason.Error)
                         {
