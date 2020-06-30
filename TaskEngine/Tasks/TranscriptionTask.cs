@@ -53,7 +53,7 @@ namespace TaskEngine.Tasks
             var result = await _msTranscriptionService.RecognitionWithAudioStreamAsync(video.Audio, key);
             TaskEngineGlobals.KeyProvider.ReleaseKey(key, video.Id);
             List<Transcription> transcriptions = new List<Transcription>();
-            foreach (var language in result.Item1)
+            foreach (var language in result.Captions)
             {
                 if (language.Value.Count > 0)
                 {
@@ -68,7 +68,7 @@ namespace TaskEngine.Tasks
             using (var _context = CTDbContext.CreateDbContext())
             {
                 var latestVideo = await _context.Videos.FindAsync(video.Id);
-                if (result.Item2 == "NoError")
+                if (result.ErrorCode == "NoError")
                 {
                     if (latestVideo.TranscriptionStatus != "NoError")
                     {
@@ -89,17 +89,17 @@ namespace TaskEngine.Tasks
                         transcriptions.ForEach(t => _generateVTTFileTask.Publish(t.Id));
                         _sceneDetectionTask.Publish(video.Id);
                     }
-                    latestVideo.TranscriptionStatus = result.Item2;
+                    latestVideo.TranscriptionStatus = result.ErrorCode;
                     latestVideo.TranscribingAttempts += 1;
                     await _context.SaveChangesAsync();
 
                 }
                 else
                 {
-                    latestVideo.TranscriptionStatus = result.Item2;
+                    latestVideo.TranscriptionStatus = result.ErrorCode;
                     latestVideo.TranscribingAttempts += 1;
                     await _context.SaveChangesAsync();
-                    throw new Exception("Transcription failed" + result.Item2);
+                    throw new Exception("Transcription failed" + result.ErrorCode);
                 }
             }
         }
