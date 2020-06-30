@@ -67,13 +67,12 @@ class PythonServerServicer(ct_pb2_grpc.PythonServerServicer):
         youtubeprovider = YoutubeProvider()
         filePath, ext = youtubeprovider.getMedia(request)
         return ct_pb2.File(filePath = filePath, ext = ext)
-    
-    def ConvertVideoToWavRPC(self, request, context):
-        filePath, ext = ffmpeg.convertVideoToWav(request.filePath)
-        return ct_pb2.File(filePath = filePath, ext = ext)
 
     def ConvertVideoToWavRPCWithOffset(self, request, context):
-        filePath, ext = ffmpeg.convertVideoToWavWithOffset(request.filePath, request.offset)
+        if request.offset is None:
+            filePath, ext = ffmpeg.convertVideoToWavWithOffset(request.file.filePath, 0.0)
+        else:
+            filePath, ext = ffmpeg.convertVideoToWavWithOffset(request.file.filePath, request.offset)
         return ct_pb2.File(filePath = filePath, ext = ext)
 
     def ProcessVideoRPC(self, request, context):

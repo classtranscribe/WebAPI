@@ -14,9 +14,8 @@ service PythonServer {
   rpc GetYoutubePlaylistRPC (PlaylistRequest) returns (JsonString) {}
   rpc DownloadYoutubeVideoRPC (MediaRequest) returns (File) {}
 
-  rpc ConvertVideoToWavRPC (File) returns (File) {}
-  rpc ConvertVideoToWavRPCWithOffset (FileWithOffset) returns (File) {}
-  rpc ProcessVideoRPC (File) returns (File) {}  
+  rpc ConvertVideoToWavRPCWithOffset (FileForConversion) returns (File) {}
+  rpc ProcessVideoRPC (File) returns (File) {}
 }
 
 // The request message containing the user's name.
@@ -31,22 +30,22 @@ message PlaylistRequest {
 }
 
 message MediaRequest {
-	string videoUrl = 1;
-	string additionalInfo = 2;
+  string videoUrl = 1;
+  string additionalInfo = 2;
 }
 
 message File {
-	string filePath = 1;
+  string filePath = 1;
   string ext = 2;
 }
 
-message FileWithOffset {
-	string filePath = 1;
+message FileForConversion {
+  File file = 1;
   float offset = 2;
 }
 
 message EPubData {
-	string title = 1;
+  string title = 1;
   string author = 2;
   string publisher = 3;
   repeated EPubChapter chapters = 4;
@@ -54,7 +53,7 @@ message EPubData {
 }
 
 message EPubChapter {
-    string title = 1;
-    string text = 2;
-    File image = 3;
+  string title = 1;
+  string text = 2;
+  File image = 3;
 }

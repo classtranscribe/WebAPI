@@ -1,16 +1,6 @@
 from ffmpy import FFmpeg
 from utils import getTmpFile
 
-def convertVideoToWav(input_filepath):
-    output_filepath = getTmpFile()
-    ext = '.wav'
-    ff = FFmpeg(
-    inputs={input_filepath: None},
-    outputs={output_filepath: '-c:a pcm_s16le -ac 1 -y -ar 16000 -f wav'}
-    )
-    ff.run()
-    return output_filepath, ext
-
 def convertVideoToWavWithOffset(input_filepath, offset):
     output_filepath = getTmpFile()
     ext = '.wav'

@@ -33,9 +33,9 @@ namespace TaskEngine.Tasks
                 var video = await _context.Videos.FindAsync(videoId);
                 _logger.LogInformation("Consuming" + video);
                 // Make RPC call to produce audio file.
-                var file = await _rpcClient.PythonServerClient.ConvertVideoToWavRPCAsync(new CTGrpc.File
+                var file = await _rpcClient.PythonServerClient.ConvertVideoToWavRPCWithOffsetAsync(new CTGrpc.FileForConversion
                 {
-                    FilePath = video.Video1.VMPath
+                    File = new CTGrpc.File{ FilePath = video.Video1.VMPath }
                 });
 
 
