@@ -69,10 +69,7 @@ class PythonServerServicer(ct_pb2_grpc.PythonServerServicer):
         return ct_pb2.File(filePath = filePath, ext = ext)
 
     def ConvertVideoToWavRPCWithOffset(self, request, context):
-        if request.offset is None:
-            filePath, ext = ffmpeg.convertVideoToWavWithOffset(request.file.filePath, 0.0)
-        else:
-            filePath, ext = ffmpeg.convertVideoToWavWithOffset(request.file.filePath, request.offset)
+        filePath, ext = ffmpeg.convertVideoToWavWithOffset(request)
         return ct_pb2.File(filePath = filePath, ext = ext)
 
     def ProcessVideoRPC(self, request, context):
