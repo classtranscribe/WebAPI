@@ -50,7 +50,7 @@ namespace TaskEngine.Tasks
                 throw new FileNotFoundException("Wav file not found.", video.Audio.Path);
             }
             Key key = TaskEngineGlobals.KeyProvider.GetKey(video.Id);
-            var result = await _msTranscriptionService.RecognitionWithAudioStreamAsync(video.Audio, key);
+            var result = await _msTranscriptionService.RecognitionWithVideoStreamAsync(video.Video1, key, TimeSpan.Zero);
             TaskEngineGlobals.KeyProvider.ReleaseKey(key, video.Id);
             List<Transcription> transcriptions = new List<Transcription>();
             foreach (var language in result.Captions)

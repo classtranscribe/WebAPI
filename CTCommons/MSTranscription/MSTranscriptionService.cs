@@ -10,13 +10,15 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using static ClassTranscribeDatabase.CommonUtils;
+using CTCommons.Grpc;
 
 namespace CTCommons.MSTranscription
 {
     public class MSTranscriptionService
     {
-        readonly ILogger _logger;
-        readonly SlackLogger _slackLogger;
+        private readonly ILogger _logger;
+        private readonly SlackLogger _slackLogger;
+        private readonly RpcClient _rpcClient;
 
         public class MSTResult
         {
@@ -25,20 +27,30 @@ namespace CTCommons.MSTranscription
             public TimeSpan LastSuccessTime { get; set; }
         }
 
-        public MSTranscriptionService(ILogger<MSTranscriptionService> logger, SlackLogger slackLogger)
+        public MSTranscriptionService(ILogger<MSTranscriptionService> logger, SlackLogger slackLogger, RpcClient rpcClient)
         {
             _logger = logger;
             _slackLogger = slackLogger;
+            _rpcClient = rpcClient;
         }
 
-        public async Task<MSTResult> RecognitionWithAudioStreamAsync(FileRecord audioFile, Key key)
+        public async Task<MSTResult> RecognitionWithVideoStreamAsync(FileRecord videoFile, Key key, TimeSpan offset)
         {
-            return await RecognitionWithAudioStreamAsync(audioFile.Path, key, TimeSpan.Zero);
+            return await RecognitionWithVideoStreamAsync(videoFile.VMPath, key, offset);
         }
 
-        public async Task<MSTResult> RecognitionWithAudioStreamAsync(string filePath, Key key, TimeSpan offset)
-        {
-            string file = filePath;
+        public async Task<MSTResult> RecognitionWithVideoStreamAsync(string filePath, Key key, TimeSpan offset)
+        {   
+            _logger.LogInformation($"Trimming video file with offset {offset.TotalSeconds} seconds");
+            var trimmedAudioFile = await _rpcClient.PythonServerClient.ConvertVideoToWavRPCWithOffsetAsync(new CTGrpc.FileForConversion
+            {
+                File = new CTGrpc.File { FilePath = filePath },
+                Offset = (float)offset.TotalSeconds
+            });
+
+            var filerecord = new FileRecord { Path = trimmedAudioFile.FilePath };
+            string file = filerecord.Path;
+
             AppSettings _appSettings = Globals.appSettings;
 
             SpeechTranslationConfig _speechConfig = SpeechTranslationConfig.FromSubscription(key.ApiKey, key.Region);
