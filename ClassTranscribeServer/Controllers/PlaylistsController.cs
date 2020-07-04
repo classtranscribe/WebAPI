@@ -49,10 +49,25 @@ namespace ClassTranscribeServer.Controllers
             {
                 return Unauthorized(new { Reason = "Insufficient Permission", AccessType = offering.AccessType });
             }
-            var temp = await _context.Playlists
-                .Where(p => p.OfferingId == offeringId)
-                .OrderBy(p => p.Index)
-                .ThenBy(p => p.CreatedAt).ToListAsync();
+
+            var temp = offering.Playlists.OrderBy(p => p.Index).ThenBy(p => p.CreatedAt);
+
+            // Visibility authorization
+            var visibilityAuthorizationResult = await _authorizationService.AuthorizeAsync(User, offering, Globals.POLICY_UPDATE_OFFERING);
+            if (!visibilityAuthorizationResult.Succeeded)
+            {
+                if (offering.Visibility == Visibility.Hidden)
+                {
+                    return BadRequest();
+                }
+                temp = temp.Where(p => p.Visibility == Visibility.Visible);
+            }
+
+            if (!temp.Any())
+            {
+                return NoContent();
+            }
+
             var playlists = temp.Select(p => new PlaylistDTO
             {
                 Id = p.Id,
@@ -83,10 +98,24 @@ namespace ClassTranscribeServer.Controllers
             {
                 return Unauthorized(new { Reason = "Insufficient Permission", AccessType = offering.AccessType });
             }
-            var temp = await _context.Playlists
-                .Where(p => p.OfferingId == offeringId)
-                .OrderBy(p => p.Index)
-                .ThenBy(p => p.CreatedAt).ToListAsync();
+            var temp = offering.Playlists.OrderBy(p => p.Index).ThenBy(p => p.CreatedAt).Tolist();
+
+            // Visibility authorization
+            var visibilityAuthorizationResult = await _authorizationService.AuthorizeAsync(User, offering, Globals.POLICY_UPDATE_OFFERING);
+            if (!visibilityAuthorizationResult.Succeeded)
+            {
+                if (offering.Visibility == Visibility.Hidden)
+                {
+                    return BadRequest();
+                }
+                temp = temp.FindAll(p => p.Visibilty == Visiblity.Visible).ForEach(p => p.Medias = p.Medias.Where(m => m.Visibilty == Visibility.Visible));
+            }
+
+            if (!temp.Any())
+            {
+                return NoContent();
+            }
+
             var playlists = temp.Select(p => new PlaylistDTO
             {
                 Id = p.Id,
@@ -125,11 +154,28 @@ namespace ClassTranscribeServer.Controllers
         [HttpGet("SearchForMedia/{offeringId}/{query}")]
         public async Task<ActionResult<IEnumerable<MediaSearchDTO>>> SearchForMedia(string offeringId, string query)
         {
-            var mediaSearches = await _context.Medias.Where(m => m.Playlist.OfferingId == offeringId &&
-            EF.Functions.ToTsVector("english", m.Name).Matches(query))
-                .Select(m => new MediaSearchDTO { Name = m.Name, MediaId = m.Id, PlaylistName = m.Playlist.Name, PlaylistId = m.PlaylistId })
+
+            var temp = await _context.Medias.Where(m => m.Playlist.OfferingId == offeringId && EF.Functions.ToTsVector("english", m.Name).Matches(query)).ToListAsync();
+            // https://www.npgsql.org/efcore/mapping/full-text-search.html
+
+            // Visibility authorization
+            var visibilityAuthorizationResult = await _authorizationService.AuthorizeAsync(User, offering, Globals.POLICY_UPDATE_OFFERING);
+            if (!visibilityAuthorizationResult.Succeeded)
+            {
+                if (offering.Visibility == Visibility.Hidden)
+                {
+                    return BadRequest();
+                }
+                temp = temp.FindAll(m => m.Visiblity == Visibility.Visible && m.Playlist.Visibility == Visibility.Visible);
+            }
+            if (!temp.Any())
+            {
+                return NonContent();
+            }
+
+            var mediaSearches = temp.Select(m => new MediaSearchDTO { Name = m.Name, MediaId = m.Id, PlaylistName = m.Playlist.Name, PlaylistId = m.PlaylistId })
                 .Take(50)
-                .ToListAsync();
+                .ToList();
 
             return mediaSearches;
         }
@@ -156,9 +202,28 @@ namespace ClassTranscribeServer.Controllers
                     return new ChallengeResult();
                 }
             }
-            List<MediaDTO> medias = p.Medias
-                .OrderBy(m => m.Index)
-                .ThenBy(m => m.CreatedAt).Select(m => new MediaDTO
+
+            var temp = p.Medias.OrderBy(m => m.Index).ThenBy(m => m.CreatedAt).ToList();
+
+            // Visibility authorization
+            var visibilityAuthorizationResult = await _authorizationService.AuthorizeAsync(User, p.Offering, Globals.POLICY_UPDATE_OFFERING);
+            if (!visibilityAuthorizationResult.Succeeded)
+            {
+                if (p.Visibility == Visibility.Hidden || p.Offering.Visibility == Visibility.Hidden)
+                {
+                    return NotFound();
+                }
+                temp = temp.Where(m => m.Visibility = Visibility.Hidden);
+
+            }
+
+            if (!temp.Any())
+            {
+                return NonContent();
+            }
+
+
+            List<MediaDTO> medias = temp.Select(m => new MediaDTO
                 {
                     Id = m.Id,
                     Index = m.Index,
@@ -224,6 +289,7 @@ namespace ClassTranscribeServer.Controllers
             }
             var p = await _context.Playlists.FindAsync(playlist.Id);
             p.Name = playlist.Name;
+            p.Visibility = playlist.Visibility;
 
             try
             {

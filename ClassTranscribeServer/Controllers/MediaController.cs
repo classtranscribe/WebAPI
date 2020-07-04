@@ -58,6 +58,16 @@ namespace ClassTranscribeServer.Controllers
                 }
             }
 
+            var visibilityAuthorizationResult = await _authorizationService.AuthorizeAsync(User, media.Playlist.Offering, Globals.POLICY_UPDATE_OFFERING);
+            if (!visibilityAuthorizationResult.Succeeded)
+            {
+                if (media.Visibility == Visibility.Hidden || media.Playlist.Visibility == Visibility.Hidden || media.Playlist.Offering.Visibility == Visibility.Hidden)
+                {
+                    return NotFound();
+                }
+
+            }
+
             var v = await _context.Videos.FindAsync(media.VideoId);
             var user = await _userUtils.GetUser(User);
             var mediaDTO = new MediaDTO
@@ -156,7 +166,7 @@ namespace ClassTranscribeServer.Controllers
         [HttpPost]
         [Authorize]
         [Consumes("multipart/form-data")]
-        public async Task<ActionResult<Media>> PostMedia(IFormFile video1, IFormFile video2, [FromForm] string playlistId)
+        public async Task<ActionResult<Media>> PostMedia(IFormFile video1, IFormFile video2, [FromForm] string playlistId, [FromForm] string visibility)
         {
             if (video1 == null)
             {
@@ -166,7 +176,8 @@ namespace ClassTranscribeServer.Controllers
             {
                 PlaylistId = playlistId,
                 SourceType = SourceType.Local,
-                JsonMetadata = new JObject()
+                JsonMetadata = new JObject(),
+                Visibility = (Visibility)Enum.Parse(typeof(Visibility), visibility)
             };
             // full path to file in temp location
             if (video1.Length > 0)

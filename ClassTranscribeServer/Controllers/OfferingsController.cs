@@ -35,12 +35,12 @@ namespace ClassTranscribeServer.Controllers
         [HttpGet("ByStudent")]
         public async Task<ActionResult<IEnumerable<OfferingDTO>>> GetOfferingsByStudent()
         {
-            // Store the results
-            List<Offering> offerings = await _context.Offerings.ToListAsync();
+            // Store all visible offerings
+            List<Offering> offerings = await _context.Offerings.Where(o.Visibility == Visibility.Visible).ToListAsync();
 
 
-            // Filter out offerings where there is no media items available.
-            var filteredOfferings = offerings.FindAll(o => o.Playlists.SelectMany(m => m.Medias).Any()).OrderBy(o => o.Term.StartDate).ToList();
+            // Filter out offerings where there is no visible media items available.
+            var filteredOfferings = offerings.FindAll(o => o.Playlists.Where(p => p.Visibility == Visibility.Visible).SelectMany(p => p.Medias.Where(m => m.Visibility == Visibility.Visible)).Any()).OrderBy(o => o.Term.StartDate).ToList();
 
             var offeringListDTO = filteredOfferings.Select(o => new OfferingDTO
             {
@@ -76,6 +76,17 @@ namespace ClassTranscribeServer.Controllers
             if (offering == null)
             {
                 return NotFound();
+            }
+
+            // Visibility Authorization
+            if (offering.Visibility == Visibility.Hidden)
+            {
+                var visibilityAuthorizationResult = await _authorizationService.AuthorizeAsync(User, offering, Globals.POLICY_UPDATE_OFFERING);
+                if (!visibilityAuthorizationResult.Succeeded)
+                {
+                    return NotFound();
+                }
+
             }
 
             OfferingDTO offeringDTO = new OfferingDTO
