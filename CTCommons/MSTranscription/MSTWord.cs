@@ -163,10 +163,11 @@ namespace CTCommons.MSTranscription
             return sb.ToString();
         }
 
-        public static void AppendCaptions(List<Caption> captions, List<MSTWord> words)
+        public static List<Caption> AppendCaptions(int captionsCount, List<MSTWord> words)
         {
+            List<Caption> captions = new List<Caption>();
             int captionLength = Globals.CAPTION_LENGTH;
-            int currCounter = captions.Count + 1;
+            int currCounter = captionsCount + 1;
             int currLength = 0;
             StringBuilder currSentence = new StringBuilder();
             TimeSpan? startTime = null;
@@ -203,6 +204,8 @@ namespace CTCommons.MSTranscription
                     Text = currSentence.ToString().Trim()
                 });
             }
+
+            return captions;
         }
     }
 }

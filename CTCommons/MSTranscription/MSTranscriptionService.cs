@@ -34,12 +34,12 @@ namespace CTCommons.MSTranscription
             _rpcClient = rpcClient;
         }
 
-        public async Task<MSTResult> RecognitionWithVideoStreamAsync(FileRecord videoFile, Key key, TimeSpan offset)
+        public async Task<MSTResult> RecognitionWithVideoStreamAsync(FileRecord videoFile, Key key, Dictionary<string, List<Caption>> captions, TimeSpan offset)
         {
-            return await RecognitionWithVideoStreamAsync(videoFile.VMPath, key, offset);
+            return await RecognitionWithVideoStreamAsync(videoFile.VMPath, key, captions, offset);
         }
 
-        public async Task<MSTResult> RecognitionWithVideoStreamAsync(string filePath, Key key, TimeSpan offset)
+        public async Task<MSTResult> RecognitionWithVideoStreamAsync(string filePath, Key key, Dictionary<string, List<Caption>> captions, TimeSpan offset)
         {   
             _logger.LogInformation($"Trimming video file with offset {offset.TotalSeconds} seconds");
             var trimmedAudioFile = await _rpcClient.PythonServerClient.ConvertVideoToWavRPCWithOffsetAsync(new CTGrpc.FileForConversion
@@ -66,14 +66,14 @@ namespace CTCommons.MSTranscription
             TimeSpan lastSuccessfulTime = TimeSpan.Zero;
             string errorCode = "";
             Console.OutputEncoding = Encoding.Unicode;
-            Dictionary<string, List<Caption>> captions = new Dictionary<string, List<Caption>>
-            {
-                { Languages.ENGLISH, new List<Caption>() },
-                { Languages.SIMPLIFIED_CHINESE, new List<Caption>() },
-                { Languages.KOREAN, new List<Caption>() },
-                { Languages.SPANISH, new List<Caption>() },
-                { Languages.FRENCH, new List<Caption>() }
-            };
+            //Dictionary<string, List<Caption>> captions = new Dictionary<string, List<Caption>>
+            //{
+            //    { Languages.ENGLISH, new List<Caption>() },
+            //    { Languages.SIMPLIFIED_CHINESE, new List<Caption>() },
+            //    { Languages.KOREAN, new List<Caption>() },
+            //    { Languages.SPANISH, new List<Caption>() },
+            //    { Languages.FRENCH, new List<Caption>() }
+            //};
 
             
             var stopRecognition = new TaskCompletionSource<int>();
@@ -106,11 +106,14 @@ namespace CTCommons.MSTranscription
                             _logger.LogInformation($"Begin={offset.Minutes}:{offset.Seconds},{offset.Milliseconds}", offset);
                             TimeSpan end = e.Result.Duration.Add(offset);
                             _logger.LogInformation($"End={end.Minutes}:{end.Seconds},{end.Milliseconds}");
-                            MSTWord.AppendCaptions(captions[Languages.ENGLISH], sentenceLevelCaptions);
+                            var newCaptions = MSTWord.AppendCaptions(captions[Languages.ENGLISH].Count, sentenceLevelCaptions);
+                            // Add offset here.
+                            captions[Languages.ENGLISH].AddRange(newCaptions);
 
                             foreach (var element in e.Result.Translations)
                             {
-                                Caption.AppendCaptions(captions[element.Key], offset, end, element.Value);
+                                newCaptions = Caption.AppendCaptions(captions[element.Key].Count, offset, end, element.Value);
+                                captions[element.Key].AddRange(newCaptions);
                             }
                         }
                         else if (e.Result.Reason == ResultReason.NoMatch)
