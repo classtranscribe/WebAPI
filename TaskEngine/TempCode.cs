@@ -110,24 +110,6 @@ namespace TaskEngine
             await Task.Delay(0);
             // Add any temporary code.
 
-        }
-
-        public void CronJob()
-        {
-            while (true)
-            {
-                PeriodicCheck();
-                Thread.Sleep(new TimeSpan(5, 0, 0));
-            };
-        }
-
-        private void PeriodicCheck()
-        {
-            JObject msg = new JObject
-            {
-                { "Type", TaskType.PeriodicCheck.ToString() }
-            };
-            _queueAwakerTask.Publish(msg);
-        }
+        }        
     }
 }

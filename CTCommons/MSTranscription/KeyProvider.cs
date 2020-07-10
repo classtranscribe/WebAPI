@@ -6,13 +6,23 @@ using System.Threading;
 
 namespace CTCommons.MSTranscription
 {
+    /// <summary>
+    /// Each object of this class represents an azure subscription key.
+    /// </summary>
     public class Key
     {
         public string ApiKey { get; set; }
         public string Region { get; set; }
+        /// <summary>
+        /// This value indicates the number of tasks that are already using this key currently.
+        /// </summary>
         public int Load { get; set; }
-        public Semaphore Semaphore { get; set; }
     }
+
+    /// <summary>
+    /// This class "provides" azure subscription keys for transcription tasks.
+    /// It reads its key values from configuration variable "AZURE_SUBSCRIPTION_KEYS"
+    /// </summary>
     public class KeyProvider
     {
         private AppSettings _appSettings;
@@ -36,6 +46,9 @@ namespace CTCommons.MSTranscription
             }
         }
 
+        /// <summary>
+        /// To obtain a new key for a task
+        /// </summary>
         public Key GetKey(string videoId)
         {
             if (!CurrentVideoIds.Contains(videoId))
@@ -51,6 +64,9 @@ namespace CTCommons.MSTranscription
             }
         }
 
+        /// <summary>
+        /// To release a key that was being used.
+        /// </summary>
         public void ReleaseKey(Key key, string videoId)
         {
             Keys.Find(k => k.ApiKey == key.ApiKey).Load -= 1;

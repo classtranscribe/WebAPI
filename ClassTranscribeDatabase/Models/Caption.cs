@@ -13,6 +13,9 @@ namespace ClassTranscribeDatabase.Models
         TextCaption,
         AudioDescription
     }
+    /// <summary>
+    /// Each line of caption is stored as a row in the database.
+    /// </summary>
     public class Caption : Entity
     {
         public int Index { get; set; }
@@ -26,6 +29,9 @@ namespace ClassTranscribeDatabase.Models
         public virtual Transcription Transcription { get; set; }
         public CaptionType CaptionType { get; set; }
         
+        /// <summary>
+        /// Convert a line of caption to an srt subtitle format.
+        /// </summary>
         public string SrtSubtitle()
         {
             string a = "";
@@ -35,6 +41,9 @@ namespace ClassTranscribeDatabase.Models
             return a;
         }
 
+        /// <summary>
+        /// Convert a line of caption to an webVTT subtitle format.
+        /// </summary>
         public string WebVTTSubtitle()
         {
             string a = "";
@@ -42,14 +51,21 @@ namespace ClassTranscribeDatabase.Models
             a += string.Format("{0:hh\\:mm\\:ss\\.fff} --> {1:hh\\:mm\\:ss\\.fff}\n", Begin, End);
             a += Text + "\n\n";
             return a;
-        }        
+        }
 
-        public static void AppendCaptions(List<Caption> captions, TimeSpan Begin, TimeSpan End, string Caption)
+        /// <summary>
+        /// Converts a long line of recognizedSpeech into smaller chunks of Globals.CAPTION_LENGTH characters,
+        /// and appends to a list of captions.
+        /// </summary>
+        /// <param name="captions">A pre-existing list of captions.</param>
+        /// <param name="Begin">The beginning time stamp of the recognizedSpeech</param>
+        /// <param name="End">The end time stamp of the recognizedSpeech</param>
+        /// <param name="recognizedSpeech">Recognized Speech received from the Speech Services API.</param>
+        public static void AppendCaptions(List<Caption> captions, TimeSpan Begin, TimeSpan End, string recognizedSpeech)
         {
             int captionLength = Globals.CAPTION_LENGTH;
             int currCounter = captions.Count + 1;
-            int length = Caption.Length;
-            string tempCaption = Caption;
+            string tempCaption = recognizedSpeech;
             string caption;
             int newDuration;
             TimeSpan curBegin = Begin;
@@ -98,6 +114,10 @@ namespace ClassTranscribeDatabase.Models
             }
         }
 
+        /// <summary>
+        /// Generate an srt file from a list of captions.
+        /// </summary>
+        /// <returns>The path of the generated srt file</returns>
         public static string GenerateSrtFile(List<Caption> captions)
         {
             string srtFile = CommonUtils.GetTmpFile();
@@ -106,10 +126,14 @@ namespace ClassTranscribeDatabase.Models
             {
                 Subtitle += caption.SrtSubtitle();
             }
-            WriteSubtitleToFile(Subtitle, srtFile);
+            WriteTextToFile(Subtitle, srtFile);
             return srtFile;
         }
 
+        /// <summary>
+        /// Generate a webVTT file from a list of captions.
+        /// </summary>
+        /// <returns>The path of the generated vtt file</returns>
         public static string GenerateWebVTTFile(List<Caption> captions, string language)
         {
             string vttFile = CommonUtils.GetTmpFile();
@@ -118,7 +142,7 @@ namespace ClassTranscribeDatabase.Models
             {
                 Subtitle += caption.WebVTTSubtitle();
             }
-            WriteSubtitleToFile(Subtitle, vttFile);
+            WriteTextToFile(Subtitle, vttFile);
             return vttFile;
         }
 
@@ -197,7 +221,7 @@ namespace ClassTranscribeDatabase.Models
             //Pass the filepath and filename to the StreamWriter Constructor
             StreamWriter sw = new StreamWriter(file, false, Encoding.UTF8);
             //Write a line of text
-            sw.WriteLine(Subtitle);
+            sw.WriteLine(text);
             //Close the file
             sw.Close();
         }
