@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace ClassTranscribeDatabase.Models
 {
@@ -121,7 +122,77 @@ namespace ClassTranscribeDatabase.Models
             return vttFile;
         }
 
-        public static void WriteSubtitleToFile(string Subtitle, string file)
+        /// <summary>
+        /// Parse a WebVTT file into a list of captions.
+        /// </summary>
+        /// <returns>A list of the caption representing the vtt file or null if unsuccessful</returns>
+        public static List<Caption> WebVTTFileToCaption(string file)
+        {
+            List<Caption> captions = new List<Caption>();
+            string text = File.ReadAllText(file);
+            string[] cues= text.Split("\n\n");
+            int idx = 0;
+
+            for (int i = 0; i < cues.Length; i++)
+            {
+                var cue = cues[i];
+                if (i == 0 && cue.Substring(0, 6) != "WEBVTT") return null;
+
+                if (cue.Contains("-->"))
+                {
+                    string[] lines = cue.Split("\n");
+                    Caption caption = new Caption();
+                    caption.Text = "";
+                    idx++;
+
+                    for (int j = 0; j < lines.Length; j++)
+                    {
+                        var line = lines[j];
+                        if (line.Contains("-->"))
+                        {
+                            // Try parse vtt timestamp into TimeSpan
+                            string[] timestamps = line.Split("-->");
+                            caption.Begin = TimeSpan.Parse(timestamps[0].Trim());
+                            caption.End = TimeSpan.Parse(timestamps[1].Trim());
+                            if (j == 0)
+                            {
+                                caption.Index = idx;
+                            }
+                        }
+                        else
+                        {
+                            if (j == 0)
+                            {
+                                var match = Regex.Match(line, @"^(\d+)(.*)$");
+                                var isNumeric = int.TryParse(match.Groups[0].Value, out int n);
+                                if (isNumeric)
+                                {
+                                    // If numeric index is found at the beginning of a cue block
+                                    caption.Index = n;
+                                }
+                                else
+                                {
+                                    // If not, create one
+                                    caption.Index = idx;
+                                }
+                            }
+                            else
+                            {
+                                // Otherwise is cue payload
+                                caption.Text += line;
+                            }
+                        }
+                    }
+                    captions.Add(caption);
+                }
+            }
+            return captions;
+        }
+
+        /// <summary>
+        /// Write text to a file.
+        /// </summary>
+        public static void WriteTextToFile(string text, string file)
         {
             //Pass the filepath and filename to the StreamWriter Constructor
             StreamWriter sw = new StreamWriter(file, false, Encoding.UTF8);

@@ -29,6 +29,7 @@ namespace CTCommons.MSTranscription
             AppSettings _appSettings = Globals.appSettings;
 
             SpeechTranslationConfig _speechConfig = SpeechTranslationConfig.FromSubscription(key.ApiKey, key.Region);
+            //_speechConfig.EndpointId = "1b8a39b2-8718-413c-9a31-a77078fea5b8";
             _speechConfig.RequestWordLevelTimestamps();
             // Sets source and target languages.
             _speechConfig.SpeechRecognitionLanguage = Languages.ENGLISH;
@@ -75,6 +76,7 @@ namespace CTCommons.MSTranscription
                             }
 
                             var sentenceLevelCaptions = MSTWord.WordLevelTimingsToSentenceLevelTimings(e.Result.Text, wordLevelCaptions);
+                            Console.WriteLine($"Final result: Text: {e.Result.Text}");
 
                             TimeSpan offset = new TimeSpan(e.Result.OffsetInTicks);
                             _logger.LogInformation($"Begin={offset.Minutes}:{offset.Seconds},{offset.Milliseconds}", offset);
@@ -123,6 +125,12 @@ namespace CTCommons.MSTranscription
                         _logger.LogInformation("\nStop recognition.");
                         stopRecognition.TrySetResult(0);
                     };
+
+                    PhraseListGrammar phraseList = PhraseListGrammar.FromRecognizer(recognizer);
+                    phraseList.AddPhrase("node");
+                    phraseList.AddPhrase("root");
+                    phraseList.AddPhrase("null");
+                    phraseList.AddPhrase("root");
 
                     // Starts continuous recognition. Uses StopContinuousRecognitionAsync() to stop recognition.
                     await recognizer.StartContinuousRecognitionAsync().ConfigureAwait(false);
