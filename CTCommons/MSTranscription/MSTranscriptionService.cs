@@ -66,15 +66,6 @@ namespace CTCommons.MSTranscription
             TimeSpan lastSuccessfulTime = TimeSpan.Zero;
             string errorCode = "";
             Console.OutputEncoding = Encoding.Unicode;
-            //Dictionary<string, List<Caption>> captions = new Dictionary<string, List<Caption>>
-            //{
-            //    { Languages.ENGLISH, new List<Caption>() },
-            //    { Languages.SIMPLIFIED_CHINESE, new List<Caption>() },
-            //    { Languages.KOREAN, new List<Caption>() },
-            //    { Languages.SPANISH, new List<Caption>() },
-            //    { Languages.FRENCH, new List<Caption>() }
-            //};
-
             
             var stopRecognition = new TaskCompletionSource<int>();
             // Create an audio stream from a wav file.
@@ -94,6 +85,16 @@ namespace CTCommons.MSTranscription
                             .OrderBy(w => w.Offset)
                             .ToList();
 
+                            if (e.Result.Text == "" && wordLevelCaptions.Count == 0)
+                            {
+                                TimeSpan _offset = new TimeSpan(e.Result.OffsetInTicks);
+                                _logger.LogInformation($"Begin={_offset.Minutes}:{_offset.Seconds},{_offset.Milliseconds}", _offset);
+                                _logger.LogInformation("Empty String");
+                                TimeSpan _end = e.Result.Duration.Add(_offset);
+                                _logger.LogInformation($"End={_end.Minutes}:{_end.Seconds},{_end.Milliseconds}");
+                                return;
+                            }
+                            
                             if (wordLevelCaptions.Any())
                             {
                                 var offsetDifference = e.Result.OffsetInTicks - wordLevelCaptions.FirstOrDefault().Offset;

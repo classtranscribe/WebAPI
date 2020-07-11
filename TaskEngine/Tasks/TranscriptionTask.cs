@@ -23,8 +23,6 @@ namespace TaskEngine.Tasks
         private readonly GenerateVTTFileTask _generateVTTFileTask;
         private readonly SceneDetectionTask _sceneDetectionTask;
         private readonly CaptionQueries _captionQueries;
-
-        // testing
         private readonly CTDbContext _context;
 
         public TranscriptionTask(RabbitMQConnection rabbitMQ, MSTranscriptionService msTranscriptionService,
@@ -49,25 +47,7 @@ namespace TaskEngine.Tasks
         protected async override Task OnConsume(string videoId, TaskParameters taskParameters)
         {
             Video video;
-            //using (var _context = CTDbContext.CreateDbContext())
-            //{
-            video = await _context.Videos.Include(v => v.Audio).Where(v => v.Id == videoId).FirstAsync();
-
-
-
-            //}
-
-            if (!video.Audio.IsValidFile())
-            {
-                // As file does not exist remove record of it.
-                using (var context = CTDbContext.CreateDbContext())
-                {
-                    var tempAudio = await context.FileRecords.FindAsync(video.AudioId);
-                    context.FileRecords.Remove(tempAudio);
-                    await context.SaveChangesAsync();
-                }
-                throw new FileNotFoundException("Wav file not found.", video.Audio.Path);
-            }
+            video = await _context.Videos.Include(v => v.Video1).Where(v => v.Id == videoId).FirstAsync();
             Key key = TaskEngineGlobals.KeyProvider.GetKey(video.Id);
 
             // creat Dictionary and pass it to the recognition function
@@ -79,9 +59,21 @@ namespace TaskEngine.Tasks
             captions[Languages.SPANISH] = await _captionQueries.GetCaptionsAsync(video.Id, Languages.SPANISH);
             captions[Languages.FRENCH] = await _captionQueries.GetCaptionsAsync(video.Id, Languages.FRENCH);
 
-            var lastSuccessTime = video.JsonMetadata["LastSuccessfulTime"].ToObject<TimeSpan>();
+            var lastSuccessTime = TimeSpan.Zero;
+            if (video.JsonMetadata != null && video.JsonMetadata["LastSuccessfulTime"] != null)
+            {
+                lastSuccessTime = TimeSpan.Parse(video.JsonMetadata["LastSuccessfulTime"].ToString());
+            }
+
             var result = await _msTranscriptionService.RecognitionWithVideoStreamAsync(video.Video1, key, captions, lastSuccessTime);
-            video.JsonMetadata["LastSuccessfulTime"] = JObject.FromObject(result.LastSuccessTime);
+
+            if (video.JsonMetadata == null)
+            {
+                video.JsonMetadata = new JObject();
+            }
+
+            video.JsonMetadata["LastSuccessfulTime"] = result.LastSuccessTime.ToString();
+
             await _context.SaveChangesAsync();
             TaskEngineGlobals.KeyProvider.ReleaseKey(key, video.Id);
             List<Transcription> transcriptions = new List<Transcription>();
@@ -89,32 +81,17 @@ namespace TaskEngine.Tasks
             {
                 if (language.Value.Count > 0)
                 {
-                    // if (timespan = 0) {
                     transcriptions.Add(new Transcription
                     {
                         Language = language.Key,
                         VideoId = video.Id,
                         Captions = language.Value
                     });
-                    //}
-                    // else {
-
-                    //var transcription
-
-
-                    //}
                 }
             }
 
-            //using (var _context = CTDbContext.CreateDbContext())
-            //{
             var latestVideo = await _context.Videos.FindAsync(video.Id);
-            //if (result.ErrorCode == "NoError")
-            //{
-            //    if (latestVideo.TranscriptionStatus != "NoError")
-            //    {
-            // If any present, remove them.
-            if (latestVideo.Transcriptions.Any())
+            if (latestVideo.Transcriptions != null && latestVideo.Transcriptions.Any())
             {
                 var oldTranscriptions = latestVideo.Transcriptions;
                 var oldCaptions = latestVideo.Transcriptions.SelectMany(t => t.Captions);
@@ -129,21 +106,9 @@ namespace TaskEngine.Tasks
             await _context.SaveChangesAsync();
             transcriptions.ForEach(t => _generateVTTFileTask.Publish(t.Id));
             _sceneDetectionTask.Publish(video.Id);
-            //}
             latestVideo.TranscriptionStatus = result.ErrorCode;
             latestVideo.TranscribingAttempts += 1;
             await _context.SaveChangesAsync();
-
-            //    }
-            //    else
-            //    {
-            //        latestVideo.TranscriptionStatus = result.ErrorCode;
-            //        latestVideo.TranscribingAttempts += 1;
-            //        await _context.SaveChangesAsync();
-            //        throw new Exception("Transcription failed" + result.ErrorCode);
-            //    }
-            //}
-            //}
         }
     }
 }
