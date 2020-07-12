@@ -64,7 +64,7 @@ namespace TaskEngine.Tasks
             {
                 jsonString = await _rpcClient.PythonServerClient.GetKalturaChannelEntriesRPCAsync(new CTGrpc.PlaylistRequest
                 {
-                    Url = playlist.PlaylistIdentifier
+                    Identifier = playlist.PlaylistIdentifier
                 });
             }
             catch (RpcException e)
@@ -114,7 +114,7 @@ namespace TaskEngine.Tasks
             {
                 jsonString = await _rpcClient.PythonServerClient.GetEchoPlaylistRPCAsync(new CTGrpc.PlaylistRequest
                 {
-                    Url = playlist.PlaylistIdentifier,
+                    Identifier = playlist.PlaylistIdentifier,
                     Stream = 0
                 });
             }
@@ -178,11 +178,16 @@ namespace TaskEngine.Tasks
         {
             List<Media> newMedia = new List<Media>();
             CTGrpc.JsonString jsonString = null;
+            CTGrpc.JsonString metadata = new CTGrpc.JsonString
+            {
+                Json = playlist.JsonMetadata.ToString()
+            };
             try
             {
                 jsonString = await _rpcClient.PythonServerClient.GetYoutubePlaylistRPCAsync(new CTGrpc.PlaylistRequest
                 {
-                    Url = playlist.PlaylistIdentifier
+                    Identifier = playlist.PlaylistIdentifier,
+                    Metadata = metadata
                 });
             }
             catch (RpcException e)

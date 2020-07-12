@@ -3,30 +3,48 @@ from utils import encode, decode, getRandomString, download_file
 import os
 from pytube import YouTube
 import json
-from mediaprovider import  MediaProvider, InvalidPlaylistInfoException
+from mediaprovider import MediaProvider, InvalidPlaylistInfoException
 
 DATA_DIRECTORY = os.getenv('DATA_DIRECTORY')
 YOUTUBE_API_KEY = os.getenv('YOUTUBE_API_KEY')
-YOUTUBE_BASE_URL = 'https://www.googleapis.com/youtube/v3/playlistItems'
+YOUTUBE_PLAYLIST_URL = 'https://www.googleapis.com/youtube/v3/playlistItems'
+YOUTUBE_CHANNELS_URL = 'https://www.googleapis.com/youtube/v3/channels'
+
 
 class YoutubeProvider(MediaProvider):
 
     def getPlaylistItems(self, request):
-        medias = self.get_youtube_playlist(request.Url)
+        isChannel = json.loads(request.metadata)['isChannel'] == '1'
+
+        medias = self.get_youtube_channel(request.identifier) if isChannel else self.get_youtube_playlist(request.identifier)
         return json.dumps(medias)
-    
+
     def getMedia(self, request):
         return self.download_youtube_video(request.videoUrl)
 
-    def get_youtube_playlist(self, playlistIdentifier):
+    def get_youtube_channel(self, identifier):
+        request1 = requests.get(YOUTUBE_CHANNELS_URL, params={
+                                'part': 'contentDetails', 'id': identifier, 'key': YOUTUBE_API_KEY})
+        if request1.status_code == 404 or request1.status_code == 500:
+            raise InvalidPlaylistInfoException
+        else:
+            request1.raise_for_status()
+
+        playlistId = request1.json(
+        )['items'][0]['contentDetails']['relatedPlaylists']['uploads']
+        #according to one StackOver and one test, channels-to-playlists can also be converted with string replace  UCXXXX to UUXXXX
+        return self.get_youtube_playlist(playlistId)
+
+    def get_youtube_playlist(self, identifier):
         # LIMITATION: Can download a maximum of 50 videos per playlist.
-        request1 = requests.get(YOUTUBE_BASE_URL,  
-        params =  {        
+
+        request1 = requests.get(YOUTUBE_PLAYLIST_URL,
+            params={
             'part': 'snippet',
-            'playlistId': playlistIdentifier,
+            'playlistId': identifier,
             'key': YOUTUBE_API_KEY,
             'maxResults': 50
-        })
+            })
 
         if request1.status_code == 404 or request1.status_code == 500:
             raise InvalidPlaylistInfoException
