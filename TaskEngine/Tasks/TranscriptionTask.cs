@@ -52,12 +52,12 @@ namespace TaskEngine.Tasks
 
             // creat Dictionary and pass it to the recognition function
             Dictionary<string, List<Caption>> captions = new Dictionary<string, List<Caption>>();
-            // check if query return empty List the first time
-            captions[Languages.ENGLISH] = await _captionQueries.GetCaptionsAsync(video.Id, Languages.ENGLISH);
-            captions[Languages.SIMPLIFIED_CHINESE] = await _captionQueries.GetCaptionsAsync(video.Id, Languages.SIMPLIFIED_CHINESE);
-            captions[Languages.KOREAN] = await _captionQueries.GetCaptionsAsync(video.Id, Languages.KOREAN);
-            captions[Languages.SPANISH] = await _captionQueries.GetCaptionsAsync(video.Id, Languages.SPANISH);
-            captions[Languages.FRENCH] = await _captionQueries.GetCaptionsAsync(video.Id, Languages.FRENCH);
+
+            var languages = new List<string> { Languages.ENGLISH, Languages.SIMPLIFIED_CHINESE, Languages.KOREAN, Languages.SPANISH, Languages.FRENCH };
+            foreach (string language in languages)
+            {
+                captions[language] = await _captionQueries.GetCaptionsAsync(video.Id, language);
+            }
 
             var lastSuccessTime = TimeSpan.Zero;
             if (video.JsonMetadata != null && video.JsonMetadata["LastSuccessfulTime"] != null)

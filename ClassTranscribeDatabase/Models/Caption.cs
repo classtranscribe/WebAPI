@@ -64,7 +64,7 @@ namespace ClassTranscribeDatabase.Models
         {
             List<Caption> captions = new List<Caption>();
             int captionLength = Globals.CAPTION_LENGTH;
-            int currCounter = captionsCount;
+            int currCounter = captionsCount + 1;
             string tempCaption = recognizedSpeech;
             string caption;
             int newDuration;
