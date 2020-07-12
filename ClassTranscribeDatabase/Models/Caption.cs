@@ -159,15 +159,5 @@ namespace ClassTranscribeDatabase.Models
             //Close the file
             sw.Close();
         }
-
-        /// <summary>
-        /// Add offset to every captions in the list.
-        /// </summary>
-
-        public static void AddOffset(List<Caption> captions, TimeSpan offset)
-        {
-
-        }
-
     }
 }
