@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
@@ -73,6 +74,7 @@ namespace ClassTranscribeDatabase.Models
     /// </summary>
     public abstract class Entity
     {
+        [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public string Id { get; set; }
         [IgnoreDataMember]
@@ -85,6 +87,8 @@ namespace ClassTranscribeDatabase.Models
         public string LastUpdatedBy { get; set; }
         [IgnoreDataMember]
         public Status IsDeletedStatus { get; set; }
+        [IgnoreDataMember]
+        public DateTime DeletedAt { get; set; } = new DateTime(1900, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
 
         public ResourceType GetResourceType()
         {
@@ -281,7 +285,6 @@ namespace ClassTranscribeDatabase.Models
         public virtual Course Course { get; set; }
         [IgnoreDataMember]
         public virtual Offering Offering { get; set; }
-
     }
 
     public class UserOffering : Entity
