@@ -4,7 +4,6 @@ using System.IO;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Text;
-using System.Text.RegularExpressions;
 
 namespace ClassTranscribeDatabase.Models
 {
@@ -154,7 +153,7 @@ namespace ClassTranscribeDatabase.Models
         {
             List<Caption> captions = new List<Caption>();
             string text = File.ReadAllText(file);
-            string[] cues= text.Split("\n\n");
+            string[] cues = text.Split("\n\n");
             int idx = 0;
 
             for (int i = 0; i < cues.Length; i++)
@@ -165,8 +164,11 @@ namespace ClassTranscribeDatabase.Models
                 if (cue.Contains("-->"))
                 {
                     string[] lines = cue.Split("\n");
-                    Caption caption = new Caption();
-                    caption.Text = "";
+                    Caption caption = new Caption
+                    {
+                        Text = "",
+                        Index = idx
+                    };
                     idx++;
 
                     for (int j = 0; j < lines.Length; j++)
@@ -178,33 +180,11 @@ namespace ClassTranscribeDatabase.Models
                             string[] timestamps = line.Split("-->");
                             caption.Begin = TimeSpan.Parse(timestamps[0].Trim());
                             caption.End = TimeSpan.Parse(timestamps[1].Trim());
-                            if (j == 0)
-                            {
-                                caption.Index = idx;
-                            }
                         }
                         else
                         {
-                            if (j == 0)
-                            {
-                                var match = Regex.Match(line, @"^(\d+)(.*)$");
-                                var isNumeric = int.TryParse(match.Groups[0].Value, out int n);
-                                if (isNumeric)
-                                {
-                                    // If numeric index is found at the beginning of a cue block
-                                    caption.Index = n;
-                                }
-                                else
-                                {
-                                    // If not, create one
-                                    caption.Index = idx;
-                                }
-                            }
-                            else
-                            {
-                                // Otherwise is cue payload
-                                caption.Text += line;
-                            }
+                            // Otherwise is cue payload
+                            caption.Text += line;
                         }
                     }
                     captions.Add(caption);
