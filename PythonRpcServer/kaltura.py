@@ -61,11 +61,29 @@ class KalturaProvider(MediaProvider):
     def getKalturaChannelEntries(self, channelId):    
         a = KalturaCategoryEntryFilter()
         a.categoryIdEqual = channelId
-        b = KalturaFilterPager()    
-        entries = self.client.categoryEntry.list(a, b)    
+
+        pageSize = 50
+        maxTotalEntries = 500
+        # By default only one page of 30 items will be downloaded
+        # So we iterating over multiple pages (upto an arbitrary max of 500 items). 
+        # Fixes https://github.com/classtranscribe/WebAPI/issues/54
+        pager = KalturaFilterPager(pageSize=pageSize,pageIndex=1)
         res = []
-        for entry in entries.objects:
-            res.append(self.getMediaInfo(entry.entryId))    
+        while True:
+            entries = self.client.categoryEntry.list(a, pager)    
+        
+            for entry in entries.objects:
+                res.append(self.getMediaInfo(entry.entryId))
+
+            if len(res) >= maxTotalEntries:
+                res = res[0:maxTotalEntries]
+                break
+
+            if len(entries.objects) < pager.pageSize:
+                break
+
+            pager.pageIndex += 1
+
         return res
     
     def downloadLecture(self, url):        
