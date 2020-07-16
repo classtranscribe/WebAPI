@@ -50,9 +50,8 @@ namespace ClassTranscribeServer.Controllers
                 return Unauthorized(new { Reason = "Insufficient Permission", AccessType = offering.AccessType });
             }
 
-            var temp = offering.Playlists.OrderBy(p => p.Index).ThenBy(p => p.CreatedAt);
+            var temp = offering.Playlists.OrderBy(p => p.Index).ThenBy(p => p.CreatedAt).ToList();
 
-            // Visibility authorization
             var visibilityAuthorizationResult = await _authorizationService.AuthorizeAsync(User, offering, Globals.POLICY_UPDATE_OFFERING);
             if (!visibilityAuthorizationResult.Succeeded)
             {
@@ -60,7 +59,7 @@ namespace ClassTranscribeServer.Controllers
                 {
                     return BadRequest();
                 }
-                temp = temp.Where(p => p.Visibility == Visibility.Visible);
+                temp = temp.FindAll(p => p.Visibility == Visibility.Visible);
             }
 
             if (!temp.Any())
@@ -98,17 +97,18 @@ namespace ClassTranscribeServer.Controllers
             {
                 return Unauthorized(new { Reason = "Insufficient Permission", AccessType = offering.AccessType });
             }
-            var temp = offering.Playlists.OrderBy(p => p.Index).ThenBy(p => p.CreatedAt).Tolist();
+            var temp = offering.Playlists.OrderBy(p => p.Index).ThenBy(p => p.CreatedAt).ToList();
 
-            // Visibility authorization
             var visibilityAuthorizationResult = await _authorizationService.AuthorizeAsync(User, offering, Globals.POLICY_UPDATE_OFFERING);
+            
             if (!visibilityAuthorizationResult.Succeeded)
             {
                 if (offering.Visibility == Visibility.Hidden)
                 {
                     return BadRequest();
                 }
-                temp = temp.FindAll(p => p.Visibilty == Visiblity.Visible).ForEach(p => p.Medias = p.Medias.Where(m => m.Visibilty == Visibility.Visible));
+                temp = temp.FindAll(p => p.Visibility == Visibility.Visible);
+                temp.ForEach(p => p.Medias = p.Medias.FindAll(m => m.Visibility == Visibility.Visible));
             }
 
             if (!temp.Any())
@@ -137,8 +137,8 @@ namespace ClassTranscribeServer.Controllers
                     Video = new VideoDTO
                     {
                         Id = m.Video.Id,
-                        Video1Path = m.Video.Video1 != null ? m.Video.Video1.Path : null,
-                        Video2Path = m.Video.Video2 != null ? m.Video.Video2.Path : null,
+                        Video1Path = m.Video.Video1?.Path,
+                        Video2Path = m.Video.Video2?.Path,
                     },
                     Transcriptions = m.Video.Transcriptions.Select(t => new TranscriptionDTO
                     {
@@ -154,11 +154,15 @@ namespace ClassTranscribeServer.Controllers
         [HttpGet("SearchForMedia/{offeringId}/{query}")]
         public async Task<ActionResult<IEnumerable<MediaSearchDTO>>> SearchForMedia(string offeringId, string query)
         {
+            var offering = await _context.Offerings.FindAsync(offeringId);
+            if (offering == null)
+            {
+                return BadRequest();
+            }
 
-            var temp = await _context.Medias.Where(m => m.Playlist.OfferingId == offeringId && EF.Functions.ToTsVector("english", m.Name).Matches(query)).ToListAsync();
             // https://www.npgsql.org/efcore/mapping/full-text-search.html
+            var temp = await _context.Medias.Where(m => m.Playlist.OfferingId == offeringId && EF.Functions.ToTsVector("english", m.Name).Matches(query)).ToListAsync();
 
-            // Visibility authorization
             var visibilityAuthorizationResult = await _authorizationService.AuthorizeAsync(User, offering, Globals.POLICY_UPDATE_OFFERING);
             if (!visibilityAuthorizationResult.Succeeded)
             {
@@ -166,11 +170,11 @@ namespace ClassTranscribeServer.Controllers
                 {
                     return BadRequest();
                 }
-                temp = temp.FindAll(m => m.Visiblity == Visibility.Visible && m.Playlist.Visibility == Visibility.Visible);
+                temp = temp.FindAll(m => m.Visibility == Visibility.Visible && m.Playlist.Visibility == Visibility.Visible);
             }
             if (!temp.Any())
             {
-                return NonContent();
+                return NoContent();
             }
 
             var mediaSearches = temp.Select(m => new MediaSearchDTO { Name = m.Name, MediaId = m.Id, PlaylistName = m.Playlist.Name, PlaylistId = m.PlaylistId })
@@ -205,7 +209,6 @@ namespace ClassTranscribeServer.Controllers
 
             var temp = p.Medias.OrderBy(m => m.Index).ThenBy(m => m.CreatedAt).ToList();
 
-            // Visibility authorization
             var visibilityAuthorizationResult = await _authorizationService.AuthorizeAsync(User, p.Offering, Globals.POLICY_UPDATE_OFFERING);
             if (!visibilityAuthorizationResult.Succeeded)
             {
@@ -213,13 +216,13 @@ namespace ClassTranscribeServer.Controllers
                 {
                     return NotFound();
                 }
-                temp = temp.Where(m => m.Visibility = Visibility.Hidden);
+                temp = temp.FindAll(m => m.Visibility == Visibility.Visible);
 
             }
 
             if (!temp.Any())
             {
-                return NonContent();
+                return NoContent();
             }
 
 
@@ -239,10 +242,10 @@ namespace ClassTranscribeServer.Controllers
                         Video1Path = m.Video.Video1?.Path,
                         Video2Path = m.Video.Video2?.Path
                     },
-                    Transcriptions = m.Video == null ? null : m.Video.Transcriptions.Select(t => new TranscriptionDTO
+                    Transcriptions = m.Video?.Transcriptions.Select(t => new TranscriptionDTO
                     {
                         Id = t.Id,
-                        Path = t.File != null ? t.File.Path : null,
+                        Path = t.File?.Path,
                         Language = t.Language
                     }).ToList(),
                     WatchHistory = user != null ? m.WatchHistories.Where(w => w.ApplicationUserId == user.Id).FirstOrDefault() : null

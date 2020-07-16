@@ -36,7 +36,7 @@ namespace ClassTranscribeServer.Controllers
         public async Task<ActionResult<IEnumerable<OfferingDTO>>> GetOfferingsByStudent()
         {
             // Store all visible offerings
-            List<Offering> offerings = await _context.Offerings.Where(o.Visibility == Visibility.Visible).ToListAsync();
+            List<Offering> offerings = await _context.Offerings.Where(o => o.Visibility == Visibility.Visible).ToListAsync();
 
 
             // Filter out offerings where there is no visible media items available.
