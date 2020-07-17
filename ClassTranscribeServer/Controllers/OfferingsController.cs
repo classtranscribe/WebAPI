@@ -66,6 +66,44 @@ namespace ClassTranscribeServer.Controllers
             return offeringListDTO;
         }
 
+        // GET: api/Offerings/ByInstructor
+        // @return: all offerings created by an instructor
+        [HttpGet("ByInstructor/{userId}")]
+        public async Task<ActionResult<IEnumerable<OfferingDTO>>> GetOfferingsByInstructor(string userId)
+        {
+
+            List<string> offeringIds = await _context.UserOfferings.Where(uo => uo.ApplicationUserId == userId && uo.IdentityRole.Name == Globals.ROLE_INSTRUCTOR)
+                                   .Select(uo => uo.OfferingId)
+                                   .ToListAsync();
+
+            // Store all visible offerings
+            List<Offering> offerings = await _context.Offerings.Where(o => offeringIds.Contains(o.Id)).OrderBy(o => o.CreatedAt).ToListAsync();
+
+            var offeringListDTO = offerings.Select(o => new OfferingDTO
+            {
+                Offering = o,
+                Courses = o.CourseOfferings.Select(co => new CourseDTO
+                {
+                    CourseNumber = co.Course.CourseNumber,
+                    DepartmentId = co.Course.DepartmentId,
+                    DepartmentAcronym = co.Course.Department.Acronym
+                }).ToList(),
+                Term = o.Term,
+                InstructorIds = o.OfferingUsers
+                .Where(uo => uo.IdentityRole.Name == Globals.ROLE_INSTRUCTOR)
+                .Select(uo => new ApplicationUser
+                {
+                    Id = uo.ApplicationUser.Id,
+                    Email = uo.ApplicationUser.Email,
+                    FirstName = uo.ApplicationUser.FirstName,
+                    LastName = uo.ApplicationUser.LastName
+                }).ToList()
+            }).ToList();
+
+            return offeringListDTO;
+        }
+
+
         // GET: api/Offerings/5
         [HttpGet("{id}")]
         public async Task<ActionResult<OfferingDTO>> GetOffering(string id)
