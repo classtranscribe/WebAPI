@@ -89,7 +89,6 @@ namespace TaskEngine.Tasks
                 }
             }
 
-            video = await _context.Videos.FindAsync(video.Id);
             if (video.Transcriptions != null && video.Transcriptions.Any())
             {
                 var oldTranscriptions = video.Transcriptions;
