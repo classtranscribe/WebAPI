@@ -23,8 +23,15 @@ namespace ClassTranscribeDatabase
         /// <param name="language">Language of the captions to fetch.</param>
         public async Task<List<Caption>> GetCaptionsAsync(string videoId, string language = "en-US")
         {
-            var transcriptionId = _context.Transcriptions.Where(t => t.Language == language && t.VideoId == videoId).First().Id;
-            return await GetCaptionsAsync(transcriptionId);
+            try
+            {
+                var transcriptionId = _context.Transcriptions.Where(t => t.Language == language && t.VideoId == videoId).First().Id;
+                return await GetCaptionsAsync(transcriptionId);
+            }
+            catch (System.InvalidOperationException e)
+            {
+                return new List<Caption>();
+            }
         }
 
         /// <summary>

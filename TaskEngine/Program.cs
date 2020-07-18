@@ -42,6 +42,7 @@ namespace TaskEngine
                 .Configure<AppSettings>(configuration)
                 .AddDbContext<CTDbContext>(options => options.UseLazyLoadingProxies().UseNpgsql(CTDbContext.ConnectionStringBuilder()))
                 .AddSingleton<RabbitMQConnection>()
+                .AddSingleton<CaptionQueries>()
                 .AddSingleton<DownloadPlaylistInfoTask>()
                 .AddSingleton<DownloadMediaTask>()
                 .AddSingleton<ConvertVideoToWavTask>()
