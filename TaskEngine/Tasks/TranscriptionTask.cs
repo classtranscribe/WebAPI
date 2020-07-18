@@ -46,8 +46,7 @@ namespace TaskEngine.Tasks
         /// <returns></returns>
         protected async override Task OnConsume(string videoId, TaskParameters taskParameters)
         {
-            Video video;
-            video = await _context.Videos.Include(v => v.Video1).Where(v => v.Id == videoId).FirstAsync();
+            Video video = await _context.Videos.Include(v => v.Video1).Where(v => v.Id == videoId).FirstAsync();
             Key key = TaskEngineGlobals.KeyProvider.GetKey(video.Id);
 
             // creat Dictionary and pass it to the recognition function
@@ -90,11 +89,11 @@ namespace TaskEngine.Tasks
                 }
             }
 
-            var latestVideo = await _context.Videos.FindAsync(video.Id);
-            if (latestVideo.Transcriptions != null && latestVideo.Transcriptions.Any())
+            video = await _context.Videos.FindAsync(video.Id);
+            if (video.Transcriptions != null && video.Transcriptions.Any())
             {
-                var oldTranscriptions = latestVideo.Transcriptions;
-                var oldCaptions = latestVideo.Transcriptions.SelectMany(t => t.Captions);
+                var oldTranscriptions = video.Transcriptions;
+                var oldCaptions = video.Transcriptions.SelectMany(t => t.Captions);
                 _context.Captions.RemoveRange(oldCaptions);
                 await _context.SaveChangesAsync();
                 _context.Transcriptions.RemoveRange(oldTranscriptions);
@@ -106,8 +105,8 @@ namespace TaskEngine.Tasks
             await _context.SaveChangesAsync();
             transcriptions.ForEach(t => _generateVTTFileTask.Publish(t.Id));
             _sceneDetectionTask.Publish(video.Id);
-            latestVideo.TranscriptionStatus = result.ErrorCode;
-            latestVideo.TranscribingAttempts += 1;
+            video.TranscriptionStatus = result.ErrorCode;
+            video.TranscribingAttempts += 1;
             await _context.SaveChangesAsync();
         }
     }
