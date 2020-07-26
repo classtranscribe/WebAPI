@@ -63,7 +63,7 @@ namespace TaskEngine
 
             _serviceProvider = serviceProvider;
             _logger = serviceProvider.GetRequiredService<ILogger<Program>>();
-            
+
             Globals.appSettings = serviceProvider.GetService<IOptions<AppSettings>>().Value;
             TaskEngineGlobals.KeyProvider = new KeyProvider(Globals.appSettings);
 
@@ -93,13 +93,17 @@ namespace TaskEngine
             serviceProvider.GetService<UpdateBoxTokenTask>().Consume();
             serviceProvider.GetService<CreateBoxTokenTask>().Consume();
 
-            // TempCode tempCode = serviceProvider.GetService<TempCode>();            
-            // tempCode.Temp();
-
+            bool hacktest = false;
+            if (hacktest)
+            {
+                TempCode tempCode = serviceProvider.GetService<TempCode>();
+                tempCode.Temp();
+                return;
+            }
             _logger.LogInformation("All done!");
 
             QueueAwakerTask queueAwakerTask = serviceProvider.GetService<QueueAwakerTask>();
-                        
+
             var timeInterval = new TimeSpan(5, 0, 0);
 
             // Check for new tasks every "timeInterval".

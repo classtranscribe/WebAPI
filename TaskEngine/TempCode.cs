@@ -108,8 +108,24 @@ namespace TaskEngine
         {
             // A dummy awaited function call.
             await Task.Delay(0);
-            // Add any temporary code.
+            // Add any temporary code
+        }
 
-        }        
+        private async Task TestYoutubeChannelDownload()
+        {
+            Playlist p = new Playlist
+            {
+                JsonMetadata = new JObject
+                {
+                    {"isChannel","1" }
+                },
+                PlaylistIdentifier = "UCi8e0iOVk1fEOogdfu4YgfA" // change me - too many videos
+            };
+            context.Playlists.Add(p);
+            await context.SaveChangesAsync();
+            //p.Id = "72336862-244c-4904-a753-2f620ae99633";
+            _downloadPlaylistInfoTask.Publish(p.Id);
+
+        }
     }
 }

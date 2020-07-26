@@ -115,7 +115,7 @@ namespace ClassTranscribeServer.Controllers
             {
                 if (Globals.appSettings.TEST_SIGN_IN == "true")
                 {
-                    ApplicationUser user = await _userManager.FindByEmailAsync("testuser999@illinois.edu");
+                    ApplicationUser user = await _userManager.FindByEmailAsync("testuser999@classtranscribe.com");
                     await _signInManager.SignInAsync(user, false);
                     loggedInDTO = await GenerateJwtToken(user);
                 }
