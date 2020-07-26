@@ -180,7 +180,7 @@ namespace TaskEngine.Tasks
             CTGrpc.JsonString jsonString = null;
             CTGrpc.JsonString metadata = new CTGrpc.JsonString
             {
-                Json = playlist.JsonMetadata.ToString()
+                Json = playlist.JsonMetadata != null ? playlist.JsonMetadata.ToString() : ""
             };
             try
             {

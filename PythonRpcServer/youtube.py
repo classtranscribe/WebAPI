@@ -14,7 +14,7 @@ YOUTUBE_CHANNELS_URL = 'https://www.googleapis.com/youtube/v3/channels'
 class YoutubeProvider(MediaProvider):
 
     def getPlaylistItems(self, request):
-        isChannel = json.loads(request.metadata)['isChannel'] == '1'
+        isChannel = json.loads(request.metadata.json)['isChannel'] == '1'
 
         medias = self.get_youtube_channel(request.identifier) if isChannel else self.get_youtube_playlist(request.identifier)
         return json.dumps(medias)
