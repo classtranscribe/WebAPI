@@ -23,7 +23,7 @@ namespace CTCommons
         private readonly CTDbContext context;
         private readonly MSTranscriptionService _transcriptionService;
         private readonly RpcClient _rpcClient;
-        
+
         public TempCode(CTDbContext c, MSTranscriptionService transcriptionService, RpcClient rpcClient)
         {
             context = c;
@@ -43,8 +43,26 @@ namespace CTCommons
             // Add any temporary code.
 
             Console.WriteLine("Hi");
+            
+            
+            Console.WriteLine("H2");
 
-            Console.WriteLine("Hi");
+        }
+        // Example code (never called)
+        private async Task TestDirectYouTubeChannel()
+        {
+            JObject json = new JObject();
+            json.Add("isChannel", "1");
+            var x = _rpcClient.PythonServerClient.GetYoutubePlaylistRPC(new CTGrpc.PlaylistRequest
+            {
+                Identifier = "UCi8e0iOVk1fEOogdfu4YgfA",
+                Metadata = new CTGrpc.JsonString() { Json = json.ToString() },
+
+
+            });
+            JArray jArray = JArray.Parse(x.Json);
+
+            Console.WriteLine(x.Json);
         }
     }
 }

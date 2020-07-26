@@ -60,10 +60,11 @@ namespace ClassTranscribeDatabase.Models
         /// <param name="Begin">The beginning time stamp of the recognizedSpeech</param>
         /// <param name="End">The end time stamp of the recognizedSpeech</param>
         /// <param name="recognizedSpeech">Recognized Speech received from the Speech Services API.</param>
-        public static void AppendCaptions(List<Caption> captions, TimeSpan Begin, TimeSpan End, string recognizedSpeech)
+        public static List<Caption> AppendCaptions(int captionsCount, TimeSpan Begin, TimeSpan End, string recognizedSpeech)
         {
+            List<Caption> captions = new List<Caption>();
             int captionLength = Globals.CAPTION_LENGTH;
-            int currCounter = captions.Count + 1;
+            int currCounter = captionsCount + 1;
             string tempCaption = recognizedSpeech;
             string caption;
             int newDuration;
@@ -111,6 +112,7 @@ namespace ClassTranscribeDatabase.Models
                 curBegin = curEnd;
                 curDuration = End.Subtract(curBegin);
             }
+            return captions;
         }
 
         /// <summary>
@@ -143,6 +145,54 @@ namespace ClassTranscribeDatabase.Models
             }
             WriteTextToFile(Subtitle, vttFile);
             return vttFile;
+        }
+
+        /// <summary>
+        /// Parse a WebVTT file into a list of captions.
+        /// </summary>
+        /// <returns>A list of the caption representing the vtt file or null if unsuccessful</returns>
+        public static List<Caption> WebVTTFileToCaption(string file)
+        {
+            List<Caption> captions = new List<Caption>();
+            string text = File.ReadAllText(file);
+            string[] cues = text.Split("\n\n");
+            int idx = 0;
+
+            for (int i = 0; i < cues.Length; i++)
+            {
+                var cue = cues[i];
+                if (i == 0 && cue.Substring(0, 6) != "WEBVTT") return null;
+
+                if (cue.Contains("-->"))
+                {
+                    string[] lines = cue.Split("\n");
+                    Caption caption = new Caption
+                    {
+                        Text = "",
+                        Index = idx
+                    };
+                    idx++;
+
+                    for (int j = 0; j < lines.Length; j++)
+                    {
+                        var line = lines[j];
+                        if (line.Contains("-->"))
+                        {
+                            // Try parse vtt timestamp into TimeSpan
+                            string[] timestamps = line.Split("-->");
+                            caption.Begin = TimeSpan.Parse(timestamps[0].Trim());
+                            caption.End = TimeSpan.Parse(timestamps[1].Trim());
+                        }
+                        else
+                        {
+                            // Otherwise is cue payload
+                            caption.Text += line;
+                        }
+                    }
+                    captions.Add(caption);
+                }
+            }
+            return captions;
         }
 
         /// <summary>
