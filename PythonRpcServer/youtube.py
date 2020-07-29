@@ -16,7 +16,7 @@ class YoutubeProvider(MediaProvider):
     def getPlaylistItems(self, request):
         isChannel = json.loads(request.metadata.json)['isChannel'] == '1'
 
-        medias = self.get_youtube_channel(request.identifier) if isChannel else self.get_youtube_playlist(request.identifier)
+        medias = self.get_youtube_channel(request.Url) if isChannel else self.get_youtube_playlist(request.Url)
         return json.dumps(medias)
 
     def getMedia(self, request):
