@@ -41,6 +41,11 @@ namespace ClassTranscribeServer.Utils
         public async Task<University> GetUniversity(string mailId)
         {
             string domain = mailId.Split('@')[1];
+
+            // Some GSVU emails can have "mail." prefix
+            // If we come across many more of these, me should consider a comprehensive database / regex solution
+            domain = domain.Replace("mail.gvsu.edu","gvsu.edu");
+
             University university;
             if (_context.Universities.Where(u => u.Domain == domain).Any())
             {
