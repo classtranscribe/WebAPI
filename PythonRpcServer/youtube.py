@@ -2,8 +2,8 @@ import requests
 from utils import encode, decode, getRandomString, download_file
 import os
 import json
-
 from pytube import YouTube
+
 from mediaprovider import MediaProvider, InvalidPlaylistInfoException
 
 DATA_DIRECTORY = os.getenv('DATA_DIRECTORY')
@@ -24,6 +24,7 @@ class YoutubeProvider(MediaProvider):
             pass # Missing key, json is null etc
 
         medias = self.get_youtube_channel(request.Url) if isChannel else self.get_youtube_playlist(request.Url)
+
         return json.dumps(medias)
 
     def getMedia(self, request):

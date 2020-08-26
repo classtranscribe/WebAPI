@@ -26,6 +26,7 @@ message JsonString {
 // The response message containing the greetings.
 message PlaylistRequest {
   string Url = 1;
+
   int32 stream = 2;  
   JsonString metadata = 3;
 }
