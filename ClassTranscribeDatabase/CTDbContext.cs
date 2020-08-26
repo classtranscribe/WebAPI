@@ -168,7 +168,7 @@ namespace ClassTranscribeDatabase
 
             // Configure m-to-n relationships.
             builder.Entity<CourseOffering>()
-            .HasIndex(t => new { t.CourseId, t.OfferingId, t.DeletedAt }).IsUnique();
+            .HasKey(t => new { t.CourseId, t.OfferingId });
 
             builder.Entity<CourseOffering>()
                 .HasOne(pt => pt.Course)
@@ -181,7 +181,7 @@ namespace ClassTranscribeDatabase
                 .HasForeignKey(pt => pt.OfferingId);
 
             builder.Entity<UserOffering>()
-            .HasIndex(t => new { t.ApplicationUserId, t.OfferingId, t.IdentityRoleId, t.DeletedAt }).IsUnique();
+            .HasKey(t => new { t.ApplicationUserId, t.OfferingId });
 
             builder.Entity<UserOffering>()
                 .HasOne(pt => pt.Offering)
@@ -212,8 +212,8 @@ namespace ClassTranscribeDatabase
             builder.Entity<TaskItem>().Property(m => m.TaskParameters).HasJsonValueConversion();
             builder.Entity<TaskItem>().Property(m => m.ResultData).HasJsonValueConversion();
 
-            builder.Entity<Subscription>().HasIndex(s => new { s.ResourceType, s.ResourceId, s.ApplicationUserId, s.DeletedAt }).IsUnique();
-            builder.Entity<TaskItem>().HasIndex(t => new { t.UniqueId, t.TaskType, t.DeletedAt }).IsUnique();
+            builder.Entity<Subscription>().HasAlternateKey(s => new { s.ResourceType, s.ResourceId, s.ApplicationUserId });
+            builder.Entity<TaskItem>().HasAlternateKey(t => new { t.UniqueId, t.TaskType });
         }
         public override int SaveChanges(bool acceptAllChangesOnSuccess)
         {
@@ -253,7 +253,6 @@ namespace ClassTranscribeDatabase
                         case EntityState.Deleted:
                             entry.State = EntityState.Modified;
                             entity.IsDeletedStatus = Status.Deleted;
-                            entity.DeletedAt = now;
                             break;
                     }
                 }

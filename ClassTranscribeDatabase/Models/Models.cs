@@ -85,8 +85,6 @@ namespace ClassTranscribeDatabase.Models
         public string LastUpdatedBy { get; set; }
         [IgnoreDataMember]
         public Status IsDeletedStatus { get; set; }
-        [IgnoreDataMember]
-        public DateTime DeletedAt { get; set; } = new DateTime(1900, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
 
         public ResourceType GetResourceType()
         {

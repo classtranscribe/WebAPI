@@ -118,9 +118,6 @@ namespace ClassTranscribeDatabase.Migrations
                     b.Property<string>("CreatedBy")
                         .HasColumnType("text");
 
-                    b.Property<DateTime>("DeletedAt")
-                        .HasColumnType("timestamp without time zone");
-
                     b.Property<int>("DownVote")
                         .HasColumnType("integer");
 
@@ -170,9 +167,6 @@ namespace ClassTranscribeDatabase.Migrations
                     b.Property<string>("CreatedBy")
                         .HasColumnType("text");
 
-                    b.Property<DateTime>("DeletedAt")
-                        .HasColumnType("timestamp without time zone");
-
                     b.Property<string>("DepartmentId")
                         .HasColumnType("text");
 
@@ -194,11 +188,10 @@ namespace ClassTranscribeDatabase.Migrations
 
             modelBuilder.Entity("ClassTranscribeDatabase.Models.CourseOffering", b =>
                 {
-                    b.Property<string>("Id")
-                        .ValueGeneratedOnAdd()
+                    b.Property<string>("CourseId")
                         .HasColumnType("text");
 
-                    b.Property<string>("CourseId")
+                    b.Property<string>("OfferingId")
                         .HasColumnType("text");
 
                     b.Property<DateTime>("CreatedAt")
@@ -207,8 +200,9 @@ namespace ClassTranscribeDatabase.Migrations
                     b.Property<string>("CreatedBy")
                         .HasColumnType("text");
 
-                    b.Property<DateTime>("DeletedAt")
-                        .HasColumnType("timestamp without time zone");
+                    b.Property<string>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("text");
 
                     b.Property<int>("IsDeletedStatus")
                         .HasColumnType("integer");
@@ -219,15 +213,9 @@ namespace ClassTranscribeDatabase.Migrations
                     b.Property<string>("LastUpdatedBy")
                         .HasColumnType("text");
 
-                    b.Property<string>("OfferingId")
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
+                    b.HasKey("CourseId", "OfferingId");
 
                     b.HasIndex("OfferingId");
-
-                    b.HasIndex("CourseId", "OfferingId", "DeletedAt")
-                        .IsUnique();
 
                     b.ToTable("CourseOfferings");
                 });
@@ -246,9 +234,6 @@ namespace ClassTranscribeDatabase.Migrations
 
                     b.Property<string>("CreatedBy")
                         .HasColumnType("text");
-
-                    b.Property<DateTime>("DeletedAt")
-                        .HasColumnType("timestamp without time zone");
 
                     b.Property<int>("IsDeletedStatus")
                         .HasColumnType("integer");
@@ -284,9 +269,6 @@ namespace ClassTranscribeDatabase.Migrations
                     b.Property<string>("CreatedBy")
                         .HasColumnType("text");
 
-                    b.Property<DateTime>("DeletedAt")
-                        .HasColumnType("timestamp without time zone");
-
                     b.Property<int>("IsDeletedStatus")
                         .HasColumnType("integer");
 
@@ -318,9 +300,6 @@ namespace ClassTranscribeDatabase.Migrations
 
                     b.Property<string>("CreatedBy")
                         .HasColumnType("text");
-
-                    b.Property<DateTime>("DeletedAt")
-                        .HasColumnType("timestamp without time zone");
 
                     b.Property<string>("FileId")
                         .HasColumnType("text");
@@ -367,9 +346,6 @@ namespace ClassTranscribeDatabase.Migrations
                     b.Property<string>("Data")
                         .HasColumnType("text");
 
-                    b.Property<DateTime>("DeletedAt")
-                        .HasColumnType("timestamp without time zone");
-
                     b.Property<string>("EPubId")
                         .HasColumnType("text");
 
@@ -400,9 +376,6 @@ namespace ClassTranscribeDatabase.Migrations
 
                     b.Property<string>("CreatedBy")
                         .HasColumnType("text");
-
-                    b.Property<DateTime>("DeletedAt")
-                        .HasColumnType("timestamp without time zone");
 
                     b.Property<string>("FileName")
                         .HasColumnType("text");
@@ -438,9 +411,6 @@ namespace ClassTranscribeDatabase.Migrations
 
                     b.Property<string>("CreatedBy")
                         .HasColumnType("text");
-
-                    b.Property<DateTime>("DeletedAt")
-                        .HasColumnType("timestamp without time zone");
 
                     b.Property<string>("EventType")
                         .HasColumnType("text");
@@ -482,9 +452,6 @@ namespace ClassTranscribeDatabase.Migrations
 
                     b.Property<string>("CreatedBy")
                         .HasColumnType("text");
-
-                    b.Property<DateTime>("DeletedAt")
-                        .HasColumnType("timestamp without time zone");
 
                     b.Property<int>("Index")
                         .HasColumnType("integer");
@@ -546,9 +513,6 @@ namespace ClassTranscribeDatabase.Migrations
                     b.Property<string>("CreatedBy")
                         .HasColumnType("text");
 
-                    b.Property<DateTime>("DeletedAt")
-                        .HasColumnType("timestamp without time zone");
-
                     b.Property<int>("IsDeletedStatus")
                         .HasColumnType("integer");
 
@@ -588,9 +552,6 @@ namespace ClassTranscribeDatabase.Migrations
 
                     b.Property<string>("CreatedBy")
                         .HasColumnType("text");
-
-                    b.Property<DateTime>("DeletedAt")
-                        .HasColumnType("timestamp without time zone");
 
                     b.Property<string>("Description")
                         .HasColumnType("text");
@@ -638,9 +599,6 @@ namespace ClassTranscribeDatabase.Migrations
                     b.Property<string>("CreatedBy")
                         .HasColumnType("text");
 
-                    b.Property<DateTime>("DeletedAt")
-                        .HasColumnType("timestamp without time zone");
-
                     b.Property<int>("Index")
                         .HasColumnType("integer");
 
@@ -685,6 +643,7 @@ namespace ClassTranscribeDatabase.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("ApplicationUserId")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<DateTime>("CreatedAt")
@@ -692,9 +651,6 @@ namespace ClassTranscribeDatabase.Migrations
 
                     b.Property<string>("CreatedBy")
                         .HasColumnType("text");
-
-                    b.Property<DateTime>("DeletedAt")
-                        .HasColumnType("timestamp without time zone");
 
                     b.Property<int>("IsDeletedStatus")
                         .HasColumnType("integer");
@@ -706,6 +662,7 @@ namespace ClassTranscribeDatabase.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("ResourceId")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<int>("ResourceType")
@@ -713,10 +670,9 @@ namespace ClassTranscribeDatabase.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ApplicationUserId");
+                    b.HasAlternateKey("ResourceType", "ResourceId", "ApplicationUserId");
 
-                    b.HasIndex("ResourceType", "ResourceId", "ApplicationUserId", "DeletedAt")
-                        .IsUnique();
+                    b.HasIndex("ApplicationUserId");
 
                     b.ToTable("Subscriptions");
                 });
@@ -735,9 +691,6 @@ namespace ClassTranscribeDatabase.Migrations
 
                     b.Property<string>("CreatedBy")
                         .HasColumnType("text");
-
-                    b.Property<DateTime>("DeletedAt")
-                        .HasColumnType("timestamp without time zone");
 
                     b.Property<int>("IsDeletedStatus")
                         .HasColumnType("integer");
@@ -764,12 +717,12 @@ namespace ClassTranscribeDatabase.Migrations
                         .HasColumnType("integer");
 
                     b.Property<string>("UniqueId")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("UniqueId", "TaskType", "DeletedAt")
-                        .IsUnique();
+                    b.HasAlternateKey("UniqueId", "TaskType");
 
                     b.ToTable("TaskItems");
                 });
@@ -785,9 +738,6 @@ namespace ClassTranscribeDatabase.Migrations
 
                     b.Property<string>("CreatedBy")
                         .HasColumnType("text");
-
-                    b.Property<DateTime>("DeletedAt")
-                        .HasColumnType("timestamp without time zone");
 
                     b.Property<DateTime>("EndDate")
                         .HasColumnType("timestamp without time zone");
@@ -828,9 +778,6 @@ namespace ClassTranscribeDatabase.Migrations
 
                     b.Property<string>("CreatedBy")
                         .HasColumnType("text");
-
-                    b.Property<DateTime>("DeletedAt")
-                        .HasColumnType("timestamp without time zone");
 
                     b.Property<string>("Description")
                         .HasColumnType("text");
@@ -879,9 +826,6 @@ namespace ClassTranscribeDatabase.Migrations
                     b.Property<string>("CreatedBy")
                         .HasColumnType("text");
 
-                    b.Property<DateTime>("DeletedAt")
-                        .HasColumnType("timestamp without time zone");
-
                     b.Property<string>("Domain")
                         .HasColumnType("text");
 
@@ -904,11 +848,10 @@ namespace ClassTranscribeDatabase.Migrations
 
             modelBuilder.Entity("ClassTranscribeDatabase.Models.UserOffering", b =>
                 {
-                    b.Property<string>("Id")
-                        .ValueGeneratedOnAdd()
+                    b.Property<string>("ApplicationUserId")
                         .HasColumnType("text");
 
-                    b.Property<string>("ApplicationUserId")
+                    b.Property<string>("OfferingId")
                         .HasColumnType("text");
 
                     b.Property<DateTime>("CreatedAt")
@@ -917,8 +860,9 @@ namespace ClassTranscribeDatabase.Migrations
                     b.Property<string>("CreatedBy")
                         .HasColumnType("text");
 
-                    b.Property<DateTime>("DeletedAt")
-                        .HasColumnType("timestamp without time zone");
+                    b.Property<string>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("text");
 
                     b.Property<string>("IdentityRoleId")
                         .HasColumnType("text");
@@ -932,17 +876,11 @@ namespace ClassTranscribeDatabase.Migrations
                     b.Property<string>("LastUpdatedBy")
                         .HasColumnType("text");
 
-                    b.Property<string>("OfferingId")
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
+                    b.HasKey("ApplicationUserId", "OfferingId");
 
                     b.HasIndex("IdentityRoleId");
 
                     b.HasIndex("OfferingId");
-
-                    b.HasIndex("ApplicationUserId", "OfferingId", "IdentityRoleId", "DeletedAt")
-                        .IsUnique();
 
                     b.ToTable("UserOfferings");
                 });
@@ -961,9 +899,6 @@ namespace ClassTranscribeDatabase.Migrations
 
                     b.Property<string>("CreatedBy")
                         .HasColumnType("text");
-
-                    b.Property<DateTime>("DeletedAt")
-                        .HasColumnType("timestamp without time zone");
 
                     b.Property<string>("Description")
                         .HasColumnType("text");
@@ -1030,9 +965,6 @@ namespace ClassTranscribeDatabase.Migrations
 
                     b.Property<string>("CreatedBy")
                         .HasColumnType("text");
-
-                    b.Property<DateTime>("DeletedAt")
-                        .HasColumnType("timestamp without time zone");
 
                     b.Property<int>("IsDeletedStatus")
                         .HasColumnType("integer");
@@ -1213,11 +1145,15 @@ namespace ClassTranscribeDatabase.Migrations
                 {
                     b.HasOne("ClassTranscribeDatabase.Models.Course", "Course")
                         .WithMany("CourseOfferings")
-                        .HasForeignKey("CourseId");
+                        .HasForeignKey("CourseId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("ClassTranscribeDatabase.Models.Offering", "Offering")
                         .WithMany("CourseOfferings")
-                        .HasForeignKey("OfferingId");
+                        .HasForeignKey("OfferingId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("ClassTranscribeDatabase.Models.Department", b =>
@@ -1281,7 +1217,9 @@ namespace ClassTranscribeDatabase.Migrations
                 {
                     b.HasOne("ClassTranscribeDatabase.Models.ApplicationUser", "ApplicationUser")
                         .WithMany()
-                        .HasForeignKey("ApplicationUserId");
+                        .HasForeignKey("ApplicationUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("ClassTranscribeDatabase.Models.Term", b =>
@@ -1310,7 +1248,9 @@ namespace ClassTranscribeDatabase.Migrations
                 {
                     b.HasOne("ClassTranscribeDatabase.Models.ApplicationUser", "ApplicationUser")
                         .WithMany("UserOfferings")
-                        .HasForeignKey("ApplicationUserId");
+                        .HasForeignKey("ApplicationUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", "IdentityRole")
                         .WithMany()
@@ -1318,7 +1258,9 @@ namespace ClassTranscribeDatabase.Migrations
 
                     b.HasOne("ClassTranscribeDatabase.Models.Offering", "Offering")
                         .WithMany("OfferingUsers")
-                        .HasForeignKey("OfferingId");
+                        .HasForeignKey("OfferingId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("ClassTranscribeDatabase.Models.Video", b =>
