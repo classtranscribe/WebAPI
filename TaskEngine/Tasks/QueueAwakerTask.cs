@@ -17,7 +17,7 @@ namespace TaskEngine.Tasks
     {
         private readonly DownloadPlaylistInfoTask _downloadPlaylistInfoTask;
         private readonly DownloadMediaTask _downloadMediaTask;
-        private readonly ConvertVideoToWavTask _convertVideoToWavTask;
+        // private readonly ConvertVideoToWavTask _convertVideoToWavTask;
         private readonly TranscriptionTask _transcriptionTask;
         private readonly GenerateVTTFileTask _generateVTTFileTask;
         private readonly ProcessVideoTask _processVideoTask;
@@ -29,7 +29,7 @@ namespace TaskEngine.Tasks
         public QueueAwakerTask() { }
 
         public QueueAwakerTask(RabbitMQConnection rabbitMQ, DownloadPlaylistInfoTask downloadPlaylistInfoTask,
-            DownloadMediaTask downloadMediaTask, ConvertVideoToWavTask convertVideoToWavTask,
+            DownloadMediaTask downloadMediaTask,
             TranscriptionTask transcriptionTask, ProcessVideoTask processVideoTask,
             GenerateVTTFileTask generateVTTFileTask, SceneDetectionTask scenedDetectionTask,
             CreateBoxTokenTask createBoxTokenTask, UpdateBoxTokenTask updateBoxTokenTask,
@@ -38,7 +38,7 @@ namespace TaskEngine.Tasks
         {
             _downloadPlaylistInfoTask = downloadPlaylistInfoTask;
             _downloadMediaTask = downloadMediaTask;
-            _convertVideoToWavTask = convertVideoToWavTask;
+            //_convertVideoToWavTask = convertVideoToWavTask;
             _transcriptionTask = transcriptionTask;
             _generateVTTFileTask = generateVTTFileTask;
             _processVideoTask = processVideoTask;
@@ -124,10 +124,10 @@ namespace TaskEngine.Tasks
             {
                 // Medias for which no videos have downloaded
                 (await context.Medias.Where(m => m.Video == null).ToListAsync()).ForEach(m => _downloadMediaTask.Publish(m.Id));
-                // Videos which haven't been converted to wav 
-                (await context.Videos.Where(v => v.Medias.Any() && v.Audio == null).ToListAsync()).ForEach(v => _convertVideoToWavTask.Publish(v.Id));
+                //// Videos which haven't been converted to wav 
+                //(await context.Videos.Where(v => v.Medias.Any() && v.Audio == null).ToListAsync()).ForEach(v => _convertVideoToWavTask.Publish(v.Id));
                 // Videos which have failed in transcribing
-                (await context.Videos.Where(v => v.TranscribingAttempts < 3 && v.TranscriptionStatus != "NoError" && v.Medias.Any() && v.Audio != null)
+                (await context.Videos.Where(v => v.TranscribingAttempts < 3 && v.TranscriptionStatus != "NoError" && v.Medias.Any())
                     .ToListAsync()).ForEach(v => _transcriptionTask.Publish(v.Id));
                 // Completed Transcriptions which haven't generated vtt files
                 (await context.Transcriptions.Where(t => t.Captions.Count > 0 && t.File == null)
@@ -191,12 +191,12 @@ namespace TaskEngine.Tasks
                     var media = await _context.Medias.FindAsync(mediaId);
                     _downloadMediaTask.Publish(media.Id);
                 }
-                else if (type == TaskType.ConvertMedia.ToString())
-                {
-                    var videoId = jObject["videoId"].ToString();
-                    var video = await _context.Videos.FindAsync(videoId);
-                    _convertVideoToWavTask.Publish(video.Id);
-                }
+                //else if (type == TaskType.ConvertMedia.ToString())
+                //{
+                //    var videoId = jObject["videoId"].ToString();
+                //    var video = await _context.Videos.FindAsync(videoId);
+                //    _convertVideoToWavTask.Publish(video.Id);
+                //}
                 else if (type == TaskType.Transcribe.ToString())
                 {
                     var videoId = jObject["videoId"].ToString();

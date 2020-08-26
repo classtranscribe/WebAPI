@@ -84,7 +84,7 @@ namespace TaskEngine
             // Start consuming from all queues.
             serviceProvider.GetService<DownloadPlaylistInfoTask>().Consume();
             serviceProvider.GetService<DownloadMediaTask>().Consume();
-            serviceProvider.GetService<ConvertVideoToWavTask>().Consume();
+            // serviceProvider.GetService<ConvertVideoToWavTask>().Consume();
             serviceProvider.GetService<TranscriptionTask>().Consume();
             serviceProvider.GetService<QueueAwakerTask>().Consume();
             serviceProvider.GetService<GenerateVTTFileTask>().Consume();

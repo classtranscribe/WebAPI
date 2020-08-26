@@ -186,7 +186,7 @@ namespace TaskEngine.Tasks
             {
                 jsonString = await _rpcClient.PythonServerClient.GetYoutubePlaylistRPCAsync(new CTGrpc.PlaylistRequest
                 {
-                    Identifier = playlist.PlaylistIdentifier,
+                    Url = playlist.PlaylistIdentifier,
                     Metadata = metadata
                 });
             }

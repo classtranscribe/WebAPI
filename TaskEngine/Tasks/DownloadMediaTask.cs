@@ -18,18 +18,18 @@ namespace TaskEngine.Tasks
     class DownloadMediaTask : RabbitMQTask<string>
     {
         private readonly RpcClient _rpcClient;
-        private readonly ConvertVideoToWavTask _convertVideoToWavTask;
+        private readonly TranscriptionTask _transcriptionTask;
         private readonly ProcessVideoTask _processVideoTask;
         private readonly BoxAPI _box;
         private readonly SlackLogger _slack;
 
         public DownloadMediaTask(RabbitMQConnection rabbitMQ, RpcClient rpcClient,
-            ConvertVideoToWavTask convertVideoToWavTask, ProcessVideoTask processVideoTask, BoxAPI box,
+            TranscriptionTask transcriptionTask, ProcessVideoTask processVideoTask, BoxAPI box,
             ILogger<DownloadMediaTask> logger, SlackLogger slack)
             : base(rabbitMQ, TaskType.DownloadMedia, logger)
         {
             _rpcClient = rpcClient;
-            _convertVideoToWavTask = convertVideoToWavTask;
+            _transcriptionTask = transcriptionTask;
             _processVideoTask = processVideoTask;
             _box = box;
             _slack = slack;
@@ -76,7 +76,7 @@ namespace TaskEngine.Tasks
                         latestMedia.VideoId = video.Id;
                         await _context.SaveChangesAsync();
                         _logger.LogInformation("Downloaded:" + video);
-                        _convertVideoToWavTask.Publish(video.Id);
+                        _transcriptionTask.Publish(video.Id);
                         _processVideoTask.Publish(video.Id);
                     }
                     else
@@ -94,7 +94,7 @@ namespace TaskEngine.Tasks
                             latestMedia.VideoId = video.Id;
                             await _context.SaveChangesAsync();
                             _logger.LogInformation("Downloaded:" + video);
-                            _convertVideoToWavTask.Publish(video.Id);
+                            _transcriptionTask.Publish(video.Id);
                             _processVideoTask.Publish(video.Id);
                         }
                         // If video and file both exist.
