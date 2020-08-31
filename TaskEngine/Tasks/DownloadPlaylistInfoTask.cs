@@ -64,7 +64,7 @@ namespace TaskEngine.Tasks
             {
                 jsonString = await _rpcClient.PythonServerClient.GetKalturaChannelEntriesRPCAsync(new CTGrpc.PlaylistRequest
                 {
-                    Identifier = playlist.PlaylistIdentifier
+                    Url = playlist.PlaylistIdentifier
                 });
             }
             catch (RpcException e)
@@ -114,7 +114,7 @@ namespace TaskEngine.Tasks
             {
                 jsonString = await _rpcClient.PythonServerClient.GetEchoPlaylistRPCAsync(new CTGrpc.PlaylistRequest
                 {
-                    Identifier = playlist.PlaylistIdentifier,
+                    Url = playlist.PlaylistIdentifier,
                     Stream = 0
                 });
             }
