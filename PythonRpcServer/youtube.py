@@ -15,11 +15,12 @@ YOUTUBE_CHANNELS_URL = 'https://www.googleapis.com/youtube/v3/channels'
 class YoutubeProvider(MediaProvider):
 
     def getPlaylistItems(self, request):
+        #print('getPlaylistItems'+str(request))
         isChannel = False
         
         try:
-            json = json.loads(request.metadata.json)
-            isChannel = json['isChannel'] == '1'
+            meta = json.loads(request.metadata.json)
+            isChannel = meta['isChannel'] == '1'
         except:
             pass # Missing key, json is null etc
 
@@ -31,6 +32,7 @@ class YoutubeProvider(MediaProvider):
         return self.download_youtube_video(request.videoUrl)
 
     def get_youtube_channel(self, identifier):
+        print('get_youtube_channel')
         request1 = requests.get(YOUTUBE_CHANNELS_URL, params={
                                 'part': 'contentDetails', 'id': identifier, 'key': YOUTUBE_API_KEY})
         if request1.status_code == 404 or request1.status_code == 500:
@@ -44,8 +46,9 @@ class YoutubeProvider(MediaProvider):
         return self.get_youtube_playlist(playlistId)
 
     def get_youtube_playlist(self, identifier):
-        # LIMITATION: Can download a maximum of 50 videos per playlist.
-
+        print('get_youtube_playlist' + str(identifier))
+        # Documented API LIMITATION: Can download a maximum of 50 videos per playlist.
+        # https://developers.google.com/youtube/v3/docs/playlistItems/list
         request1 = requests.get(YOUTUBE_PLAYLIST_URL,
             params={
             'part': 'snippet',
