@@ -14,12 +14,15 @@ using System.Threading.Tasks;
 using CTCommons.Grpc;
 using CTCommons;
 using static ClassTranscribeDatabase.CommonUtils;
+using System.Diagnostics.CodeAnalysis;
+
 
 namespace TaskEngine.Tasks
 {
     /// <summary>
     /// This task fetches all the info about a media under a given playlist
     /// </summary>
+    [SuppressMessage("Microsoft.Performance", "CA1812:MarkMembersAsStatic")] // This class is never directly instantiated
     class DownloadPlaylistInfoTask : RabbitMQTask<string>
     {
         private readonly RpcClient _rpcClient;

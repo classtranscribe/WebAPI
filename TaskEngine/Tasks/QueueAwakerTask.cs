@@ -10,9 +10,11 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Xml;
 using static ClassTranscribeDatabase.CommonUtils;
+using System.Diagnostics.CodeAnalysis;
 
 namespace TaskEngine.Tasks
 {
+    [SuppressMessage("Microsoft.Performance", "CA1812:MarkMembersAsStatic")] // This class is never directly instantiated
     class QueueAwakerTask : RabbitMQTask<JObject>
     {
         private readonly DownloadPlaylistInfoTask _downloadPlaylistInfoTask;
