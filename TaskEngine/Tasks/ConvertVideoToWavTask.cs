@@ -15,7 +15,7 @@ using System.Diagnostics.CodeAnalysis;
 namespace TaskEngine.Tasks
 {
     /// <summary>
-    /// This task converts the video file to an audio file using ffmpeg via the NodeRpcServer.
+    /// This task converts the video file to an audio file. It is not currently used.
     /// </summary>
     [SuppressMessage("Microsoft.Performance", "CA1812:MarkMembersAsStatic")] // This class is never directly instantiated
     class ConvertVideoToWavTask : RabbitMQTask<string>

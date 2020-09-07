@@ -228,6 +228,9 @@ namespace TaskEngine.Tasks
             await _context.SaveChangesAsync();
             return newMedia;
         }
+        /// The purpose of this code is unknown. Why might local media be connected to a playlist but missing a name?
+        // And why setting a name lead to m.Video being non-null in the future.
+        /// For the UpdateAllPlaylists and UpdatePlaylist admin interfaces this appears to be a noop for all good files at least
 
         public async Task<List<Media>> GetLocalPlaylist(Playlist playlist, CTDbContext _context)
         {
