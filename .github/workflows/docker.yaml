@@ -45,10 +45,10 @@ jobs:
             FOLDER: "."
             DOCKERFILE: pythonrpcserver.Dockerfile
             IMAGE: pythonrpcserver
-          - name: rpcserver
-            FOLDER: "."
-            DOCKERFILE: rpcserver.Dockerfile
-            IMAGE: rpcserver
+          # - name: rpcserver
+          #   FOLDER: "."
+          #   DOCKERFILE: rpcserver.Dockerfile
+          #   IMAGE: rpcserver
     steps:
       - uses: actions/checkout@v2
 
