@@ -31,7 +31,7 @@ jobs:
           - api
           - taskengine
           - pythonrpcserver
-          - rpcserver
+          # - rpcserver
         include:
           - name: api
             FOLDER: "."
