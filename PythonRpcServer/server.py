@@ -13,6 +13,7 @@ from echo import EchoProvider
 from kaltura import KalturaProvider
 from mediaprovider import InvalidPlaylistInfoException
 import ffmpeg
+import os
 # Main entry point for docker container
 
 _ONE_DAY_IN_SECONDS = 60 * 60 * 24
