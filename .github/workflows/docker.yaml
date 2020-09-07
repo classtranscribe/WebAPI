@@ -49,7 +49,7 @@ jobs:
             FOLDER: "."
             DOCKERFILE: rpcserver.Dockerfile
             IMAGE: rpcserver
-     steps:
+    steps:
       - uses: actions/checkout@v2
 
       # calculate some variables that are used later
