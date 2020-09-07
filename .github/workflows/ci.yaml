@@ -26,4 +26,7 @@ jobs:
             ${{ runner.os }}-nuget-
 
       - name: Compile application
-        run: dotnet build ClassTranscribeServer.sln
+        run: dotnet build ClassTranscribeServer.sln --configuration Release
+
+      - name: Run tests
+        run: dotnet test ClassTranscribeServer.sln --configuration Release  -v n 
