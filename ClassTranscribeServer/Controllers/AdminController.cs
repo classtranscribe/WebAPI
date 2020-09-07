@@ -50,6 +50,17 @@ namespace ClassTranscribeServer.Controllers
             return Ok();
         }
 
+        /// <summary> 
+        /// Enqueue DownloadAllPlaylists task, which updates all playlists for all terms where start date is within 6 months of today.
+        /// 
+        /// </summary>
+        /// <remarks> 
+        /// Each playlist update is a separate task. Requesting an update is harmless though
+        /// be aware that some external sources (e.g. Youtube) limit API usage.
+        /// See QueueAwakerTask.DownloadAllPlaylists, DownloadPlaylistInfoTask for details
+        /// This API call is just for the impatient because the PeriodicCheck task also updates 
+        /// all playlists and (unlike this API function) also performs a PendingJobs task to kick off transcriptions.
+        /// </remarks>
         [HttpPost("UpdateAllPlaylists")]
         [Authorize(Roles = Globals.ROLE_ADMIN)]
         public ActionResult UpdateAllPlaylists()
@@ -58,6 +69,16 @@ namespace ClassTranscribeServer.Controllers
             return Ok();
         }
 
+        /// <summary> 
+        ///  Enqueue DownloadPlaylist task, which updates one playlist.
+        /// </summary>
+        /// <remarks>
+        ///  Requesting an update is harmless though
+        ///  be aware that some external sources (e.g. Youtube) limit API usage.
+        ///  See QueueAwakerTask.DownloadAllPlaylists, DownloadPlaylistInfoTask for details
+        ///  This API call is just for the impatient because the PeriodicCheck task also updates 
+        ///  all playlists and (unlike this API function) also performs a PendingJobs task to kick off transcriptions.
+        /// </remarks>
         [HttpPost("UpdatePlaylist")]
         [Authorize(Roles = Globals.ROLE_ADMIN)]
         public ActionResult UpdatePlaylist(string playlistId)
@@ -65,7 +86,16 @@ namespace ClassTranscribeServer.Controllers
             _wakeDownloader.UpdatePlaylist(playlistId);
             return Ok();
         }
-
+        
+        /// <summary>
+        /// Requests a re-download of missing media
+        /// </summary>
+        /// <remarks>
+        /// Enqueues a DownloadMedia task. Requests missing media (as opposed to waiting for the periodic check to discover them)
+        /// 
+        /// Duplicates are discarded. New videos cause captions and video processing tasks to be requested
+        /// See DownloadMediaTask.cs for more details.
+        /// </remarks>
         [HttpPost("DownloadMedia")]
         [Authorize(Roles = Globals.ROLE_ADMIN)]
         public ActionResult DownloadMedia(string mediaId)
@@ -74,6 +104,12 @@ namespace ClassTranscribeServer.Controllers
             return Ok();
         }
 
+        /// <sumarize>
+        /// Enqueue a ConvertMedia task. This creates a wav file (no longer used) and request captions
+        /// </sumarize>
+        /// <remarks>
+        /// It is unclear if this request is still useful.
+        /// </remarks>
         [HttpPost("ConvertMedia")]
         [Authorize(Roles = Globals.ROLE_ADMIN)]
         public ActionResult ConvertMedia(string videoId)
