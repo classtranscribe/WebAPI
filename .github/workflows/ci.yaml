@@ -1,0 +1,32 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - master
+      - staging
+  pull_request:
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: '3.1.x' # SDK Version to use; x will use the latest version of the 3.1 channel
+
+      - uses: actions/cache@v2
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/packages.lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+
+      - name: Compile application
+        run: dotnet build ClassTranscribeServer.sln --configuration Release
+
+      - name: Run tests
+        run: dotnet test ClassTranscribeServer.sln --configuration Release  -v n 
