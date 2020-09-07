@@ -13,7 +13,8 @@ from echo import EchoProvider
 from kaltura import KalturaProvider
 from mediaprovider import InvalidPlaylistInfoException
 import ffmpeg
-
+import os
+# Main entry point for docker container
 
 _ONE_DAY_IN_SECONDS = 60 * 60 * 24
 
@@ -76,11 +77,10 @@ class PythonServerServicer(ct_pb2_grpc.PythonServerServicer):
         filePath, ext = ffmpeg.processVideo(request.filePath)
         return ct_pb2.File(filePath = filePath, ext = ext)
 
-
 def serve():
     print("Python RPC Server Starting")
     
-    server = grpc.server(futures.ThreadPoolExecutor(max_workers=1000))
+    server =grpc.server(futures.ThreadPoolExecutor(max_workers=int(os.getenv('NUM_PYTHON_WORKERS', 10))))
     ct_pb2_grpc.add_PythonServerServicer_to_server(
         PythonServerServicer(), server)
     server.add_insecure_port('[::]:50051')
