@@ -70,7 +70,7 @@ jobs:
       - name: Build image
         run: |
           docker build \
-            --file ${{ matrix.DOCKERFILE }}
+            --file ${{ matrix.DOCKERFILE }} \
             --build-arg BRANCH=${GITHUB_BRANCH} \
             --build-arg BUILDNUMBER=${{ github.run_number }} \
             --build-arg GITSHA1=${{ github.sha  }} \
