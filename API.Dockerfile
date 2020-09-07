@@ -33,4 +33,13 @@ WORKDIR /app
 COPY --from=build /app .
 EXPOSE 80
 EXPOSE 443
+
+ARG GITSHA1=unspecified
+ENV GITSHA1=$GITSHA1
+
+ARG BUILDNUMBER=unspecified
+ENV BUILDNUMBER=$BUILDNUMBER
+
+LABEL git_commit_hash=$GITSHA1
+
 CMD ["dotnet", "/app/ClassTranscribeServer.dll"]

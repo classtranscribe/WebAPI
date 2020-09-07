@@ -31,6 +31,8 @@ namespace ClassTranscribeDatabase
         public string CILOGON_CLIENT_ID { get; set; }
         public string CILOGON_CLIENT_SECRET { get; set; }
         public string CILOGON_DOMAIN { get; set; }
+        public string GITSHA1 { get; set; }
+        public string BUILDNUMBER { get; set; }
     }
 
     /// <summary>

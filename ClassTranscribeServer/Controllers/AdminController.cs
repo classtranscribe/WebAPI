@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json.Linq;
 using System;
 using System.IO;
 using System.Linq;
@@ -143,5 +144,27 @@ namespace ClassTranscribeServer.Controllers
             memory.Position = 0;
             return File(memory, "text/csv", Path.GetFileNameWithoutExtension(path) + ".csv");
         }
+
+        /// <summary>
+        /// Returns the sha1 commit hash and build number, or 'unspecified' if these are unknown
+        /// Example result : {"Commit":"hexadecimalnumber","Build":"123"}
+        /// </summary>
+        [HttpGet("GetVersion")]
+        [AllowAnonymous]
+        [Produces("application/json")]
+        public async Task<ActionResult<BuildVersionDTO>> GetVersion()
+        {
+            BuildVersionDTO result = new BuildVersionDTO() {
+                Commit =  Globals.appSettings.GITSHA1,
+                Build = Globals.appSettings.BUILDNUMBER
+            };
+            return result;
+        }
+
+        public class BuildVersionDTO
+        {
+            public string Commit { get; set; }
+            public string Build { get; set; }
+        }        
     }
 }
