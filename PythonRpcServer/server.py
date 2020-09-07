@@ -80,7 +80,7 @@ class PythonServerServicer(ct_pb2_grpc.PythonServerServicer):
 def serve():
     print("Python RPC Server Starting")
     
-    server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
+    server =grpc.server(futures.ThreadPoolExecutor(max_workers=int(os.getenv('NUM_PYTHON_WORKERS', 10))))
     ct_pb2_grpc.add_PythonServerServicer_to_server(
         PythonServerServicer(), server)
     server.add_insecure_port('[::]:50051')
