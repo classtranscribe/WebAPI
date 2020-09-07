@@ -50,7 +50,10 @@ namespace TaskEngine.Tasks
             _slackLogger = slackLogger;
         }
 
-        private async Task FindPendingJobs()
+        /// <summary>Finds incomplete tasks and adds them all a TaskItem table. 
+        /// This appears to be defunct and unused code - grep FindPendingJobs, found no callers of this function
+        /// </summary>
+              private async Task FindPendingJobs()
         {
             using (var context = CTDbContext.CreateDbContext())
             {
@@ -117,7 +120,9 @@ namespace TaskEngine.Tasks
                 await context.SaveChangesAsync();
             }
         }
-
+        /// <summary> Used by the PeriodicCheck to identify and enqueue missing tasks.
+        /// This Task is started after all playlists are updated.
+        /// </summary>
         private async Task PendingJobs()
         {
             // Update Box Token every few hours
@@ -137,7 +142,7 @@ namespace TaskEngine.Tasks
                     .ForEach(t => _generateVTTFileTask.Publish(t.Id));
             }
         }
-
+        /// Requests _downloadPlaylistInfoTask for all recent playlists
         private async Task DownloadAllPlaylists()
         {
             using (var _context = CTDbContext.CreateDbContext())
