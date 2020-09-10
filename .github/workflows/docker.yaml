@@ -105,5 +105,4 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
           tags: "${{ env.TAGS }}"
-          registry: docker.pkg.github.com
           buildargs: BRANCH,BUILDNUMBER,GITSHA1
