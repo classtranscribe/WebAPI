@@ -23,8 +23,12 @@ namespace CTCommons
 
         // To generate authCode on a browser open,
         // https://account.box.com/api/oauth2/authorize?client_id=[CLIENT_ID]&response_type=code
+        /// <summary>Updates Box accessToken and refreshToken values in the Dictionary table.
+        /// Optionally creates these keys if they do not exist.
+        /// </summary>
         public async Task CreateAccessTokenAsync(string authCode)
         {
+            // This implementation is overly chatty with the database, but we rarely create access tokens so it is not a problem
             using (var _context = CTDbContext.CreateDbContext())
             {
                 if (!await _context.Dictionaries.Where(d => d.Key == CommonUtils.BOX_ACCESS_TOKEN).AnyAsync())
@@ -44,6 +48,7 @@ namespace CTCommons
                     await _context.SaveChangesAsync();
                 }
 
+                
                 var accessToken = _context.Dictionaries.Where(d => d.Key == CommonUtils.BOX_ACCESS_TOKEN).First();
                 var refreshToken = _context.Dictionaries.Where(d => d.Key == CommonUtils.BOX_REFRESH_TOKEN).First();
                 var config = new BoxConfig(Globals.appSettings.BOX_CLIENT_ID, Globals.appSettings.BOX_CLIENT_SECRET, new Uri("http://locahost"));
@@ -55,7 +60,9 @@ namespace CTCommons
                 await _context.SaveChangesAsync();
             }
         }
-
+        /// <summary>
+        ///  Updates the accessToken and refreshToken. These keys must already exist in the Dictionary table.
+        /// </summary>
         public async Task RefreshAccessTokenAsync()
         {
             try
@@ -84,9 +91,12 @@ namespace CTCommons
                 throw;
             }
         }
-
+        /// <summary>
+        /// Creates a new box client, after first refreshing the access and refresh token.
+        /// </summary>
         public async Task<BoxClient> GetBoxClientAsync()
         {
+            // Todo RefreshAccessTokenAsync could return this information for us; and avoid another trip to the database
             await RefreshAccessTokenAsync();
             BoxClient boxClient;
             using (var _context = CTDbContext.CreateDbContext())

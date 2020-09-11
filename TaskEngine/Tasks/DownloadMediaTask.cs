@@ -9,12 +9,14 @@ using System.Threading.Tasks;
 using CTCommons.Grpc;
 using static ClassTranscribeDatabase.CommonUtils;
 using CTCommons;
+using System.Diagnostics.CodeAnalysis;
 
 namespace TaskEngine.Tasks
 {
     /// <summary>
     /// This task fetches downloads the video file for a given media.
     /// </summary>
+    [SuppressMessage("Microsoft.Performance", "CA1812:MarkMembersAsStatic")] // This class is never directly instantiated
     class DownloadMediaTask : RabbitMQTask<string>
     {
         private readonly RpcClient _rpcClient;

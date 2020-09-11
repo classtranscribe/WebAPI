@@ -7,12 +7,15 @@ using System.Threading.Tasks;
 using CTCommons.Grpc;
 using static ClassTranscribeDatabase.CommonUtils;
 using CTCommons;
+using System.Diagnostics.CodeAnalysis;
 
+ 
 namespace TaskEngine.Tasks
 {
     /// <summary>
     /// This task converts a video to a common format using ffmpeg.
     /// </summary>
+    [SuppressMessage("Microsoft.Performance", "CA1812:MarkMembersAsStatic")] // This class is never directly instantiated
     class ProcessVideoTask : RabbitMQTask<string>
     {
         private readonly RpcClient _rpcClient;

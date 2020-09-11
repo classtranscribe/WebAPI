@@ -4,10 +4,12 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Threading.Tasks;
 using static ClassTranscribeDatabase.CommonUtils;
+using System.Diagnostics.CodeAnalysis;
 
 namespace TaskEngine
 {
-    public abstract class RabbitMQTask<T>
+     [SuppressMessage("Microsoft.Performance", "CA1812:MarkMembersAsStatic")] // This class is never directly instantiated
+   public abstract class RabbitMQTask<T>
     {
         protected RabbitMQConnection _rabbitMQ { get; set; }
         protected string _queueName;

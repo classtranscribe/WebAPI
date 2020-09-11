@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json.Linq;
 using System;
 using System.IO;
 using System.Linq;
@@ -50,6 +51,17 @@ namespace ClassTranscribeServer.Controllers
             return Ok();
         }
 
+        /// <summary> 
+        /// Enqueue DownloadAllPlaylists task, which updates all playlists for all terms where start date is within 6 months of today.
+        /// 
+        /// </summary>
+        /// <remarks> 
+        /// Each playlist update is a separate task. Requesting an update is harmless though
+        /// be aware that some external sources (e.g. Youtube) limit API usage.
+        /// See QueueAwakerTask.DownloadAllPlaylists, DownloadPlaylistInfoTask for details
+        /// This API call is just for the impatient because the PeriodicCheck task also updates 
+        /// all playlists and (unlike this API function) also performs a PendingJobs task to kick off transcriptions.
+        /// </remarks>
         [HttpPost("UpdateAllPlaylists")]
         [Authorize(Roles = Globals.ROLE_ADMIN)]
         public ActionResult UpdateAllPlaylists()
@@ -58,6 +70,16 @@ namespace ClassTranscribeServer.Controllers
             return Ok();
         }
 
+        /// <summary> 
+        ///  Enqueue DownloadPlaylist task, which updates one playlist.
+        /// </summary>
+        /// <remarks>
+        ///  Requesting an update is harmless though
+        ///  be aware that some external sources (e.g. Youtube) limit API usage.
+        ///  See QueueAwakerTask.DownloadAllPlaylists, DownloadPlaylistInfoTask for details
+        ///  This API call is just for the impatient because the PeriodicCheck task also updates 
+        ///  all playlists and (unlike this API function) also performs a PendingJobs task to kick off transcriptions.
+        /// </remarks>
         [HttpPost("UpdatePlaylist")]
         [Authorize(Roles = Globals.ROLE_ADMIN)]
         public ActionResult UpdatePlaylist(string playlistId)
@@ -65,7 +87,16 @@ namespace ClassTranscribeServer.Controllers
             _wakeDownloader.UpdatePlaylist(playlistId);
             return Ok();
         }
-
+        
+        /// <summary>
+        /// Requests a re-download of missing media
+        /// </summary>
+        /// <remarks>
+        /// Enqueues a DownloadMedia task. Requests missing media (as opposed to waiting for the periodic check to discover them)
+        /// 
+        /// Duplicates are discarded. New videos cause captions and video processing tasks to be requested
+        /// See DownloadMediaTask.cs for more details.
+        /// </remarks>
         [HttpPost("DownloadMedia")]
         [Authorize(Roles = Globals.ROLE_ADMIN)]
         public ActionResult DownloadMedia(string mediaId)
@@ -74,6 +105,12 @@ namespace ClassTranscribeServer.Controllers
             return Ok();
         }
 
+        /// <sumarize>
+        /// Enqueue a ConvertMedia task. This creates a wav file (no longer used) and request captions
+        /// </sumarize>
+        /// <remarks>
+        /// It is unclear if this request is still useful.
+        /// </remarks>
         [HttpPost("ConvertMedia")]
         [Authorize(Roles = Globals.ROLE_ADMIN)]
         public ActionResult ConvertMedia(string videoId)
@@ -143,5 +180,27 @@ namespace ClassTranscribeServer.Controllers
             memory.Position = 0;
             return File(memory, "text/csv", Path.GetFileNameWithoutExtension(path) + ".csv");
         }
+
+        /// <summary>
+        /// Returns the sha1 commit hash and build number, or 'unspecified' if these are unknown
+        /// Example result : {"Commit":"hexadecimalnumber","Build":"123"}
+        /// </summary>
+        [HttpGet("GetVersion")]
+        [AllowAnonymous]
+        [Produces("application/json")]
+        public async Task<ActionResult<BuildVersionDTO>> GetVersion()
+        {
+            BuildVersionDTO result = new BuildVersionDTO() {
+                Commit =  Globals.appSettings.GITSHA1,
+                Build = Globals.appSettings.BUILDNUMBER
+            };
+            return result;
+        }
+
+        public class BuildVersionDTO
+        {
+            public string Commit { get; set; }
+            public string Build { get; set; }
+        }        
     }
 }

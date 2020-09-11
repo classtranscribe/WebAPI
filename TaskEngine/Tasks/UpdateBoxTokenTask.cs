@@ -3,9 +3,11 @@ using CTCommons;
 using Microsoft.Extensions.Logging;
 using System.Threading.Tasks;
 using static ClassTranscribeDatabase.CommonUtils;
+using System.Diagnostics.CodeAnalysis;
 
 namespace TaskEngine.Tasks
 {
+    [SuppressMessage("Microsoft.Performance", "CA1812:MarkMembersAsStatic")] // This class is never directly instantiated
     class UpdateBoxTokenTask : RabbitMQTask<string>
     {
         private BoxAPI _box;
