@@ -140,6 +140,7 @@ namespace ClassTranscribeServer
                         },new List<string>()
                     }
                 });
+                c.SchemaFilter<SwaggerSchemaFilter>();
                 c.OperationFilter<FileUploadOperation>(); //Register File Upload Operation Filter
             });
             services.AddApplicationInsightsTelemetry(Globals.appSettings.APPLICATION_INSIGHTS_KEY);
