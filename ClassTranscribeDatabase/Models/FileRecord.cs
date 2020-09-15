@@ -62,6 +62,7 @@ namespace ClassTranscribeDatabase.Models
         /// 1. PrivatePath is the actual path stored on the database. This path is relative to the 
         /// 2. Path
         /// </summary>
+        [SwaggerIgnore]
         [IgnoreDataMember]
         public string PrivatePath { get; set; }
         [NotMapped]
@@ -88,6 +89,7 @@ namespace ClassTranscribeDatabase.Models
                 PrivatePath = value.Substring(value.LastIndexOf("/data/"));
             }
         }
+        [SwaggerIgnore]
         [IgnoreDataMember]
         public string VMPath
         {
@@ -96,6 +98,7 @@ namespace ClassTranscribeDatabase.Models
                 return PrivatePath;
             }
         }
+        [SwaggerIgnore]
         [IgnoreDataMember]
         public string Hash { get; set; }
 
