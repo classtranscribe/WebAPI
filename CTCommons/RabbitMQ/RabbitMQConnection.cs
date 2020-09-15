@@ -68,7 +68,12 @@ namespace CTCommons
             }
             
         }
-
+        /// <summary>
+        /// Registers task and starts consuming messages
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="queueName"></param>
+        /// <param name="OnConsume"></param>
         public void ConsumeTask<T>(string queueName, Func<T, TaskParameters, Task> OnConsume)
         {
             // Caution. The queue is also declard inside PublishTask above
@@ -113,7 +118,9 @@ namespace CTCommons
                                      consumer: consumer);
             }
         }
-
+        /// <summary>
+        /// Deletes all Rabbit MQ queues (currently used in TaskEngine Program.cs during startup)
+        /// </summary>
         public void DeleteAllQueues()
         {
             lock (_channel)
