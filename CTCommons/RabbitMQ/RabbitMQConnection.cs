@@ -1,9 +1,11 @@
 ﻿using ClassTranscribeDatabase;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
+using Org.BouncyCastle.Asn1.CryptoPro;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System;
+using System.Runtime.InteropServices.ComTypes;
 using System.Threading.Tasks;
 
 /// <summary>
@@ -86,7 +88,7 @@ namespace CTCommons
                 // See https://www.rabbitmq.com/consumer-prefetch.html
                 // See https://stackoverflow.com/questions/59493540/what-is-prefetchsize-in-rabbitmq
 
-                _channel.BasicQos(prefetchSize: 0, prefetchCount: maxconcurrent, global: false);
+                _channel.BasicQos(prefetchSize: 0, prefetchCount: concurrency, global: false);
             }
             
             _logger.LogInformation(" [*] Waiting for messages, queueName - {0}", queueName);
@@ -95,7 +97,7 @@ namespace CTCommons
             consumer.Received += async (model, ea) =>
             {
                 var taskObject = CommonUtils.BytesToMessage<TaskObject<T>>(ea.Body);
-                _logger.LogInformation(" [x] Received {0}", taskObject);
+                _logger.LogInformation(" [x] {0} Received {1}", queueName, taskObject.ToString());
                 // TODO: Update JobStatus table here (started timestamp)
                 try
                 {
@@ -103,10 +105,10 @@ namespace CTCommons
                 }
                 catch (Exception e)
                 {
-                    _logger.LogError(e, "Error occured in RabbitMQConnection for message {0}", taskObject.ToString());
+                    _logger.LogError(e, "Error occured in RabbitMQConnection {0} for message {1}", queueName, taskObject.ToString());
                 }
 
-                _logger.LogInformation(" [x] Done {0}", taskObject);
+                _logger.LogInformation(" [x] {0} Done {1}", queueName, taskObject.ToString());
                 // TODO Update JobStatus table here (including timestamp +  result + exception if it occurred)
                 lock (_channel)
                 {
@@ -185,13 +187,31 @@ namespace CTCommons
     }
     public class TaskParameters
     {
+        //TODO /TOREVIEW: This is checked in a few places, but is it set anywhere?
         public bool Force { get; set; }
         public JObject Metadata { get; set; }
+
+        /// <summary>
+        /// Returns a  readable String for debugging and logging purposes.
+        /// </summary>
+        /// <returns>A possibly verbose String representation of this object.</returns>
+        public override string ToString()
+        {
+            return $"TaskParameters(Force = {Force}; Metadata = {Metadata})";
+        }
     }
 
     public class TaskObject<T>
     {
         public T Data { get; set; }
         public TaskParameters TaskParameters { get; set; }
+        /// <summary>
+        /// Returns a  readable String for debugging and logging purposes.
+        /// </summary>
+        /// <returns>A possibly verbose String representation of this object.</returns>
+        public override String ToString()
+        {
+            return $"TaskObject(Data={Data}; TaskParameters={TaskParameters};";
+        }
     }
 }
