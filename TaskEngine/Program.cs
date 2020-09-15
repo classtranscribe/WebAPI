@@ -87,16 +87,28 @@ namespace TaskEngine
             //Todo. Recreate all of the queues before starting them below
 
             // Create and start consuming from all queues.
-            serviceProvider.GetService<DownloadPlaylistInfoTask>().Consume();
-            serviceProvider.GetService<DownloadMediaTask>().Consume();
+            
+            ushort noConcurrency = 1;
+            ushort minimalConcurrency = 2;
+            ushort maxConcurrency = 4; //  Convert.ToUInt16(Globals.appSettings.RABBITMQ_PREFETCH_COUNT ?? "4");
+
+            serviceProvider.GetService<DownloadMediaTask>().Consume(minimalConcurrency);
+            serviceProvider.GetService<TranscriptionTask>().Consume(minimalConcurrency); // extracts audio
+
+            serviceProvider.GetService<QueueAwakerTask>().Consume(maxConcurrency); //TODO TOREVIEW: noConcurrency?
+
+            serviceProvider.GetService<GenerateVTTFileTask>().Consume(maxConcurrency);
+            serviceProvider.GetService<DownloadPlaylistInfoTask>().Consume(maxConcurrency);
+
+            // We dont want concurrency for these tasks
+            serviceProvider.GetService<UpdateBoxTokenTask>().Consume(noConcurrency);
+            serviceProvider.GetService<CreateBoxTokenTask>().Consume(noConcurrency);
+            // These are too heavy and low priority
+            serviceProvider.GetService<ProcessVideoTask>().Consume(noConcurrency);
+            serviceProvider.GetService<SceneDetectionTask>().Consume(noConcurrency);
+
+
             //nolonger used serviceProvider.GetService<nope ConvertVideoToWavTask>().Consume();
-            serviceProvider.GetService<TranscriptionTask>().Consume();
-            serviceProvider.GetService<QueueAwakerTask>().Consume();
-            serviceProvider.GetService<GenerateVTTFileTask>().Consume();
-            serviceProvider.GetService<ProcessVideoTask>().Consume();
-            serviceProvider.GetService<SceneDetectionTask>().Consume();
-            serviceProvider.GetService<UpdateBoxTokenTask>().Consume();
-            serviceProvider.GetService<CreateBoxTokenTask>().Consume();
 
             bool hacktest = false;
             if (hacktest)

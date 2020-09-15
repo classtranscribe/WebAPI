@@ -21,7 +21,7 @@ namespace CTCommons
     {
         IConnection _connection;
         IModel _channel { get; set; }
-        public ushort prefetchCount { get; set; }
+       
         private readonly ILogger _logger;
         public RabbitMQConnection(ILogger<RabbitMQConnection> logger)
         {
@@ -34,8 +34,6 @@ namespace CTCommons
             };
             _connection = factory.CreateConnection();
             _channel = _connection.CreateModel();
-            prefetchCount = Convert.ToUInt16(Globals.appSettings.RABBITMQ_PREFETCH_COUNT ?? "10");
-            // TODO / TOREVIEW: 10 is too high a default for jobs that use all CPUs
 
         }
         /// <summary>
@@ -74,9 +72,10 @@ namespace CTCommons
         /// <typeparam name="T"></typeparam>
         /// <param name="queueName"></param>
         /// <param name="OnConsume"></param>
-        public void ConsumeTask<T>(string queueName, Func<T, TaskParameters, Task> OnConsume)
+        public void ConsumeTask<T>(string queueName, Func<T, TaskParameters, Task> OnConsume, ushort concurrency)
         {
             // Caution. The queue is also declard inside PublishTask above
+            _logger.LogInformation("Prefetch/ concurrency count " + concurrency);
             lock (_channel)
             {
                 _channel.QueueDeclare(queue: queueName,
@@ -85,8 +84,11 @@ namespace CTCommons
                                      autoDelete: false,
                                      arguments: null);
                 // See https://www.rabbitmq.com/consumer-prefetch.html
-                _channel.BasicQos(prefetchSize: 0, prefetchCount: prefetchCount, global: false);
+                // See https://stackoverflow.com/questions/59493540/what-is-prefetchsize-in-rabbitmq
+
+                _channel.BasicQos(prefetchSize: 0, prefetchCount: maxconcurrent, global: false);
             }
+            
             _logger.LogInformation(" [*] Waiting for messages, queueName - {0}", queueName);
 
             var consumer = new EventingBasicConsumer(_channel);
