@@ -91,7 +91,8 @@ namespace TaskEngine.Tasks
                     });
                 }
             }
-
+            
+            // TODO/TOREVIEW: Does this support the new restart functionality?
             if (video.Transcriptions != null && video.Transcriptions.Any())
             {
                 var oldTranscriptions = video.Transcriptions;
@@ -105,8 +106,13 @@ namespace TaskEngine.Tasks
             // Add the latest transcriptions.
             await _context.Transcriptions.AddRangeAsync(transcriptions);
             await _context.SaveChangesAsync();
+            
+            // TODO/TOREVIEW: Refactor explicit task dependency
             transcriptions.ForEach(t => _generateVTTFileTask.Publish(t.Id));
             _sceneDetectionTask.Publish(video.Id);
+
+            // TODO/TOREVIEW: Why leave the incrementing until the end?
+            // TODO/TOREVIEW: Wrap everything with a try catch and rethrow?
             video.TranscriptionStatus = result.ErrorCode;
             video.TranscribingAttempts += 1;
             await _context.SaveChangesAsync();
