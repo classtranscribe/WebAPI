@@ -55,6 +55,7 @@ namespace TaskEngine.Tasks
                     case SourceType.Kaltura: medias = await GetKalturaPlaylist(playlist, _context); break;
                     case SourceType.Box: medias = await GetBoxPlaylist(playlist, _context); break;
                 }
+                // TASK DEPENDENCY (REFACTOR)
                 medias.ForEach(m => _downloadMediaTask.Publish(m.Id));
             }
         }
