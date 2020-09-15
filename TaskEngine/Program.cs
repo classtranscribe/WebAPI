@@ -69,22 +69,27 @@ namespace TaskEngine
 
             AppDomain currentDomain = AppDomain.CurrentDomain;
             currentDomain.UnhandledException += new UnhandledExceptionEventHandler(ExceptionHandler);
+            _logger.LogInformation("Seeding database");
 
             // Seed the database, with some initial data.
             Seeder seeder = serviceProvider.GetService<Seeder>();
             seeder.Seed();
 
-            _logger.LogInformation("Starting application");
+            _logger.LogInformation("Starting TaskEngine");
 
 
             // Delete any pre-existing queues on rabbitMQ.
             RabbitMQConnection rabbitMQ = serviceProvider.GetService<RabbitMQConnection>();
-            rabbitMQ.DeleteAllQueues();
 
-            // Start consuming from all queues.
+            _logger.LogInformation("RabbitMQ - deleting all queues");
+
+            rabbitMQ.DeleteAllQueues();
+            //Todo. Recreate all of the queues before starting them below
+
+            // Create and start consuming from all queues.
             serviceProvider.GetService<DownloadPlaylistInfoTask>().Consume();
             serviceProvider.GetService<DownloadMediaTask>().Consume();
-            // serviceProvider.GetService<ConvertVideoToWavTask>().Consume();
+            //nolonger used serviceProvider.GetService<nope ConvertVideoToWavTask>().Consume();
             serviceProvider.GetService<TranscriptionTask>().Consume();
             serviceProvider.GetService<QueueAwakerTask>().Consume();
             serviceProvider.GetService<GenerateVTTFileTask>().Consume();
