@@ -52,30 +52,36 @@ namespace CTCommons
             // they might publish a task to different queue?
             // Better? Should we create the queue (in Program.cs) separately from servicing or publishing the queue
             // Or is always (re-)declaring the queue best practices for RabbitNQ?
-
-            _channel.QueueDeclare(queue: queueName, durable: true, exclusive: false, autoDelete: false, arguments: null);
-
+            lock ((_channel))
+            {
+                _channel.QueueDeclare(queue: queueName, durable: true, exclusive: false, autoDelete: false, arguments: null);
+            }
             var taskObject = new TaskObject<T> { Data = data, TaskParameters = taskParameters };
             var body = CommonUtils.MessageToBytes(taskObject);
             var properties = _channel.CreateBasicProperties();
             properties.Persistent = true;
             // See https://www.rabbitmq.com/dotnet-api-guide.html#concurrency-channel-sharing
-
-            _channel.BasicPublish(exchange: "", routingKey: queueName, basicProperties: properties, body: body);
+            // Use a lock to ensure thread safety
+            lock (_channel)
+            {
+                _channel.BasicPublish(exchange: "", routingKey: queueName, basicProperties: properties, body: body);
+            }
+            
         }
 
         public void ConsumeTask<T>(string queueName, Func<T, TaskParameters, Task> OnConsume)
         {
             // Caution. The queue is also declard inside PublishTask above
-
-            _channel.QueueDeclare(queue: queueName,
-                                 durable: true,
-                                 exclusive: false,
-                                 autoDelete: false,
-                                 arguments: null);
-            // See https://www.rabbitmq.com/consumer-prefetch.html
-            _channel.BasicQos(prefetchSize: 0, prefetchCount: prefetchCount, global: false);
-
+            lock (_channel)
+            {
+                _channel.QueueDeclare(queue: queueName,
+                                     durable: true,
+                                     exclusive: false,
+                                     autoDelete: false,
+                                     arguments: null);
+                // See https://www.rabbitmq.com/consumer-prefetch.html
+                _channel.BasicQos(prefetchSize: 0, prefetchCount: prefetchCount, global: false);
+            }
             _logger.LogInformation(" [*] Waiting for messages, queueName - {0}", queueName);
 
             var consumer = new EventingBasicConsumer(_channel);
@@ -95,19 +101,35 @@ namespace CTCommons
 
                 _logger.LogInformation(" [x] Done {0}", taskObject);
                 // TODO Update JobStatus table here (including timestamp +  result + exception if it occurred)
-                _channel.BasicAck(deliveryTag: ea.DeliveryTag, multiple: false);
+                lock (_channel)
+                {
+                    _channel.BasicAck(deliveryTag: ea.DeliveryTag, multiple: false);
+                }
             };
-            _channel.BasicConsume(queue: queueName,
-                                 autoAck: false,
-                                 consumer: consumer);
+            lock (_channel)
+            {
+                _channel.BasicConsume(queue: queueName,
+                                     autoAck: false,
+                                     consumer: consumer);
+            }
         }
 
         public void DeleteAllQueues()
         {
-            foreach (CommonUtils.TaskType taskType in Enum.GetValues(typeof(CommonUtils.TaskType)))
+            lock (_channel)
             {
-                string queueName = taskType.ToString();
-                _channel.QueueDelete(queueName);
+                foreach (CommonUtils.TaskType taskType in Enum.GetValues(typeof(CommonUtils.TaskType)))
+                {
+                    string queueName = taskType.ToString();
+                    try
+                    {
+                        _channel.QueueDelete(queueName);
+                    }
+                    catch (Exception e)
+                    {
+                        _logger.LogError(e, "Error deleting queue {0}", queueName);
+                    }
+                }
             }
             // TODO Update JobStatus table here
         }
@@ -117,7 +139,7 @@ namespace CTCommons
 
         protected virtual void Dispose(bool disposing)
         {
-            if (!disposedValue)
+            if (_channel != null && !disposedValue)
             {
                 if (disposing)
                 {
@@ -126,9 +148,11 @@ namespace CTCommons
 
                 // TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.
                 // TODO: set large fields to null.
-                _channel.Close();
-                _connection.Close();
-
+                lock (_channel)
+                {
+                    _channel.Close(); _channel = null;
+                    _connection.Close(); _connection = null;
+                }
                 disposedValue = true;
             }
         }
