@@ -65,6 +65,11 @@ namespace CTCommons.MSTranscription
 
             TimeSpan lastSuccessfulTime = TimeSpan.Zero;
             string errorCode = "";
+
+            //TODO: ADD Environment variable support
+            bool verboseLogging = false;
+
+            // TODO/TOREVIEW: Global change to Console!?
             Console.OutputEncoding = Encoding.Unicode;
             
             var stopRecognition = new TaskCompletionSource<int>();
@@ -87,11 +92,14 @@ namespace CTCommons.MSTranscription
 
                             if (e.Result.Text == "" && wordLevelCaptions.Count == 0)
                             {
-                                TimeSpan _offset = new TimeSpan(e.Result.OffsetInTicks);
-                                _logger.LogInformation($"Begin={_offset.Minutes}:{_offset.Seconds},{_offset.Milliseconds}", _offset);
-                                _logger.LogInformation("Empty String");
-                                TimeSpan _end = e.Result.Duration.Add(_offset);
-                                _logger.LogInformation($"End={_end.Minutes}:{_end.Seconds},{_end.Milliseconds}");
+                               
+                                if(verboseLogging) {
+                                    TimeSpan _offset = new TimeSpan(e.Result.OffsetInTicks);
+                                    TimeSpan _end = e.Result.Duration.Add(_offset);
+                                    _logger.LogInformation($"Begin={_offset.Minutes}:{_offset.Seconds},{_offset.Milliseconds}", _offset);
+                                    _logger.LogInformation("Empty String");
+                                    _logger.LogInformation($"End={_end.Minutes}:{_end.Seconds},{_end.Milliseconds}");
+                                }
                                 return;
                             }
                             
@@ -104,11 +112,17 @@ namespace CTCommons.MSTranscription
                             var sentenceLevelCaptions = MSTWord.WordLevelTimingsToSentenceLevelTimings(e.Result.Text, wordLevelCaptions);
 
                             TimeSpan offset = new TimeSpan(e.Result.OffsetInTicks);
-                            _logger.LogInformation($"Begin={offset.Minutes}:{offset.Seconds},{offset.Milliseconds}", offset);
+                           
                             TimeSpan end = e.Result.Duration.Add(offset);
-                            _logger.LogInformation($"End={end.Minutes}:{end.Seconds},{end.Milliseconds}");
+                            if(verboseLogging) {
+                                _logger.LogInformation($"Begin={offset.Minutes}:{offset.Seconds},{offset.Milliseconds}", offset);
+                                _logger.LogInformation($"End={end.Minutes}:{end.Seconds},{end.Milliseconds}");
+                            }
                             var newCaptions = MSTWord.AppendCaptions(captions[Languages.ENGLISH].Count, sentenceLevelCaptions);
-                            // Add offset here.
+                            
+                            //TODO/TOREVIEW: Restart Not fully implemented yet?
+                            // Comment still here... "Add offset here."
+
                             captions[Languages.ENGLISH].AddRange(newCaptions);
 
                             foreach (var element in e.Result.Translations)

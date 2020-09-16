@@ -39,13 +39,13 @@ namespace TaskEngine
                 _logger.LogError(e, "Error Publishing Task!");
             }
         }
-
+        
         protected abstract Task OnConsume(T data, TaskParameters taskParameters = null);
-        public void Consume()
+        public void Consume(ushort concurrency)
         {
             try
             {
-                _rabbitMQ.ConsumeTask<T>(_queueName, OnConsume);
+                _rabbitMQ.ConsumeTask<T>(_queueName, OnConsume, concurrency);
             }
             catch (Exception e)
             {
