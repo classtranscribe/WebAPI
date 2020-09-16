@@ -55,6 +55,7 @@ namespace TaskEngine.Tasks
                     case SourceType.Kaltura: medias = await GetKalturaPlaylist(playlist, _context); break;
                     case SourceType.Box: medias = await GetBoxPlaylist(playlist, _context); break;
                 }
+                // TASK DEPENDENCY (REFACTOR)
                 medias.ForEach(m => _downloadMediaTask.Publish(m.Id));
             }
         }
@@ -228,10 +229,14 @@ namespace TaskEngine.Tasks
             await _context.SaveChangesAsync();
             return newMedia;
         }
-        /// The purpose of this code is unknown. Why might local media be connected to a playlist but missing a name?
-        // And why setting a name lead to m.Video being non-null in the future.
-        /// For the UpdateAllPlaylists and UpdatePlaylist admin interfaces this appears to be a noop for all good files at least
-
+      
+        /// For recently directly/manually uploaded video files, 
+        /// only the media entry for each uploaded video is created
+        /// But we process them here AND in the DownloadMedia 
+        /// (which ultimately sets the name)
+        /// i.e. to better understand this code first also read the DownloadMedia code
+        /// When run as part of the periodic update all playlists, this
+        /// code should be a NOOP
         public async Task<List<Media>> GetLocalPlaylist(Playlist playlist, CTDbContext _context)
         {
             var medias = await _context.Medias.Where(m => m.Video == null && m.PlaylistId == playlist.Id).ToListAsync();

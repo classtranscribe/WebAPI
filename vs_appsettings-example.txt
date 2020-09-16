@@ -1,5 +1,5 @@
 Steps to create vs_appsettings.json for local development:
-1. Copy the object below (lines 3-21) into a file named "vs_appsettings.json": 
+1. Copy the object below (including the { and }) into a file named "vs_appsettings.json": 
 {
   "JWT_EXPIRE_DAYS": 30,
   "JWT_KEY": "GXVM7aJOEL6fB2ME6kRXI8JA6+0PeLEnwf8hcl0an20=",
@@ -17,6 +17,11 @@ Steps to create vs_appsettings.json for local development:
   "AUTH0_CLIENT_ID": "GsBj4oR32ys2g2p4iGKWaaqkQRhTHr0d",
   "APPLICATION_INSIGHTS_KEY": "d66dd2dd-6b0c-4b9a-8f63-d91350ea9ce7",
   "SLACK_WEBHOOK_URL": "<ADD WEBHOOK URL HERE>",
+  
+  "MAX_CONCURRENT_TRANSCRIPTIONS":"1"
+  "MAX_CONCURRENT_VIDEO_TASKS" : "1"
+  "MAX_CONCURRENT_SYNC_TASKS" : "1"
+  
   "HOST_NAME":  "localhost"
 }
 
@@ -31,4 +36,6 @@ Steps to create vs_appsettings.json for local development:
 3. For the "DATA_DIRECTORY", paste the absolute path of the /test_data/data directory. For example, it might look like this on a unix machine:
 - "DATA_DIRECTORY": "/Users/<username>/code/Deployment/test_data/data" (make sure to use backslaches if using Windows)
 
-4. For the "SLACK_WEBHOOK_URL", you can create your own webhook with these instructions: https://slack.com/help/articles/115005265063-Incoming-webhooks-for-Slack
+There's a script in Deployments repo to create the subdirectories. Without these the database container will not start.
+
+4. For the "SLACK_WEBHOOK_URL", you can leave it blank or create your own webhook with these instructions: https://slack.com/help/articles/115005265063-Incoming-webhooks-for-Slack
