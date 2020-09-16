@@ -163,6 +163,7 @@ namespace TaskEngine.Tasks
                 // See https://code-maze.com/queries-in-entity-framework-core/
                 // See https://docs.microsoft.com/en-us/ef/core/querying/tracking
 
+
                 // Completed Transcriptions which haven't generated vtt files
                 // TODO: Should also check dates too
                 _logger.LogInformation($"Finding incomplete VTTs, Transcriptions and Downloads from before {tooRecentCutoff}, minutesCutOff=({minutesCutOff})");
