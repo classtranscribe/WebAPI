@@ -22,9 +22,9 @@ namespace TaskEngine
     class Program
     {
         // Default concurrency (max jobs in parallel *PER QUEUE* (=Per task) if none are set in env
-        private  const ushort NO_CONCURRENCY = 1; // Some tasks should be serialized
-        private  const ushort MIN_CONCURRENCY = 2; // By definition minimal is two.
-        
+        private const ushort NO_CONCURRENCY = 1; // Some tasks should be serialized
+        private const ushort MIN_CONCURRENCY = 2; // By definition minimal is two.
+
 
         public static ServiceProvider _serviceProvider;
         public static ILogger<Program> _logger;
@@ -92,13 +92,13 @@ namespace TaskEngine
             //TODO/TOREVIEW: Should we create all of the queues _before_ starting them?
             // In the current version (all old messages deleted) it is ununnecessary
             // But it seems cleaner to me to create them all first before starting them
-           
 
 
 
-            ushort concurrent_videotasks=toUInt16( Globals.appSettings.MAX_CONCURRENT_VIDEO_TASKS, NO_CONCURRENCY);
-            ushort concurrent_synctasks = toUInt16( Globals.appSettings.MAX_CONCURRENT_SYNC_TASKS,  MIN_CONCURRENCY);
-            ushort concurrent_transcriptions = toUInt16( Globals.appSettings.MAX_CONCURRENT_TRANSCRIPTIONS, MIN_CONCURRENCY);
+
+            ushort concurrent_videotasks = toUInt16(Globals.appSettings.MAX_CONCURRENT_VIDEO_TASKS, NO_CONCURRENCY);
+            ushort concurrent_synctasks = toUInt16(Globals.appSettings.MAX_CONCURRENT_SYNC_TASKS, MIN_CONCURRENCY);
+            ushort concurrent_transcriptions = toUInt16(Globals.appSettings.MAX_CONCURRENT_TRANSCRIPTIONS, MIN_CONCURRENCY);
 
 
             // Create and start consuming from all queues.
@@ -162,10 +162,13 @@ namespace TaskEngine
             _logger.LogError(e, "Unhandled Exception Caught");
         }
 
-        static ushort toUInt16(String val, ushort defaultVal)
+        private static ushort toUInt16(String val, ushort defaultVal)
         {
             // ConvertToUInt16(String, int base) is not the droid you are looking for 
-            if (val != null || val.Length == 0) return Convert.ToUInt16(val); //May throw exception
+            if (val != null && val.Length > 0)
+            {
+                return Convert.ToUInt16(val); //May throw exception if val is not convertable
+            }
             return defaultVal;
         }
     }
