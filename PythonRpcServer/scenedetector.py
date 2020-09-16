@@ -47,7 +47,7 @@ def find_scenes(video_path):
         base_timecode = video_manager.get_base_timecode()
 
         # We save our stats file to {VIDEO_PATH}.stats.csv.
-        stats_file_path = '%s.stats.csv' % video_path
+        stats_file_path = f'{video_path}.stats.csv'
         scene_list = []
 
         try:
