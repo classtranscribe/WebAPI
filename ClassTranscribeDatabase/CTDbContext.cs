@@ -165,6 +165,7 @@ namespace ClassTranscribeDatabase
             builder.Entity<EPubChapter>().HasQueryFilter(m => m.IsDeletedStatus == Status.Active);
             builder.Entity<EPub>().HasQueryFilter(m => m.IsDeletedStatus == Status.Active);
             builder.Entity<TaskItem>().HasQueryFilter(m => m.IsDeletedStatus == Status.Active);
+            
 
             // Configure m-to-n relationships.
             builder.Entity<CourseOffering>()
@@ -212,8 +213,19 @@ namespace ClassTranscribeDatabase
             builder.Entity<TaskItem>().Property(m => m.TaskParameters).HasJsonValueConversion();
             builder.Entity<TaskItem>().Property(m => m.ResultData).HasJsonValueConversion();
 
+            builder.Entity<TaskItem>().Property(m => m.ResultData).HasJsonValueConversion();
+            builder.Entity<TaskItem>().Property(m => m.RemoteResultData).HasJsonValueConversion();
+            
+
+
             builder.Entity<Subscription>().HasAlternateKey(s => new { s.ResourceType, s.ResourceId, s.ApplicationUserId });
             builder.Entity<TaskItem>().HasAlternateKey(t => new { t.UniqueId, t.TaskType });
+            builder.Entity<TaskItem>().HasAlternateKey(t => new { t.RuleURI });
+            builder.Entity<TaskItem>().HasAlternateKey(t => new { t.OfferingId });
+            builder.Entity<TaskItem>().HasAlternateKey(t => new { t.MediaId });
+            builder.Entity<TaskItem>().HasAlternateKey(t => new { t.PlaylistId });
+            builder.Entity<TaskItem>().HasAlternateKey(t => new { t.UserId });
+            builder.Entity<TaskItem>().HasAlternateKey(t => new { t.VideoId });
         }
         public override int SaveChanges(bool acceptAllChangesOnSuccess)
         {

@@ -375,14 +375,97 @@ namespace ClassTranscribeDatabase.Models
         public Ack Ack { get; set; }
     }
 
+
+    /// <summary>
+
     public class TaskItem : Entity
     {
+        // e.g. RefreshPlaylist/playlist-id
+        // e.g. GenerateCaptions/playlist-uuid
+        // e.g. GenerateCaptions/videoid/old-caption-id
+        // RuleURIs are not unique; a job may be repeated (e.g. poll external playlists) or repeated due to server restart/service timeout
+        // They are useful for searching for similar jobs
+        public string RuleURI {get; set;}
         public string UniqueId { get; set; }
+
+        // Transcribe DownloadVideo etc
         public TaskType TaskType { get; set; }
-        public int Attempts { get; set; }
+        //public int Attempts { get; set; }
         public JObject TaskParameters { get; set; }
-        public bool Result { get; set; }
-        public bool Retry { get; set; }
-        public JObject ResultData { get; set; }
+        //public bool Result { get; set; }
+        //public bool Retry { get; set; }
+        
+        
+        public DateTime QueuedAt { get; set; }
+        public DateTime StartedAt { get; set; }
+        public DateTime EndedAt { get; set; }
+
+        public TaskItem PreviousAttempt { get; set; }
+        public int AttemptNumber { get; set; }
+        public TaskItem Parent { get; set; }
+        // Context in which this task was created (useful for filtering and searching)
+        public String OfferingId { get; set; }
+        public String MediaId { get; set; }
+        public String PlaylistId { get; set; }
+        public String UserId { get; set; }
+        public String VideoId { get; set; }
+
+        // If another Task was ultimately responsible for this task
+        public TaskItem Ancestor { get; set; }
+
+        public TaskResultCode TaskResultCode { get; set; }
+        // Printable string that explains the ultimate status of this task. Typically updated when Completion status is set
+        public String DisplayMessage { get; set; }
+
+        // Results (including exception details) of local C# processing
+        public JObject ResultData { get; set; } // Json {"Exception":{ "Type":"","Message":"","StackTrack":""}, result:""}
+        // Results from remote processing (including exception details)
+        
+        // Many Tasks use some remote procedure call first. Log the details of that phase
+        public JObject RemoteResultData { get; set; } // Json {"Exception":{ "Type":"","Message":"","StackTrack":""}, result:""}
+        
+        // Rabbit MQ message identifier if known
+        public String OpaqueMessageRef { get; set; }
+
     }
+
+
+    public enum TaskResultCode
+    {
+        Created = 100, // Entry in this table but not in the queue
+        Queued = 200, // Entry in the queue
+        Removed = 300, // Entry has been removed from queue, was never started. No reason given
+        RemoveddByRestart = 305, // Removed due to external container or VM restart
+        RemoveByTaskEngine = 310, // TaskEngine removed this task due to some logical reason 
+        RemovedBySelf = 715, // The Task self-canceled ; this is impossible but kept to synchronized values with the cancelled ones
+        RemovedByAdmin = 720, // Extenrnally canceled by an admin web user or swag api/admin interface
+        RemovedByWebUser = 725, // Extenrnally canceled by a (non admin) web user
+
+
+
+        // Codes below 400-599 represent started
+
+        Started = 400, // Computation has started!
+                       //xFuture? Paused=500, // Computation has paused (not currently implemented)
+
+        // Codes 600 or above represent completion
+        Succeeded = 600, // Finished normaly
+        SucceededWithWarning = 605, // Task finished normally but data errors should be reviewed 
+
+        // Cancelled jobs may typically be retried if the cause is understood
+        Cancelled= 700, // Canceled, no further reason
+        CancelledByRestart = 705, // Extenrnally canceled due to external container or VM restart
+        CancelledByTaskEngine = 710, // TaskEngine canceled this task 
+        CancelledBySelf = 715, // The Task self-canceled due to unmet pre-condition
+        CancelledByAdmin = 720, // Extenrnally canceled by an admin web user or swag api/admin interace
+        CancelledByWebUser = 725, // Extenrnally canceled by a (non admin) web user
+
+        // Failed jobs should generally not be restarted
+        Failed = 800, // Job ran to completion but an error occurred somewhere
+        FailedDueToRPCProtocol = 805, // Job failed due to gRPC communcationerror (protocol error, not remote code/data error)
+        FailedDueToRemoteError = 810, // Job failed during remote computation
+
+        FailedDueToTimeout = 815 // A timeout condition occured and this computation was discarded 
+    }
+
 }
