@@ -213,19 +213,25 @@ namespace ClassTranscribeDatabase
             builder.Entity<TaskItem>().Property(m => m.TaskParameters).HasJsonValueConversion();
             builder.Entity<TaskItem>().Property(m => m.ResultData).HasJsonValueConversion();
 
-            builder.Entity<TaskItem>().Property(m => m.ResultData).HasJsonValueConversion();
             builder.Entity<TaskItem>().Property(m => m.RemoteResultData).HasJsonValueConversion();
             
 
 
             builder.Entity<Subscription>().HasAlternateKey(s => new { s.ResourceType, s.ResourceId, s.ApplicationUserId });
+            //TODO:TOREVIEW  Good idea or not to include these?
+            // And what about  .HasOne()
+                //.WithMany)
+               // .HasForeignKey();
+
             builder.Entity<TaskItem>().HasAlternateKey(t => new { t.UniqueId, t.TaskType });
-            builder.Entity<TaskItem>().HasAlternateKey(t => new { t.RuleURI });
+            builder.Entity<TaskItem>().HasAlternateKey(t => new { t.Rule });
             builder.Entity<TaskItem>().HasAlternateKey(t => new { t.OfferingId });
             builder.Entity<TaskItem>().HasAlternateKey(t => new { t.MediaId });
             builder.Entity<TaskItem>().HasAlternateKey(t => new { t.PlaylistId });
             builder.Entity<TaskItem>().HasAlternateKey(t => new { t.UserId });
             builder.Entity<TaskItem>().HasAlternateKey(t => new { t.VideoId });
+            builder.Entity<TaskItem>().HasAlternateKey(t => new { t.OpaqueMessageRef });
+            
         }
         public override int SaveChanges(bool acceptAllChangesOnSuccess)
         {
