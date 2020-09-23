@@ -29,23 +29,23 @@ namespace Tests
         
         public string api { get; set; }
         public Method method { get; set; }
-        public List<List<string>> inputs { get; set; }
-        public List<string> expectations { get; set; }
+        public List<string> inputs { get; set; }
+        public string expectations { get; set; }
         public string token { get; set; }
-        public List<AssertInfo> asserts { get; set; }
+        public AssertInfo asserts { get; set; }
 
 
-        public  TestCase(string _token,  string _api, string _method, List<string[]> _input, List<string> _expectation)
+        public  TestCase(string _token,  string _api, string _method, string[] _input, string _expectation)
         {
             token = _token;
             api = _api;
             method = (Method)Enum.Parse(typeof(Method), Utils.toTitleCase(_method));
-            inputs = _input.Select(i => i.ToList()).ToList();
-            inputs.ForEach(i=>i.Add(null));
+            inputs = _input.ToList();
+            inputs.Add(null);
             expectations = _expectation;
         }
 
-        public List<AssertInfo> Run()
+        public AssertInfo Run()
         {
 
             MyClient t = ClientFactory.CreateTestClient(Setting.baseUrl, new HttpClient(), token);
@@ -66,14 +66,13 @@ namespace Tests
             Console.WriteLine(methodInfo.Name);
 
 
-
             List<Type> pars = methodInfo.GetParameters().Select(p => p.ParameterType).ToList();
 
-            List<dynamic> tasks = inputs.Select(i => methodInfo.Invoke(t, Utils.MultipleParamParse(i, pars).ToArray())).ToList();
+            dynamic tasks = methodInfo.Invoke(t, Utils.MultipleParamParse(inputs, pars).ToArray());
 
-            List<dynamic> results = tasks.Select(t => t.GetAwaiter().GetResult()).ToList();
+            dynamic results = tasks.GetAwaiter().GetResult();
 
-            return AssertInfo.MultipleCaseAssert(expectations, results, inputs, api, method.ToString());
+            return AssertInfo.SingleCaseAssert(expectations, results, inputs, api, method.ToString());
 
         }
 
