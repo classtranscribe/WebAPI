@@ -16,7 +16,7 @@ namespace TaskEngine.Tasks
         {
             _box = box;
         }
-
+#pragma warning disable 1998
         protected async override Task OnConsume(string emptyString, TaskParameters taskParameters)
         {
             //await _box.RefreshAccessTokenAsync();

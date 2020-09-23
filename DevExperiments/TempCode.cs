@@ -53,7 +53,7 @@ namespace CTCommons
         {
             JObject json = new JObject();
             json.Add("isChannel", "1");
-            var x = _rpcClient.PythonServerClient.GetYoutubePlaylistRPC(new CTGrpc.PlaylistRequest
+            var x =await _rpcClient.PythonServerClient.GetYoutubePlaylistRPCAsync(new CTGrpc.PlaylistRequest
             {
                 Url = "UCi8e0iOVk1fEOogdfu4YgfA",
                 Metadata = new CTGrpc.JsonString() { Json = json.ToString() },
