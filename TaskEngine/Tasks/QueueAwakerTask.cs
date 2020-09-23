@@ -51,75 +51,75 @@ namespace TaskEngine.Tasks
         }
 
         /// <summary>Finds incomplete tasks and adds them all a TaskItem table. 
-        /// This appears to be defunct and unused code - grep FindPendingJobs, found no callers of this function
+        /// This appears to be defunct and not yet used code - grep FindPendingJobs, found no callers of this function
         /// </summary>
-              private async Task FindPendingJobs()
-        {
-            using (var context = CTDbContext.CreateDbContext())
-            {
-                // Medias for which no videos have downloaded
-                var toDownloadMediaIds = await context.Medias.Where(m => m.Video == null).Select(m =>
-                    new TaskItem
-                    {
-                        UniqueId = m.Id,
-                        ResultData = new JObject(),
-                        TaskParameters = new JObject(),
-                        TaskType = TaskType.DownloadMedia,
-                        Attempts = 0
-                    }).ToListAsync();
+        //       private async Task FindPendingJobs()
+        // {
+        //     using (var context = CTDbContext.CreateDbContext())
+        //     {
+        //         // Medias for which no videos have downloaded
+        //         var toDownloadMediaIds = await context.Medias.Where(m => m.Video == null).Select(m =>
+        //             new TaskItem
+        //             {
+        //                 UniqueId = m.Id,
+        //                 ResultData = new JObject(),
+        //                 TaskParameters = new JObject(),
+        //                 TaskType = TaskType.DownloadMedia,
+        //                 Attempts = 0
+        //             }).ToListAsync();
 
-                // Videos which haven't been converted to wav 
-                var toConvertVideoIds = await context.Videos.Where(v => v.Medias.Any() && v.Audio == null).Select(v =>
-                    new TaskItem
-                    {
-                        UniqueId = v.Id,
-                        ResultData = new JObject(),
-                        TaskParameters = new JObject(),
-                        TaskType = TaskType.ConvertMedia,
-                        Attempts = 0
-                    }).ToListAsync();
+        //         // Videos which haven't been converted to wav 
+        //         var toConvertVideoIds = await context.Videos.Where(v => v.Medias.Any() && v.Audio == null).Select(v =>
+        //             new TaskItem
+        //             {
+        //                 UniqueId = v.Id,
+        //                 ResultData = new JObject(),
+        //                 TaskParameters = new JObject(),
+        //                 TaskType = TaskType.ConvertMedia,
+        //                 Attempts = 0
+        //             }).ToListAsync();
 
-                // Transcribe pending videos.
-                var toTranscribeVideoIds = await context.Videos.Where(v => v.TranscribingAttempts < 3 && 
-                                                                           v.TranscriptionStatus != "NoError" && 
-                                                                           v.Medias.Any() && v.Audio != null).Select(v =>
-                                                                           new TaskItem
-                                                                           {
-                                                                               UniqueId = v.Id,
-                                                                               ResultData = new JObject(),
-                                                                               TaskParameters = new JObject(),
-                                                                               TaskType = TaskType.Transcribe,
-                                                                               Attempts = 0
-                                                                           }).ToListAsync();
+        //         // Transcribe pending videos.
+        //         var toTranscribeVideoIds = await context.Videos.Where(v => v.TranscribingAttempts < 3 && 
+        //                                                                    v.TranscriptionStatus != "NoError" && 
+        //                                                                    v.Medias.Any() && v.Audio != null).Select(v =>
+        //                                                                    new TaskItem
+        //                                                                    {
+        //                                                                        UniqueId = v.Id,
+        //                                                                        ResultData = new JObject(),
+        //                                                                        TaskParameters = new JObject(),
+        //                                                                        TaskType = TaskType.Transcribe,
+        //                                                                        Attempts = 0
+        //                                                                    }).ToListAsync();
 
-                // Completed Transcriptions which haven't generated vtt files
-                var toGenerateVTTsTranscriptionIds = await context.Transcriptions.Where(t => t.Captions.Count > 0 && t.File == null)
-                                                                                .Select(t =>
-                                                                                new TaskItem
-                                                                                {
-                                                                                    UniqueId = t.Id,
-                                                                                    ResultData = new JObject(),
-                                                                                    TaskParameters = new JObject(),
-                                                                                    TaskType = TaskType.GenerateVTTFile,
-                                                                                    Attempts = 0
-                                                                                }).ToListAsync();
+        //         // Completed Transcriptions which haven't generated vtt files
+        //         var toGenerateVTTsTranscriptionIds = await context.Transcriptions.Where(t => t.Captions.Count > 0 && t.File == null)
+        //                                                                         .Select(t =>
+        //                                                                         new TaskItem
+        //                                                                         {
+        //                                                                             UniqueId = t.Id,
+        //                                                                             ResultData = new JObject(),
+        //                                                                             TaskParameters = new JObject(),
+        //                                                                             TaskType = TaskType.GenerateVTTFile,
+        //                                                                             Attempts = 0
+        //                                                                         }).ToListAsync();
 
-                var allTaskItems = new List<TaskItem>();
-                allTaskItems.AddRange(toDownloadMediaIds);
-                allTaskItems.AddRange(toConvertVideoIds);
-                allTaskItems.AddRange(toTranscribeVideoIds);
-                allTaskItems.AddRange(toGenerateVTTsTranscriptionIds);
+        //         var allTaskItems = new List<TaskItem>();
+        //         allTaskItems.AddRange(toDownloadMediaIds);
+        //         allTaskItems.AddRange(toConvertVideoIds);
+        //         allTaskItems.AddRange(toTranscribeVideoIds);
+        //         allTaskItems.AddRange(toGenerateVTTsTranscriptionIds);
 
-                foreach(var taskItem in allTaskItems)
-                {
-                    if(!await context.TaskItems.AnyAsync(t => t.TaskType == taskItem.TaskType && t.UniqueId == taskItem.UniqueId))
-                    {
-                        await context.TaskItems.AddAsync(taskItem);
-                    }
-                }
-                await context.SaveChangesAsync();
-            }
-        }
+        //         foreach(var taskItem in allTaskItems)
+        //         {
+        //             if(!await context.TaskItems.AnyAsync(t => t.TaskType == taskItem.TaskType && t.UniqueId == taskItem.UniqueId))
+        //             {
+        //                 await context.TaskItems.AddAsync(taskItem);
+        //             }
+        //         }
+        //         await context.SaveChangesAsync();
+        //     }
+        // }
         /// <summary> Used by the PeriodicCheck to identify and enqueue missing tasks.
         /// This Task is started after all playlists are updated.
         /// </summary>
