@@ -1,0 +1,41 @@
+Steps to create vs_appsettings.json for local development:
+1. Copy the object below (including the { and }) into a file named "vs_appsettings.json": 
+{
+  "JWT_EXPIRE_DAYS": 30,
+  "JWT_KEY": "GXVM7aJOEL6fB2ME6kRXI8JA6+0PeLEnwf8hcl0an20=",
+  "ALLOWED_HOSTS": "*",
+  "POSTGRES_DB": "ct2019db",
+  "RabbitMQServer": "localhost",
+  "PYTHON_RPC_SERVER": "localhost:50051",  
+  "TEST_SIGN_IN": "true",
+  "ADMIN_USER_ID": "mahipal2@illinois.edu",
+  "ADMIN_PASSWORD": "Test123",
+  "POSTGRES_SERVER_NAME": "localhost",
+  "AZURE_SUBSCRIPTION_KEYS": "<ADD KEYS HERE>",
+  "DATA_DIRECTORY": "<ADD PATH HERE>",
+  "AUTH0_DOMAIN": "classtranscribe.auth0.com",
+  "AUTH0_CLIENT_ID": "GsBj4oR32ys2g2p4iGKWaaqkQRhTHr0d",
+  "APPLICATION_INSIGHTS_KEY": "d66dd2dd-6b0c-4b9a-8f63-d91350ea9ce7",
+  "SLACK_WEBHOOK_URL": "<ADD WEBHOOK URL HERE>",
+  
+  "MAX_CONCURRENT_TRANSCRIPTIONS":"1"
+  "MAX_CONCURRENT_VIDEO_TASKS" : "1"
+  "MAX_CONCURRENT_SYNC_TASKS" : "1"
+  
+  "HOST_NAME":  "localhost"
+}
+
+2. For the "AZURE_SUBSCRIPTION_KEYS" field, you need to create a free resource in the Azure portal. Follow these steps:
+ - Go to https://azure.microsoft.com/en-us/services/cognitive-services/speech-to-text/ and click on "Start free"
+ - Follow the steps to either sign up for an account or sign into an existing one
+ - Follow the steps to deploy your free Cognitive Services resource, giving it an appropriate name and selecting a region near your location
+ - After the resource is successfully deployed, navigate to the resource's menu and click on the "Keys and Endpoint" sub-menu
+ - Copy and paste the keys on that page into the field like the following example. Use a comma as separator between key and region and semi-colon to add multiple.
+ - "AZURE_SUBSCRIPTION_KEYS": "ccea4c3982b54a3b82dsffs32a07,eastus;7741185bfc2b475c80a47w,eastus;"
+
+3. For the "DATA_DIRECTORY", paste the absolute path of the /test_data/data directory. For example, it might look like this on a unix machine:
+- "DATA_DIRECTORY": "/Users/<username>/code/Deployment/test_data/data" (make sure to use backslaches if using Windows)
+
+There's a script in Deployments repo to create the subdirectories. Without these the database container will not start.
+
+4. For the "SLACK_WEBHOOK_URL", you can leave it blank or create your own webhook with these instructions: https://slack.com/help/articles/115005265063-Incoming-webhooks-for-Slack

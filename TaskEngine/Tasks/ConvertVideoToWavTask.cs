@@ -31,6 +31,17 @@ namespace TaskEngine.Tasks
         }
         protected async override Task OnConsume(string videoId, TaskParameters taskParameters)
         {
+            throw new Exception("ConvertVideoToWavTask No longer used. Videoid= " + videoId);
+        }
+
+        /// <summary>
+        /// Original implementation of OnConsume. This code may be deleted if it is no longer useful. It is left as available for now as a template
+        /// </summary>
+        /// <param name="videoId"></param>
+        /// <param name="taskParameters"></param>
+        /// <returns></returns>
+        private async Task OldOnConsumeNotUsed(string videoId, TaskParameters taskParameters) 
+        { 
             using (var _context = CTDbContext.CreateDbContext())
             {
                 // Get the video object

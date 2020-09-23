@@ -63,17 +63,36 @@ namespace CTCommons
         //Post a message using a Payload object
         public async Task PostMessageAsync(Payload payload)
         {
+            
             string payloadJson = JsonConvert.SerializeObject(payload);
-
-            using (WebClient client = new WebClient())
+            if(_uri.OriginalString.Length == 0)
             {
-                NameValueCollection data = new NameValueCollection();
-                data["payload"] = payloadJson;
+                Console.WriteLine("SLACK_WEBHOOK_URL NOT SET. MESSAGE:");
+                Console.WriteLine(payload.Text);
+                
+                return; // EARLY RETURN TO PREVENT EXCEPTION
+            }
+            try
+            {
+                using (WebClient client = new WebClient())
+                {
+                    NameValueCollection data = new NameValueCollection();
+                    data["payload"] = payloadJson;
 
-                var response = await client.UploadValuesTaskAsync(_uri, "POST", data);
+                    var response = await client.UploadValuesTaskAsync(_uri, "POST", data);
 
-                //The response text is usually "ok"
-                string responseText = _encoding.GetString(response);
+                    //The response text is usually "ok"
+                    string responseText = _encoding.GetString(response);
+                    if (responseText != "ok")
+                    {
+                        throw new Exception($"Expected 'ok' response text from slack. Got {responseText}");
+                    }
+                }
+            }
+            catch(Exception ex)
+            {
+               
+                Console.WriteLine($"EXCEPTION SENDING SLACK MESSAGE TO '{ _uri.OriginalString }' : {ex.GetType().ToString()} : {ex.Message}");
             }
         }
     }

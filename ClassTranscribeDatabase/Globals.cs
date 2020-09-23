@@ -17,7 +17,16 @@ namespace ClassTranscribeDatabase
         public string ADMIN_USER_ID { get; set; }
         public string ADMIN_PASSWORD { get; set; }
         public string RabbitMQServer { get; set; }
-        public string RABBITMQ_PREFETCH_COUNT { get; set; }
+        // RABBITMQ_PREFETCH_COUNT has been replaced with these CONCURRENT LIMITS-
+        //no longer used g RABBITMQ_PREFETCH_COUNT { get; set; } // No longer used; can be deleted in next cleanup
+        public string MAX_CONCURRENT_TRANSCRIPTIONS { get; set; }
+        // Tasks that require significant processing e.g. scene detect, recoding
+        public string MAX_CONCURRENT_VIDEO_TASKS { get; set; }
+
+        // LIMITS ARE PER QUEUE e.g. 5 Download playlists tasks and 5 download video tasks
+        public string MAX_CONCURRENT_SYNC_TASKS { get; set; }
+
+
         public string PYTHON_RPC_SERVER { get; set; }
         public string AZURE_SUBSCRIPTION_KEYS { get; set; }
         public string DATA_DIRECTORY { get; set; }
