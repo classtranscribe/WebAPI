@@ -9,8 +9,10 @@ namespace ClassTranscribeDatabase.Models
 {
     public enum CaptionType
     {
-        TextCaption,
-        AudioDescription
+        // Since these are persisted in the database these integer values are immutable once assigned (hence explicit)
+
+        TextCaption = 0,
+        AudioDescription = 1
     }
     /// <summary>
     /// Each line of caption is stored as a row in the database.
@@ -27,7 +29,7 @@ namespace ClassTranscribeDatabase.Models
         [IgnoreDataMember]
         public virtual Transcription Transcription { get; set; }
         public CaptionType CaptionType { get; set; }
-        
+
         /// <summary>
         /// Convert a line of caption to an srt subtitle format.
         /// </summary>
