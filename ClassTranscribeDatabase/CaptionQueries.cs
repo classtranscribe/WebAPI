@@ -30,6 +30,8 @@ namespace ClassTranscribeDatabase
             }
             catch (System.InvalidOperationException e)
             {
+                // If Transcriptions do not exist then First() will throw InvalidOperationException
+
                 return new List<Caption>();
             }
         }
