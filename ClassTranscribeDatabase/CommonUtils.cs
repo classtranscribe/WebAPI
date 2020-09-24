@@ -53,10 +53,7 @@ namespace ClassTranscribeDatabase
             return JsonConvert.DeserializeObject<T>(Encoding.UTF8.GetString(bytes));
         }
 
-        private static int seed; // member var only for future debugging /replay options
-        private static Random random;
-        /// <summary>Ensures we have a well seeded RNG even if two processes or two threads  are started at the same time</summary>    
-
+       
         public static string RandomString(int length)
         {
             // TODO/TOREVIEW: C# random is seeded with a time since 1970 at 100ns, so what if two
@@ -69,16 +66,19 @@ namespace ClassTranscribeDatabase
             const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ23456789";
 
             // The day we want GUID-like filenames we can return Guid.NewGuid().ToString()
-            // But for now there are too many GUIDS when debugging data, so let's keep filename as not GUID like
+            // But for now there are too many GUIDS when debugging data, so let's keep filename as not-GUID formatted!
 
-            // This new GUID as source of random bytes implementation avoids a race file lock in /dev/urandom
-            // To understand the next line, imagine chars.length was 100. We would only want the values 0 - 199
-            int maxFair = 255 - (255 % chars.Length);
+            // This new GUID-as-source of random bytes implementation avoids an exclusive file lock in /dev/urandom
+            // ... And also overcomes the 2^32 seed limitation of the random class (4bn states is insufficient if we have a million files)
+            // ... And gives me an excuse to implement a  simple fair random number generator.
+
+            // To understand the next line, imagine chars.length was 100. We would only accept the values 0 - 199
+            int maxFair = 256 - (256 % chars.Length);
 
             StringBuilder result = new StringBuilder(length);
             while (true)
             {
-                foreach (byte b in Guid.NewGuid().ToByteArray())
+                foreach (byte b in Guid.NewGuid().ToByteArray()) // 16 bytes of chaos
                 {
                     if (b < maxFair)
                     {
