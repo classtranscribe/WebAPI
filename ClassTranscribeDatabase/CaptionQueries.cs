@@ -28,8 +28,10 @@ namespace ClassTranscribeDatabase
                 var transcriptionId = _context.Transcriptions.Where(t => t.Language == language && t.VideoId == videoId).First().Id;
                 return await GetCaptionsAsync(transcriptionId);
             }
-            catch (System.InvalidOperationException e)
+            catch (System.InvalidOperationException)
             {
+                // If Transcriptions do not exist then First() will throw InvalidOperationException
+
                 return new List<Caption>();
             }
         }

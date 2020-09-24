@@ -25,30 +25,34 @@ namespace ClassTranscribeDatabase.Models
     /// </summary>
     public enum AccessTypes
     {
-        Public,
-        AuthenticatedOnly,
-        StudentsOnly,
-        UniversityOnly,
+        // Since these are persisted in the database these integer values are immutable once assigned (hence explicit)
+        Public = 0, 
+        AuthenticatedOnly = 1,
+        StudentsOnly = 2,
+        UniversityOnly = 3,
     }
     public enum Status
     {
-        Active,
-        Deleted
+        // Since these are persisted in the database these integer values are immutable once assigned (hence explicit)
+        Active = 0,
+        Deleted = 1
     }
 
     public enum SourceType
     {
-        Echo360,
-        Youtube,
-        Local,
-        Kaltura,
-        Box
+        // Since these are persisted in the database these integer values are immutable once assigned (hence explicit)
+        Echo360 = 0,
+        Youtube = 1,
+        Local = 2,
+        Kaltura = 3,
+        Box = 4
     }
 
-    public enum Visibility 
+    public enum Visibility
     {
-        Visible,
-        Hidden
+        // Since these are persisted in the database these integer values are immutable once assigned (hence explicit)
+        Visible = 0,
+        Hidden = 1
     }
 
     /// <summary>
@@ -344,20 +348,24 @@ namespace ClassTranscribeDatabase.Models
         public string Value { get; set; }
     }
 
-    public enum ResourceType 
+    public enum ResourceType
     {
-        Offering,
-        Course,
-        Media,
-        Playlist
+        // Since these are persisted in the database these integer values are immutable once assigned (hence explicit)
+
+        Offering = 0,
+        Course = 1,
+        Media = 2,
+        Playlist = 3
     }
 
     public enum Ack
     {
-        Pending,
-        Seen
+        // Since these are persisted in the database these integer values are immutable once assigned (hence explicit)
+
+        Pending = 0,
+        Seen = 1
     }
-    
+
     public class Subscription : Entity
     {
         public ResourceType ResourceType { get; set; }
@@ -375,14 +383,6 @@ namespace ClassTranscribeDatabase.Models
         public Ack Ack { get; set; }
     }
 
-    public class TaskItem : Entity
-    {
-        public string UniqueId { get; set; }
-        public TaskType TaskType { get; set; }
-        public int Attempts { get; set; }
-        public JObject TaskParameters { get; set; }
-        public bool Result { get; set; }
-        public bool Retry { get; set; }
-        public JObject ResultData { get; set; }
-    }
+    // TaskItem moved to its own file TaskItem.cs
+
 }
