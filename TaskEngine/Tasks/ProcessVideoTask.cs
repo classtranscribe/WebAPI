@@ -8,8 +8,8 @@ using CTCommons.Grpc;
 using static ClassTranscribeDatabase.CommonUtils;
 using CTCommons;
 using System.Diagnostics.CodeAnalysis;
+using System.Collections.Generic;
 
- 
 namespace TaskEngine.Tasks
 {
     /// <summary>
@@ -25,8 +25,9 @@ namespace TaskEngine.Tasks
         {
             _rpcClient = rpcClient;
         }
-        protected async override Task OnConsume(string videoId, TaskParameters taskParameters)
-        {
+        protected async override Task OnConsume(string videoId, TaskParameters taskParameters, ClientActiveTasks cleanup)
+        {   
+            registerTask(cleanup,videoId); // may throw AlreadyInProgress exception
             Video video;
             using (var _context = CTDbContext.CreateDbContext())
             {

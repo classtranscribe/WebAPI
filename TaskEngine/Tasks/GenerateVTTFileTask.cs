@@ -3,10 +3,10 @@ using ClassTranscribeDatabase.Models;
 using CTCommons;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using static ClassTranscribeDatabase.CommonUtils;
 using System.Diagnostics.CodeAnalysis;
+
 
 namespace TaskEngine.Tasks
 {
@@ -18,8 +18,9 @@ namespace TaskEngine.Tasks
             : base(rabbitMQ, TaskType.GenerateVTTFile, logger)
         {
         }
-        protected async override Task OnConsume(string transcriptionId, TaskParameters taskParameters)
+        protected async override Task OnConsume(string transcriptionId, TaskParameters taskParameters, ClientActiveTasks cleanup)
         {
+            registerTask(cleanup,transcriptionId); // may throw AlreadyInProgress exception
             using (var _context = CTDbContext.CreateDbContext())
             {
                 var transcription = await _context.Transcriptions.FindAsync(transcriptionId);

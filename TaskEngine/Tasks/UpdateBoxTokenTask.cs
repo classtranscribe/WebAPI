@@ -1,9 +1,9 @@
-﻿using ClassTranscribeDatabase;
-using CTCommons;
+﻿using CTCommons;
 using Microsoft.Extensions.Logging;
 using System.Threading.Tasks;
 using static ClassTranscribeDatabase.CommonUtils;
 using System.Diagnostics.CodeAnalysis;
+
 
 namespace TaskEngine.Tasks
 {
@@ -17,9 +17,10 @@ namespace TaskEngine.Tasks
             _box = box;
         }
 #pragma warning disable 1998
-        protected async override Task OnConsume(string emptyString, TaskParameters taskParameters)
+        protected async override Task OnConsume(string emptyString, TaskParameters taskParameters, ClientActiveTasks cleanup)
         {
+            //registerTask(cleanup, "RefreshAccessTokenAsync"); // may throw AlreadyInProgress exception
             //await _box.RefreshAccessTokenAsync();
-        }
+        }        
     }
 }

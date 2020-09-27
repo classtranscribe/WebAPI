@@ -8,6 +8,7 @@ using static ClassTranscribeDatabase.CommonUtils;
 using CTCommons;
 using System.Diagnostics.CodeAnalysis;
 
+
 namespace TaskEngine.Tasks
 {
     [SuppressMessage("Microsoft.Performance", "CA1812:MarkMembersAsStatic")] // This class is never directly instantiated
@@ -22,9 +23,9 @@ namespace TaskEngine.Tasks
         }
         /// <summary>Extracts scene information for a video. 
         /// Beware: It is possible to start another scene task while the first one is still running</summary>
-        protected async override Task OnConsume(string videoId, TaskParameters taskParameters)
+        protected async override Task OnConsume(string videoId, TaskParameters taskParameters, ClientActiveTasks cleanup)
         {
-
+            registerTask(cleanup, videoId); // may throw AlreadyInProgress exception
             using (var _context = CTDbContext.CreateDbContext())
             {
                 Video video = await _context.Videos.FindAsync(videoId);

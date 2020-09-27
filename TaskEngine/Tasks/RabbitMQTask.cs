@@ -5,15 +5,24 @@ using System;
 using System.Threading.Tasks;
 using static ClassTranscribeDatabase.CommonUtils;
 using System.Diagnostics.CodeAnalysis;
+using System.Collections.Generic;
+using System.Text;
 
 namespace TaskEngine
 {
-     [SuppressMessage("Microsoft.Performance", "CA1812:MarkMembersAsStatic")] // This class is never directly instantiated
-   public abstract class RabbitMQTask<T>
+    [SuppressMessage("Microsoft.Performance", "CA1812:MarkMembersAsStatic")] // This class is never directly instantiated
+    public abstract class RabbitMQTask<T>
     {
         protected RabbitMQConnection _rabbitMQ { get; set; }
         protected string _queueName;
         protected readonly ILogger _logger;
+
+        // All access to _inProgress and _unregisterLater should be locked using _inProgress
+        // We keep track of all active tasks for this process
+        // Note  during message consumption there is a another ClientActiveTasks object which tracks
+        // the task currently running for that message
+        protected static Dictionary<string, ClientActiveTasks> _inProgress = new Dictionary<string, ClientActiveTasks>();
+       
 
         public RabbitMQTask() { }
 
@@ -22,13 +31,24 @@ namespace TaskEngine
             _rabbitMQ = rabbitMQ;
             _queueName = taskType.ToString();
             _logger = logger;
+            lock (_inProgress)
+            {
+                if (!_inProgress.ContainsKey(_queueName))
+                {
+                    _inProgress.Add(_queueName, new ClientActiveTasks());
+                }
+            }
+        }
+        public void PurgeQueue()
+        {
+            _rabbitMQ.PurgeQueue(_queueName);
         }
 
         public void Publish(T data, TaskParameters taskParameters = null)
         {
             try
             {
-                if(taskParameters == null)
+                if (taskParameters == null)
                 {
                     taskParameters = new TaskParameters();
                 }
@@ -39,18 +59,89 @@ namespace TaskEngine
                 _logger.LogError(e, "Error Publishing Task!");
             }
         }
-        
-        protected abstract Task OnConsume(T data, TaskParameters taskParameters = null);
+
+        protected abstract Task OnConsume(T data, TaskParameters taskParameters, ClientActiveTasks cleanup);
+        protected int PostConsumeCleanup(ClientActiveTasks cleanup)
+        {
+
+            lock (_inProgress)
+            {
+                foreach(object id in cleanup)
+                
+                {
+                    bool removed = _inProgress[_queueName].Remove(id);
+                    if(!removed)
+                    {
+                        _logger.LogError($"_inProgress Q {_queueName} failed to remove '{id}'");
+                    }
+
+                }
+            }
+            cleanup.Clear();
+            return 0; //Func<> must declare a return type; cannot be void
+        }
+
         public void Consume(ushort concurrency)
         {
             try
             {
-                _rabbitMQ.ConsumeTask<T>(_queueName, OnConsume, concurrency);
+                _rabbitMQ.ConsumeTask<T>(_queueName, OnConsume, PostConsumeCleanup, concurrency);
             }
             catch (Exception e)
             {
-                _logger.LogError(e, "RabbitMQTask Error Occured");
+                _logger.LogError(e, "RabbitMQTask Consume()->ConsumeTask Error Occured on Queue {0}", _queueName);
+            }
+        }
+
+        /// <summary>
+        /// Throws InProgressException if this task is already running
+        /// </summary>
+        /// <param name="keyId"></param>
+        public void registerTask(HashSet<object> cleanup, Object keyId)
+        {
+            if (keyId == null)
+            {
+                return;
+            }
+            bool alreadyRunning;
+
+            lock (_inProgress)
+            {
+                if (cleanup.Contains(keyId))
+                {
+                    // This is a programming error the same message may not register the same key twice
+                    throw new Exception($"Cleanup set may not already contain key ({keyId.ToString()})");
+                }
+                // Now check that globally there is no other task working on the same id
+                // This may happen rarely. The purpose of registerTask is to immediately stop (by throwing an exception) if we discover we are late to the party.
+                alreadyRunning = !_inProgress[_queueName].Add(keyId);
+            }
+            if (alreadyRunning)
+            {
+                _logger.LogError("{0} for {1} Task already running, so skipping this request and throwing exception", _queueName, keyId);
+                throw new InProgressException($"{ _queueName} for {keyId} Task already running, so skipping this request");
+            }
+
+            cleanup.Add(keyId);
+
+        }
+        /// <summary>
+        /// Returns a new shallow copy of the current task set
+        /// </summary>
+        /// <returns></returns>
+        public ClientActiveTasks GetCurrentTasks()
+        {
+            lock (_inProgress)
+            {
+                return new ClientActiveTasks(_inProgress[_queueName]);
             }
         }
     }
+    [Serializable]
+    public class InProgressException : Exception
+    {
+        public InProgressException(String message) : base(message) { }
+    }
+
+
 }
