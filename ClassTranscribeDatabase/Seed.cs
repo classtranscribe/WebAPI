@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 
 namespace ClassTranscribeDatabase
 {
@@ -23,8 +24,52 @@ namespace ClassTranscribeDatabase
         }
         public void Seed()
         {
-            _logger.LogInformation("In Seeder");
+            _logger.LogInformation("Database seeder starting");
+
+            _logger.LogInformation($"Attempting connection to server {Globals.appSettings.POSTGRES_SERVER_NAME} for database {Globals.appSettings.POSTGRES_DB} using user {Globals.appSettings.ADMIN_USER_ID}");
+            // This is where we first use the Database, so authentication and connection issues are likely to be discovered here.
+            // Or maybe the database is just at restarting
+            //
+            int maxAttempts = 100;
+            int retrySeconds = 15;
+            for (int attempt = 1; attempt <= maxAttempts; attempt++)
+            {
+                try
+                {
+                    if (_context.Database.CanConnect())
+                    {
+                        break;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogInformation( "Database.CanConnect() exception: {0}",ex.Message);
+                    // https://www.postgresql.org/docs/9.4/errcodes-appendix.html
+                    string ignore = "57P03"; // "57P03: the database system is starting up";
+
+                    if (! ex.Message.Contains(ignore) ){
+                        throw ex;
+                    }
+                }
+                _logger.LogError($"Attempt {attempt} of {maxAttempts}. Cannot connect to Database");
+                if (attempt < maxAttempts)
+                {
+                    _logger.LogInformation($"Sleeping for {retrySeconds} seconds");
+                    Thread.Sleep(1000 * retrySeconds);
+                }
+                else
+                {
+                    _logger.LogError("Seed() Giving up on database :-( ");
+                    throw new Exception("Could not connect to database");
+                }
+            }
+            _logger.LogInformation("Migration starting");
+
             _context.Database.Migrate();
+
+            _logger.LogInformation("Migration complete");
+            _logger.LogInformation("Creating roles");
+
             IdentityRole Instructor = new IdentityRole { Name = Globals.ROLE_INSTRUCTOR, Id = "0000", NormalizedName = Globals.ROLE_INSTRUCTOR.ToUpper() };
             IdentityRole Student = new IdentityRole { Name = Globals.ROLE_STUDENT, Id = "0001", NormalizedName = Globals.ROLE_STUDENT.ToUpper() };
             IdentityRole Admin = new IdentityRole { Name = Globals.ROLE_ADMIN, Id = "0002", NormalizedName = Globals.ROLE_ADMIN.ToUpper() };
