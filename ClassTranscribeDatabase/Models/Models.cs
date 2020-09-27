@@ -17,11 +17,19 @@ namespace ClassTranscribeDatabase.Models
     /// To make any changes to the database schema, the corresponding classes would have to be changed and 
     /// migrations, for more info.
     /// 
+    /// https://www.learnentityframeworkcore.com/migrations (this documentation is more helpful, includes information on how to revert migrations)
     /// https://docs.microsoft.com/en-us/ef/core/managing-schemas/migrations/?tabs=dotnet-core-cli
-    /// https://www.learnentityframeworkcore.com/migrations
     /// 
     /// Note: To apply migration using the Package Manager Console, ensure that the selected "Default Project" is 
     /// "ClassTranscribeDatabase"
+    ///
+    /// Steps to create migration using command line:
+    /// 1. Make edits to the entity model (in this file or another model file)
+    ///     - NOTE: if creating a new entity/table, you must follow the steps in CTDbContext.cs before continuing
+    /// 2. Open terminal, navigate to the "ClassTranscribeDatabase" directory
+    /// 3. Run "dotnet ef migrations add <name of migration>" to create the migration
+    /// 4. To apply the migration to the database, run "dotnet ef database update"
+    /// 
     /// </summary>
     public enum AccessTypes
     {
@@ -99,6 +107,7 @@ namespace ClassTranscribeDatabase.Models
                 case Offering _: return ResourceType.Offering;
                 case Playlist _: return ResourceType.Playlist;
                 case Media _: return ResourceType.Media;
+                case EPub _: return ResourceType.EPub;
             }
             throw new InvalidOperationException("Invalid Type passed" + this);
         }
@@ -312,23 +321,16 @@ namespace ClassTranscribeDatabase.Models
 
     public class EPub : Entity
     {
+        public ResourceType SourceType { get; set; }
+        public string SourceId { get; set; }
+        public string Title { get; set; }
+        public string Filename { get; set; }
         public string Language { get; set; }
-        [ForeignKey("File")]
-        public string FileId { get; set; }
-        public virtual FileRecord File { get; set; }
-        public string VideoId { get; set; }
-        [IgnoreDataMember]
-        public virtual Video Video { get; set; }
-        public JObject Json { get; set; }
-        public virtual List<EPubChapter> EPubChapters { get; set; }
-    }
-
-    public class EPubChapter : Entity
-    {
-        public string EPubId { get; set; }
-        [IgnoreDataMember]
-        public virtual EPub EPub { get; set; }
-        public JObject Data { get; set; }
+        public string Author { get; set; }
+        public string Publisher { get; set; }
+        public bool IsPublished { get; set; }
+        public string Cover { get; set; }
+        public JObject Chapters { get; set; }
     }
 
     public class WatchHistory : Entity
@@ -355,7 +357,8 @@ namespace ClassTranscribeDatabase.Models
         Offering = 0,
         Course = 1,
         Media = 2,
-        Playlist = 3
+        Playlist = 3,
+        EPub = 4
     }
 
     public enum Ack
@@ -385,4 +388,13 @@ namespace ClassTranscribeDatabase.Models
 
     // TaskItem moved to its own file TaskItem.cs
 
+    public class Image : Entity
+    {
+        public ResourceType SourceType { get; set; }
+        public string SourceId { get; set; }
+
+        [ForeignKey("ImageFile")]
+        public string ImageFileId { get; set; }
+        public virtual FileRecord ImageFile { get; set; }
+    }
 }
