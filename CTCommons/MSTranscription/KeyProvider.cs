@@ -35,14 +35,17 @@ namespace CTCommons.MSTranscription
             string subscriptionKeys = _appSettings.AZURE_SUBSCRIPTION_KEYS;
             Keys = new List<Key>();
             CurrentVideoIds = new HashSet<string>();
-            foreach (string subscriptionKey in subscriptionKeys.Split(';'))
+            if (subscriptionKeys.Contains(","))
             {
-                Keys.Add(new Key
+                foreach (string subscriptionKey in subscriptionKeys.Split(';'))
                 {
-                    ApiKey = subscriptionKey.Split(',')[0],
-                    Region = subscriptionKey.Split(',')[1],
-                    Load = 0
-                });
+                    Keys.Add(new Key
+                    {
+                        ApiKey = subscriptionKey.Split(',')[0].Trim(),
+                        Region = subscriptionKey.Split(',')[1].Trim(),
+                        Load = 0
+                    });
+                }
             }
         }
 
