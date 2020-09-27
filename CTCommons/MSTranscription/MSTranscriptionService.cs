@@ -11,6 +11,7 @@ using System.Text;
 using System.Threading.Tasks;
 using static ClassTranscribeDatabase.CommonUtils;
 using CTCommons.Grpc;
+using System.IO;
 
 namespace CTCommons.MSTranscription
 {
@@ -39,164 +40,184 @@ namespace CTCommons.MSTranscription
             return await RecognitionWithVideoStreamAsync(videoFile.VMPath, key, captions, offset);
         }
 
-        public async Task<MSTResult> RecognitionWithVideoStreamAsync(string filePath, Key key, Dictionary<string, List<Caption>> captions, TimeSpan offset)
-        {   
-            _logger.LogInformation($"Trimming video file with offset {offset.TotalSeconds} seconds");
+        public async Task<MSTResult> RecognitionWithVideoStreamAsync(string videoFilePath, Key key, Dictionary<string, List<Caption>> captions, TimeSpan restartOffset)
+        {
+            _logger.LogInformation($"Trimming video file with offset {restartOffset.TotalSeconds} seconds");
+            // If we ever re-use the audio file, we should remove the File.Delete at the end of this method
             var trimmedAudioFile = await _rpcClient.PythonServerClient.ConvertVideoToWavRPCWithOffsetAsync(new CTGrpc.FileForConversion
             {
-                File = new CTGrpc.File { FilePath = filePath },
-                Offset = (float)offset.TotalSeconds
+                File = new CTGrpc.File { FilePath = videoFilePath },
+                Offset = (float)restartOffset.TotalSeconds
             });
 
-            var filerecord = new FileRecord { Path = trimmedAudioFile.FilePath };
-            string file = filerecord.Path;
-
-            AppSettings _appSettings = Globals.appSettings;
-
-            SpeechTranslationConfig _speechConfig = SpeechTranslationConfig.FromSubscription(key.ApiKey, key.Region);
-            _speechConfig.RequestWordLevelTimestamps();
-            // Sets source and target languages.
-            _speechConfig.SpeechRecognitionLanguage = Languages.ENGLISH;
-            _speechConfig.AddTargetLanguage(Languages.SIMPLIFIED_CHINESE);
-            _speechConfig.AddTargetLanguage(Languages.KOREAN);
-            _speechConfig.AddTargetLanguage(Languages.SPANISH);
-            _speechConfig.AddTargetLanguage(Languages.FRENCH);
-            _speechConfig.OutputFormat = OutputFormat.Detailed;
-
-            TimeSpan lastSuccessfulTime = TimeSpan.Zero;
-            string errorCode = "";
-
-            //TODO: ADD Environment variable support
-            bool verboseLogging = false;
-
-            // TODO/TOREVIEW: Global change to Console!?
-            Console.OutputEncoding = Encoding.Unicode;
-            
-            var stopRecognition = new TaskCompletionSource<int>();
-            // Create an audio stream from a wav file.
-            // Replace with your own audio file name.
-            using (var audioInput = WavHelper.OpenWavFile(file))
+            string audioWavFilePath = trimmedAudioFile.FilePath;
+            try
             {
-                // Creates a speech recognizer using audio stream input.
-                using (var recognizer = new TranslationRecognizer(_speechConfig, audioInput))
+                AppSettings _appSettings = Globals.appSettings;
+
+                SpeechTranslationConfig _speechConfig = SpeechTranslationConfig.FromSubscription(key.ApiKey, key.Region);
+                _speechConfig.RequestWordLevelTimestamps();
+                // Sets source and target languages.
+                _speechConfig.SpeechRecognitionLanguage = Languages.ENGLISH;
+                _speechConfig.AddTargetLanguage(Languages.SIMPLIFIED_CHINESE);
+                _speechConfig.AddTargetLanguage(Languages.KOREAN);
+                _speechConfig.AddTargetLanguage(Languages.SPANISH);
+                _speechConfig.AddTargetLanguage(Languages.FRENCH);
+                _speechConfig.OutputFormat = OutputFormat.Detailed;
+
+                TimeSpan lastSuccessfulTime = TimeSpan.Zero;
+                string errorCode = "";
+
+                //TODO: ADD Environment variable support
+                bool verboseLogging = false;
+
+                // TODO/TOREVIEW: Global change to Console!?
+                Console.OutputEncoding = Encoding.Unicode;
+
+                var stopRecognition = new TaskCompletionSource<int>();
+                // Create an audio stream from a wav file.
+                // Replace with your own audio file name.
+                using (var audioInput = WavHelper.OpenWavFile(audioWavFilePath))
                 {
-                    recognizer.Recognized += (s, e) =>
+                    // Creates a speech recognizer using audio stream input.
+                    using (var recognizer = new TranslationRecognizer(_speechConfig, audioInput))
                     {
-                        if (e.Result.Reason == ResultReason.TranslatedSpeech)
+                        recognizer.Recognized += (s, e) =>
                         {
-                            JObject jObject = JObject.Parse(e.Result.Properties.GetProperty(PropertyId.SpeechServiceResponse_JsonResult));
-                            var wordLevelCaptions = jObject["Words"]
-                            .ToObject<List<MSTWord>>()
-                            .OrderBy(w => w.Offset)
-                            .ToList();
-
-                            if (e.Result.Text == "" && wordLevelCaptions.Count == 0)
+                            if (e.Result.Reason == ResultReason.TranslatedSpeech)
                             {
-                               
-                                if(verboseLogging) {
-                                    TimeSpan _offset = new TimeSpan(e.Result.OffsetInTicks);
-                                    TimeSpan _end = e.Result.Duration.Add(_offset);
-                                    _logger.LogInformation($"Begin={_offset.Minutes}:{_offset.Seconds},{_offset.Milliseconds}", _offset);
-                                    _logger.LogInformation("Empty String");
-                                    _logger.LogInformation($"End={_end.Minutes}:{_end.Seconds},{_end.Milliseconds}");
+                                JObject jObject = JObject.Parse(e.Result.Properties.GetProperty(PropertyId.SpeechServiceResponse_JsonResult));
+                                var wordLevelCaptions = jObject["Words"]
+                                .ToObject<List<MSTWord>>()
+                                .OrderBy(w => w.Offset)
+                                .ToList();
+
+                                if (e.Result.Text == "" && wordLevelCaptions.Count == 0)
+                                {
+
+                                    if (verboseLogging)
+                                    {
+                                        TimeSpan _offset = new TimeSpan(e.Result.OffsetInTicks);
+                                        TimeSpan _end = e.Result.Duration.Add(_offset);
+                                        _logger.LogInformation($"Begin={_offset.Minutes}:{_offset.Seconds},{_offset.Milliseconds}", _offset);
+                                        _logger.LogInformation("Empty String");
+                                        _logger.LogInformation($"End={_end.Minutes}:{_end.Seconds},{_end.Milliseconds}");
+                                    }
+                                    return;
                                 }
-                                return;
-                            }
-                            
-                            if (wordLevelCaptions.Any())
-                            {
-                                var offsetDifference = e.Result.OffsetInTicks - wordLevelCaptions.FirstOrDefault().Offset;
-                                wordLevelCaptions.ForEach(w => w.Offset += offsetDifference);
-                            }
 
-                            var sentenceLevelCaptions = MSTWord.WordLevelTimingsToSentenceLevelTimings(e.Result.Text, wordLevelCaptions);
+                                if (wordLevelCaptions.Any())
+                                {
+                                    var offsetDifference = e.Result.OffsetInTicks - wordLevelCaptions.FirstOrDefault().Offset;
+                                    wordLevelCaptions.ForEach(w => w.Offset += offsetDifference);
+                                }
 
-                            TimeSpan offset = new TimeSpan(e.Result.OffsetInTicks);
-                           
-                            TimeSpan end = e.Result.Duration.Add(offset);
-                            if(verboseLogging) {
-                                _logger.LogInformation($"Begin={offset.Minutes}:{offset.Seconds},{offset.Milliseconds}", offset);
-                                _logger.LogInformation($"End={end.Minutes}:{end.Seconds},{end.Milliseconds}");
-                            }
-                            var newCaptions = MSTWord.AppendCaptions(captions[Languages.ENGLISH].Count, sentenceLevelCaptions);
-                            
+                                var sentenceLevelCaptions = MSTWord.WordLevelTimingsToSentenceLevelTimings(e.Result.Text, wordLevelCaptions);
+
+                                TimeSpan offset = new TimeSpan(e.Result.OffsetInTicks);
+
+                                offset.Add(restartOffset);
+
+                                TimeSpan end = e.Result.Duration.Add(offset);
+                                if (verboseLogging)
+                                {
+                                    _logger.LogInformation($"Begin={offset.Minutes}:{offset.Seconds},{offset.Milliseconds}", offset);
+                                    _logger.LogInformation($"End={end.Minutes}:{end.Seconds},{end.Milliseconds}");
+                                }
+                                var newCaptions = MSTWord.AppendCaptions(captions[Languages.ENGLISH].Count, sentenceLevelCaptions);
+
                             //TODO/TOREVIEW: Restart Not fully implemented yet?
                             // Comment still here... "Add offset here."
 
                             captions[Languages.ENGLISH].AddRange(newCaptions);
 
-                            foreach (var element in e.Result.Translations)
-                            {
-                                newCaptions = Caption.AppendCaptions(captions[element.Key].Count, offset, end, element.Value);
-                                captions[element.Key].AddRange(newCaptions);
-                            }
-                        }
-                        else if (e.Result.Reason == ResultReason.NoMatch)
-                        {
-                            _logger.LogInformation($"NOMATCH: Speech could not be recognized.");
-                        }
-                    };
-
-                    recognizer.Canceled += (s, e) =>
-                    {
-                        errorCode = e.ErrorCode.ToString();
-                        _logger.LogInformation($"CANCELED: ErrorCode={e.ErrorCode} Reason={e.Reason}");
-
-                        if (e.Reason == CancellationReason.Error)
-                        {
-                            _logger.LogInformation($"CANCELED: ErrorCode={e.ErrorCode.ToString()} Reason={e.Reason}");
-
-                            if (e.ErrorCode == CancellationErrorCode.ServiceTimeout
-                            || e.ErrorCode == CancellationErrorCode.ServiceUnavailable
-                            || e.ErrorCode == CancellationErrorCode.ConnectionFailure)
-                            {
-                                TimeSpan lastTime = TimeSpan.Zero;
-                                if (captions.Count != 0)
+                                foreach (var element in e.Result.Translations)
                                 {
-                                    var lastCaption = captions[Languages.ENGLISH].OrderBy(c => c.End).TakeLast(1).ToList().First();
-                                    lastTime = lastCaption.End;
+                                    newCaptions = Caption.AppendCaptions(captions[element.Key].Count, offset, end, element.Value);
+                                    captions[element.Key].AddRange(newCaptions);
                                 }
+                            }
+                            else if (e.Result.Reason == ResultReason.NoMatch)
+                            {
+                                _logger.LogInformation($"NOMATCH: Speech could not be recognized.");
+                            }
+                        };
 
-                                _logger.LogInformation($"Retrying, LastSuccessTime={lastTime.ToString()}");
-                                lastSuccessfulTime = lastTime;
-                            } else if (e.ErrorCode != CancellationErrorCode.NoError)
+                        recognizer.Canceled += (s, e) =>
+                        {
+                            errorCode = e.ErrorCode.ToString();
+                            _logger.LogInformation($"CANCELED: ErrorCode={e.ErrorCode} Reason={e.Reason}");
+
+                            if (e.Reason == CancellationReason.Error)
                             {
                                 _logger.LogInformation($"CANCELED: ErrorCode={e.ErrorCode.ToString()} Reason={e.Reason}");
-                                _slackLogger.PostErrorAsync(new Exception($"Transcription Failure"),
-                                    $"Transcription Failure").GetAwaiter().GetResult();
+
+                                if (e.ErrorCode == CancellationErrorCode.ServiceTimeout
+                                || e.ErrorCode == CancellationErrorCode.ServiceUnavailable
+                                || e.ErrorCode == CancellationErrorCode.ConnectionFailure)
+                                {
+                                    TimeSpan lastTime = TimeSpan.Zero;
+                                    if (captions.Count != 0)
+                                    {
+                                        var lastCaption = captions[Languages.ENGLISH].OrderBy(c => c.End).TakeLast(1).ToList().First();
+                                        lastTime = lastCaption.End;
+                                    }
+
+                                    _logger.LogInformation($"Retrying, LastSuccessTime={lastTime.ToString()}");
+                                    lastSuccessfulTime = lastTime;
+                                }
+                                else if (e.ErrorCode != CancellationErrorCode.NoError)
+                                {
+                                    _logger.LogInformation($"CANCELED: ErrorCode={e.ErrorCode.ToString()} Reason={e.Reason}");
+                                    _slackLogger.PostErrorAsync(new Exception($"Transcription Failure"),
+                                        $"Transcription Failure").GetAwaiter().GetResult();
+                                }
                             }
-                        }
 
-                        stopRecognition.TrySetResult(0);
-                    };
+                            stopRecognition.TrySetResult(0);
+                        };
 
-                    recognizer.SessionStarted += (s, e) =>
-                    {
-                        _logger.LogInformation("\nSession started event.");
-                    };
+                        recognizer.SessionStarted += (s, e) =>
+                        {
+                            _logger.LogInformation("\nSession started event.");
+                        };
 
-                    recognizer.SessionStopped += (s, e) =>
-                    {
-                        _logger.LogInformation("\nSession stopped event.");
-                        _logger.LogInformation("\nStop recognition.");
-                        stopRecognition.TrySetResult(0);
-                    };
+                        recognizer.SessionStopped += (s, e) =>
+                        {
+                            _logger.LogInformation("\nSession stopped event.");
+                            _logger.LogInformation("\nStop recognition.");
+                            stopRecognition.TrySetResult(0);
+                        };
 
-                    // Starts continuous recognition. Uses StopContinuousRecognitionAsync() to stop recognition.
-                    await recognizer.StartContinuousRecognitionAsync().ConfigureAwait(false);
+                        // Starts continuous recognition. Uses StopContinuousRecognitionAsync() to stop recognition.
+                        await recognizer.StartContinuousRecognitionAsync().ConfigureAwait(false);
 
-                    // Waits for completion.
-                    // Use Task.WaitAny to keep the task rooted.
-                    Task.WaitAny(new[] { stopRecognition.Task });
+                        // Waits for completion.
+                        // Use Task.WaitAny to keep the task rooted.
+                        Task.WaitAny(new[] { stopRecognition.Task });
 
-                    // Stops recognition.
-                    await recognizer.StopContinuousRecognitionAsync().ConfigureAwait(false);
+                        // Stops recognition.
+                        await recognizer.StopContinuousRecognitionAsync().ConfigureAwait(false);
 
-                    return new MSTResult {
-                        Captions = captions,
-                        ErrorCode = errorCode,
-                        LastSuccessTime = lastSuccessfulTime
-                    };
+                        return new MSTResult
+                        {
+                            Captions = captions,
+                            ErrorCode = errorCode,
+                            LastSuccessTime = lastSuccessfulTime
+                        };
+                    }
+                }
+            }
+            finally
+            {
+                try
+                {
+                    File.Delete(audioWavFilePath);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Deleting {0}", audioWavFilePath);
+                    // do not rethrow
                 }
             }
             // </recognitionAudioStream>
