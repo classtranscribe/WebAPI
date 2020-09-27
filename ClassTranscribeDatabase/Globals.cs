@@ -1,5 +1,6 @@
 ﻿
 using Microsoft.Extensions.Logging;
+using System.Collections.Generic;
 
 namespace ClassTranscribeDatabase
 {
@@ -42,6 +43,8 @@ namespace ClassTranscribeDatabase
         public string CILOGON_DOMAIN { get; set; }
         public string GITSHA1 { get; set; }
         public string BUILDNUMBER { get; set; }
+
+        public string PERIODIC_CHECK_MINUTES { get; set; } = "120";
     }
 
     /// <summary>
