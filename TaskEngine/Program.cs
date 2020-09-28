@@ -74,6 +74,7 @@ namespace TaskEngine
 
             AppDomain currentDomain = AppDomain.CurrentDomain;
             currentDomain.UnhandledException += new UnhandledExceptionEventHandler(ExceptionHandler);
+
             _logger.LogInformation("Seeding database");
 
             // Seed the database, with some initial data.
@@ -140,7 +141,14 @@ namespace TaskEngine
 
             QueueAwakerTask queueAwakerTask = serviceProvider.GetService<QueueAwakerTask>();
 
-            var timeInterval = new TimeSpan(5, 0, 0);
+            int periodicCheck = Convert.ToInt32(Globals.appSettings.PERIODIC_CHECK_MINUTES);
+            if (periodicCheck < 5)
+            {
+                _logger.LogError("Set PERIODIC_CHECK_MINUTES to at least 5");
+                throw new Exception("Bad PERIODIC_CHECK_MINUTES value");
+            }
+            _logger.LogInformation("Periodic Check Every {0} minutes", periodicCheck);
+            var timeInterval = new TimeSpan(0, periodicCheck, 0);
 
             // Check for new tasks every "timeInterval".
             // The periodic check will discover all undone tasks

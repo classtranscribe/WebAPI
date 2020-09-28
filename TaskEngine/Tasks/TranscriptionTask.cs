@@ -13,7 +13,6 @@ using CTCommons;
 using Newtonsoft.Json.Linq;
 using System.Diagnostics.CodeAnalysis;
 
-
 namespace TaskEngine.Tasks
 {
     /// <summary>
@@ -47,11 +46,25 @@ namespace TaskEngine.Tasks
         /// <param name="videoId"></param>
         /// <param name="taskParameters"></param>
         /// <returns></returns>
-        protected async override Task OnConsume(string videoId, TaskParameters taskParameters)
+        protected async override Task OnConsume(string videoId, TaskParameters taskParameters, ClientActiveTasks cleanup)
         {
+            registerTask(cleanup,videoId); // may throw AlreadyInProgress exception
             using (var _context = CTDbContext.CreateDbContext())
             {
+
+                // TODO: taskParameters.Force should wipe all captions and reset the Transcription Status
+                
                 Video video = await _context.Videos.Include(v => v.Video1).Where(v => v.Id == videoId).FirstAsync();
+                
+
+                if ( video.TranscriptionStatus == "NoError")
+                {
+                    _logger.LogInformation("Skipping Transcribing of {videoId} - already complete");
+                    return;
+                }
+
+                // GetKey can throw if the video.Id is currently being transcribed
+                // However registerTask should have already detected that
                 Key key = TaskEngineGlobals.KeyProvider.GetKey(video.Id);
 
                 video.TranscribingAttempts += 10;
@@ -73,7 +86,7 @@ namespace TaskEngine.Tasks
                         lastSuccessTime = TimeSpan.Parse(video.JsonMetadata["LastSuccessfulTime"].ToString());
                     }
 
-                    var result = await _msTranscriptionService.RecognitionWithVideoStreamAsync(video.Video1, key, captions, lastSuccessTime);
+                    var result = await _msTranscriptionService.RecognitionWithVideoStreamAsync(videoId, video.Video1, key, captions, lastSuccessTime);
 
                     if (video.JsonMetadata == null)
                     {

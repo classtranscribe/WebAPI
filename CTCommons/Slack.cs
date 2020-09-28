@@ -13,7 +13,7 @@ namespace CTCommons
 {
     public class SlackLogger
     {
-        private readonly Uri _uri;
+        private readonly Uri _uri; // null if _appSettings.SLACK_WEBHOOK_URL is unset
         private readonly Encoding _encoding = new UTF8Encoding();
         private readonly ILogger _logger;
         AppSettings _appSettings;
@@ -23,7 +23,13 @@ namespace CTCommons
         {
             _appSettings = appSettings.Value;
             _logger = logger;
-            _uri = new Uri(_appSettings.SLACK_WEBHOOK_URL);
+
+            // ignore
+            string url = _appSettings.SLACK_WEBHOOK_URL.Trim();
+            if (url.Length > 0 && !url.Contains("<ADD WEBHOOK URL HERE>"))
+            {
+                _uri = new Uri(url);
+            }
         }
 
         public async Task PostErrorAsync(Exception e, string message, string username = null, string channel = null)
@@ -65,7 +71,7 @@ namespace CTCommons
         {
             
             string payloadJson = JsonConvert.SerializeObject(payload);
-            if(_uri.OriginalString.Length == 0)
+            if(_uri == null)
             {
                 Console.WriteLine("SLACK_WEBHOOK_URL NOT SET. MESSAGE:");
                 Console.WriteLine(payload.Text);

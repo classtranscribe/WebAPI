@@ -68,9 +68,16 @@ namespace ClassTranscribeDatabase
         public static string ConnectionStringBuilder()
         {
             // Sample connection string -> Server=<POSTGRES_SERVER_NAME>;Port=5432;Database=<POSTGRES_DB_NAME>;User Id=<POSTGRES_USER>;Password=<POSTGRES_PASSWORD>;
+            // TODO/TOREVIEW: Should MaxPoolSize <= Database's max connection limit?
+            // TODO: Max MaxPoolSize and port should be configurable
+
             var configurations = CTDbContext.GetConfigurations();
-            return "Server=" + configurations["POSTGRES_SERVER_NAME"] + ";Port=5432;Database="
-                + configurations["POSTGRES_DB"] + ";User Id=" + configurations["ADMIN_USER_ID"] + ";Password=" + configurations["ADMIN_PASSWORD"] + ";MaxPoolSize=1000;";
+            return "Server=" + configurations["POSTGRES_SERVER_NAME"]
+                + ";Port=5432"
+                + ";Database=" + configurations["POSTGRES_DB"]
+                + ";User Id=" + configurations["ADMIN_USER_ID"]
+                + ";Password=" + configurations["ADMIN_PASSWORD"]
+                + ";MaxPoolSize=1000;";
         }
 
         /// <summary>
@@ -134,7 +141,7 @@ namespace ClassTranscribeDatabase
         {
             base.OnModelCreating(builder);
 
-            
+
             // This query filter is added to facilitate the soft-delete feature.
             // Soft-Delete implies that know row is actually every deleted, just their "Status" columns are tagged
             // as inactive.
@@ -164,6 +171,7 @@ namespace ClassTranscribeDatabase
             builder.Entity<Message>().HasQueryFilter(m => m.IsDeletedStatus == Status.Active);
             builder.Entity<EPub>().HasQueryFilter(m => m.IsDeletedStatus == Status.Active);
             builder.Entity<TaskItem>().HasQueryFilter(m => m.IsDeletedStatus == Status.Active);
+
             builder.Entity<Image>().HasQueryFilter(m => m.IsDeletedStatus == Status.Active);
 
             // Configure m-to-n relationships.
@@ -212,14 +220,14 @@ namespace ClassTranscribeDatabase
             builder.Entity<TaskItem>().Property(m => m.ResultData).HasJsonValueConversion();
 
             builder.Entity<TaskItem>().Property(m => m.RemoteResultData).HasJsonValueConversion();
-            
+
 
 
             builder.Entity<Subscription>().HasAlternateKey(s => new { s.ResourceType, s.ResourceId, s.ApplicationUserId });
             //TODO:TOREVIEW  Good idea or not to include these?
             // And what about  .HasOne()
-                //.WithMany)
-               // .HasForeignKey();
+            //.WithMany)
+            // .HasForeignKey();
 
             builder.Entity<TaskItem>().HasAlternateKey(t => new { t.UniqueId, t.TaskType });
             builder.Entity<TaskItem>().HasAlternateKey(t => new { t.Rule });
@@ -229,7 +237,7 @@ namespace ClassTranscribeDatabase
             builder.Entity<TaskItem>().HasAlternateKey(t => new { t.UserId });
             builder.Entity<TaskItem>().HasAlternateKey(t => new { t.VideoId });
             builder.Entity<TaskItem>().HasAlternateKey(t => new { t.OpaqueMessageRef });
-            
+
         }
         public override int SaveChanges(bool acceptAllChangesOnSuccess)
         {
