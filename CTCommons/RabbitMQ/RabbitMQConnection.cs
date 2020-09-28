@@ -47,7 +47,8 @@ namespace CTCommons
                 HostName = Globals.appSettings.RabbitMQServer,
                 UserName = Globals.appSettings.ADMIN_USER_ID,
                 Password = Globals.appSettings.ADMIN_PASSWORD,
-                Port = 5672
+                Port = Convert.ToUInt16(Globals.appSettings.RABBITMQ_PORT) // 5672
+
             };
             _logger.LogInformation($"Connection to RabbitMQ server {factory.HostName} with user {factory.UserName} on port {factory.Port}...");
             _connection = factory.CreateConnection();

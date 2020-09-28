@@ -18,6 +18,9 @@ namespace ClassTranscribeDatabase
         public string ADMIN_USER_ID { get; set; }
         public string ADMIN_PASSWORD { get; set; }
         public string RabbitMQServer { get; set; }
+
+        public string RABBITMQ_PORT { get; set; } = "5672";
+        
         // RABBITMQ_PREFETCH_COUNT has been replaced with these CONCURRENT LIMITS-
         //no longer used g RABBITMQ_PREFETCH_COUNT { get; set; } // No longer used; can be deleted in next cleanup
         public string MAX_CONCURRENT_TRANSCRIPTIONS { get; set; }
