@@ -1,16 +1,16 @@
 ﻿using ClassTranscribeDatabase;
-using ClassTranscribeDatabase.Models;
 using CTCommons;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis; // Supports SuppressMessage decoration
 using System.Linq;
 using System.Threading.Tasks;
-using System.Xml;
 using static ClassTranscribeDatabase.CommonUtils;
-using System.Diagnostics.CodeAnalysis;
+
+
 
 namespace TaskEngine.Tasks
 {
@@ -125,45 +125,126 @@ namespace TaskEngine.Tasks
         /// </summary>
         private async Task PendingJobs()
         {
+
+           
             // Update Box Token every few hours
             _updateBoxTokenTask.Publish("");
+
+            List<String> todoVTTs ;
+            List<String> todoTranscriptions;
+            List<String> todoDownloads;
             using (var context = CTDbContext.CreateDbContext())
             {
-                // Medias for which no videos have downloaded
-                (await context.Medias.Where(m => m.Video == null).ToListAsync()).ForEach(m => _downloadMediaTask.Publish(m.Id));
-                //// Videos which haven't been converted to wav 
-                //(await context.Videos.Where(v => v.Medias.Any() && v.Audio == null).ToListAsync()).ForEach(v => _convertVideoToWavTask.Publish(v.Id));
-                // Videos which have failed in transcribing
-                (await context.Videos.Where(v => v.TranscribingAttempts < 1 && v.TranscriptionStatus != "NoError" && v.Medias.Any())
-                    .ToListAsync()).ForEach(v => _transcriptionTask.Publish(v.Id));
+                // Most tasks are created directly from within a task when it normally completed. 
+                // This code exists to detect missing items and to publish tasks to complete them
+                // A redesigned taskengine should not have the direct coupling inside each task
+
+                // Since downloading a video could also create a Video, it is better to do these with little time delay in-between and then publish all the tasks
+                // I believe there is still a race condition: Prior to this, we've just polled all active playlists and at least one of these may have already completed
+                // So let's only consider items that are older than 10 minutes
+                // Okay this is bandaid on the current design until we redesign the taskengine
+                // Ideas For the future: 
+                // * Consider setting TTL on these messages to be 5 minutes short of thethe Periodic Refresh?
+                // * If/when we drop the direct appoach consider: Random ordering. Most recent first (or randomly choosing either)
+
+
+                var tooRecentCutoff = DateTime.Now.AddMinutes(-30);
+                // This is the first use of 'AsNoTracking' in this project; let's check it works in Production as expected
+
+                // TODO/TOREVIEW: Does EF create the complete entity and then project out the ID column in dot Net, or does it request only the ID from the database?
+                // TODO/TOREVIEW: Since this code  just pulls the IDs from the database, I expect this will be harmless no-op, however all DB reads should use AsNoTracking as a best practice
+                // See https://code-maze.com/queries-in-entity-framework-core/
+                // See https://docs.microsoft.com/en-us/ef/core/querying/tracking
+
                 // Completed Transcriptions which haven't generated vtt files
-                (await context.Transcriptions.Where(t => t.Captions.Count > 0 && t.File == null)
-                    .ToListAsync())
-                    .ForEach(t => _generateVTTFileTask.Publish(t.Id));
+                // TODO: Should also check dates too
+                _logger.LogInformation($"Finding incomplete VTTs, Transcriptions and Downloads from before {tooRecentCutoff}");
+
+                todoVTTs = await context.Transcriptions.AsNoTracking().Where(
+                    t => t.Captions.Count > 0 && t.File == null && t.CreatedAt < tooRecentCutoff
+                    ).OrderByDescending(t => t.CreatedAt).Select(e => e.Id).ToListAsync();
+
+                todoTranscriptions = await context.Videos.AsNoTracking().Where(
+                    v => v.TranscribingAttempts < 1 && v.TranscriptionStatus != "NoError" && v.Medias.Any() && v.CreatedAt < tooRecentCutoff
+                    ).OrderByDescending(t => t.CreatedAt).Select(e => e.Id).ToListAsync();
+
+                // Medias for which no videos have downloaded
+                todoDownloads = await context.Medias.AsNoTracking().Where(
+                    m => m.Video == null && m.CreatedAt < tooRecentCutoff
+                    ).OrderByDescending(t => t.CreatedAt).Select(e => e.Id).ToListAsync();
             }
+            // We have a list of outstanding tasks
+            // However some of these may already be in progress
+            // So don't queue theses
+
+            _logger.LogInformation($"Found {todoVTTs.Count},{todoTranscriptions.Count},{todoDownloads.Count} counts before filtering");
+            ClientActiveTasks currentVTTs = _generateVTTFileTask.GetCurrentTasks();
+            todoVTTs.RemoveAll(e => currentVTTs.Contains(e));
+
+            ClientActiveTasks currentTranscription = _transcriptionTask.GetCurrentTasks();
+            todoTranscriptions.RemoveAll(e => currentTranscription.Contains(e));
+
+            ClientActiveTasks currentDownloads = _transcriptionTask.GetCurrentTasks();
+            todoDownloads.RemoveAll(e => currentDownloads.Contains(e));
+
+            _logger.LogInformation($"Current In progress  {currentVTTs.Count},{currentTranscription.Count},{currentDownloads.Count} counts after filtering");
+            _logger.LogInformation($"Found {todoVTTs.Count},{todoTranscriptions.Count},{todoDownloads.Count} counts after filtering");
+
+
+            // Now we have a list of new things we want to do
+            _logger.LogInformation($"Publishing todoVTTs ({String.Join(",", todoVTTs)})");
+
+            todoVTTs.ForEach(t => _generateVTTFileTask.Publish(t));
+
+            _logger.LogInformation($"Publishing todoTranscriptions ({String.Join(",", todoTranscriptions)})");
+
+            todoTranscriptions.ForEach(v => _transcriptionTask.Publish(v));
+
+            _logger.LogInformation($"Publishing todoDownloads ({String.Join(",", todoDownloads)})");
+
+            todoDownloads.ForEach(m => _downloadMediaTask.Publish(m));
+
+            //// Not used Videos which haven't been converted to wav 
+            /// Code Not deleted because one day we will just reuse the one wav file and use an offset into that file
+            //(await context.Videos.Where(v => v.Medias.Any() && v.Audio == null).ToListAsync()).ForEach(v => _convertVideoToWavTask.Publish(v.Id));
+            // Videos which have failed in transcribing
+            _logger.LogInformation("Pending Jobs - completed");
         }
         /// Requests _downloadPlaylistInfoTask for all recent playlists
         private async Task DownloadAllPlaylists()
         {
+           
+            List <String> playlists;
             using (var _context = CTDbContext.CreateDbContext())
             {
+                _downloadPlaylistInfoTask.PurgeQueue();
+
                 var period = DateTime.Now.AddMonths(-6);
-                var playlists = await _context.Offerings.Where(o => o.Term.StartDate >= period).SelectMany(o => o.Playlists).ToListAsync();
-                playlists.ForEach(p => _downloadPlaylistInfoTask.Publish(p.Id));
+                //TODO/TOREVIEW: Suggest Term.EndDate < Today plus 2 weeks (but let's check the semester dates in the DB and document this in the frontend)
+                playlists = await _context.Offerings.Where(o => o.Term.StartDate >= period).SelectMany(o => o.Playlists).Select(p => p.Id).ToListAsync();
             }
+            _logger.LogInformation($"DownloadAllPlaylists(); _downloadPlaylistInfoTask publishing {playlists.Count} tasks");
+            playlists.ForEach(p => _downloadPlaylistInfoTask.Publish(p));
+            
+            _logger.LogInformation("DownloadAllPlaylists() - Complete");
         }
 
-        protected async override Task OnConsume(JObject jObject, TaskParameters taskParameters)
+        protected async override Task OnConsume(JObject jObject, TaskParameters taskParameters, ClientActiveTasks cleanup)
         {
+         
             using (var _context = CTDbContext.CreateDbContext())
             {
                 var type = jObject["Type"].ToString();
+
                 if (type == TaskType.PeriodicCheck.ToString())
                 {
                     await _slackLogger.PostMessageAsync("Periodic Check.");
+                    registerTask(cleanup, "PeriodicCheck");
                     _updateBoxTokenTask.Publish("");
+
                     await DownloadAllPlaylists();
                     await PendingJobs();
+                    
                 }
                 else if (type == TaskType.DownloadAllPlaylists.ToString())
                 {

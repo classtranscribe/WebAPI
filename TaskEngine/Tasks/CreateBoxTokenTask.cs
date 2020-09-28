@@ -18,8 +18,9 @@ namespace TaskEngine.Tasks
             _box = box;
         }
 
-        protected async override Task OnConsume(string authCode, TaskParameters taskParameters)
+        protected async override Task OnConsume(string authCode, TaskParameters taskParameters, ClientActiveTasks cleanup)
         {
+            registerTask(cleanup, "CreateAccessTokenAsync");
             await _box.CreateAccessTokenAsync(authCode);
         }
     }

@@ -1,9 +1,9 @@
-﻿using ClassTranscribeDatabase;
-using CTCommons;
+﻿using CTCommons;
 using Microsoft.Extensions.Logging;
 using System.Threading.Tasks;
 using static ClassTranscribeDatabase.CommonUtils;
 using System.Diagnostics.CodeAnalysis;
+
 
 namespace TaskEngine.Tasks
 {
@@ -17,9 +17,12 @@ namespace TaskEngine.Tasks
             _box = box;
         }
 #pragma warning disable 1998
-        protected async override Task OnConsume(string emptyString, TaskParameters taskParameters)
+        protected async override Task OnConsume(string emptyString, TaskParameters taskParameters, ClientActiveTasks cleanup)
         {
-            //await _box.RefreshAccessTokenAsync();
-        }
+            // Maybe in the future if we use this task again: registerTask(cleanup, "RefreshAccessTokenAsync"); // may throw AlreadyInProgress exception
+            // no. xx nope await _box.RefreshAccessTokenAsync();
+            // refreshing the Box access token caused the token to go stale
+            // We've had a better experience not refreshing it
+        }        
     }
 }
