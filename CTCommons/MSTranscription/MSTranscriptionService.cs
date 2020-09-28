@@ -175,12 +175,12 @@ namespace CTCommons.MSTranscription
 
                         recognizer.SessionStarted += (s, e) =>
                         {
-                            _logger.LogInformation("{logId}: Session started event.");
+                            _logger.LogInformation($"{logId}: Session started event.");
                         };
 
                         recognizer.SessionStopped += (s, e) =>
                         {
-                            _logger.LogInformation("{logId}: Session stopped event. Stopping recognition.");
+                            _logger.LogInformation($"{logId}: Session stopped event. Stopping recognition.");
                             stopRecognition.TrySetResult(0);
                         };
 
