@@ -86,7 +86,7 @@ namespace TaskEngine.Tasks
                         lastSuccessTime = TimeSpan.Parse(video.JsonMetadata["LastSuccessfulTime"].ToString());
                     }
 
-                    var result = await _msTranscriptionService.RecognitionWithVideoStreamAsync(video.Video1, key, captions, lastSuccessTime);
+                    var result = await _msTranscriptionService.RecognitionWithVideoStreamAsync(videoId, video.Video1, key, captions, lastSuccessTime);
 
                     if (video.JsonMetadata == null)
                     {

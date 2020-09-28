@@ -35,12 +35,12 @@ namespace CTCommons.MSTranscription
             _rpcClient = rpcClient;
         }
 
-        public async Task<MSTResult> RecognitionWithVideoStreamAsync(FileRecord videoFile, Key key, Dictionary<string, List<Caption>> captions, TimeSpan offset)
+        public async Task<MSTResult> RecognitionWithVideoStreamAsync(string logId, FileRecord videoFile, Key key, Dictionary<string, List<Caption>> captions, TimeSpan offset)
         {
-            return await RecognitionWithVideoStreamAsync(videoFile.VMPath, key, captions, offset);
+            return await RecognitionWithVideoStreamAsync(logId, videoFile.VMPath, key, captions, offset);
         }
 
-        public async Task<MSTResult> RecognitionWithVideoStreamAsync(string videoFilePath, Key key, Dictionary<string, List<Caption>> captions, TimeSpan restartOffset)
+        public async Task<MSTResult> RecognitionWithVideoStreamAsync(string logId, string videoFilePath, Key key, Dictionary<string, List<Caption>> captions, TimeSpan restartOffset)
         {
             _logger.LogInformation($"Trimming video file with offset {restartOffset.TotalSeconds} seconds");
             // If we ever re-use the audio file, we should remove the File.Delete at the end of this method
@@ -99,9 +99,7 @@ namespace CTCommons.MSTranscription
                                     {
                                         TimeSpan _offset = new TimeSpan(e.Result.OffsetInTicks);
                                         TimeSpan _end = e.Result.Duration.Add(_offset);
-                                        _logger.LogInformation($"Begin={_offset.Minutes}:{_offset.Seconds},{_offset.Milliseconds}", _offset);
-                                        _logger.LogInformation("Empty String");
-                                        _logger.LogInformation($"End={_end.Minutes}:{_end.Seconds},{_end.Milliseconds}");
+                                        _logger.LogInformation($"{logId}: Empty String: Begin={_offset.Minutes}:{_offset.Seconds},{_offset.Milliseconds}, End={_end.Minutes}:{_end.Seconds},{_end.Milliseconds}");
                                     }
                                     return;
                                 }
@@ -121,13 +119,11 @@ namespace CTCommons.MSTranscription
                                 TimeSpan end = e.Result.Duration.Add(offset);
                                 if (verboseLogging)
                                 {
-                                    _logger.LogInformation($"Begin={offset.Minutes}:{offset.Seconds},{offset.Milliseconds}", offset);
-                                    _logger.LogInformation($"End={end.Minutes}:{end.Seconds},{end.Milliseconds}");
+                                    _logger.LogInformation($"{logId}: Begin={offset.Minutes}:{offset.Seconds},{offset.Milliseconds}", offset);
+                                    _logger.LogInformation($"{logId}: End={end.Minutes}:{end.Seconds},{end.Milliseconds}");
                                 }
                                 var newCaptions = MSTWord.AppendCaptions(captions[Languages.ENGLISH].Count, sentenceLevelCaptions);
 
-                            //TODO/TOREVIEW: Restart Not fully implemented yet?
-                            // Comment still here... "Add offset here."
 
                             captions[Languages.ENGLISH].AddRange(newCaptions);
 
@@ -139,18 +135,18 @@ namespace CTCommons.MSTranscription
                             }
                             else if (e.Result.Reason == ResultReason.NoMatch)
                             {
-                                _logger.LogInformation($"NOMATCH: Speech could not be recognized.");
+                                _logger.LogInformation($"{logId}: NOMATCH: Speech could not be recognized.");
                             }
                         };
 
                         recognizer.Canceled += (s, e) =>
                         {
                             errorCode = e.ErrorCode.ToString();
-                            _logger.LogInformation($"CANCELED: ErrorCode={e.ErrorCode} Reason={e.Reason}");
+                            _logger.LogInformation($"{logId}: CANCELED: ErrorCode={e.ErrorCode} Reason={e.Reason}");
 
                             if (e.Reason == CancellationReason.Error)
                             {
-                                _logger.LogInformation($"CANCELED: ErrorCode={e.ErrorCode.ToString()} Reason={e.Reason}");
+                                _logger.LogInformation($"{logId}: CANCELED: ErrorCode={e.ErrorCode.ToString()} Reason={e.Reason}");
 
                                 if (e.ErrorCode == CancellationErrorCode.ServiceTimeout
                                 || e.ErrorCode == CancellationErrorCode.ServiceUnavailable
@@ -163,14 +159,14 @@ namespace CTCommons.MSTranscription
                                         lastTime = lastCaption.End;
                                     }
 
-                                    _logger.LogInformation($"Retrying, LastSuccessTime={lastTime.ToString()}");
+                                    _logger.LogInformation($"{logId}: Retrying, LastSuccessTime={lastTime.ToString()}");
                                     lastSuccessfulTime = lastTime;
                                 }
                                 else if (e.ErrorCode != CancellationErrorCode.NoError)
                                 {
-                                    _logger.LogInformation($"CANCELED: ErrorCode={e.ErrorCode.ToString()} Reason={e.Reason}");
-                                    _slackLogger.PostErrorAsync(new Exception($"Transcription Failure"),
-                                        $"Transcription Failure").GetAwaiter().GetResult();
+                                    _logger.LogInformation($"{logId}: CANCELED: ErrorCode={e.ErrorCode.ToString()} Reason={e.Reason}");
+                                    _slackLogger.PostErrorAsync(new Exception($"{logId}: Transcription Failure"),
+                                        "Transcription Failure").GetAwaiter().GetResult();
                                 }
                             }
 
@@ -179,13 +175,12 @@ namespace CTCommons.MSTranscription
 
                         recognizer.SessionStarted += (s, e) =>
                         {
-                            _logger.LogInformation("\nSession started event.");
+                            _logger.LogInformation("{logId}: Session started event.");
                         };
 
                         recognizer.SessionStopped += (s, e) =>
                         {
-                            _logger.LogInformation("\nSession stopped event.");
-                            _logger.LogInformation("\nStop recognition.");
+                            _logger.LogInformation("{logId}: Session stopped event. Stopping recognition.");
                             stopRecognition.TrySetResult(0);
                         };
 
@@ -198,6 +193,8 @@ namespace CTCommons.MSTranscription
 
                         // Stops recognition.
                         await recognizer.StopContinuousRecognitionAsync().ConfigureAwait(false);
+
+                        _logger.LogInformation($"{logId}: Returning {captions.Count} captions, ErrorCode = {errorCode}, LastSuccessTime = {lastSuccessfulTime}");
 
                         return new MSTResult
                         {
