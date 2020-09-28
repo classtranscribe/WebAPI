@@ -58,8 +58,8 @@ namespace ClassTranscribeDatabase
         public DbSet<WatchHistory> WatchHistories { get; set; }
         public DbSet<Subscription> Subscriptions { get; set; }
         public DbSet<Message> Messages { get; set; }
-        public DbSet<EPubChapter> EPubChapters { get; set; }
         public DbSet<TaskItem> TaskItems { get; set; }
+        public DbSet<Image> Images { get; set; }
 
         /// <summary>
         /// This method builds a connectionstring to connect with the database.
@@ -169,10 +169,10 @@ namespace ClassTranscribeDatabase
             builder.Entity<WatchHistory>().HasQueryFilter(m => m.IsDeletedStatus == Status.Active);
             builder.Entity<Subscription>().HasQueryFilter(m => m.IsDeletedStatus == Status.Active);
             builder.Entity<Message>().HasQueryFilter(m => m.IsDeletedStatus == Status.Active);
-            builder.Entity<EPubChapter>().HasQueryFilter(m => m.IsDeletedStatus == Status.Active);
             builder.Entity<EPub>().HasQueryFilter(m => m.IsDeletedStatus == Status.Active);
             builder.Entity<TaskItem>().HasQueryFilter(m => m.IsDeletedStatus == Status.Active);
 
+            builder.Entity<Image>().HasQueryFilter(m => m.IsDeletedStatus == Status.Active);
 
             // Configure m-to-n relationships.
             builder.Entity<CourseOffering>()
@@ -215,8 +215,7 @@ namespace ClassTranscribeDatabase
             builder.Entity<Offering>().Property(m => m.JsonMetadata).HasJsonValueConversion();
             builder.Entity<WatchHistory>().Property(m => m.Json).HasJsonValueConversion();
             builder.Entity<Message>().Property(m => m.Payload).HasJsonValueConversion();
-            builder.Entity<EPub>().Property(m => m.Json).HasJsonValueConversion();
-            builder.Entity<EPubChapter>().Property(m => m.Data).HasJsonValueConversion();
+            builder.Entity<EPub>().Property(m => m.Chapters).HasJsonValueConversion();
             builder.Entity<TaskItem>().Property(m => m.TaskParameters).HasJsonValueConversion();
             builder.Entity<TaskItem>().Property(m => m.ResultData).HasJsonValueConversion();
 
