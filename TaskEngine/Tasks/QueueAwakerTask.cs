@@ -26,6 +26,7 @@ namespace TaskEngine.Tasks
         private readonly SceneDetectionTask _scenedDetectionTask;
         private readonly CreateBoxTokenTask _createBoxTokenTask;
         private readonly UpdateBoxTokenTask _updateBoxTokenTask;
+        private readonly ExampleTask _exampleTask;
         private readonly SlackLogger _slackLogger;
 
         public QueueAwakerTask() { }
@@ -241,6 +242,7 @@ namespace TaskEngine.Tasks
                     await _slackLogger.PostMessageAsync("Periodic Check.");
                     registerTask(cleanup, "PeriodicCheck");
                     _updateBoxTokenTask.Publish("");
+                    _exampleTask.Publish("");
 
                     await DownloadAllPlaylists();
                     await PendingJobs();

@@ -60,6 +60,8 @@ namespace TaskEngine
                 .AddSingleton<SceneDetectionTask>()
                 .AddSingleton<UpdateBoxTokenTask>()
                 .AddSingleton<CreateBoxTokenTask>()
+                .AddSingleton<ExampleTask>()
+                
                 .AddSingleton<BoxAPI>()
                 .AddScoped<Seeder>()
                 .AddScoped<SlackLogger>()
@@ -126,6 +128,9 @@ namespace TaskEngine
             serviceProvider.GetService<QueueAwakerTask>().Consume(NO_CONCURRENCY); //TODO TOREVIEW: NO_CONCURRENCY?
             serviceProvider.GetService<UpdateBoxTokenTask>().Consume(NO_CONCURRENCY);
             serviceProvider.GetService<CreateBoxTokenTask>().Consume(NO_CONCURRENCY);
+
+            serviceProvider.GetService<ExampleTask>().Consume(NO_CONCURRENCY);
+            
             _logger.LogInformation("Done creating task consumers");
             //nolonger used :
             // nope serviceProvider.GetService<nope ConvertVideoToWavTask>().Consume(concurrent_videotasks);
