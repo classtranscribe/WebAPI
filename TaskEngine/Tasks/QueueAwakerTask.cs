@@ -35,7 +35,7 @@ namespace TaskEngine.Tasks
             DownloadMediaTask downloadMediaTask,
             TranscriptionTask transcriptionTask, ProcessVideoTask processVideoTask,
             GenerateVTTFileTask generateVTTFileTask, SceneDetectionTask scenedDetectionTask,
-            CreateBoxTokenTask createBoxTokenTask, UpdateBoxTokenTask updateBoxTokenTask,
+            CreateBoxTokenTask createBoxTokenTask, UpdateBoxTokenTask updateBoxTokenTask, ExampleTask exampleTask,
             ILogger<QueueAwakerTask> logger, SlackLogger slackLogger)
             : base(rabbitMQ, TaskType.QueueAwaker, logger)
         {
@@ -48,6 +48,7 @@ namespace TaskEngine.Tasks
             _scenedDetectionTask = scenedDetectionTask;
             _createBoxTokenTask = createBoxTokenTask;
             _updateBoxTokenTask = updateBoxTokenTask;
+            _exampleTask = exampleTask;
             _slackLogger = slackLogger;
         }
 
