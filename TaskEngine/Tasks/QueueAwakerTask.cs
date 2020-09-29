@@ -148,9 +148,10 @@ namespace TaskEngine.Tasks
                 // * Consider setting TTL on these messages to be 5 minutes short of thethe Periodic Refresh?
                 // * If/when we drop the direct appoach consider: Random ordering. Most recent first (or randomly choosing either)
 
-                // If an object was created during the middle of the last periodic cycle, give it a full cycle to complete its tasks.
-                // 
-                int minutesCutOff = 2 * Math.Max(5, Convert.ToInt32(Globals.appSettings.PERIODIC_CHECK_MINUTES));
+                // If an object was created during the middle of a periodic cycle, give it a full cycle to queue, and another cycle to complete its tasks
+
+                
+                int minutesCutOff =  Math.Min( 1, Convert.ToInt32(Globals.appSettings.PERIODIC_CHECK_OLDER_THAN_MINUTES));
                
                 
                 var tooRecentCutoff = DateTime.Now.AddMinutes(- minutesCutOff);

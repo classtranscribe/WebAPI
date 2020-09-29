@@ -34,7 +34,9 @@ namespace CTCommons
 
     public class RabbitMQConnection : IDisposable
     {
-        IConnection _connection;
+        // Created by the first instance, then re-used
+        private static IConnection _connection;
+
         IModel _channel { get; set; }
         String _expiration; // milliseconds
 
@@ -42,6 +44,23 @@ namespace CTCommons
         public RabbitMQConnection(ILogger<RabbitMQConnection> logger)
         {
             _logger = logger;
+            CreateSharedConnection();
+
+            // TODO/TOREVIEW: Check number of threads created
+            // Potentially Model can be shared too 
+            _channel = _connection.CreateModel();
+
+            uint time = Math.Min(1, Convert.ToUInt32(Globals.appSettings.RABBITMQ_TASK_TTL_MINUTES));
+            SetMessageExpiration(time);
+        }
+
+        private void CreateSharedConnection()
+        {
+            if(_connection != null)
+            {
+                return;
+            }
+            _logger.LogInformation("Creating RabbitMQ connection");
             var factory = new ConnectionFactory()
             {
                 HostName = Globals.appSettings.RABBITMQ_SERVER_NAME ?? Globals.appSettings.RabbitMQServer,
@@ -53,16 +72,13 @@ namespace CTCommons
             // A developer may still want to checkout old code which uses the old env branch
             // so just complain loudly for now
             // In 2021 we can remove support for the old variable
-            if( Globals.appSettings.RabbitMQServer.Length > 0) {
+            if (Globals.appSettings.RabbitMQServer.Length > 0)
+            {
                 _logger.LogError("*** Mixed case 'RabbitMQServer' key is deprecated");
                 _logger.LogError("*** UPDATE YOUR ENVIRONMENT e.g .env/vs_appsettings.json to use RABBITMQ_SERVER_NAME.");
             }
-            _logger.LogInformation($"Connection to RabbitMQ server {factory.HostName} with user {factory.UserName} on port {factory.Port}...");
+            _logger.LogInformation($"Connecting to RabbitMQ server {factory.HostName} with user {factory.UserName} on port {factory.Port}...");
             _connection = factory.CreateConnection();
-            _channel = _connection.CreateModel();
-
-            uint time = Convert.ToUInt32(Globals.appSettings.PERIODIC_CHECK_MINUTES);
-            SetMessageExpiration(time);
         }
 
         public void SetMessageExpiration(uint ttlMinutes) {

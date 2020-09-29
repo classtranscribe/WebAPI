@@ -49,7 +49,10 @@ namespace ClassTranscribeDatabase
         public string GITSHA1 { get; set; }
         public string BUILDNUMBER { get; set; }
 
-        public string PERIODIC_CHECK_MINUTES { get; set; } = "120";
+        public string RABBITMQ_TASK_TTL_MINUTES { get; set; } = "60";
+        public string PERIODIC_CHECK_EVERY_MINUTES { get; set; } = "60";
+        public string PERIODIC_CHECK_OLDER_THAN_MINUTES { get; set; } = "120";
+        
     }
 
     /// <summary>
