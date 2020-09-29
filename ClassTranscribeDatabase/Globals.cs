@@ -17,7 +17,9 @@ namespace ClassTranscribeDatabase
         public string POSTGRES_DB { get; set; }
         public string ADMIN_USER_ID { get; set; }
         public string ADMIN_PASSWORD { get; set; }
-        public string RabbitMQServer { get; set; }
+        public string RabbitMQServer { get; set; } = ""; // deprecated - use RABBITMQ_SERVER_NAME instead
+
+        public string RABBITMQ_SERVER_NAME { get; set;  }  // consistent with other keys including POSTGRES
 
         public string RABBITMQ_PORT { get; set; } = "5672";
         

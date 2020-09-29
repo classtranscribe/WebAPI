@@ -44,12 +44,19 @@ namespace CTCommons
             _logger = logger;
             var factory = new ConnectionFactory()
             {
-                HostName = Globals.appSettings.RabbitMQServer,
+                HostName = Globals.appSettings.RABBITMQ_SERVER_NAME ?? Globals.appSettings.RabbitMQServer,
                 UserName = Globals.appSettings.ADMIN_USER_ID,
                 Password = Globals.appSettings.ADMIN_PASSWORD,
                 Port = Convert.ToUInt16(Globals.appSettings.RABBITMQ_PORT) // 5672
 
             };
+            // A developer may still want to checkout old code which uses the old env branch
+            // so just complain loudly for now
+            // In 2021 we can remove support for the old variable
+            if( Globals.appSettings.RabbitMQServer.Length > 0) {
+                _logger.LogError("*** Mixed case 'RabbitMQServer' key is deprecated");
+                _logger.LogError("*** UPDATE YOUR ENVIRONMENT e.g .env/vs_appsettings.json to use RABBITMQ_SERVER_NAME.");
+            }
             _logger.LogInformation($"Connection to RabbitMQ server {factory.HostName} with user {factory.UserName} on port {factory.Port}...");
             _connection = factory.CreateConnection();
             _channel = _connection.CreateModel();
