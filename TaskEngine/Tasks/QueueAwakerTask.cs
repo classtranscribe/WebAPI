@@ -148,8 +148,12 @@ namespace TaskEngine.Tasks
                 // * Consider setting TTL on these messages to be 5 minutes short of thethe Periodic Refresh?
                 // * If/when we drop the direct appoach consider: Random ordering. Most recent first (or randomly choosing either)
 
-
-                var tooRecentCutoff = DateTime.Now.AddMinutes(-30);
+                // If an object was created during the middle of the last periodic cycle, give it a full cycle to complete its tasks.
+                // 
+                int minutesCutOff = 2 * Math.Max(5, Convert.ToInt32(Globals.appSettings.PERIODIC_CHECK_MINUTES));
+               
+                
+                var tooRecentCutoff = DateTime.Now.AddMinutes(- minutesCutOff);
                 // This is the first use of 'AsNoTracking' in this project; let's check it works in Production as expected
 
                 // TODO/TOREVIEW: Does EF create the complete entity and then project out the ID column in dot Net, or does it request only the ID from the database?
@@ -159,7 +163,7 @@ namespace TaskEngine.Tasks
 
                 // Completed Transcriptions which haven't generated vtt files
                 // TODO: Should also check dates too
-                _logger.LogInformation($"Finding incomplete VTTs, Transcriptions and Downloads from before {tooRecentCutoff}");
+                _logger.LogInformation($"Finding incomplete VTTs, Transcriptions and Downloads from before {tooRecentCutoff}, minutesCutOff=({minutesCutOff})");
 
                 todoVTTs = await context.Transcriptions.AsNoTracking().Where(
                     t => t.Captions.Count > 0 && t.File == null && t.CreatedAt < tooRecentCutoff
