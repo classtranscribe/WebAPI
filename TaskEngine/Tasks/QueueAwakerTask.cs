@@ -287,12 +287,34 @@ namespace TaskEngine.Tasks
                 //    var video = await _context.Videos.FindAsync(videoId);
                 //    _convertVideoToWavTask.Publish(video.Id);
                 //}
-                else if (type == TaskType.Transcribe.ToString())
+                else if (type == TaskType.ContinueTranscribe.ToString() || (type == TaskType.ReTranscribeVideo.ToString()))
                 {
-                    var videoId = jObject["videoId"].ToString();
-                    var video = await _context.Videos.FindAsync(videoId);
+                    var id = jObject["videoOrMediaId"].ToString();
+                    _logger.LogInformation("{type}:{id}");
+                    var video = await _context.Videos.FindAsync(id);
+                    if(video == null)
+                    {
+                        var media = await _context.Medias.FindAsync(id);
+                        if( media != null)
+                        {
+                            _logger.LogInformation($"{id}: media Found. videoID=({media.VideoId})");
+                            video = media.Video;
+                        }
+                    }
+                    if( video == null)
+                    {
+                        _logger.LogInformation($"No video found for video/mediaId ({id})");
+                        return;
+
+                     }
+                    if (type == TaskType.ReTranscribeVideo.ToString())
+                    {
+                        _logger.LogInformation($"{id}:Removing Transcriptions for video ({video.Id})");
+                        var transcriptions = video.Transcriptions;
+                        _context.Transcriptions.RemoveRange(transcriptions);
+                    }
                     _transcriptionTask.Publish(video.Id);
-                }
+                }  
                 else if (type == TaskType.UpdateOffering.ToString())
                 {
                     var offeringId = jObject["offeringId"].ToString();

@@ -82,11 +82,11 @@ namespace ClassTranscribeServer
             Wake(msg);
         }
 
-        public void TranscribeVideo(string videoId)
+        public void TranscribeVideo(string videoOrMediaId, bool deleteExisting)
         {
             JObject msg = new JObject();
-            msg.Add("Type", TaskType.Transcribe.ToString());
-            msg.Add("videoId", videoId);
+            msg.Add("Type", deleteExisting? TaskType.ReTranscribeVideo.ToString() :  TaskType.ContinueTranscribe.ToString());
+            msg.Add("videoOrMediaId", videoOrMediaId);
             Wake(msg);
         }
 
