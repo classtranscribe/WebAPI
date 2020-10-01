@@ -34,11 +34,7 @@ namespace ClassTranscribeDatabase.Models
     public enum AccessTypes
     {
         // Since these are persisted in the database these integer values are immutable once assigned (hence explicit)
-<<<<<<< HEAD
         Public = 0,
-=======
-        Public = 0, 
->>>>>>> e53313c60e95098a309c107d26561443407f610b
         AuthenticatedOnly = 1,
         StudentsOnly = 2,
         UniversityOnly = 3,
@@ -74,8 +70,10 @@ namespace ClassTranscribeDatabase.Models
     {
         public string FirstName { get; set; }
         public string LastName { get; set; }
+        [SwaggerIgnore]
         [IgnoreDataMember]
         public virtual List<UserOffering> UserOfferings { get; set; }
+        [SwaggerIgnore]
         [IgnoreDataMember]
         public string UniversityId { get; set; }
         public virtual University University { get; set; }
@@ -91,14 +89,19 @@ namespace ClassTranscribeDatabase.Models
     {
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public string Id { get; set; }
+        [SwaggerIgnore]
         [IgnoreDataMember]
         public DateTime CreatedAt { get; set; }
+        [SwaggerIgnore]
         [IgnoreDataMember]
         public string CreatedBy { get; set; }
+        [SwaggerIgnore]
         [IgnoreDataMember]
         public DateTime LastUpdatedAt { get; set; }
+        [SwaggerIgnore]
         [IgnoreDataMember]
         public string LastUpdatedBy { get; set; }
+        [SwaggerIgnore]
         [IgnoreDataMember]
         public Status IsDeletedStatus { get; set; }
 
@@ -121,8 +124,10 @@ namespace ClassTranscribeDatabase.Models
     {
         public string Name { get; set; }
         public string Domain { get; set; }
+        [SwaggerIgnore]
         [IgnoreDataMember]
         public virtual List<Department> Departments { get; set; }
+        [SwaggerIgnore]
         [IgnoreDataMember]
         public virtual List<Term> Terms { get; set; }
     }
@@ -131,9 +136,11 @@ namespace ClassTranscribeDatabase.Models
     {
         public string Name { get; set; }
         public string Acronym { get; set; }
+        [SwaggerIgnore]
         [IgnoreDataMember]
         public virtual List<Course> Courses { get; set; }
         public string UniversityId { get; set; }
+        [SwaggerIgnore]
         [IgnoreDataMember]
         public virtual University University { get; set; }
     }
@@ -142,8 +149,10 @@ namespace ClassTranscribeDatabase.Models
     {
         public string CourseNumber { get; set; }
         public string DepartmentId { get; set; }
+        [SwaggerIgnore]
         [IgnoreDataMember]
         public virtual Department Department { get; set; }
+        [SwaggerIgnore]
         [IgnoreDataMember]
         public virtual List<CourseOffering> CourseOfferings { get; set; }
     }
@@ -154,8 +163,10 @@ namespace ClassTranscribeDatabase.Models
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
         public string UniversityId { get; set; }
+        [SwaggerIgnore]
         [IgnoreDataMember]
         public virtual University University { get; set; }
+        [SwaggerIgnore]
         [IgnoreDataMember]
         public virtual List<Offering> Offerings { get; set; }
     }
@@ -163,12 +174,16 @@ namespace ClassTranscribeDatabase.Models
     {
         public string SectionName { get; set; }
         public string TermId { get; set; }
+        [SwaggerIgnore]
         [IgnoreDataMember]
         public virtual Term Term { get; set; }
+        [SwaggerIgnore]
         [IgnoreDataMember]
         public virtual List<CourseOffering> CourseOfferings { get; set; }
+        [SwaggerIgnore]
         [IgnoreDataMember]
         public virtual List<Playlist> Playlists { get; set; }
+        [SwaggerIgnore]
         [IgnoreDataMember]
         public virtual List<UserOffering> OfferingUsers { get; set; }
         public AccessTypes AccessType { get; set; }
@@ -186,6 +201,7 @@ namespace ClassTranscribeDatabase.Models
         public string PlaylistIdentifier { get; set; }
         public virtual List<Media> Medias { get; set; }
         public string OfferingId { get; set; }
+        [SwaggerIgnore]
         [IgnoreDataMember]
         public virtual Offering Offering { get; set; }
         public JObject JsonMetadata { get; set; }
@@ -199,9 +215,11 @@ namespace ClassTranscribeDatabase.Models
         public string UniqueMediaIdentifier { get; set; }
         public JObject JsonMetadata { get; set; }
         public string VideoId { get; set; }
+        [SwaggerIgnore]
         [IgnoreDataMember]
         public virtual Video Video { get; set; }
         public string PlaylistId { get; set; }
+        [SwaggerIgnore]
         [IgnoreDataMember]
         public virtual Playlist Playlist { get; set; }
         public string Name { get; set; }
@@ -219,9 +237,10 @@ namespace ClassTranscribeDatabase.Models
         public string Language { get; set; }
         public string Description { get; set; }
         public string VideoId { get; set; }
+        [SwaggerIgnore]
         [IgnoreDataMember]
         public virtual Video Video { get; set; }
-
+        [SwaggerIgnore]
         [IgnoreDataMember]
         public virtual List<Caption> Captions { get; set; }
     }
@@ -294,8 +313,10 @@ namespace ClassTranscribeDatabase.Models
     {
         public string CourseId { get; set; }
         public string OfferingId { get; set; }
+        [SwaggerIgnore]
         [IgnoreDataMember]
         public virtual Course Course { get; set; }
+        [SwaggerIgnore]
         [IgnoreDataMember]
         public virtual Offering Offering { get; set; }
 
@@ -305,11 +326,14 @@ namespace ClassTranscribeDatabase.Models
     {
         public string OfferingId { get; set; }
         public string ApplicationUserId { get; set; }
+        [SwaggerIgnore]
         [IgnoreDataMember]
         public virtual Offering Offering { get; set; }
+        [SwaggerIgnore]
         [IgnoreDataMember]
         public virtual ApplicationUser ApplicationUser { get; set; }
         public string IdentityRoleId { get; set; }
+        [SwaggerIgnore]
         [IgnoreDataMember]
         public virtual IdentityRole IdentityRole { get; set; }
     }
@@ -340,9 +364,11 @@ namespace ClassTranscribeDatabase.Models
     public class WatchHistory : Entity
     {
         public string MediaId { get; set; }
+        [SwaggerIgnore]
         [IgnoreDataMember]
         public virtual Media Media { get; set; }
         public string ApplicationUserId { get; set; }
+        [SwaggerIgnore]
         [IgnoreDataMember]
         public virtual ApplicationUser ApplicationUser { get; set; }
         public JObject Json { get; set; }
@@ -401,4 +427,9 @@ namespace ClassTranscribeDatabase.Models
         public string ImageFileId { get; set; }
         public virtual FileRecord ImageFile { get; set; }
     }
+    [AttributeUsage(AttributeTargets.Property)]
+    public class SwaggerIgnoreAttribute : Attribute
+    {
+    }
+
 }
