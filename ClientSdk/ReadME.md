@@ -71,6 +71,16 @@
   * `_input`: parameters of api calls
   * `_expectation`: expected response of api calls
 
+* Uncomment following code 
+
+  ```c#
+  //TestCase t = new TestCase(_token, _api, _method, _input, _expectation);
+  
+//AssertInfo log = t.Run();
+  
+//Assert.Equal("succeed", log.assert);
+  ```
+
 * Run test 
 
   ```
