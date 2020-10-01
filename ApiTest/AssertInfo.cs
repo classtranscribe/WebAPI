@@ -66,21 +66,6 @@ namespace Tests
             return ret;
         }
 
-
-
-        public static List<AssertInfo> MultipleCaseAssert(List<string> expectations, List<dynamic> results, List<List<string>> inputs, string api, string method)
-        {
-           
-            List<AssertInfo> rets = new List<AssertInfo>();
-
-            for (int i = 0; i < results.Count; i++)
-            {
-                rets.Add(SingleCaseAssert(expectations[i], results[i], inputs[i], api, method));
-            }
-
-            return rets;
-        }
-
     }
 
 }
