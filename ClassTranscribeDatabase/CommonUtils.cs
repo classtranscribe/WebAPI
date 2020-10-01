@@ -19,7 +19,7 @@ namespace ClassTranscribeDatabase
             DownloadPlaylistInfo = 3,
             DownloadMedia = 4,
             ConvertMedia = 5,
-            Unused = 6,
+            TranscribeVideo = 6,
             ProcessVideo = 7,
             Aggregator = 8,
             GenerateVTTFile = 9,
@@ -29,9 +29,7 @@ namespace ClassTranscribeDatabase
             CreateBoxToken = 13,
             UpdateOffering = 14,
             ReTranscribePlaylist = 15,
-            ExampleTask = 16,
-            ContinueTranscribe = 17,
-            ReTranscribeVideo = 18
+            ExampleTask = 16
         }
 
         public class Languages

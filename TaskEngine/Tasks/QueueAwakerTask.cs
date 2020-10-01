@@ -294,7 +294,7 @@ namespace TaskEngine.Tasks
                 //    var video = await _context.Videos.FindAsync(videoId);
                 //    _convertVideoToWavTask.Publish(video.Id);
                 //}
-                else if (type == TaskType.ContinueTranscribe.ToString() || (type == TaskType.ReTranscribeVideo.ToString()))
+                else if (type == TaskType.TranscribeVideo.ToString())
                 {
                     var id = jObject["videoOrMediaId"].ToString();
                     _logger.LogInformation($"{type}:{id}");
@@ -314,7 +314,14 @@ namespace TaskEngine.Tasks
                         return;
 
                      }
-                    if (type == TaskType.ReTranscribeVideo.ToString())
+                    //TODO: These properties should not be literal strings
+                    bool deleteExisting = false;
+                    try
+                    {
+                        deleteExisting = jObject["DeleteExisting"].Value<bool>();
+                    }
+                    catch (Exception ignored) { }
+                    if (deleteExisting)
                     {
                         _logger.LogInformation($"{id}:Removing Transcriptions for video ({video.Id})");
                         

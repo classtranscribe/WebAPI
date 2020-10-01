@@ -30,7 +30,7 @@ namespace TaskEngine.Tasks
 
         public TranscriptionTask(RabbitMQConnection rabbitMQ, MSTranscriptionService msTranscriptionService,
             GenerateVTTFileTask generateVTTFileTask, SceneDetectionTask sceneDetectionTask, ILogger<TranscriptionTask> logger, CaptionQueries captionQueries)
-            : base(rabbitMQ, TaskType.ReTranscribeVideo, logger)
+            : base(rabbitMQ, TaskType.TranscribeVideo, logger)
         {
             _msTranscriptionService = msTranscriptionService;
             _generateVTTFileTask = generateVTTFileTask;

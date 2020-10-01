@@ -11,7 +11,7 @@ namespace ClassTranscribeServer
         {
             _rabbitMQ = rabbitMQ;
         }
-
+        //Todo: Fix field capitalization in here and QueueAwakerTask.cs
         public void UpdateAllPlaylists()
         {
             JObject msg = new JObject();
@@ -85,8 +85,9 @@ namespace ClassTranscribeServer
         public void TranscribeVideo(string videoOrMediaId, bool deleteExisting)
         {
             JObject msg = new JObject();
-            msg.Add("Type", deleteExisting? TaskType.ReTranscribeVideo.ToString() :  TaskType.ContinueTranscribe.ToString());
+            msg.Add("Type", TaskType.TranscribeVideo.ToString());
             msg.Add("videoOrMediaId", videoOrMediaId);
+            msg.Add("DeleteExisting", deleteExisting);
             Wake(msg);
         }
 
