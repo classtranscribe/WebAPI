@@ -152,7 +152,7 @@ namespace TaskEngine.Tasks
                 // If an object was created during the middle of a periodic cycle, give it a full cycle to queue, and another cycle to complete its tasks
 
                 
-                int minutesCutOff =  Math.Min( 1, Convert.ToInt32(Globals.appSettings.PERIODIC_CHECK_OLDER_THAN_MINUTES));
+                int minutesCutOff =  Math.Max( 1, Convert.ToInt32(Globals.appSettings.PERIODIC_CHECK_OLDER_THAN_MINUTES));
                
                 
                 var tooRecentCutoff = DateTime.Now.AddMinutes(- minutesCutOff);
@@ -296,7 +296,7 @@ namespace TaskEngine.Tasks
                 else if (type == TaskType.ContinueTranscribe.ToString() || (type == TaskType.ReTranscribeVideo.ToString()))
                 {
                     var id = jObject["videoOrMediaId"].ToString();
-                    _logger.LogInformation("{type}:{id}");
+                    _logger.LogInformation($"{type}:{id}");
                     var video = await _context.Videos.FindAsync(id);
                     if(video == null)
                     {
@@ -316,8 +316,13 @@ namespace TaskEngine.Tasks
                     if (type == TaskType.ReTranscribeVideo.ToString())
                     {
                         _logger.LogInformation($"{id}:Removing Transcriptions for video ({video.Id})");
+                        
                         var transcriptions = video.Transcriptions;
                         _context.Transcriptions.RemoveRange(transcriptions);
+                        video.TranscriptionStatus = "";
+                        // Could also remove LastSuccessTime and reset attempts
+                        
+                        await _context.SaveChangesAsync();
                     }
                     _transcriptionTask.Publish(video.Id);
                 }  

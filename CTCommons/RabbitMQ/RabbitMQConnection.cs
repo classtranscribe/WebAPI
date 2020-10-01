@@ -50,7 +50,7 @@ namespace CTCommons
             // Potentially Model can be shared too 
             _channel = _connection.CreateModel();
 
-            uint time = Math.Min(1, Convert.ToUInt32(Globals.appSettings.RABBITMQ_TASK_TTL_MINUTES));
+            uint time = Math.Max(1, Convert.ToUInt32(Globals.appSettings.RABBITMQ_TASK_TTL_MINUTES));
             SetMessageExpiration(time);
         }
 

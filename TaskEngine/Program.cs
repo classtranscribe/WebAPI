@@ -146,7 +146,7 @@ namespace TaskEngine
 
             QueueAwakerTask queueAwakerTask = serviceProvider.GetService<QueueAwakerTask>();
 
-            int periodicCheck = Math.Min(1,Convert.ToInt32(Globals.appSettings.PERIODIC_CHECK_EVERY_MINUTES));
+            int periodicCheck = Math.Max(1,Convert.ToInt32(Globals.appSettings.PERIODIC_CHECK_EVERY_MINUTES));
             
             _logger.LogInformation("Periodic Check Every {0} minutes", periodicCheck);
             var timeInterval = new TimeSpan(0, periodicCheck, 0);
