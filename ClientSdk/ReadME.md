@@ -8,7 +8,7 @@
 
   If the connection succeeds, a webpage will jump out. "https://localhost:5001/" is the **base url** of your local client.
 
-  ![image-20201001080418261](C:\Users\royce\AppData\Roaming\Typora\typora-user-images\image-20201001080418261.png)
+  ![image-20201001080418261](./Assets/image-20201001080418261.png)
 
 * In`./WebApi/ClientSdk/nswag.json` file, 
 
@@ -32,7 +32,7 @@
 
   Then `Client.cs`,  `ClientContracts.cs` and  `openApi.json` will be generated/updated automatically.
 
-![image-20201001074926435](C:\Users\royce\AppData\Roaming\Typora\typora-user-images\image-20201001074926435.png)
+![image-20201001074926435](./Assets/image-20201001074926435.png)
 
 * Now ClientSdk is set up. U can call methods in `Client.cs` to test api.
 
@@ -42,7 +42,7 @@
   $ nswag run /runtime:NetCore31
   ```
 
-![image-20201001090107860](C:\Users\royce\AppData\Roaming\Typora\typora-user-images\image-20201001090107860.png)
+![image-20201001090107860](./Assets/image-20201001090107860.png)
 
 ## ApiTestFramework
 
@@ -79,6 +79,6 @@
 
   If succeed, you should see
 
-  ![image-20201001090033807](C:\Users\royce\AppData\Roaming\Typora\typora-user-images\image-20201001090033807.png)
+  ![image-20201001090033807](./Assets/image-20201001090033807.png)
 
   
