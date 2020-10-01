@@ -34,7 +34,7 @@ namespace ClassTranscribeDatabase.Models
     public enum AccessTypes
     {
         // Since these are persisted in the database these integer values are immutable once assigned (hence explicit)
-        Public = 0, 
+        Public = 0,
         AuthenticatedOnly = 1,
         StudentsOnly = 2,
         UniversityOnly = 3,
@@ -354,7 +354,6 @@ namespace ClassTranscribeDatabase.Models
         public string Title { get; set; }
         public string Filename { get; set; }
         public string Language { get; set; }
-
         public string Author { get; set; }
         public string Publisher { get; set; }
         public bool IsPublished { get; set; }
@@ -423,12 +422,10 @@ namespace ClassTranscribeDatabase.Models
     {
         public ResourceType SourceType { get; set; }
         public string SourceId { get; set; }
-
         [ForeignKey("ImageFile")]
         public string ImageFileId { get; set; }
         public virtual FileRecord ImageFile { get; set; }
     }
-
     [AttributeUsage(AttributeTargets.Property)]
     public class SwaggerIgnoreAttribute : Attribute
     {
