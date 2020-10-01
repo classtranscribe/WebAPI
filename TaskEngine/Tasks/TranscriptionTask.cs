@@ -46,7 +46,7 @@ namespace TaskEngine.Tasks
             {
                 Video video = await _context.Videos.Include(v => v.Transcriptions).SingleAsync(v => v.Id == videoId);
 
-                string[] languages = new string[] { Languages.ENGLISH_AMERICAN, Languages.ITALIAN };
+                string[] languages = new string[] { Languages.ENGLISH_AMERICAN, Languages.SPANISH };
                 foreach (var language in languages)
                 {
 
