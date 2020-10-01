@@ -12,6 +12,7 @@ using static ClassTranscribeDatabase.CommonUtils;
 using CTCommons;
 using Newtonsoft.Json.Linq;
 using System.Diagnostics.CodeAnalysis;
+using Google.Protobuf.WellKnownTypes;
 
 namespace TaskEngine.Tasks
 {
@@ -25,7 +26,7 @@ namespace TaskEngine.Tasks
         private readonly GenerateVTTFileTask _generateVTTFileTask;
         private readonly SceneDetectionTask _sceneDetectionTask;
         private readonly CaptionQueries _captionQueries;
-        
+
 
         public TranscriptionTask(RabbitMQConnection rabbitMQ, MSTranscriptionService msTranscriptionService,
             GenerateVTTFileTask generateVTTFileTask, SceneDetectionTask sceneDetectionTask, ILogger<TranscriptionTask> logger, CaptionQueries captionQueries)
@@ -35,7 +36,53 @@ namespace TaskEngine.Tasks
             _generateVTTFileTask = generateVTTFileTask;
             _sceneDetectionTask = sceneDetectionTask;
             _captionQueries = captionQueries;
-          
+
+        }
+        private async void buildMockCaptions(string videoId)
+        {
+            _logger.LogInformation($"Building Mock Captions for video {videoId}");
+
+            using (var _context = CTDbContext.CreateDbContext())
+            {
+                Video video = await _context.Videos.Include(v => v.Transcriptions).SingleAsync(v => v.Id == videoId);
+
+                string[] languages = new string[] { Languages.ENGLISH_AMERICAN, Languages.ITALIAN };
+                foreach (var language in languages)
+                {
+
+                    var transcription = video.Transcriptions.SingleOrDefault(t => t.Language == language);
+                    // Did we get the default or an existing Transcription entity?
+                    if (transcription == null)
+                    {
+                        transcription = new Transcription() { Language = language, VideoId = video.Id };
+                        _context.Add(transcription);
+                    };
+
+                    TimeSpan time = new TimeSpan();
+
+                    TimeSpan duration = new TimeSpan(0, 0, 3); // seconds
+
+                    for (int index = 1; index <= 3; index++)
+                    {
+                        TimeSpan end = time.Add(duration);
+
+                        Caption c = new Caption
+                        {
+                            Index = index,
+                            Text = $"The Caption in {language} is {index + 100} on {DateTime.Now}",
+                            Begin = time,
+                            End = end,
+                            TranscriptionId = transcription.Id
+
+                        };
+                        _context.Add(c);
+                        time = end;
+                    } // for
+
+
+                } // for language
+                await _context.SaveChangesAsync();
+            }
         }
 
         /// <summary>
@@ -48,18 +95,24 @@ namespace TaskEngine.Tasks
         /// <returns></returns>
         protected async override Task OnConsume(string videoId, TaskParameters taskParameters, ClientActiveTasks cleanup)
         {
-            registerTask(cleanup,videoId); // may throw AlreadyInProgress exception
+            registerTask(cleanup, videoId); // may throw AlreadyInProgress exception
+            if (Globals.appSettings.MOCK_RECOGNITION == "MOCK")
+            {
+                buildMockCaptions(videoId);
+            }
+
+
             using (var _context = CTDbContext.CreateDbContext())
             {
 
                 // TODO: taskParameters.Force should wipe all captions and reset the Transcription Status
-                
-                Video video = await _context.Videos.Include(v => v.Video1).Where(v => v.Id == videoId).FirstAsync();
-                
 
-                if ( video.TranscriptionStatus == "NoError")
+                Video video = await _context.Videos.Include(v => v.Video1).Where(v => v.Id == videoId).FirstAsync();
+                // ! Note the 'Include' ; we don't build the whole tree of related Entities
+
+                if (video.TranscriptionStatus == "NoError")
                 {
-                    _logger.LogInformation("Skipping Transcribing of {videoId} - already complete");
+                    _logger.LogInformation($"{videoId}:Skipping Transcribing of- already complete");
                     return;
                 }
 
@@ -69,70 +122,108 @@ namespace TaskEngine.Tasks
 
                 video.TranscribingAttempts += 10;
                 await _context.SaveChangesAsync();
+
                 try
                 {
-                    // creat Dictionary and pass it to the recognition function
-                    Dictionary<string, List<Caption>> captions = new Dictionary<string, List<Caption>>();
+                    // create Dictionary and pass it to the recognition function
+                    var captionsMap = new Dictionary<string, List<Caption>>();
 
-                    var languages = new List<string> { Languages.ENGLISH, Languages.SIMPLIFIED_CHINESE, Languages.KOREAN, Languages.SPANISH, Languages.FRENCH };
-                    foreach (string language in languages)
+
+                    // Set Source Language and Target (translation) Languages
+                    var sourceLanguage = String.IsNullOrWhiteSpace(Globals.appSettings.SPEECH_RECOGNITION_DIALECT) ?
+                        Languages.ENGLISH_AMERICAN : Globals.appSettings.SPEECH_RECOGNITION_DIALECT.Trim();
+
+                    var translations = new List<string> { Languages.ENGLISH_AMERICAN, Languages.SIMPLIFIED_CHINESE, Languages.KOREAN, Languages.SPANISH, Languages.FRENCH };
+                    if (!String.IsNullOrWhiteSpace(Globals.appSettings.LANGUAGE_TRANSLATIONS))
                     {
-                        captions[language] = await _captionQueries.GetCaptionsAsync(video.Id, language);
+                        translations = Globals.appSettings.LANGUAGE_TRANSLATIONS.Split(',').ToList();
+                    }
+                    _logger.LogInformation($"{videoId}: ({sourceLanguage}). Translation(s) = ({String.Join(',', translations)})");
+
+
+                    // Different languages may not be as complete
+                    // So find the minimum timespan of the max observed ending for each language
+                    TimeSpan shortestTime = TimeSpan.MaxValue; // Cant use TimeSpan.Zero to mean unset
+                    var startAfterMap = new Dictionary<string, TimeSpan>();
+
+                    var allLanguages = new List<string>(translations);
+                    allLanguages.Add(sourceLanguage);
+
+                    foreach (string language in allLanguages)
+                    {
+                        var existing = await _captionQueries.GetCaptionsAsync(video.Id, language);
+                        captionsMap[language] = existing;
+
+                        startAfterMap[language] = TimeSpan.Zero;
+                        if (existing.Any())
+                        {
+                            TimeSpan lastCaptionTime = existing.Select(c => c.End).Max();
+                            startAfterMap[language] = lastCaptionTime;
+
+                            _logger.LogInformation($"{ videoId}:{language}. Last Caption at {lastCaptionTime}");
+                        }
                     }
 
-                    var lastSuccessTime = TimeSpan.Zero;
-                    if (video.JsonMetadata != null && video.JsonMetadata["LastSuccessfulTime"] != null)
-                    {
-                        lastSuccessTime = TimeSpan.Parse(video.JsonMetadata["LastSuccessfulTime"].ToString());
-                    }
 
-                    var result = await _msTranscriptionService.RecognitionWithVideoStreamAsync(videoId, video.Video1, key, captions, lastSuccessTime);
+                    //var lastSuccessTime = shortestTime < TimeSpan.MaxValue ? shortestTime : TimeSpan.Zero;
+                    //if (video.JsonMetadata != null && video.JsonMetadata["LastSuccessfulTime"] != null)
+                    //{
+                    //    lastSuccessTime = TimeSpan.Parse(video.JsonMetadata["LastSuccessfulTime"].ToString());
+                    //}
+
+
+                    var result = await _msTranscriptionService.RecognitionWithVideoStreamAsync(videoId, video.Video1, key, captionsMap, sourceLanguage, startAfterMap);
 
                     if (video.JsonMetadata == null)
                     {
                         video.JsonMetadata = new JObject();
                     }
 
-                    video.JsonMetadata["LastSuccessfulTime"] = result.LastSuccessTime.ToString();
-
-                    await _context.SaveChangesAsync();
                     TaskEngineGlobals.KeyProvider.ReleaseKey(key, video.Id);
-                    List<Transcription> transcriptions = new List<Transcription>();
-                    foreach (var language in result.Captions)
+
+                    foreach (var captionsInLanguage in result.Captions)
                     {
-                        if (language.Value.Count > 0)
+                        var theLanguage = captionsInLanguage.Key;
+                        var theCaptions = captionsInLanguage.Value;
+
+                        if (theCaptions.Any())
                         {
-                            transcriptions.Add(new Transcription
+                            var t = _context.Transcriptions.SingleOrDefault(t => t.VideoId == video.Id && t.Language == theLanguage);
+                            _logger.LogInformation($"Find Existing Transcriptions null={t == null}");
+                            // Did we get the default or an existing Transcription entity?
+                            if (t == null)
                             {
-                                Language = language.Key,
-                                VideoId = video.Id,
-                                Captions = language.Value
-                            });
+                                t = new Transcription()
+                                {
+                                    Captions = theCaptions,
+                                    Language = theLanguage,
+                                    VideoId = video.Id
+                                };
+                                _context.Add(t);
+                            }
+                            else
+                            {
+                                // Transcriptions already existed, we are just completing them, so add only the new ones
+                                // TODO/TOREVIEW: Does this filter actually help, if existing caption entries were edited by hand?
+                                var newCaptions = theCaptions.Where(c => c.Id == null);
+
+                                t.Captions.AddRange(newCaptions);
+                            }
                         }
                     }
 
-                    if (video.Transcriptions != null && video.Transcriptions.Any())
-                    {
-                        var oldTranscriptions = video.Transcriptions;
-                        var oldCaptions = video.Transcriptions.SelectMany(t => t.Captions); //TODO: Does this find Captions??
-                        _context.Captions.RemoveRange(oldCaptions);
-                        await _context.SaveChangesAsync();
-                        _context.Transcriptions.RemoveRange(oldTranscriptions);
-                        await _context.SaveChangesAsync();
-                    }
 
-                    // Add the latest transcriptions.
-                    await _context.Transcriptions.AddRangeAsync(transcriptions);
-                    await _context.SaveChangesAsync();
-                    transcriptions.ForEach(t => _generateVTTFileTask.Publish(t.Id));
-                    _sceneDetectionTask.Publish(video.Id);
                     video.TranscriptionStatus = result.ErrorCode;
-                    //do this early instead video.TranscribingAttempts += 1;
+                    video.JsonMetadata["LastSuccessfulTime"] = result.LastSuccessTime.ToString();
+
+
                     await _context.SaveChangesAsync();
+                    _sceneDetectionTask.Publish(video.Id);
+                    video.Transcriptions.ForEach(t => _generateVTTFileTask.Publish(t.Id));
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Transcription Exception:" + ex.StackTrace);
+                    _logger.LogError(ex, $"{videoId}: Transcription Exception:${ex.StackTrace}");
                     video.TranscribingAttempts += 1000;
                     await _context.SaveChangesAsync();
                     throw;

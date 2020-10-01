@@ -36,11 +36,15 @@ namespace ClassTranscribeDatabase
 
         public class Languages
         {
-            public static string ENGLISH = "en-US";
+            //  Speech recognition uses a dialect
+            public static string ENGLISH_AMERICAN = "en-US";
+            
+            // Translations use just a short language code
             public static string SIMPLIFIED_CHINESE = "zh-Hans";
             public static string KOREAN = "ko";
             public static string SPANISH = "es";
             public static string FRENCH = "fr";
+            // See MSTRanscriptionTask for a full list of recognition and translation languages
         }
 
         public static string BOX_ACCESS_TOKEN = "BOX_ACCESS_TOKEN";

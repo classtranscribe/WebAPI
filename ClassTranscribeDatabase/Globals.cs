@@ -22,7 +22,7 @@ namespace ClassTranscribeDatabase
         public string RABBITMQ_SERVER_NAME { get; set; } = ""; // consistent with other keys including POSTGRES
 
         public string RABBITMQ_PORT { get; set; } = "5672";
-        
+
         // RABBITMQ_PREFETCH_COUNT has been replaced with these CONCURRENT LIMITS-
         //no longer used g RABBITMQ_PREFETCH_COUNT { get; set; } // No longer used; can be deleted in next cleanup
         public string MAX_CONCURRENT_TRANSCRIPTIONS { get; set; }
@@ -49,10 +49,35 @@ namespace ClassTranscribeDatabase
         public string GITSHA1 { get; set; }
         public string BUILDNUMBER { get; set; }
 
-        public string RABBITMQ_TASK_TTL_MINUTES { get; set; } = "60";
-        public string PERIODIC_CHECK_EVERY_MINUTES { get; set; } = "60";
-        public string PERIODIC_CHECK_OLDER_THAN_MINUTES { get; set; } = "120";
-        
+        // We let the message expire - which is likely if the server is overloaded- the periodic check will rediscover things to do later
+        // The suggested value is PERIODIC_CHECK_EVERY_MINUTES -5
+        // i.e we assume that the periodic check takes no more than 5 minutes to enqueue a task
+        // If it expires - that is okay - we will rediscover it in a future periodic check
+        public string RABBITMQ_TASK_TTL_MINUTES { get; set; } = "55";
+
+        // Goes to upstream providers to get latest list of videos identifiers for each active playlist
+        // Identifies missing items provided the object creating time is older than PERIODIC_CHECK_OLDER_THAN_MINUTES
+        public string PERIODIC_CHECK_EVERY_MINUTES { get; set; } = "120";
+
+        // PERIODIC_CHECK_OLDER_THAN_MINUTES Should be at least PERIODIC_CHECK_EVERY_MINUTES, probably more
+        // We only want to identify missing tasks that clearly should have completed in the previous cycle (or older)
+        public string PERIODIC_CHECK_OLDER_THAN_MINUTES { get; set; } = "240";
+
+        // Transcripion and Translation options
+
+        // e.g. en-US
+        // See MSTranscriptionService for known supported recognition languages
+        public string SPEECH_RECOGNITION_DIALECT { get; set; } = "en-US";
+
+        // e.g. Mostly two letter codes e.g. fr
+        // See MSTranscriptionService.cs for known supported translation languages
+        public string LANGUAGE_TRANSLATIONS { get; set; } = "zh-Hans,ko,es,fr";
+
+        // See MSTranscriptionService
+        public string MOCK_RECOGNITION { get; set; } = "";
+
+
+
     }
 
     /// <summary>
