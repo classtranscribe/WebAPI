@@ -34,7 +34,11 @@ namespace ClassTranscribeDatabase.Models
     public enum AccessTypes
     {
         // Since these are persisted in the database these integer values are immutable once assigned (hence explicit)
+<<<<<<< HEAD
         Public = 0,
+=======
+        Public = 0, 
+>>>>>>> e53313c60e95098a309c107d26561443407f610b
         AuthenticatedOnly = 1,
         StudentsOnly = 2,
         UniversityOnly = 3,

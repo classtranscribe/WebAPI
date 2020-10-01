@@ -9,8 +9,9 @@ using CTCommons.Grpc;
 using static ClassTranscribeDatabase.CommonUtils;
 using CTCommons;
 using System.Diagnostics.CodeAnalysis;
+using System.Text;
 
-
+using System.Collections.Generic;
 
 namespace TaskEngine.Tasks
 {
@@ -29,8 +30,14 @@ namespace TaskEngine.Tasks
             _rpcClient = rpcClient;
             _transcriptionTask = transcriptionTask;
         }
-        protected async override Task OnConsume(string videoId, TaskParameters taskParameters)
+        
+        #pragma warning disable 1998
+        //Tasks/ConvertVideoToWavTask.cs(32,39): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread. [/src/TaskEngine/TaskEngine.csproj]
+
+        protected override Task OnConsume(string videoId, TaskParameters taskParameters, ClientActiveTasks cleanup)
         {
+            registerTask(cleanup, videoId);
+            
             throw new Exception("ConvertVideoToWavTask No longer used. Videoid= " + videoId);
         }
 

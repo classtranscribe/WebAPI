@@ -13,7 +13,6 @@ using CTCommons;
 using Newtonsoft.Json.Linq;
 using System.Diagnostics.CodeAnalysis;
 
-
 namespace TaskEngine.Tasks
 {
     /// <summary>
@@ -26,17 +25,17 @@ namespace TaskEngine.Tasks
         private readonly GenerateVTTFileTask _generateVTTFileTask;
         private readonly SceneDetectionTask _sceneDetectionTask;
         private readonly CaptionQueries _captionQueries;
-        private readonly CTDbContext _context;
+        
 
         public TranscriptionTask(RabbitMQConnection rabbitMQ, MSTranscriptionService msTranscriptionService,
-            GenerateVTTFileTask generateVTTFileTask, SceneDetectionTask sceneDetectionTask, ILogger<TranscriptionTask> logger, CaptionQueries captionQueries, CTDbContext context)
+            GenerateVTTFileTask generateVTTFileTask, SceneDetectionTask sceneDetectionTask, ILogger<TranscriptionTask> logger, CaptionQueries captionQueries)
             : base(rabbitMQ, TaskType.Transcribe, logger)
         {
             _msTranscriptionService = msTranscriptionService;
             _generateVTTFileTask = generateVTTFileTask;
             _sceneDetectionTask = sceneDetectionTask;
             _captionQueries = captionQueries;
-            _context = context;
+          
         }
 
         /// <summary>
@@ -47,79 +46,97 @@ namespace TaskEngine.Tasks
         /// <param name="videoId"></param>
         /// <param name="taskParameters"></param>
         /// <returns></returns>
-        protected async override Task OnConsume(string videoId, TaskParameters taskParameters)
+        protected async override Task OnConsume(string videoId, TaskParameters taskParameters, ClientActiveTasks cleanup)
         {
-            Video video = await _context.Videos.Include(v => v.Video1).Where(v => v.Id == videoId).FirstAsync();
-            Key key = TaskEngineGlobals.KeyProvider.GetKey(video.Id);
-
-            video.TranscribingAttempts += 10;
-            await _context.SaveChangesAsync();
-            try
+            registerTask(cleanup,videoId); // may throw AlreadyInProgress exception
+            using (var _context = CTDbContext.CreateDbContext())
             {
-                // creat Dictionary and pass it to the recognition function
-                Dictionary<string, List<Caption>> captions = new Dictionary<string, List<Caption>>();
 
-                var languages = new List<string> { Languages.ENGLISH,Languages.SIMPLIFIED_CHINESE, Languages.KOREAN, Languages.SPANISH, Languages.FRENCH };
-            foreach (string language in languages)
+                // TODO: taskParameters.Force should wipe all captions and reset the Transcription Status
+                
+                Video video = await _context.Videos.Include(v => v.Video1).Where(v => v.Id == videoId).FirstAsync();
+                
+
+                if ( video.TranscriptionStatus == "NoError")
                 {
-                    captions[language] = await _captionQueries.GetCaptionsAsync(video.Id, language);
+                    _logger.LogInformation("Skipping Transcribing of {videoId} - already complete");
+                    return;
                 }
 
-                var lastSuccessTime = TimeSpan.Zero;
-                if (video.JsonMetadata != null && video.JsonMetadata["LastSuccessfulTime"] != null)
-                {
-                    lastSuccessTime = TimeSpan.Parse(video.JsonMetadata["LastSuccessfulTime"].ToString());
-                }
+                // GetKey can throw if the video.Id is currently being transcribed
+                // However registerTask should have already detected that
+                Key key = TaskEngineGlobals.KeyProvider.GetKey(video.Id);
 
-                var result = await _msTranscriptionService.RecognitionWithVideoStreamAsync(video.Video1, key, captions, lastSuccessTime);
-
-                if (video.JsonMetadata == null)
-                {
-                    video.JsonMetadata = new JObject();
-                }
-
-                video.JsonMetadata["LastSuccessfulTime"] = result.LastSuccessTime.ToString();
-
+                video.TranscribingAttempts += 10;
                 await _context.SaveChangesAsync();
-                TaskEngineGlobals.KeyProvider.ReleaseKey(key, video.Id);
-                List<Transcription> transcriptions = new List<Transcription>();
-                foreach (var language in result.Captions)
+                try
                 {
-                    if (language.Value.Count > 0)
+                    // creat Dictionary and pass it to the recognition function
+                    Dictionary<string, List<Caption>> captions = new Dictionary<string, List<Caption>>();
+
+                    var languages = new List<string> { Languages.ENGLISH, Languages.SIMPLIFIED_CHINESE, Languages.KOREAN, Languages.SPANISH, Languages.FRENCH };
+                    foreach (string language in languages)
                     {
-                        transcriptions.Add(new Transcription
-                        {
-                            Language = language.Key,
-                            VideoId = video.Id,
-                            Captions = language.Value
-                        });
+                        captions[language] = await _captionQueries.GetCaptionsAsync(video.Id, language);
                     }
-                }
 
-                if (video.Transcriptions != null && video.Transcriptions.Any())
+                    var lastSuccessTime = TimeSpan.Zero;
+                    if (video.JsonMetadata != null && video.JsonMetadata["LastSuccessfulTime"] != null)
+                    {
+                        lastSuccessTime = TimeSpan.Parse(video.JsonMetadata["LastSuccessfulTime"].ToString());
+                    }
+
+                    var result = await _msTranscriptionService.RecognitionWithVideoStreamAsync(videoId, video.Video1, key, captions, lastSuccessTime);
+
+                    if (video.JsonMetadata == null)
+                    {
+                        video.JsonMetadata = new JObject();
+                    }
+
+                    video.JsonMetadata["LastSuccessfulTime"] = result.LastSuccessTime.ToString();
+
+                    await _context.SaveChangesAsync();
+                    TaskEngineGlobals.KeyProvider.ReleaseKey(key, video.Id);
+                    List<Transcription> transcriptions = new List<Transcription>();
+                    foreach (var language in result.Captions)
+                    {
+                        if (language.Value.Count > 0)
+                        {
+                            transcriptions.Add(new Transcription
+                            {
+                                Language = language.Key,
+                                VideoId = video.Id,
+                                Captions = language.Value
+                            });
+                        }
+                    }
+
+                    if (video.Transcriptions != null && video.Transcriptions.Any())
+                    {
+                        var oldTranscriptions = video.Transcriptions;
+                        var oldCaptions = video.Transcriptions.SelectMany(t => t.Captions); //TODO: Does this find Captions??
+                        _context.Captions.RemoveRange(oldCaptions);
+                        await _context.SaveChangesAsync();
+                        _context.Transcriptions.RemoveRange(oldTranscriptions);
+                        await _context.SaveChangesAsync();
+                    }
+
+                    // Add the latest transcriptions.
+                    await _context.Transcriptions.AddRangeAsync(transcriptions);
+                    await _context.SaveChangesAsync();
+                    transcriptions.ForEach(t => _generateVTTFileTask.Publish(t.Id));
+                    _sceneDetectionTask.Publish(video.Id);
+                    video.TranscriptionStatus = result.ErrorCode;
+                    //do this early instead video.TranscribingAttempts += 1;
+                    await _context.SaveChangesAsync();
+                }
+                catch (Exception ex)
                 {
-                    var oldTranscriptions = video.Transcriptions;
-                    var oldCaptions = video.Transcriptions.SelectMany(t => t.Captions); //TODO: Does this find Captions??
-                    _context.Captions.RemoveRange(oldCaptions);
+                    _logger.LogError(ex, "Transcription Exception:" + ex.StackTrace);
+                    video.TranscribingAttempts += 1000;
                     await _context.SaveChangesAsync();
-                    _context.Transcriptions.RemoveRange(oldTranscriptions);
-                    await _context.SaveChangesAsync();
+                    throw;
                 }
-
-                // Add the latest transcriptions.
-                await _context.Transcriptions.AddRangeAsync(transcriptions);
-                await _context.SaveChangesAsync();
-                transcriptions.ForEach(t => _generateVTTFileTask.Publish(t.Id));
-                _sceneDetectionTask.Publish(video.Id);
-                video.TranscriptionStatus = result.ErrorCode;
-                //do this early instead video.TranscribingAttempts += 1;
-                await _context.SaveChangesAsync();
-            } catch (Exception ex)
-            {
-                _logger.LogError(ex,"Transcription Exception:" + ex.StackTrace);
-                video.TranscribingAttempts += 1000;
-                await _context.SaveChangesAsync();
-                throw ;
             }
         }
     }
