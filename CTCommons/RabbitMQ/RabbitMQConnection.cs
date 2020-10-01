@@ -1,11 +1,10 @@
 ﻿using ClassTranscribeDatabase;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
-using Org.BouncyCastle.Asn1.CryptoPro;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System;
-using System.Runtime.InteropServices.ComTypes;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 /// <summary>
@@ -19,11 +18,26 @@ using System.Threading.Tasks;
 /// 
 namespace CTCommons
 {
+    // Used to keep track of all active running tasks
+    // And current tasks per message being consumed
+    // Some of the apparent twisted design surrounding the use of this class
+    // Is to ensure that we can collect keys in the concrete classes
+    // Then remove them in a finally{} block even if the client throws an exception
+    public class ClientActiveTasks : HashSet<object>
+    {
+        public ClientActiveTasks() { }
+        public ClientActiveTasks(ClientActiveTasks source) :base(source)
+        {
+        }
+        
+    };
+
     public class RabbitMQConnection : IDisposable
     {
         IConnection _connection;
         IModel _channel { get; set; }
-       
+        String _expiration; // milliseconds
+
         private readonly ILogger _logger;
         public RabbitMQConnection(ILogger<RabbitMQConnection> logger)
         {
@@ -32,12 +46,25 @@ namespace CTCommons
             {
                 HostName = Globals.appSettings.RabbitMQServer,
                 UserName = Globals.appSettings.ADMIN_USER_ID,
-                Password = Globals.appSettings.ADMIN_PASSWORD
+                Password = Globals.appSettings.ADMIN_PASSWORD,
+                Port = Convert.ToUInt16(Globals.appSettings.RABBITMQ_PORT) // 5672
+
             };
+            _logger.LogInformation($"Connection to RabbitMQ server {factory.HostName} with user {factory.UserName} on port {factory.Port}...");
             _connection = factory.CreateConnection();
             _channel = _connection.CreateModel();
 
+            uint time = Convert.ToUInt32(Globals.appSettings.PERIODIC_CHECK_MINUTES);
+            SetMessageExpiration(time);
         }
+
+        public void SetMessageExpiration(uint ttlMinutes) {
+            
+            uint OneMinuteAsMilliseconds = 1000 * 60;
+            _expiration = (OneMinuteAsMilliseconds * ttlMinutes).ToString();
+            _logger.LogInformation("Using Message TTL {0} minutes", ttlMinutes);
+        }
+
         /// <summary>
         /// Publishes a Task to the message queue (creating the queue if necessary)
         /// </summary>
@@ -60,24 +87,29 @@ namespace CTCommons
             var body = CommonUtils.MessageToBytes(taskObject);
             var properties = _channel.CreateBasicProperties();
             properties.Persistent = true;
+
+            // Note delivered but unacked messages do not expire
+            properties.Expiration = _expiration; // milliseconds
+
             // See https://www.rabbitmq.com/dotnet-api-guide.html#concurrency-channel-sharing
             // Use a lock to ensure thread safety
             lock (_channel)
             {
                 _channel.BasicPublish(exchange: "", routingKey: queueName, basicProperties: properties, body: body);
             }
-            
+
         }
+        
         /// <summary>
         /// Registers task and starts consuming messages
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="queueName"></param>
         /// <param name="OnConsume"></param>
-        public void ConsumeTask<T>(string queueName, Func<T, TaskParameters, Task> OnConsume, ushort concurrency)
+        public void ConsumeTask<T>(string queueName, Func<T, TaskParameters, ClientActiveTasks, Task> OnConsume,Func<ClientActiveTasks, int> PostConsumeCleanup, ushort concurrency)
         {
             // Caution. The queue is also declard inside PublishTask above
-            _logger.LogInformation("Prefetch/ concurrency count " + concurrency);
+            _logger.LogInformation("Prefetch concurrency count {0}" , concurrency);
             lock (_channel)
             {
                 _channel.QueueDeclare(queue: queueName,
@@ -90,24 +122,34 @@ namespace CTCommons
 
                 _channel.BasicQos(prefetchSize: 0, prefetchCount: concurrency, global: false);
             }
-            
+
             _logger.LogInformation(" [*] Waiting for messages, queueName - {0}", queueName);
 
             var consumer = new EventingBasicConsumer(_channel);
             consumer.Received += async (model, ea) =>
             {
+                // This object exists so that we can wrap all OnConsumes with a try-finally here
+                // And during the finally block remove the task from the set of active tasks
+                // At this level of the code we don't have the specific task information
+                // Instead the specific task my register a task by calling register
+                ClientActiveTasks clientCleanup = new ClientActiveTasks();
+
                 var taskObject = CommonUtils.BytesToMessage<TaskObject<T>>(ea.Body);
                 _logger.LogInformation(" [x] {0} Received {1}", queueName, taskObject.ToString());
                 // TODO: Update JobStatus table here (started timestamp)
                 try
                 {
-                    await OnConsume(taskObject.Data, taskObject.TaskParameters);
+                    await OnConsume(taskObject.Data, taskObject.TaskParameters, clientCleanup);
                 }
                 catch (Exception e)
                 {
                     _logger.LogError(e, "Error occured in RabbitMQConnection {0} for message {1}", queueName, taskObject.ToString());
                 }
+                finally
+                {
+                    PostConsumeCleanup(clientCleanup);
 
+                }
                 _logger.LogInformation(" [x] {0} Done {1}", queueName, taskObject.ToString());
                 // TODO Update JobStatus table here (including timestamp +  result + exception if it occurred)
                 lock (_channel)
@@ -141,6 +183,27 @@ namespace CTCommons
                         _logger.LogError(e, "Error deleting queue {0}", queueName);
                     }
                 }
+            }
+            // TODO Update JobStatus table here
+        }
+
+        public void PurgeQueue(String queueName)
+        {
+            lock (_channel)
+            {
+                try
+                {
+                    var count = _channel.MessageCount(queueName);
+                    _logger.LogInformation("Purging queue {0}: {1} message(s) will be removed", queueName, count);
+
+                    _channel.QueuePurge(queueName);
+                }
+                catch (Exception e)
+                {
+                    _logger.LogError(e, "Error purging queue {0}", queueName);
+                    throw e;
+                }
+
             }
             // TODO Update JobStatus table here
         }

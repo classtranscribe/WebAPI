@@ -1,5 +1,6 @@
 ﻿using ClassTranscribeDatabase;
 using ClassTranscribeDatabase.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -14,20 +15,19 @@ namespace ClassTranscribeServer.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class EpubController : BaseController
+    public class EPubsController : BaseController
     {
         private readonly WakeDownloader _wakeDownloader;
         private readonly CaptionQueries _captionQueries;
 
-        public EpubController(WakeDownloader wakeDownloader, 
-            CTDbContext context, 
+        public EPubsController(WakeDownloader wakeDownloader,
+            CTDbContext context,
             CaptionQueries captionQueries,
-            ILogger<EpubController> logger) : base(context, logger)
+            ILogger<EPubsController> logger) : base(context, logger)
         {
             _captionQueries = captionQueries;
             _wakeDownloader = wakeDownloader;
         }
-
 
         public class EPubSceneData
         {
@@ -37,28 +37,36 @@ namespace ClassTranscribeServer.Controllers
             public TimeSpan End { get; set; }
         }
 
-
         [NonAction]
         public static List<EPubSceneData> GetSceneData(JArray scenes, List<Caption> captions)
         {
             var chapters = new List<EPubSceneData>();
             var nextStart = new TimeSpan(0);
+
+            if (scenes == null)
+            {
+                return chapters;
+            }
+
             foreach (JObject scene in scenes)
             {
                 var endTime = TimeSpan.Parse(scene["end"].ToString());
                 var subset = captions.Where(c => c.Begin < endTime && c.Begin >= nextStart).ToList();
+
                 StringBuilder sb = new StringBuilder();
                 subset.ForEach(c => sb.Append(c.Text + " "));
-                string allText = sb.ToString();
+
                 chapters.Add(new EPubSceneData
                 {
                     Image = scene["img_file"].ToString(),
                     Start = TimeSpan.Parse(scene["start"].ToString()),
                     End = TimeSpan.Parse(scene["end"].ToString()),
-                    Text = allText
+                    Text = sb.ToString()
                 });
+
                 nextStart = endTime;
             }
+
             return chapters;
         }
 
@@ -67,42 +75,40 @@ namespace ClassTranscribeServer.Controllers
         /// </summary>
         /// 
         [HttpGet("GetEpubData")]
+        [Authorize]
         public async Task<ActionResult<List<EPubSceneData>>> GetEpubData(string mediaId, string language)
         {
             var media = _context.Medias.Find(mediaId);
-            EPub epub = new EPub
-            {
-                Language = language,
-                VideoId = media.VideoId
-            };
-            Video video = await _context.Videos.FindAsync(epub.VideoId);
+            Video video = await _context.Videos.FindAsync(media.VideoId);
 
             if (video.SceneData == null)
             {
                 return NotFound();
             }
 
-            var captions = await _captionQueries.GetCaptionsAsync(epub.VideoId, epub.Language);
+            EPub epub = new EPub
+            {
+                Language = language,
+                SourceType = ResourceType.Media,
+                SourceId = mediaId
+            };
+
+            var captions = await _captionQueries.GetCaptionsAsync(media.VideoId, epub.Language);
 
             return GetSceneData(video.SceneData["Scenes"] as JArray, captions);
         }
 
         [HttpGet("RequestEpubCreation")]
+        [Authorize]
         public ActionResult RequestEpubCreation(string mediaId)
         {
             _wakeDownloader.GenerateScenes(mediaId);
             return Ok();
         }
 
-        // GET: api/EPubs
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<EPub>>> GetEPubs()
-        {
-            return await _context.EPubs.ToListAsync();
-        }
-
         // GET: api/EPubs/5
         [HttpGet("{id}")]
+        [Authorize]
         public async Task<ActionResult<EPub>> GetEPub(string id)
         {
             var ePub = await _context.EPubs.FindAsync(id);
@@ -115,15 +121,54 @@ namespace ClassTranscribeServer.Controllers
             return ePub;
         }
 
+        // GET: api/EPubs/BySource/{sourceType}/{sourceId}
+        [HttpGet("BySource/{sourceType}/{sourceId}")]
+        [Authorize]
+        public async Task<ActionResult<IEnumerable<EPub>>> GetEPubsBySource(string sourceType, string sourceId)
+        {
+            try
+            {
+                ResourceType type = (ResourceType)Enum.Parse(typeof(ResourceType), sourceType);
+
+                var ePubs = await _context.EPubs.Where(i => i.SourceType == type && i.SourceId == sourceId).ToListAsync();
+
+                if (!ePubs.Any())
+                {
+                    return NotFound();
+                }
+
+                ePubs.ForEach(ePub =>
+                {
+                    ePub.Chapters = null;
+                });
+
+                return ePubs;
+            }
+            catch (ArgumentException)
+            {
+                return BadRequest($"{sourceType} is not a valid resource type");
+            }
+        }
+
         // PUT: api/EPubs/5
-        // To protect from overposting attacks, please enable the specific properties you want to bind to, for
-        // more details see https://aka.ms/RazorPagesCRUD.
         [HttpPut("{id}")]
+        [DisableRequestSizeLimit]
+        [Authorize(Roles = Globals.ROLE_ADMIN + "," + Globals.ROLE_TEACHING_ASSISTANT + "," + Globals.ROLE_INSTRUCTOR)]
         public async Task<IActionResult> PutEPub(string id, EPub ePub)
         {
-            if (id != ePub.Id)
+            if (ePub == null || id != ePub.Id)
             {
                 return BadRequest();
+            }
+
+            if (string.IsNullOrEmpty(ePub.Title) ||
+                string.IsNullOrEmpty(ePub.Filename) ||
+                string.IsNullOrEmpty(ePub.Language) ||
+                string.IsNullOrEmpty(ePub.Author) ||
+                string.IsNullOrEmpty(ePub.Publisher) ||
+                string.IsNullOrEmpty(ePub.SourceId))
+            {
+                return BadRequest("The following fields may not be empty: title, filename, language, author, publisher, sourceId");
             }
 
             _context.Entry(ePub).State = EntityState.Modified;
@@ -134,7 +179,7 @@ namespace ClassTranscribeServer.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!EPubExists(id))
+                if (!_context.EPubs.Any(e => e.Id == id))
                 {
                     return NotFound();
                 }
@@ -148,12 +193,27 @@ namespace ClassTranscribeServer.Controllers
         }
 
         // POST: api/EPubs
-        // To protect from overposting attacks, please enable the specific properties you want to bind to, for
-        // more details see https://aka.ms/RazorPagesCRUD.
         [HttpPost]
+        [DisableRequestSizeLimit]
+        [Authorize(Roles = Globals.ROLE_ADMIN + "," + Globals.ROLE_TEACHING_ASSISTANT + "," + Globals.ROLE_INSTRUCTOR)]
         public async Task<ActionResult<EPub>> PostEPub(EPub ePub)
         {
-            _context.EPubs.Add(ePub);
+            if (ePub == null)
+            {
+                return BadRequest();
+            }
+
+            if (string.IsNullOrEmpty(ePub.Title) ||
+                string.IsNullOrEmpty(ePub.Filename) ||
+                string.IsNullOrEmpty(ePub.Language) ||
+                string.IsNullOrEmpty(ePub.Author) ||
+                string.IsNullOrEmpty(ePub.Publisher) ||
+                string.IsNullOrEmpty(ePub.SourceId))
+            {
+                return BadRequest("The following fields may not be empty: title, filename, language, author, publisher, sourceId");
+            }
+
+             _context.EPubs.Add(ePub);
             await _context.SaveChangesAsync();
 
             return CreatedAtAction("GetEPub", new { id = ePub.Id }, ePub);
@@ -161,9 +221,11 @@ namespace ClassTranscribeServer.Controllers
 
         // DELETE: api/EPubs/5
         [HttpDelete("{id}")]
+        [Authorize(Roles = Globals.ROLE_ADMIN + "," + Globals.ROLE_TEACHING_ASSISTANT + "," + Globals.ROLE_INSTRUCTOR)]
         public async Task<ActionResult<EPub>> DeleteEPub(string id)
         {
             var ePub = await _context.EPubs.FindAsync(id);
+
             if (ePub == null)
             {
                 return NotFound();
@@ -173,11 +235,6 @@ namespace ClassTranscribeServer.Controllers
             await _context.SaveChangesAsync();
 
             return ePub;
-        }
-
-        private bool EPubExists(string id)
-        {
-            return _context.EPubs.Any(e => e.Id == id);
         }
     }
 }

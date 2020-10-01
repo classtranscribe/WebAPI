@@ -61,7 +61,7 @@ namespace ClassTranscribeServer.Controllers
             if (user != null)
             {
                 var watchedMedias = await _context.WatchHistories
-                    .Where(w => w.ApplicationUserId == user.Id)
+                    .Where(w => w.ApplicationUserId == user.Id && w.Media.Id != null)
                     .Select(w => new MediaDTO
                     {
                         Id = w.Media.Id,

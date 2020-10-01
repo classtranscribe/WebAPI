@@ -11,6 +11,7 @@ using static ClassTranscribeDatabase.CommonUtils;
 using CTCommons;
 using System.Diagnostics.CodeAnalysis;
 
+
 namespace TaskEngine.Tasks
 {
     /// <summary>
@@ -37,8 +38,10 @@ namespace TaskEngine.Tasks
             _slack = slack;
         }
 
-        protected override async Task OnConsume(string mediaId, TaskParameters taskParameters)
+        protected override async Task OnConsume(string mediaId, TaskParameters taskParameters, ClientActiveTasks cleanup)
         {
+            registerTask(cleanup,mediaId); // may throw AlreadyInProgress exception
+
             Media media;
             using (var _context = CTDbContext.CreateDbContext())
             {

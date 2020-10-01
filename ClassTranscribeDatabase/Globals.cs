@@ -1,5 +1,6 @@
 ﻿
 using Microsoft.Extensions.Logging;
+using System.Collections.Generic;
 
 namespace ClassTranscribeDatabase
 {
@@ -17,6 +18,9 @@ namespace ClassTranscribeDatabase
         public string ADMIN_USER_ID { get; set; }
         public string ADMIN_PASSWORD { get; set; }
         public string RabbitMQServer { get; set; }
+
+        public string RABBITMQ_PORT { get; set; } = "5672";
+        
         // RABBITMQ_PREFETCH_COUNT has been replaced with these CONCURRENT LIMITS-
         //no longer used g RABBITMQ_PREFETCH_COUNT { get; set; } // No longer used; can be deleted in next cleanup
         public string MAX_CONCURRENT_TRANSCRIPTIONS { get; set; }
@@ -42,6 +46,8 @@ namespace ClassTranscribeDatabase
         public string CILOGON_DOMAIN { get; set; }
         public string GITSHA1 { get; set; }
         public string BUILDNUMBER { get; set; }
+
+        public string PERIODIC_CHECK_MINUTES { get; set; } = "120";
     }
 
     /// <summary>

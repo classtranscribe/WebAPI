@@ -3,15 +3,17 @@ using System;
 using ClassTranscribeDatabase;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace ClassTranscribeDatabase.Migrations
 {
     [DbContext(typeof(CTDbContext))]
-    partial class CTDbContextModelSnapshot : ModelSnapshot
+    [Migration("20200919210948_Detailed_Task_Item")]
+    partial class Detailed_Task_Item
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -295,29 +297,20 @@ namespace ClassTranscribeDatabase.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("text");
 
-                    b.Property<string>("Author")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Chapters")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Cover")
-                        .HasColumnType("text");
-
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp without time zone");
 
                     b.Property<string>("CreatedBy")
                         .HasColumnType("text");
 
-                    b.Property<string>("Filename")
+                    b.Property<string>("FileId")
                         .HasColumnType("text");
 
                     b.Property<int>("IsDeletedStatus")
                         .HasColumnType("integer");
 
-                    b.Property<bool>("IsPublished")
-                        .HasColumnType("boolean");
+                    b.Property<string>("Json")
+                        .HasColumnType("text");
 
                     b.Property<string>("Language")
                         .HasColumnType("text");
@@ -328,26 +321,50 @@ namespace ClassTranscribeDatabase.Migrations
                     b.Property<string>("LastUpdatedBy")
                         .HasColumnType("text");
 
-                    b.Property<string>("Publisher")
-                        .HasColumnType("text");
-
-                    b.Property<string>("SourceId")
-                        .HasColumnType("text");
-
-                    b.Property<int>("SourceType")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("Title")
-                        .HasColumnType("text");
-
                     b.Property<string>("VideoId")
                         .HasColumnType("text");
 
                     b.HasKey("Id");
 
+                    b.HasIndex("FileId");
+
                     b.HasIndex("VideoId");
 
                     b.ToTable("EPubs");
+                });
+
+            modelBuilder.Entity("ClassTranscribeDatabase.Models.EPubChapter", b =>
+                {
+                    b.Property<string>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Data")
+                        .HasColumnType("text");
+
+                    b.Property<string>("EPubId")
+                        .HasColumnType("text");
+
+                    b.Property<int>("IsDeletedStatus")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("LastUpdatedAt")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<string>("LastUpdatedBy")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EPubId");
+
+                    b.ToTable("EPubChapters");
                 });
 
             modelBuilder.Entity("ClassTranscribeDatabase.Models.FileRecord", b =>
@@ -383,43 +400,6 @@ namespace ClassTranscribeDatabase.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("FileRecords");
-                });
-
-            modelBuilder.Entity("ClassTranscribeDatabase.Models.Image", b =>
-                {
-                    b.Property<string>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("text");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp without time zone");
-
-                    b.Property<string>("CreatedBy")
-                        .HasColumnType("text");
-
-                    b.Property<string>("ImageFileId")
-                        .HasColumnType("text");
-
-                    b.Property<int>("IsDeletedStatus")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTime>("LastUpdatedAt")
-                        .HasColumnType("timestamp without time zone");
-
-                    b.Property<string>("LastUpdatedBy")
-                        .HasColumnType("text");
-
-                    b.Property<string>("SourceId")
-                        .HasColumnType("text");
-
-                    b.Property<int>("SourceType")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ImageFileId");
-
-                    b.ToTable("Images");
                 });
 
             modelBuilder.Entity("ClassTranscribeDatabase.Models.Log", b =>
@@ -1256,16 +1236,20 @@ namespace ClassTranscribeDatabase.Migrations
 
             modelBuilder.Entity("ClassTranscribeDatabase.Models.EPub", b =>
                 {
-                    b.HasOne("ClassTranscribeDatabase.Models.Video", null)
+                    b.HasOne("ClassTranscribeDatabase.Models.FileRecord", "File")
+                        .WithMany()
+                        .HasForeignKey("FileId");
+
+                    b.HasOne("ClassTranscribeDatabase.Models.Video", "Video")
                         .WithMany("EPubs")
                         .HasForeignKey("VideoId");
                 });
 
-            modelBuilder.Entity("ClassTranscribeDatabase.Models.Image", b =>
+            modelBuilder.Entity("ClassTranscribeDatabase.Models.EPubChapter", b =>
                 {
-                    b.HasOne("ClassTranscribeDatabase.Models.FileRecord", "ImageFile")
-                        .WithMany()
-                        .HasForeignKey("ImageFileId");
+                    b.HasOne("ClassTranscribeDatabase.Models.EPub", "EPub")
+                        .WithMany("EPubChapters")
+                        .HasForeignKey("EPubId");
                 });
 
             modelBuilder.Entity("ClassTranscribeDatabase.Models.Media", b =>

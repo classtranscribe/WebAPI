@@ -17,38 +17,50 @@ namespace ClassTranscribeDatabase.Models
     /// To make any changes to the database schema, the corresponding classes would have to be changed and 
     /// migrations, for more info.
     /// 
+    /// https://www.learnentityframeworkcore.com/migrations (this documentation is more helpful, includes information on how to revert migrations)
     /// https://docs.microsoft.com/en-us/ef/core/managing-schemas/migrations/?tabs=dotnet-core-cli
-    /// https://www.learnentityframeworkcore.com/migrations
     /// 
     /// Note: To apply migration using the Package Manager Console, ensure that the selected "Default Project" is 
     /// "ClassTranscribeDatabase"
+    ///
+    /// Steps to create migration using command line:
+    /// 1. Make edits to the entity model (in this file or another model file)
+    ///     - NOTE: if creating a new entity/table, you must follow the steps in CTDbContext.cs before continuing
+    /// 2. Open terminal, navigate to the "ClassTranscribeDatabase" directory
+    /// 3. Run "dotnet ef migrations add <name of migration>" to create the migration
+    /// 4. To apply the migration to the database, run "dotnet ef database update"
+    /// 
     /// </summary>
     public enum AccessTypes
     {
-        Public,
-        AuthenticatedOnly,
-        StudentsOnly,
-        UniversityOnly,
+        // Since these are persisted in the database these integer values are immutable once assigned (hence explicit)
+        Public = 0,
+        AuthenticatedOnly = 1,
+        StudentsOnly = 2,
+        UniversityOnly = 3,
     }
     public enum Status
     {
-        Active,
-        Deleted
+        // Since these are persisted in the database these integer values are immutable once assigned (hence explicit)
+        Active = 0,
+        Deleted = 1
     }
 
     public enum SourceType
     {
-        Echo360,
-        Youtube,
-        Local,
-        Kaltura,
-        Box
+        // Since these are persisted in the database these integer values are immutable once assigned (hence explicit)
+        Echo360 = 0,
+        Youtube = 1,
+        Local = 2,
+        Kaltura = 3,
+        Box = 4
     }
 
-    public enum Visibility 
+    public enum Visibility
     {
-        Visible,
-        Hidden
+        // Since these are persisted in the database these integer values are immutable once assigned (hence explicit)
+        Visible = 0,
+        Hidden = 1
     }
 
     /// <summary>
@@ -102,6 +114,7 @@ namespace ClassTranscribeDatabase.Models
                 case Offering _: return ResourceType.Offering;
                 case Playlist _: return ResourceType.Playlist;
                 case Media _: return ResourceType.Media;
+                case EPub _: return ResourceType.EPub;
             }
             throw new InvalidOperationException("Invalid Type passed" + this);
         }
@@ -336,25 +349,16 @@ namespace ClassTranscribeDatabase.Models
 
     public class EPub : Entity
     {
+        public ResourceType SourceType { get; set; }
+        public string SourceId { get; set; }
+        public string Title { get; set; }
+        public string Filename { get; set; }
         public string Language { get; set; }
-        [ForeignKey("File")]
-        public string FileId { get; set; }
-        public virtual FileRecord File { get; set; }
-        public string VideoId { get; set; }
-        [SwaggerIgnore]
-        [IgnoreDataMember]
-        public virtual Video Video { get; set; }
-        public JObject Json { get; set; }
-        public virtual List<EPubChapter> EPubChapters { get; set; }
-    }
-
-    public class EPubChapter : Entity
-    {
-        public string EPubId { get; set; }
-        [SwaggerIgnore]
-        [IgnoreDataMember]
-        public virtual EPub EPub { get; set; }
-        public JObject Data { get; set; }
+        public string Author { get; set; }
+        public string Publisher { get; set; }
+        public bool IsPublished { get; set; }
+        public string Cover { get; set; }
+        public JObject Chapters { get; set; }
     }
 
     public class WatchHistory : Entity
@@ -376,20 +380,25 @@ namespace ClassTranscribeDatabase.Models
         public string Value { get; set; }
     }
 
-    public enum ResourceType 
+    public enum ResourceType
     {
-        Offering,
-        Course,
-        Media,
-        Playlist
+        // Since these are persisted in the database these integer values are immutable once assigned (hence explicit)
+
+        Offering = 0,
+        Course = 1,
+        Media = 2,
+        Playlist = 3,
+        EPub = 4
     }
 
     public enum Ack
     {
-        Pending,
-        Seen
+        // Since these are persisted in the database these integer values are immutable once assigned (hence explicit)
+
+        Pending = 0,
+        Seen = 1
     }
-    
+
     public class Subscription : Entity
     {
         public ResourceType ResourceType { get; set; }
@@ -407,19 +416,20 @@ namespace ClassTranscribeDatabase.Models
         public Ack Ack { get; set; }
     }
 
-    public class TaskItem : Entity
-    {
-        public string UniqueId { get; set; }
-        public TaskType TaskType { get; set; }
-        public int Attempts { get; set; }
-        public JObject TaskParameters { get; set; }
-        public bool Result { get; set; }
-        public bool Retry { get; set; }
-        public JObject ResultData { get; set; }
-    }
+    // TaskItem moved to its own file TaskItem.cs
 
+    public class Image : Entity
+    {
+        public ResourceType SourceType { get; set; }
+        public string SourceId { get; set; }
+
+        [ForeignKey("ImageFile")]
+        public string ImageFileId { get; set; }
+        public virtual FileRecord ImageFile { get; set; }
+    }
     [AttributeUsage(AttributeTargets.Property)]
     public class SwaggerIgnoreAttribute : Attribute
     {
     }
+
 }

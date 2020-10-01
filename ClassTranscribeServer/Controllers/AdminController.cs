@@ -188,10 +188,11 @@ namespace ClassTranscribeServer.Controllers
         [HttpGet("GetVersion")]
         [AllowAnonymous]
         [Produces("application/json")]
-        public async Task<ActionResult<BuildVersionDTO>> GetVersion()
+        public ActionResult<BuildVersionDTO> GetVersion()
         {
-            BuildVersionDTO result = new BuildVersionDTO() {
-                Commit =  Globals.appSettings.GITSHA1,
+            BuildVersionDTO result = new BuildVersionDTO()
+            {
+                Commit = Globals.appSettings.GITSHA1,
                 Build = Globals.appSettings.BUILDNUMBER
             };
             return result;
