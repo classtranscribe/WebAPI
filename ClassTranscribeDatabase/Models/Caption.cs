@@ -26,6 +26,7 @@ namespace ClassTranscribeDatabase.Models
         public string TranscriptionId { get; set; }
         public int UpVote { get; set; }
         public int DownVote { get; set; }
+        [SwaggerIgnore]
         [IgnoreDataMember]
         public virtual Transcription Transcription { get; set; }
         public CaptionType CaptionType { get; set; }
