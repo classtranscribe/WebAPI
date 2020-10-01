@@ -11,8 +11,6 @@ namespace Tests
         // Inputs: token, api, method, inputs, expected outputs
         public class TestData : IEnumerable<object[]>
         {
-         
-
             string[] inputs1 = new string[] { };
             string exp1 = @"[
   {
@@ -279,10 +277,15 @@ namespace Tests
   }
 ]";
 
+            string _token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0dXNlcjk5OUBjbGFzc3RyYW5zY3JpYmUuY29tIiwianRpIjoiMjMzOTM5YjAtMjI4Ni00NjM3LTk2NmUtYTU3NmY4NWUwYjc5IiwiaHR0cDovL3NjaGVtYXMueG1sc29hcC5vcmcvd3MvMjAwNS8wNS9pZGVudGl0eS9jbGFpbXMvZ2l2ZW5uYW1lIjoiVGVzdCIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL3N1cm5hbWUiOiJVc2VyIiwiaHR0cDovL3NjaGVtYXMueG1sc29hcC5vcmcvd3MvMjAwNS8wNS9pZGVudGl0eS9jbGFpbXMvZW1haWxhZGRyZXNzIjoidGVzdHVzZXI5OTlAY2xhc3N0cmFuc2NyaWJlLmNvbSIsImNsYXNzdHJhbnNjcmliZS9Vc2VySWQiOiI5OSIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6IkFkbWluIiwiZXhwIjoxNjAwMjM5MTkzLCJpc3MiOiJodHRwczovL2xvY2FsaG9zdCIsImF1ZCI6Imh0dHBzOi8vbG9jYWxob3N0In0.k67HR7RtGf9ZUATxrpp_dvWOaXwH1H2DxE6VK941FDI";
+            string _api = "api/offerings/bystudent";
+            string _method = "Get"; // Get / Put / Delete / Post 
+
+
             public IEnumerator<object[]> GetEnumerator()
             { 
-                yield return new object[] { inputs1, exp1  };
-                yield return new object[] { inputs1, exp2 };
+                yield return new object[] { _token, _api, _method, inputs1, exp1  };
+                yield return new object[] { _token, _api, _method, inputs1, exp2 };
             }
 
             IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
@@ -291,25 +294,24 @@ namespace Tests
 
         [Theory]
         [ClassData(typeof(TestData))]
-        public void AssertResultIsCorrect( string[] _input, string _expectation)
+        public void AssertResultIsCorrect( string _token, string _api, string _method, string[] _input, string _expectation)
         {
-            string _token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0dXNlcjk5OUBjbGFzc3RyYW5zY3JpYmUuY29tIiwianRpIjoiMjMzOTM5YjAtMjI4Ni00NjM3LTk2NmUtYTU3NmY4NWUwYjc5IiwiaHR0cDovL3NjaGVtYXMueG1sc29hcC5vcmcvd3MvMjAwNS8wNS9pZGVudGl0eS9jbGFpbXMvZ2l2ZW5uYW1lIjoiVGVzdCIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL3N1cm5hbWUiOiJVc2VyIiwiaHR0cDovL3NjaGVtYXMueG1sc29hcC5vcmcvd3MvMjAwNS8wNS9pZGVudGl0eS9jbGFpbXMvZW1haWxhZGRyZXNzIjoidGVzdHVzZXI5OTlAY2xhc3N0cmFuc2NyaWJlLmNvbSIsImNsYXNzdHJhbnNjcmliZS9Vc2VySWQiOiI5OSIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6IkFkbWluIiwiZXhwIjoxNjAwMjM5MTkzLCJpc3MiOiJodHRwczovL2xvY2FsaG9zdCIsImF1ZCI6Imh0dHBzOi8vbG9jYWxob3N0In0.k67HR7RtGf9ZUATxrpp_dvWOaXwH1H2DxE6VK941FDI";
-            string _api = "api/offerings/bystudent";
-            string _method = "Get";
 
-            Setting.GenerateSetting();
+            //Setting.GenerateSetting();
             Setting.baseUrl = "https://localhost:5001/";
             Setting.ignoreProperties = new List<string>
             {
                 "concurrencyStamp",
                 "securityStamp"
             };
+
             TestCase t = new TestCase(_token, _api, _method, _input, _expectation);
 
             AssertInfo log = t.Run();
 
             Assert.Equal("succeed", log.assert);
         }
+
 
     }
 }
