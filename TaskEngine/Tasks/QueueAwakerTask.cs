@@ -26,6 +26,7 @@ namespace TaskEngine.Tasks
         private readonly SceneDetectionTask _scenedDetectionTask;
         private readonly CreateBoxTokenTask _createBoxTokenTask;
         private readonly UpdateBoxTokenTask _updateBoxTokenTask;
+        private readonly ExampleTask _exampleTask;
         private readonly SlackLogger _slackLogger;
 
         public QueueAwakerTask() { }
@@ -34,7 +35,7 @@ namespace TaskEngine.Tasks
             DownloadMediaTask downloadMediaTask,
             TranscriptionTask transcriptionTask, ProcessVideoTask processVideoTask,
             GenerateVTTFileTask generateVTTFileTask, SceneDetectionTask scenedDetectionTask,
-            CreateBoxTokenTask createBoxTokenTask, UpdateBoxTokenTask updateBoxTokenTask,
+            CreateBoxTokenTask createBoxTokenTask, UpdateBoxTokenTask updateBoxTokenTask, ExampleTask exampleTask,
             ILogger<QueueAwakerTask> logger, SlackLogger slackLogger)
             : base(rabbitMQ, TaskType.QueueAwaker, logger)
         {
@@ -47,6 +48,7 @@ namespace TaskEngine.Tasks
             _scenedDetectionTask = scenedDetectionTask;
             _createBoxTokenTask = createBoxTokenTask;
             _updateBoxTokenTask = updateBoxTokenTask;
+            _exampleTask = exampleTask;
             _slackLogger = slackLogger;
         }
 
@@ -147,8 +149,13 @@ namespace TaskEngine.Tasks
                 // * Consider setting TTL on these messages to be 5 minutes short of thethe Periodic Refresh?
                 // * If/when we drop the direct appoach consider: Random ordering. Most recent first (or randomly choosing either)
 
+                // If an object was created during the middle of a periodic cycle, give it a full cycle to queue, and another cycle to complete its tasks
 
-                var tooRecentCutoff = DateTime.Now.AddMinutes(-30);
+                
+                int minutesCutOff =  Math.Max( 1, Convert.ToInt32(Globals.appSettings.PERIODIC_CHECK_OLDER_THAN_MINUTES));
+               
+                
+                var tooRecentCutoff = DateTime.Now.AddMinutes(- minutesCutOff);
                 // This is the first use of 'AsNoTracking' in this project; let's check it works in Production as expected
 
                 // TODO/TOREVIEW: Does EF create the complete entity and then project out the ID column in dot Net, or does it request only the ID from the database?
@@ -156,9 +163,10 @@ namespace TaskEngine.Tasks
                 // See https://code-maze.com/queries-in-entity-framework-core/
                 // See https://docs.microsoft.com/en-us/ef/core/querying/tracking
 
+
                 // Completed Transcriptions which haven't generated vtt files
                 // TODO: Should also check dates too
-                _logger.LogInformation($"Finding incomplete VTTs, Transcriptions and Downloads from before {tooRecentCutoff}");
+                _logger.LogInformation($"Finding incomplete VTTs, Transcriptions and Downloads from before {tooRecentCutoff}, minutesCutOff=({minutesCutOff})");
 
                 todoVTTs = await context.Transcriptions.AsNoTracking().Where(
                     t => t.Captions.Count > 0 && t.File == null && t.CreatedAt < tooRecentCutoff
@@ -241,6 +249,7 @@ namespace TaskEngine.Tasks
                     await _slackLogger.PostMessageAsync("Periodic Check.");
                     registerTask(cleanup, "PeriodicCheck");
                     _updateBoxTokenTask.Publish("");
+                    _exampleTask.Publish("");
 
                     await DownloadAllPlaylists();
                     await PendingJobs();
@@ -285,12 +294,46 @@ namespace TaskEngine.Tasks
                 //    var video = await _context.Videos.FindAsync(videoId);
                 //    _convertVideoToWavTask.Publish(video.Id);
                 //}
-                else if (type == TaskType.Transcribe.ToString())
+                else if (type == TaskType.TranscribeVideo.ToString())
                 {
-                    var videoId = jObject["videoId"].ToString();
-                    var video = await _context.Videos.FindAsync(videoId);
+                    var id = jObject["videoOrMediaId"].ToString();
+                    _logger.LogInformation($"{type}:{id}");
+                    var video = await _context.Videos.FindAsync(id);
+                    if(video == null)
+                    {
+                        var media = await _context.Medias.FindAsync(id);
+                        if( media != null)
+                        {
+                            _logger.LogInformation($"{id}: media Found. videoID=({media.VideoId})");
+                            video = media.Video;
+                        }
+                    }
+                    if( video == null)
+                    {
+                        _logger.LogInformation($"No video found for video/mediaId ({id})");
+                        return;
+
+                     }
+                    //TODO: These properties should not be literal strings
+                    bool deleteExisting = false;
+                    try
+                    {
+                        deleteExisting = jObject["DeleteExisting"].Value<bool>();
+                    }
+                    catch (Exception ignored) { }
+                    if (deleteExisting)
+                    {
+                        _logger.LogInformation($"{id}:Removing Transcriptions for video ({video.Id})");
+                        
+                        var transcriptions = video.Transcriptions;
+                        _context.Transcriptions.RemoveRange(transcriptions);
+                        video.TranscriptionStatus = "";
+                        // Could also remove LastSuccessTime and reset attempts
+                        
+                        await _context.SaveChangesAsync();
+                    }
                     _transcriptionTask.Publish(video.Id);
-                }
+                }  
                 else if (type == TaskType.UpdateOffering.ToString())
                 {
                     var offeringId = jObject["offeringId"].ToString();

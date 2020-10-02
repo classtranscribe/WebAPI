@@ -422,7 +422,6 @@ namespace ClassTranscribeDatabase.Models
     {
         public ResourceType SourceType { get; set; }
         public string SourceId { get; set; }
-
         [ForeignKey("ImageFile")]
         public string ImageFileId { get; set; }
         public virtual FileRecord ImageFile { get; set; }

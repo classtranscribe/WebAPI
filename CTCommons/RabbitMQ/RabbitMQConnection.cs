@@ -26,15 +26,17 @@ namespace CTCommons
     public class ClientActiveTasks : HashSet<object>
     {
         public ClientActiveTasks() { }
-        public ClientActiveTasks(ClientActiveTasks source) :base(source)
+        public ClientActiveTasks(ClientActiveTasks source) : base(source)
         {
         }
-        
+
     };
 
     public class RabbitMQConnection : IDisposable
     {
-        IConnection _connection;
+        // Created by the first instance, then re-used
+        private static IConnection _connection;
+
         IModel _channel { get; set; }
         String _expiration; // milliseconds
 
@@ -42,24 +44,58 @@ namespace CTCommons
         public RabbitMQConnection(ILogger<RabbitMQConnection> logger)
         {
             _logger = logger;
+            CreateSharedConnection();
+
+            // TODO/TOREVIEW: Check number of threads created
+            // Potentially Model can be shared too 
+            _channel = _connection.CreateModel();
+
+            uint time = Math.Max(1, Convert.ToUInt32(Globals.appSettings.RABBITMQ_TASK_TTL_MINUTES));
+            SetMessageExpiration(time);
+        }
+
+        private void CreateSharedConnection()
+        {
+            if (_connection != null)
+            {
+                return;
+            }
+            _logger.LogInformation("Creating RabbitMQ connection");
             var factory = new ConnectionFactory()
             {
-                HostName = Globals.appSettings.RabbitMQServer,
+
+                HostName = Globals.appSettings.RABBITMQ_SERVER_NAME.Length > 0 ? Globals.appSettings.RABBITMQ_SERVER_NAME : Globals.appSettings.RabbitMQServer,
                 UserName = Globals.appSettings.ADMIN_USER_ID,
                 Password = Globals.appSettings.ADMIN_PASSWORD,
                 Port = Convert.ToUInt16(Globals.appSettings.RABBITMQ_PORT) // 5672
 
             };
-            _logger.LogInformation($"Connection to RabbitMQ server {factory.HostName} with user {factory.UserName} on port {factory.Port}...");
-            _connection = factory.CreateConnection();
-            _channel = _connection.CreateModel();
+            // A developer may still want to checkout old code which uses the old env branch
+            // so just complain loudly for now
+            // In 2021 we can remove support for the old variable
+            if (Globals.appSettings.RabbitMQServer.Length > 0)
+            {
+                _logger.LogError("*** Mixed case 'RabbitMQServer' environment variable is deprecated. Review your .env or vs_appsettings.json environment settings");
+                if (Globals.appSettings.RABBITMQ_SERVER_NAME.Length == 0)
+                {
+                    _logger.LogError("*** Update your environment to use RABBITMQ_SERVER_NAME.");
+                }
+                else if (Globals.appSettings.RABBITMQ_SERVER_NAME != Globals.appSettings.RabbitMQServer)
+                {
+                    {
+                        _logger.LogError("*** RABBITMQ_SERVER_NAME and RabbitMQServer are both set and different! Using RABBITMQ_SERVER_NAME");
+                    }
+                }
+            }
 
-            uint time = Convert.ToUInt32(Globals.appSettings.PERIODIC_CHECK_MINUTES);
-            SetMessageExpiration(time);
+            _logger.LogInformation($"Connecting to RabbitMQ server {factory.HostName} with user {factory.UserName} on port {factory.Port}...");
+            _connection = factory.CreateConnection();
         }
 
-        public void SetMessageExpiration(uint ttlMinutes) {
-            
+
+        public void SetMessageExpiration(uint ttlMinutes)
+        {
+
             uint OneMinuteAsMilliseconds = 1000 * 60;
             _expiration = (OneMinuteAsMilliseconds * ttlMinutes).ToString();
             _logger.LogInformation("Using Message TTL {0} minutes", ttlMinutes);
@@ -99,17 +135,17 @@ namespace CTCommons
             }
 
         }
-        
+
         /// <summary>
         /// Registers task and starts consuming messages
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="queueName"></param>
         /// <param name="OnConsume"></param>
-        public void ConsumeTask<T>(string queueName, Func<T, TaskParameters, ClientActiveTasks, Task> OnConsume,Func<ClientActiveTasks, int> PostConsumeCleanup, ushort concurrency)
+        public void ConsumeTask<T>(string queueName, Func<T, TaskParameters, ClientActiveTasks, Task> OnConsume, Func<ClientActiveTasks, int> PostConsumeCleanup, ushort concurrency)
         {
             // Caution. The queue is also declard inside PublishTask above
-            _logger.LogInformation("Prefetch concurrency count {0}" , concurrency);
+            _logger.LogInformation("Prefetch concurrency count {0}", concurrency);
             lock (_channel)
             {
                 _channel.QueueDeclare(queue: queueName,
@@ -128,16 +164,16 @@ namespace CTCommons
             var consumer = new EventingBasicConsumer(_channel);
             consumer.Received += async (model, ea) =>
             {
-                // This object exists so that we can wrap all OnConsumes with a try-finally here
-                // And during the finally block remove the task from the set of active tasks
-                // At this level of the code we don't have the specific task information
-                // Instead the specific task my register a task by calling register
-                ClientActiveTasks clientCleanup = new ClientActiveTasks();
+                    // This object exists so that we can wrap all OnConsumes with a try-finally here
+                    // And during the finally block remove the task from the set of active tasks
+                    // At this level of the code we don't have the specific task information
+                    // Instead the specific task my register a task by calling register
+                    ClientActiveTasks clientCleanup = new ClientActiveTasks();
 
                 var taskObject = CommonUtils.BytesToMessage<TaskObject<T>>(ea.Body);
                 _logger.LogInformation(" [x] {0} Received {1}", queueName, taskObject.ToString());
-                // TODO: Update JobStatus table here (started timestamp)
-                try
+                    // TODO: Update JobStatus table here (started timestamp)
+                    try
                 {
                     await OnConsume(taskObject.Data, taskObject.TaskParameters, clientCleanup);
                 }
@@ -151,8 +187,8 @@ namespace CTCommons
 
                 }
                 _logger.LogInformation(" [x] {0} Done {1}", queueName, taskObject.ToString());
-                // TODO Update JobStatus table here (including timestamp +  result + exception if it occurred)
-                lock (_channel)
+                    // TODO Update JobStatus table here (including timestamp +  result + exception if it occurred)
+                    lock (_channel)
                 {
                     _channel.BasicAck(deliveryTag: ea.DeliveryTag, multiple: false);
                 }
