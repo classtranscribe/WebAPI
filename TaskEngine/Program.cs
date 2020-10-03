@@ -60,6 +60,8 @@ namespace TaskEngine
                 .AddSingleton<SceneDetectionTask>()
                 .AddSingleton<UpdateBoxTokenTask>()
                 .AddSingleton<CreateBoxTokenTask>()
+                .AddSingleton<ExampleTask>()
+                
                 .AddSingleton<BoxAPI>()
                 .AddScoped<Seeder>()
                 .AddScoped<SlackLogger>()
@@ -126,6 +128,9 @@ namespace TaskEngine
             serviceProvider.GetService<QueueAwakerTask>().Consume(NO_CONCURRENCY); //TODO TOREVIEW: NO_CONCURRENCY?
             serviceProvider.GetService<UpdateBoxTokenTask>().Consume(NO_CONCURRENCY);
             serviceProvider.GetService<CreateBoxTokenTask>().Consume(NO_CONCURRENCY);
+
+            serviceProvider.GetService<ExampleTask>().Consume(NO_CONCURRENCY);
+            
             _logger.LogInformation("Done creating task consumers");
             //nolonger used :
             // nope serviceProvider.GetService<nope ConvertVideoToWavTask>().Consume(concurrent_videotasks);
@@ -141,12 +146,8 @@ namespace TaskEngine
 
             QueueAwakerTask queueAwakerTask = serviceProvider.GetService<QueueAwakerTask>();
 
-            int periodicCheck = Convert.ToInt32(Globals.appSettings.PERIODIC_CHECK_MINUTES);
-            if (periodicCheck < 5)
-            {
-                _logger.LogError("Set PERIODIC_CHECK_MINUTES to at least 5");
-                throw new Exception("Bad PERIODIC_CHECK_MINUTES value");
-            }
+            int periodicCheck = Math.Max(1,Convert.ToInt32(Globals.appSettings.PERIODIC_CHECK_EVERY_MINUTES));
+            
             _logger.LogInformation("Periodic Check Every {0} minutes", periodicCheck);
             var timeInterval = new TimeSpan(0, periodicCheck, 0);
 

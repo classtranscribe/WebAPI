@@ -81,5 +81,11 @@
   <ItemGroup>
     <WCFMetadata Include="Connected Services" />
   </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Controllers\AccountController.cs">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Compile>
+  </ItemGroup>
   
 </Project>
