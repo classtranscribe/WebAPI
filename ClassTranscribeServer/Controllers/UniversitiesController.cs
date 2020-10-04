@@ -20,7 +20,7 @@ namespace ClassTranscribeServer.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<University>>> GetUniversities()
         {
-            return await _context.Universities.OrderBy(u => u.Name).ToListAsync();
+            return await _context.Universities.Where(u => u.Id != "0000").OrderBy(u => u.Name).ToListAsync();
         }
 
         // GET: api/Universities/5
