@@ -254,27 +254,33 @@ namespace ClassTranscribeServer.Controllers
             {
                 return BadRequest();
             }
+
             var offering = await _context.Offerings.FindAsync(playlist.OfferingId);
+
             if (offering == null)
             {
                 return BadRequest();
             }
+
             var authorizationResult = await _authorizationService.AuthorizeAsync(this.User, offering, Globals.POLICY_UPDATE_OFFERING);
+
             if (!authorizationResult.Succeeded)
             {
                 if (User.Identity.IsAuthenticated)
                 {
                     return new ForbidResult();
                 }
-                else
-                {
-                    return new ChallengeResult();
-                }
+
+                return new ChallengeResult();
             }
+
             if (playlist.PlaylistIdentifier != null && playlist.PlaylistIdentifier.Length > 0)
             {
                 playlist.PlaylistIdentifier = playlist.PlaylistIdentifier.Trim();
             }
+
+            playlist.Index = offering.Playlists.Count;
+
             _context.Playlists.Add(playlist);
             await _context.SaveChangesAsync();
             _wakeDownloader.UpdatePlaylist(playlist.Id);
