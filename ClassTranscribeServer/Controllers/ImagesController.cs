@@ -92,7 +92,7 @@ namespace ClassTranscribeServer.Controllers
                     await imageFile.CopyToAsync(stream);
                 }
 
-                image.ImageFile = FileRecord.GetNewFileRecord(filePath, Path.GetExtension(filePath));
+                image.ImageFile = await FileRecord.GetNewFileRecordAsync(filePath, Path.GetExtension(filePath));
 
                 _context.Images.Add(image);
                 await _context.SaveChangesAsync();
