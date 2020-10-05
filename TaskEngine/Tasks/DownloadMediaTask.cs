@@ -54,7 +54,7 @@ namespace TaskEngine.Tasks
             {
                 case SourceType.Echo360: video = await DownloadEchoVideo(media); break;
                 case SourceType.Youtube: video = await DownloadYoutubeVideo(media); break;
-                case SourceType.Local: video = DownloadLocalPlaylist(media); break;
+                case SourceType.Local: video = await DownloadLocalPlaylist(media); break;
                 case SourceType.Kaltura: video = await DownloadKalturaVideo(media); break;
                 case SourceType.Box: video = await DownloadBoxVideo(media); break;
             }
@@ -131,7 +131,7 @@ namespace TaskEngine.Tasks
             {
                 video = new Video
                 {
-                    Video1 = FileRecord.GetNewFileRecord(mediaResponse.FilePath, mediaResponse.Ext)
+                    Video1 = await FileRecord.GetNewFileRecordAsync(mediaResponse.FilePath, mediaResponse.Ext)
                 };
             }
             else
@@ -156,7 +156,7 @@ namespace TaskEngine.Tasks
             video1Success = FileRecord.IsValidFile(mediaResponse.FilePath);
             if (video1Success)
             {
-                video.Video1 = FileRecord.GetNewFileRecord(mediaResponse.FilePath, mediaResponse.Ext);
+                video.Video1 = await FileRecord.GetNewFileRecordAsync(mediaResponse.FilePath, mediaResponse.Ext);
             }
 
 
@@ -171,7 +171,7 @@ namespace TaskEngine.Tasks
                 video2Success = FileRecord.IsValidFile(mediaResponse2.FilePath);
                 if (video2Success)
                 {
-                    video.Video2 = FileRecord.GetNewFileRecord(mediaResponse2.FilePath, mediaResponse.Ext);
+                    video.Video2 = await  FileRecord.GetNewFileRecordAsync(mediaResponse2.FilePath, mediaResponse.Ext);
                 }
             }
             else
@@ -211,7 +211,7 @@ namespace TaskEngine.Tasks
             {
                 Video video = new Video
                 {
-                    Video1 = FileRecord.GetNewFileRecord(mediaResponse.FilePath, mediaResponse.Ext)
+                    Video1 = await FileRecord.GetNewFileRecordAsync(mediaResponse.FilePath, mediaResponse.Ext)
                 };
                 return video;
             }
@@ -229,7 +229,7 @@ namespace TaskEngine.Tasks
             }
         }
 
-        public Video DownloadLocalPlaylist(Media media)
+        public async Task<Video> DownloadLocalPlaylist(Media media)
         {
             try
             {
@@ -237,12 +237,12 @@ namespace TaskEngine.Tasks
                 if (media.JsonMetadata.ContainsKey("video1Path"))
                 {
                     var video1Path = media.JsonMetadata["video1Path"].ToString();
-                    video.Video1 = FileRecord.GetNewFileRecord(video1Path, Path.GetExtension(video1Path));
+                    video.Video1 = await FileRecord.GetNewFileRecordAsync(video1Path, Path.GetExtension(video1Path));
                 }
                 if (media.JsonMetadata.ContainsKey("video2Path"))
                 {
                     var video2Path = media.JsonMetadata["video2Path"].ToString();
-                    video.Video2 = FileRecord.GetNewFileRecord(video2Path, Path.GetExtension(video2Path));
+                    video.Video2 = await  FileRecord.GetNewFileRecordAsync(video2Path, Path.GetExtension(video2Path));
                 }
 
                 return video;
@@ -275,7 +275,7 @@ namespace TaskEngine.Tasks
                 {
                     Video video = new Video
                     {
-                        Video1 = FileRecord.GetNewFileRecord(newPath, Path.GetExtension(newPath))
+                        Video1 = await FileRecord.GetNewFileRecordAsync(newPath, Path.GetExtension(newPath))
                     };
                     return video;
                 }

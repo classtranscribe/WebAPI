@@ -46,7 +46,7 @@ namespace TaskEngine.Tasks
                     {
                         FilePath = video.Video1.VMPath
                     });
-                    video.ProcessedVideo1 = FileRecord.GetNewFileRecord(file.FilePath, file.Ext);
+                    video.ProcessedVideo1 = await FileRecord.GetNewFileRecordAsync(file.FilePath, file.Ext);
                 }
             }
             if (video.Video2 != null)
@@ -57,7 +57,7 @@ namespace TaskEngine.Tasks
                     {
                         FilePath = video.Video2.VMPath
                     });
-                    video.ProcessedVideo2 = FileRecord.GetNewFileRecord(file.FilePath, file.Ext);
+                    video.ProcessedVideo2 = await FileRecord.GetNewFileRecordAsync(file.FilePath, file.Ext);
                 }
             }
             using (var _context = CTDbContext.CreateDbContext())

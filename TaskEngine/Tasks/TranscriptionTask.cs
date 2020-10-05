@@ -22,6 +22,7 @@ namespace TaskEngine.Tasks
     [SuppressMessage("Microsoft.Performance", "CA1812:MarkMembersAsStatic")] // This class is never directly instantiated
     class TranscriptionTask : RabbitMQTask<string>
     {
+       
         private readonly MSTranscriptionService _msTranscriptionService;
         private readonly GenerateVTTFileTask _generateVTTFileTask;
         private readonly SceneDetectionTask _sceneDetectionTask;
@@ -110,7 +111,7 @@ namespace TaskEngine.Tasks
                 Video video = await _context.Videos.Include(v => v.Video1).Where(v => v.Id == videoId).FirstAsync();
                 // ! Note the 'Include' ; we don't build the whole tree of related Entities
 
-                if (video.TranscriptionStatus == "NoError")
+                if (video.TranscriptionStatus == Video.TranscriptionStatusMessages.NOERROR)
                 {
                     _logger.LogInformation($"{videoId}:Skipping Transcribing of- already complete");
                     return;
