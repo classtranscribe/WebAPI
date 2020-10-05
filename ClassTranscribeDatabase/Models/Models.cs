@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
-using static ClassTranscribeDatabase.CommonUtils;
 
 namespace ClassTranscribeDatabase.Models
 {
@@ -365,8 +364,8 @@ namespace ClassTranscribeDatabase.Models
         public string Author { get; set; }
         public string Publisher { get; set; }
         public bool IsPublished { get; set; }
-        public string Cover { get; set; }
-        public JObject Chapters { get; set; }
+        public JObject Cover { get; set; }
+        public List<JObject> Chapters { get; set; }
     }
 
     public class WatchHistory : Entity

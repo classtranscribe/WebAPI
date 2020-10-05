@@ -215,6 +215,7 @@ namespace ClassTranscribeDatabase
             builder.Entity<Offering>().Property(m => m.JsonMetadata).HasJsonValueConversion();
             builder.Entity<WatchHistory>().Property(m => m.Json).HasJsonValueConversion();
             builder.Entity<Message>().Property(m => m.Payload).HasJsonValueConversion();
+            builder.Entity<EPub>().Property(m => m.Cover).HasJsonValueConversion();
             builder.Entity<EPub>().Property(m => m.Chapters).HasJsonValueConversion();
             builder.Entity<TaskItem>().Property(m => m.TaskParameters).HasJsonValueConversion();
             builder.Entity<TaskItem>().Property(m => m.ResultData).HasJsonValueConversion();
