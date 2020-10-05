@@ -20,7 +20,8 @@ namespace ClassTranscribeServer.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<University>>> GetUniversities()
         {
-            return await _context.Universities.Where(u => u.Id != "0000").OrderBy(u => u.Name).ToListAsync();
+            // Filter out UNK (Unkown university) from list of public, viewable universities
+            return await _context.Universities.Where(u => u.Id != Seeder.UNK_UNIVERSITY_ID).OrderBy(u => u.Name).ToListAsync();
         }
 
         // GET: api/Universities/5
