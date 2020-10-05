@@ -279,7 +279,11 @@ namespace ClassTranscribeServer.Controllers
                 playlist.PlaylistIdentifier = playlist.PlaylistIdentifier.Trim();
             }
 
-            playlist.Index = offering.Playlists.Count;
+            // If playlists are deleted the Count != Max Index, so use the max index (still not perfect, what if 2 playlists are created at the same time)
+            if (offering.Playlists.Count > 0)
+            {
+                playlist.Index = 1 + offering.Playlists.Max(p => p.Index);
+            }
 
             _context.Playlists.Add(playlist);
             await _context.SaveChangesAsync();
