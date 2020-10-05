@@ -2,7 +2,7 @@
 
 namespace ClassTranscribeDatabase.Migrations
 {
-    public partial class EPubChaptersUpdate : Migration
+    public partial class EPubFix : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {

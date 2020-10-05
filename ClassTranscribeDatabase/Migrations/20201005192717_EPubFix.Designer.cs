@@ -10,8 +10,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ClassTranscribeDatabase.Migrations
 {
     [DbContext(typeof(CTDbContext))]
-    [Migration("20201005175527_EPubChaptersUpdate")]
-    partial class EPubChaptersUpdate
+    [Migration("20201005192717_EPubFix")]
+    partial class EPubFix
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
