@@ -203,14 +203,52 @@ namespace ClassTranscribeServer.Controllers
             {
                 return BadRequest();
             }
+
+            if (newOfferingDTO.CourseId == null)
+            {
+                if (newOfferingDTO.DepartmentId == null || newOfferingDTO.NewCourseNumber == null)
+                {
+                    return BadRequest("Must specify departmentId and newCourseNumber");
+                }
+
+                var isValidDept = await _context.Departments.AnyAsync(d => d.Id == newOfferingDTO.DepartmentId);
+
+                if (!isValidDept)
+                {
+                    return BadRequest("Invalid department ID");
+                }
+
+                if (await _context.Courses.AnyAsync(c => c.CourseNumber == newOfferingDTO.NewCourseNumber && c.DepartmentId == newOfferingDTO.DepartmentId))
+                {
+                    var existingCourse = await _context.Courses.Where(c => c.CourseNumber == newOfferingDTO.NewCourseNumber && c.DepartmentId == newOfferingDTO.DepartmentId).FirstAsync();
+                    newOfferingDTO.CourseId = existingCourse.Id;
+                }
+                else
+                {
+                    var newCourse = new Course
+                    {
+                        DepartmentId = newOfferingDTO.DepartmentId,
+                        CourseNumber = newOfferingDTO.NewCourseNumber
+                    };
+
+                    await _context.Courses.AddAsync(newCourse);
+                    await _context.SaveChangesAsync();
+
+                    newOfferingDTO.CourseId = newCourse.Id;
+                }
+            }
+
             _context.Offerings.Add(newOfferingDTO.Offering);
             await _context.SaveChangesAsync();
+
             _context.CourseOfferings.Add(new CourseOffering
             {
                 CourseId = newOfferingDTO.CourseId,
                 OfferingId = newOfferingDTO.Offering.Id
             });
+
             var user = await _userUtils.GetUser(User);
+
             if (user != null)
             {
                 await _context.UserOfferings.AddAsync(new UserOffering
@@ -219,6 +257,7 @@ namespace ClassTranscribeServer.Controllers
                     IdentityRole = _context.Roles.Where(r => r.Name == Globals.ROLE_INSTRUCTOR).FirstOrDefault(),
                     OfferingId = newOfferingDTO.Offering.Id
                 });
+
                 await _context.SaveChangesAsync();
             }
 
@@ -262,7 +301,8 @@ namespace ClassTranscribeServer.Controllers
         {
             public Offering Offering { get; set; }
             public string CourseId { get; set; }
-
+            public string DepartmentId { get; set; }
+            public string NewCourseNumber { get; set; }
         }
 
         public class OfferingDTO
