@@ -218,24 +218,21 @@ namespace ClassTranscribeServer.Controllers
                     return BadRequest("Invalid department ID");
                 }
 
-                if (await _context.Courses.AnyAsync(c => c.CourseNumber == newOfferingDTO.NewCourseNumber && c.DepartmentId == newOfferingDTO.DepartmentId))
+                var course = await _context.Courses.Where(c => c.CourseNumber == newOfferingDTO.NewCourseNumber && c.DepartmentId == newOfferingDTO.DepartmentId).FirstOrDefaultAsync();
+
+                if (course == null)
                 {
-                    var existingCourse = await _context.Courses.Where(c => c.CourseNumber == newOfferingDTO.NewCourseNumber && c.DepartmentId == newOfferingDTO.DepartmentId).FirstAsync();
-                    newOfferingDTO.CourseId = existingCourse.Id;
-                }
-                else
-                {
-                    var newCourse = new Course
+                    course = new Course
                     {
                         DepartmentId = newOfferingDTO.DepartmentId,
                         CourseNumber = newOfferingDTO.NewCourseNumber
                     };
 
-                    await _context.Courses.AddAsync(newCourse);
+                    await _context.Courses.AddAsync(course);
                     await _context.SaveChangesAsync();
-
-                    newOfferingDTO.CourseId = newCourse.Id;
                 }
+
+                newOfferingDTO.CourseId = course.Id;
             }
 
             _context.Offerings.Add(newOfferingDTO.Offering);
