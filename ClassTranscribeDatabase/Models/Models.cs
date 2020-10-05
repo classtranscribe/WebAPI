@@ -231,9 +231,11 @@ namespace ClassTranscribeDatabase.Models
     public class Transcription : Entity
     {
         [ForeignKey("File")]
-        public string FileId { get; set; }
+        public string FileId { get; set; } // Webvtt file
         public virtual FileRecord File { get; set; }
         public virtual FileRecord SrtFile { get; set; }
+
+        public string SrtFileId { get; set; } 
         public string Language { get; set; }
         public string Description { get; set; }
         public string VideoId { get; set; }
@@ -307,6 +309,12 @@ namespace ClassTranscribeDatabase.Models
                 await context.SaveChangesAsync();
             }
         }
+
+        public class TranscriptionStatusMessages
+        {
+            public static readonly string NOERROR = "NoError";
+            public static readonly string TIMEOUT = "ServiceTimeout";
+        };
     }
 
     public class CourseOffering : Entity
