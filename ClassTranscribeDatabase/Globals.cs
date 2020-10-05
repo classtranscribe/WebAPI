@@ -76,7 +76,7 @@ namespace ClassTranscribeDatabase
         // See MSTranscriptionService
         public string MOCK_RECOGNITION { get; set; } = "";
 
-
+        public string DIGEST_CALCULATION_METHOD { get; set; } = "";
 
     }
 
