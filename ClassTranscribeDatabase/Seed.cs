@@ -14,6 +14,8 @@ namespace ClassTranscribeDatabase
     /// </summary>
     public class Seeder
     {
+        public static readonly string UNK_UNIVERSITY_ID = "0000";
+
         private readonly CTDbContext _context;
         private readonly ILogger _logger;
 
@@ -98,7 +100,7 @@ namespace ClassTranscribeDatabase
             University unknownUniversity = new University
             {
                 // University Id begins with 1
-                Id = "0000",
+                Id = UNK_UNIVERSITY_ID,
                 Name = "Unknown",
                 Domain = "UNK"
             };
