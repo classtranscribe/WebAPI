@@ -34,7 +34,7 @@ namespace ClassTranscribeDatabase.Models
             var fileRecord = new FileRecord(newFilePath);
             // TODO: Add .ConfigureAwait(false) here? or not?
             // See https://devblogs.microsoft.com/dotnet/configureawait-faq/
-            fileRecord.Hash = await ComputeSha256HashForFileAsync(fileRecord.Path;
+            fileRecord.Hash = await ComputeSha256HashForFileAsync(fileRecord.Path);
             fileRecord.Id = uuid;
             return fileRecord;
         }
