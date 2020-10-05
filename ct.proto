@@ -16,7 +16,10 @@ service PythonServer {
 
   rpc ConvertVideoToWavRPCWithOffset (FileForConversion) returns (File) {}
   rpc ProcessVideoRPC (File) returns (File) {}
+
+  rpc ComputeFileHash (FileHashRequest) returns (FileHashResponse) {}
 }
+
 
 // The request message containing the user's name.
 message JsonString {
@@ -58,4 +61,13 @@ message EPubChapter {
   string title = 1;
   string text = 2;
   File image = 3;
+}
+
+message FileHashRequest {
+  string file = 1;
+  string algorithms = 2;
+}
+
+message FileHashResponse {
+  string result = 1;
 }
