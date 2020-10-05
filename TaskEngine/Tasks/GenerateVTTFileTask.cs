@@ -13,29 +13,51 @@ namespace TaskEngine.Tasks
     [SuppressMessage("Microsoft.Performance", "CA1812:MarkMembersAsStatic")] // This class is never directly instantiated
     class GenerateVTTFileTask : RabbitMQTask<string>
     {
-        public GenerateVTTFileTask(RabbitMQConnection rabbitMQ, 
+        public GenerateVTTFileTask(RabbitMQConnection rabbitMQ,
             ILogger<GenerateVTTFileTask> logger)
             : base(rabbitMQ, TaskType.GenerateVTTFile, logger)
         {
         }
         protected async override Task OnConsume(string transcriptionId, TaskParameters taskParameters, ClientActiveTasks cleanup)
         {
-            registerTask(cleanup,transcriptionId); // may throw AlreadyInProgress exception
+            registerTask(cleanup, transcriptionId); // may throw AlreadyInProgress exception
             using (var _context = CTDbContext.CreateDbContext())
             {
                 var transcription = await _context.Transcriptions.FindAsync(transcriptionId);
+                FileRecord existingVtt = await _context.FileRecords.FindAsync(transcription.FileId);
+                FileRecord existingSrt = await _context.FileRecords.FindAsync(transcription.SrtFileId);
+
+
                 CaptionQueries captionQueries = new CaptionQueries(_context);
                 var captions = await captionQueries.GetCaptionsAsync(transcription.Id);
 
-                var vttfile = FileRecord.GetNewFileRecord(Caption.GenerateWebVTTFile(captions, transcription.Language), ".vtt");
-                await _context.FileRecords.AddAsync(vttfile);
-                transcription.File = vttfile;
+                var vttfile = await FileRecord.GetNewFileRecordAsync(Caption.GenerateWebVTTFile(captions, transcription.Language), ".vtt");
+                if (string.IsNullOrEmpty(transcription.FileId))
+                {
+                    await _context.FileRecords.AddAsync(vttfile);
+                    transcription.File = vttfile;
+                    _context.Entry(transcription).State = EntityState.Modified;
+                }
+                else
+                {                 
+                    existingVtt.ReplaceWith(vttfile);
+                    _context.Entry(existingVtt).State = EntityState.Modified;
+                }
 
-                var srtfile = FileRecord.GetNewFileRecord(Caption.GenerateSrtFile(captions), ".srt");
-                await _context.FileRecords.AddAsync(srtfile);
-                transcription.SrtFile = srtfile;
+                var srtfile = await FileRecord.GetNewFileRecordAsync(Caption.GenerateSrtFile(captions), ".srt");
+                if (string.IsNullOrEmpty(transcription.SrtFileId))
+                {
 
-                _context.Entry(transcription).State = EntityState.Modified;
+                    await _context.FileRecords.AddAsync(srtfile);
+                    transcription.SrtFile = srtfile;
+                    _context.Entry(transcription).State = EntityState.Modified;
+                }
+                else
+                {
+                    existingSrt.ReplaceWith(srtfile);
+                    _context.Entry(existingSrt).State = EntityState.Modified;
+                }
+
                 await _context.SaveChangesAsync();
             }
         }

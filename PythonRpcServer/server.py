@@ -12,6 +12,7 @@ from youtube import YoutubeProvider
 from echo import EchoProvider
 from kaltura import KalturaProvider
 from mediaprovider import InvalidPlaylistInfoException
+import hasher 
 import ffmpeg
 import os
 # Main entry point for docker container
@@ -76,6 +77,11 @@ class PythonServerServicer(ct_pb2_grpc.PythonServerServicer):
     def ProcessVideoRPC(self, request, context):
         filePath, ext = ffmpeg.processVideo(request.filePath)
         return ct_pb2.File(filePath = filePath, ext = ext)
+
+    def ComputeFileHash(self, request, context):
+        hash = hasher.hashFile(request.file, request.algorithms)
+        return ct_pb2.FileHashResponse(result = hash)
+
 
 def serve():
     print("Python RPC Server Starting")
