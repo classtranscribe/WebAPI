@@ -345,13 +345,22 @@ namespace TaskEngine.Tasks
                     var playlistId = jObject["PlaylistId"].ToString();
 
                     // Get all videos 
-                    var videos = await _context.Playlists.Where(p => p.Id == playlistId).SelectMany(p => p.Medias).Select(m => m.Video)
+                    var videos = await _context.Playlists.Where(p => p.Id == playlistId)
+                        .SelectMany(p => p.Medias)
+                        .Where(e=> e!=null)
+                        .Select(m => m.Video)
                         .ToListAsync();
-                    // Delete all captions
-                    var captions = videos.SelectMany(v => v.Transcriptions).SelectMany(t => t.Captions).ToList();
+                    // Delete all captions. This caused a null pointer exception because some elements were null
+                    // the above line and this line now have null filters
+                    var captions =  videos.SelectMany(v => v.Transcriptions)
+                        .Where(e => e != null)
+                        .SelectMany(t => t.Captions).ToList();
+
                     _context.Captions.RemoveRange(captions);
+                    // TODO/TOREVIEW: No need to create in captions. Their IDs should be sufficient
+
                     // Delete all Transcriptions
-                    var transcriptions = videos.SelectMany(v => v.Transcriptions).ToList();
+                    var transcriptions = videos.SelectMany(v => v.Transcriptions).Where(e => e != null).ToList();
                     _context.Transcriptions.RemoveRange(transcriptions);
 
                     videos.ForEach(v =>
