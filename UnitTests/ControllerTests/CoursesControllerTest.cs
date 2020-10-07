@@ -141,6 +141,7 @@ namespace UnitTests.ControllerTests
             List<Course> coursesByDepartment = getResult.Value.ToList();
 
             Assert.Single(coursesByDepartment);
+            Assert.Equal(course, coursesByDepartment[0]);
         }
     }
 }
