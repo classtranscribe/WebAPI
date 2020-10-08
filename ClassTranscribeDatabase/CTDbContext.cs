@@ -206,12 +206,15 @@ namespace ClassTranscribeDatabase
                 .HasForeignKey(m => m.VideoId);
 
             // Configure Entities which have a JObject.
+            // Forgetting to add this causes
+            //Navigation property 'Next' on entity type 'JObject' is not virtual. UseLazyLoadingProxies requires all entity types to be public, unsealed, have virtual navigation properties, and have a public or protected constructor.
             builder.Entity<Playlist>().Property(m => m.JsonMetadata).HasJsonValueConversion();
             builder.Entity<Media>().Property(m => m.JsonMetadata).HasJsonValueConversion();
             builder.Entity<Log>().Property(m => m.Json).HasJsonValueConversion();
             builder.Entity<ApplicationUser>().Property(m => m.Metadata).HasJsonValueConversion();
             builder.Entity<Video>().Property(m => m.SceneData).HasJsonValueConversion();
             builder.Entity<Video>().Property(m => m.JsonMetadata).HasJsonValueConversion();
+            builder.Entity<Video>().Property(m => m.FileMediaInfo).HasJsonValueConversion();
             builder.Entity<Offering>().Property(m => m.JsonMetadata).HasJsonValueConversion();
             builder.Entity<WatchHistory>().Property(m => m.Json).HasJsonValueConversion();
             builder.Entity<Message>().Property(m => m.Payload).HasJsonValueConversion();

@@ -36,6 +36,7 @@ namespace CTCommons
     {
         // Created by the first instance, then re-used
         private static IConnection _connection;
+        private static int _connectionRefCount;
 
         IModel _channel { get; set; }
         String _expiration; // milliseconds
@@ -56,8 +57,10 @@ namespace CTCommons
 
         private void CreateSharedConnection()
         {
+
             if (_connection != null)
             {
+                _connectionRefCount++;
                 return;
             }
             _logger.LogInformation("Creating RabbitMQ connection");
@@ -90,6 +93,7 @@ namespace CTCommons
 
             _logger.LogInformation($"Connecting to RabbitMQ server {factory.HostName} with user {factory.UserName} on port {factory.Port}...");
             _connection = factory.CreateConnection();
+            _connectionRefCount = 1;
         }
 
 
@@ -261,7 +265,24 @@ namespace CTCommons
                 lock (_channel)
                 {
                     _channel.Close(); _channel = null;
-                    _connection.Close(); _connection = null;
+
+                    --_connectionRefCount;
+                    _logger.LogInformation($"RabbitMQ refcount connection{_connectionRefCount}");
+                    if (_connectionRefCount == 0)
+                    {
+                        // not sure why we would want to close the connection
+                        // rather than just let it live for the 
+                        // duration of the app
+                        if (Globals.appSettings.RABBITMQ_REFCOUNT_CHANNELS == "Y")
+                        {
+                            _logger.LogInformation("Closing RabbitMQ connection");
+                            _connection.Close(); 
+                            _connection = null;
+                        }
+
+                        // Or we just keep the connection open even if the channels drop to zero
+                        // TODO:Check this in both the TaskEngine and the WebAPI project (uses QueueAwakerTest)
+                    }
                 }
                 disposedValue = true;
             }
