@@ -15,9 +15,27 @@ from mediaprovider import InvalidPlaylistInfoException
 import hasher 
 import ffmpeg
 import os
+import traceback
+from time import perf_counter 
 # Main entry point for docker container
 
 _ONE_DAY_IN_SECONDS = 60 * 60 * 24
+
+def LogWorker(logId, worker):
+    start_time = perf_counter()
+    logger = lambda message : print(f"{logId}:{message}")
+    try:
+        logger("Starting...")
+        result = worker()
+        return result
+    except Exception as e:
+        logger(f"Exception {e}")
+        traceback.print_exc()
+        raise e
+    finally:
+        end_time = perf_counter()
+        logger(f"Task returning after {int(end_time - start_time)} seconds.")
+
 
 class PythonServerServicer(ct_pb2_grpc.PythonServerServicer):
     def GetScenesRPC(self, request, context):
@@ -78,10 +96,14 @@ class PythonServerServicer(ct_pb2_grpc.PythonServerServicer):
         filePath, ext = ffmpeg.processVideo(request.filePath)
         return ct_pb2.File(filePath = filePath, ext = ext)
 
+    # Todo Rename to ComputeFileHashRPC and update? or insert new entry in ct.proto
     def ComputeFileHash(self, request, context):
         hash = hasher.hashFile(request.file, request.algorithms)
         return ct_pb2.FileHashResponse(result = hash)
 
+    def GetMediaInfoRPC(self, request, context):
+        result = LogWorker(f"GetMediaInfo({request.filePath})", lambda: ffmpeg.GetMediaInfo(request.filePath))
+        return  ct_pb2.JsonString(json = result)
 
 def serve():
     print("Python RPC Server Starting")

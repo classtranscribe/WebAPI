@@ -1,7 +1,8 @@
 from ffmpy import FFmpeg
+import subprocess
 from time import perf_counter 
-
 import utils
+import json
 
 default_max_threads = 3
 
@@ -57,3 +58,17 @@ def processVideo(input_filepath):
     except Exception as e:
         print("Exception:" + str(e))
         raise e
+
+def getMediaInfo(input_filepath):
+    #Exception printing and timing is now handled by caller -see LogWorker
+        # In seconds
+        #https://gist.github.com/nrk/2286511
+        staticargs = "-hide_banner -loglevel fatal -show_error -show_format -show_streams -show_programs -show_chapters -show_private_data -print_format json"
+        jsonresult = subprocess.check_output(
+            ['ffprobe','-i', input_filepath] + staticargs.split(' '),
+            encoding='utf-8'
+        )
+        print(f'{input_filepath}: {jsonresult}')
+
+        return json.dumps(jsonresult)
+
