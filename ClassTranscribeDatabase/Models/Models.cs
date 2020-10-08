@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
-using static ClassTranscribeDatabase.CommonUtils;
 
 namespace ClassTranscribeDatabase.Models
 {
@@ -280,6 +279,31 @@ namespace ClassTranscribeDatabase.Models
         public JObject SceneData { get; set; }
         public JObject JsonMetadata { get; set; }
 
+        // Reported duration extracted from MediaInfo. The actual video/audio/caption streams duration could be less
+        // Returns null if unknown
+        // TimeSpan.Zero means a video that is actually zero seconds
+        // See UpdateMediaProperties
+        public virtual TimeSpan? Duration { get; set; }
+        
+
+        // MediaInfo extracted from the video file
+        public virtual JObject FileMediaInfo { get; set; }
+
+
+        public virtual void UpdateMediaProperties()
+        {
+            Duration = null;
+            try
+            {
+                string s = (string)FileMediaInfo["format"]["duration"];
+                Duration = TimeSpan.FromSeconds(Convert.ToDouble(s));
+            }
+            catch (Exception ignored)
+            {
+                // Could not extract duration. We won't log this
+            }
+
+        }
         public async Task DeleteVideoAsync(CTDbContext context)
         {
             if (Video1 != null)
@@ -365,8 +389,8 @@ namespace ClassTranscribeDatabase.Models
         public string Author { get; set; }
         public string Publisher { get; set; }
         public bool IsPublished { get; set; }
-        public string Cover { get; set; }
-        public JObject Chapters { get; set; }
+        public JObject Cover { get; set; }
+        public List<JObject> Chapters { get; set; }
     }
 
     public class WatchHistory : Entity

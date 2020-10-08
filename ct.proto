@@ -18,6 +18,7 @@ service PythonServer {
   rpc ProcessVideoRPC (File) returns (File) {}
 
   rpc ComputeFileHash (FileHashRequest) returns (FileHashResponse) {}
+  rpc GetMediaInfoRPC(File) returns (JsonString) {}
 }
 
 

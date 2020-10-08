@@ -21,6 +21,8 @@ namespace ClassTranscribeDatabase
 
         public string RABBITMQ_SERVER_NAME { get; set; } = ""; // consistent with other keys including POSTGRES
 
+        public string RABBITMQ_REFCOUNT_CHANNELS { get; set; } = ""; // consistent with other keys including POSTGRES
+
         public string RABBITMQ_PORT { get; set; } = "5672";
 
         // RABBITMQ_PREFETCH_COUNT has been replaced with these CONCURRENT LIMITS-

@@ -9,6 +9,7 @@ using static ClassTranscribeDatabase.CommonUtils;
 using CTCommons;
 using System.Diagnostics.CodeAnalysis;
 using System.Collections.Generic;
+using Newtonsoft.Json.Linq;
 
 namespace TaskEngine.Tasks
 {
@@ -29,6 +30,7 @@ namespace TaskEngine.Tasks
         {   
             registerTask(cleanup,videoId); // may throw AlreadyInProgress exception
             Video video;
+            bool videoUpdated = false;
             using (var _context = CTDbContext.CreateDbContext())
             {
                 video = await _context.Videos.Include(v => v.Video1)
@@ -38,6 +40,19 @@ namespace TaskEngine.Tasks
                     .Where(v => v.Id == videoId).FirstAsync();
             }
             _logger.LogInformation("Consuming" + video);
+            if(video.Duration == null && video.Video1 != null)
+            {
+                var mediaInfoResult = await _rpcClient.PythonServerClient.GetMediaInfoRPCAsync(new CTGrpc.File
+                {
+                    FilePath = video.Video1.VMPath
+                });
+
+                var mediaJson = JObject.Parse(mediaInfoResult.Json);
+                video.FileMediaInfo = mediaJson;
+                video.UpdateMediaProperties();
+                videoUpdated = true;
+            }
+
             if (video.Video1 != null)
             {
                 if (video.ProcessedVideo1 == null || taskParameters.Force)
@@ -47,6 +62,7 @@ namespace TaskEngine.Tasks
                         FilePath = video.Video1.VMPath
                     });
                     video.ProcessedVideo1 = await FileRecord.GetNewFileRecordAsync(file.FilePath, file.Ext);
+                    videoUpdated = true;
                 }
             }
             if (video.Video2 != null)
@@ -58,12 +74,16 @@ namespace TaskEngine.Tasks
                         FilePath = video.Video2.VMPath
                     });
                     video.ProcessedVideo2 = await FileRecord.GetNewFileRecordAsync(file.FilePath, file.Ext);
+                    videoUpdated = true;
                 }
             }
-            using (var _context = CTDbContext.CreateDbContext())
+            if (videoUpdated)
             {
-                _context.Entry(video).State = EntityState.Modified;
-                await _context.SaveChangesAsync();
+                using (var _context = CTDbContext.CreateDbContext())
+                {
+                    _context.Entry(video).State = EntityState.Modified;
+                    await _context.SaveChangesAsync();
+                }
             }
         }
     }
