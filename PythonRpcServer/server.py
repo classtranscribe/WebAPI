@@ -102,7 +102,7 @@ class PythonServerServicer(ct_pb2_grpc.PythonServerServicer):
         return ct_pb2.FileHashResponse(result = hash)
 
     def GetMediaInfoRPC(self, request, context):
-        result = LogWorker(f"GetMediaInfo({request.filePath})", lambda: ffmpeg.GetMediaInfo(request.filePath))
+        result = LogWorker(f"GetMediaInfo({request.filePath})", lambda: ffmpeg.getMediaInfo(request.filePath))
         return  ct_pb2.JsonString(json = result)
 
 def serve():
