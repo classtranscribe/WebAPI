@@ -132,7 +132,9 @@ namespace TaskEngine.Tasks
             // Update Box Token every few hours
             _updateBoxTokenTask.Publish("");
 
+            //We will use these outside of the DB scope
             List<String> todoVTTs ;
+            List<String> todoProcessVideos;
             List<String> todoTranscriptions;
             List<String> todoDownloads;
             using (var context = CTDbContext.CreateDbContext())
@@ -168,6 +170,12 @@ namespace TaskEngine.Tasks
                 // TODO: Should also check dates too
                 _logger.LogInformation($"Finding incomplete VTTs, Transcriptions and Downloads from before {tooRecentCutoff}, minutesCutOff=({minutesCutOff})");
 
+
+                // Todo Could also check for secondary video too
+                todoProcessVideos = await context.Videos.AsNoTracking().Where(
+                   v=>(v.Duration == null && ! String.IsNullOrEmpty(v.Video1Id))
+                   ).OrderByDescending(t => t.CreatedAt).Select(e => e.Id).ToListAsync();
+
                 todoVTTs = await context.Transcriptions.AsNoTracking().Where(
                     t => t.Captions.Count > 0 && t.File == null && t.CreatedAt < tooRecentCutoff
                     ).OrderByDescending(t => t.CreatedAt).Select(e => e.Id).ToListAsync();
@@ -185,7 +193,11 @@ namespace TaskEngine.Tasks
             // However some of these may already be in progress
             // So don't queue theses
 
-            _logger.LogInformation($"Found {todoVTTs.Count},{todoTranscriptions.Count},{todoDownloads.Count} counts before filtering");
+            _logger.LogInformation($"Found {todoProcessVideos.Count},{todoVTTs.Count},{todoTranscriptions.Count},{todoDownloads.Count} counts before filtering");
+            ClientActiveTasks currentProcessVideos = _processVideoTask.GetCurrentTasks();
+            todoProcessVideos.RemoveAll(e => currentProcessVideos.Contains(e));
+
+
             ClientActiveTasks currentVTTs = _generateVTTFileTask.GetCurrentTasks();
             todoVTTs.RemoveAll(e => currentVTTs.Contains(e));
 
@@ -195,11 +207,15 @@ namespace TaskEngine.Tasks
             ClientActiveTasks currentDownloads = _transcriptionTask.GetCurrentTasks();
             todoDownloads.RemoveAll(e => currentDownloads.Contains(e));
 
-            _logger.LogInformation($"Current In progress  {currentVTTs.Count},{currentTranscription.Count},{currentDownloads.Count} counts after filtering");
-            _logger.LogInformation($"Found {todoVTTs.Count},{todoTranscriptions.Count},{todoDownloads.Count} counts after filtering");
+            _logger.LogInformation($"Current In progress  {currentProcessVideos.Count},{currentVTTs.Count},{currentTranscription.Count},{currentDownloads.Count} counts after filtering");
+            _logger.LogInformation($"Found {todoProcessVideos.Count},{todoVTTs.Count},{todoTranscriptions.Count},{todoDownloads.Count} counts after filtering");
 
 
             // Now we have a list of new things we want to do
+            _logger.LogInformation($"Publishing processingVideos ({String.Join(",", todoProcessVideos)})");
+
+            todoProcessVideos.ForEach(t => _processVideoTask.Publish(t));
+
             _logger.LogInformation($"Publishing todoVTTs ({String.Join(",", todoVTTs)})");
 
             todoVTTs.ForEach(t => _generateVTTFileTask.Publish(t));
