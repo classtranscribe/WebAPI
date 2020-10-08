@@ -52,29 +52,36 @@ namespace TaskEngine.Tasks
                 video.UpdateMediaProperties();
                 videoUpdated = true;
             }
+            bool runbrokencode = false;
+            if (runbrokencode)
+            {
+                if (video.Video1 != null)
+                {
+                    if (video.ProcessedVideo1 == null || taskParameters.Force)
+                    {
+                        var file = await _rpcClient.PythonServerClient.ProcessVideoRPCAsync(new CTGrpc.File
+                        {
+                            FilePath = video.Video1.VMPath
+                        });
 
-            if (video.Video1 != null)
-            {
-                if (video.ProcessedVideo1 == null || taskParameters.Force)
-                {
-                    var file = await _rpcClient.PythonServerClient.ProcessVideoRPCAsync(new CTGrpc.File
-                    {
-                        FilePath = video.Video1.VMPath
-                    });
-                    video.ProcessedVideo1 = await FileRecord.GetNewFileRecordAsync(file.FilePath, file.Ext);
-                    videoUpdated = true;
+                        //This does not work
+                        video.ProcessedVideo1 = await FileRecord.GetNewFileRecordAsync(file.FilePath, file.Ext);
+                        videoUpdated = true;
+                    }
                 }
-            }
-            if (video.Video2 != null)
-            {
-                if (video.ProcessedVideo2 == null || taskParameters.Force)
+                if (video.Video2 != null)
                 {
-                    var file = await _rpcClient.PythonServerClient.ProcessVideoRPCAsync(new CTGrpc.File
+                    if (video.ProcessedVideo2 == null || taskParameters.Force)
                     {
-                        FilePath = video.Video2.VMPath
-                    });
-                    video.ProcessedVideo2 = await FileRecord.GetNewFileRecordAsync(file.FilePath, file.Ext);
-                    videoUpdated = true;
+                        var file = await _rpcClient.PythonServerClient.ProcessVideoRPCAsync(new CTGrpc.File
+                        {
+                            FilePath = video.Video2.VMPath
+                        });
+
+                        //This does not work
+                        video.ProcessedVideo2 = await FileRecord.GetNewFileRecordAsync(file.FilePath, file.Ext);
+                        videoUpdated = true;
+                    }
                 }
             }
             if (videoUpdated)
