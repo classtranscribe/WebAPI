@@ -61,14 +61,20 @@ def processVideo(input_filepath):
 
 def getMediaInfo(input_filepath):
     #Exception printing and timing is now handled by caller -see LogWorker
-        # In seconds
-        #https://gist.github.com/nrk/2286511
-        staticargs = "-hide_banner -loglevel fatal -show_error -show_format -show_streams -show_programs -show_chapters -show_private_data -print_format json"
-        jsonresult = subprocess.check_output(
-            ['ffprobe','-i', input_filepath] + staticargs.split(' '),
-            encoding='utf-8'
-        )
-        print(f'{input_filepath}: {jsonresult}')
+    # In seconds
+    #https://gist.github.com/nrk/2286511
+    staticargs = "-hide_banner -loglevel fatal -show_error -show_format -show_streams -show_programs -show_chapters -show_private_data -print_format json"
+    jsonresult = subprocess.check_output(
+        ['ffprobe','-i', input_filepath] + staticargs.split(' '),
+        encoding='utf-8'
+    )
+    print(f'{input_filepath}: {jsonresult}')
+    # Check if is a valid json object
+    try:
+        json.loads(jsonresult)
+    except json.JSONDecodeError:
+        jsonresult = '{}'
 
-        return json.dumps(jsonresult)
+    return jsonresult
 
+# example  r = ffmpeg.getMediaInfo('/data/5ff44cac-fbfe-4745-bcae-9dbb181cf0f2.mp4') 
