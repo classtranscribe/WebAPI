@@ -32,4 +32,4 @@ jobs:
 
       - name: Run unit tests
         run: |
-        dotnet test UnitTests --configuration Release -v n
+          dotnet test UnitTests --configuration Release -v n
