@@ -118,7 +118,7 @@ namespace ClassTranscribeServer.Controllers
                 return NotFound();
             }
 
-            return ePub;
+            return null;//ePub;
         }
 
         // GET: api/EPubs/BySource/{sourceType}/{sourceId}
