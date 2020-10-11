@@ -28,7 +28,8 @@ namespace ClassTranscribeDatabase
             UpdateBoxToken = 12,
             CreateBoxToken = 13,
             UpdateOffering = 14,
-            ReTranscribePlaylist = 15
+            ReTranscribePlaylist = 15,
+            DatabaseMigration = 16
         }
 
         public class Languages
