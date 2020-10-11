@@ -32,25 +32,17 @@ namespace UnitTests.ControllerTests
             };
 
             var postResult = await _controller.PostEPub(ePub);
-            var createdResult = postResult.Result as CreatedAtActionResult;
-
-            Assert.NotNull(createdResult);
+            Assert.IsType<CreatedAtActionResult>(postResult.Result);
 
             var getResult = await _controller.GetEPub(ePub.Id);
-
-            Assert.NotNull(getResult.Value);
             Assert.Equal(ePub, getResult.Value);
 
             ePub.Title = "new title";
 
             var putResult = await _controller.PutEPub(ePub.Id, ePub);
-            var noContentResult = putResult as NoContentResult;
-
-            Assert.NotNull(noContentResult);
+            Assert.IsType<NoContentResult>(putResult);
 
             getResult = await _controller.GetEPub(ePub.Id);
-
-            Assert.NotNull(getResult.Value);
             Assert.Equal(ePub, getResult.Value);
         }
 
@@ -69,17 +61,12 @@ namespace UnitTests.ControllerTests
             };
 
             var postResult = await _controller.PostEPub(ePub);
-            var createdResult = postResult.Result as CreatedAtActionResult;
-
-            Assert.NotNull(createdResult);
+            Assert.IsType<CreatedAtActionResult>(postResult.Result);
 
             var deleteResult = await _controller.DeleteEPub(ePub.Id);
-
-            Assert.NotNull(deleteResult.Value);
             Assert.Equal(ePub, deleteResult.Value);
 
             var getResult = await _controller.GetEPub(ePub.Id);
-
             Assert.Equal(Status.Deleted, getResult.Value.IsDeletedStatus);
         }
 
@@ -122,9 +109,7 @@ namespace UnitTests.ControllerTests
             foreach (var ePub in ePubs)
             {
                 var postResult = await _controller.PostEPub(ePub);
-                var createdResult = postResult.Result as CreatedAtActionResult;
-
-                Assert.NotNull(createdResult);
+                Assert.IsType<CreatedAtActionResult>(postResult.Result);
             }
 
             var getResult = await _controller.GetEPubsBySource(ResourceType.Media.ToString(), ePubs[0].SourceId);
@@ -145,26 +130,20 @@ namespace UnitTests.ControllerTests
             };
 
             var postResult = await _controller.PostEPub(ePub);
-            var badRequestResult = postResult.Result as BadRequestObjectResult;
-
-            Assert.NotNull(badRequestResult);
+            Assert.IsType<BadRequestObjectResult>(postResult.Result);
 
             ePub.Filename = "filename_example";
             ePub.Author = "author_example";
 
             postResult = await _controller.PostEPub(ePub);
-            badRequestResult = postResult.Result as BadRequestObjectResult;
-
-            Assert.NotNull(badRequestResult);
+            Assert.IsType<BadRequestObjectResult>(postResult.Result);
 
             ePub.Publisher = "publisher_example";
             ePub.SourceId = "mediaId_example";
             ePub.SourceType = ResourceType.Media;
 
             postResult = await _controller.PostEPub(ePub);
-            var createdResult = postResult.Result as CreatedAtActionResult;
-
-            Assert.NotNull(createdResult);
+            Assert.IsType<CreatedAtActionResult>(postResult.Result);
         }
 
         [Fact]
@@ -182,17 +161,13 @@ namespace UnitTests.ControllerTests
             };
 
             var postResult = await _controller.PostEPub(ePub);
-            var createdResult = postResult.Result as CreatedAtActionResult;
-
-            Assert.NotNull(createdResult);
+            Assert.IsType<CreatedAtActionResult>(postResult.Result);
 
             ePub.Title = string.Empty;
             ePub.Filename = string.Empty;
 
             var putResult = await _controller.PutEPub(ePub.Id, ePub);
-            var badRequestResult = putResult as BadRequestObjectResult;
-
-            Assert.NotNull(badRequestResult);
+            Assert.IsType<BadRequestObjectResult>(putResult);
 
             ePub.Title = "example0";
             ePub.Filename = "filename_example";
@@ -200,17 +175,101 @@ namespace UnitTests.ControllerTests
             ePub.Publisher = string.Empty;
 
             putResult = await _controller.PutEPub(ePub.Id, ePub);
-            badRequestResult = putResult as BadRequestObjectResult;
-
-            Assert.NotNull(badRequestResult);
+            Assert.IsType<BadRequestObjectResult>(putResult);
 
             ePub.Author = "author_example";
             ePub.Publisher = "publisher_example";
 
             putResult = await _controller.PutEPub(ePub.Id, ePub);
-            var noContentResult = putResult as NoContentResult;
+            Assert.IsType<NoContentResult>(putResult);
+        }
 
-            Assert.NotNull(noContentResult);
+        [Fact]
+        public async Task Put_EPub_Not_Found()
+        {
+            var ePub = new EPub
+            {
+                Id = "not_existing",
+                Title = "example0",
+                Language = "en-US",
+                Filename = "filename_example",
+                Author = "author_example",
+                Publisher = "publisher_example",
+                SourceId = "mediaId_example",
+                SourceType = ResourceType.Media
+            };
+
+            var putResult = await _controller.PutEPub(ePub.Id, ePub);
+            Assert.IsType<NotFoundResult>(putResult);
+        }
+
+        [Fact]
+        public async Task Put_EPub_Bad_Request()
+        {
+            var ePub = new EPub
+            {
+                Id = "not_existing",
+                Title = "example0",
+                Language = "en-US",
+                Filename = "filename_example",
+                Author = "author_example",
+                Publisher = "publisher_example",
+                SourceId = "mediaId_example",
+                SourceType = ResourceType.Media
+            };
+
+            var putResult = await _controller.PutEPub("not_matching_id", ePub);
+            Assert.IsType<BadRequestResult>(putResult);
+
+            putResult = await _controller.PutEPub(null, null);
+            Assert.IsType<BadRequestResult>(putResult);
+        }
+
+        [Fact]
+        public async Task Delete_EPub_Not_Found()
+        {
+            var deleteResult = await _controller.DeleteEPub("not_existing");
+            Assert.IsType<NotFoundResult>(deleteResult.Result);
+
+            deleteResult = await _controller.DeleteEPub(null);
+            Assert.IsType<NotFoundResult>(deleteResult.Result);
+        }
+
+        [Fact]
+        public async Task Get_EPub_Not_Found()
+        {
+            var getResult = await _controller.GetEPub("not_existing");
+            Assert.IsType<NotFoundResult>(getResult.Result);
+
+            getResult = await _controller.GetEPub(null);
+            Assert.IsType<NotFoundResult>(getResult.Result);
+        }
+
+        [Fact]
+        public async Task Get_EPubs_By_Source_Not_Found()
+        {
+            var getResult = await _controller.GetEPubsBySource("Media", "not_existing");
+            Assert.IsType<NotFoundResult>(getResult.Result);
+
+            getResult = await _controller.GetEPubsBySource("Media", null);
+            Assert.IsType<NotFoundResult>(getResult.Result);
+        }
+
+        [Fact]
+        public async Task Get_EPubs_By_Invalid_Source()
+        {
+            var getResult = await _controller.GetEPubsBySource("invalid_source", "id");
+            Assert.IsType<BadRequestObjectResult>(getResult.Result);
+
+            getResult = await _controller.GetEPubsBySource(null, null);
+            Assert.IsType<BadRequestObjectResult>(getResult.Result);
+        }
+
+        [Fact]
+        public async Task Post_Null_EPub()
+        {
+            var postResult = await _controller.PostEPub(null);
+            Assert.IsType<BadRequestResult>(postResult.Result);
         }
     }
 }
