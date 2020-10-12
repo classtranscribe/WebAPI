@@ -20,7 +20,14 @@ namespace ClassTranscribeServer.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Department>>> GetDepartments()
         {
-            return await _context.Departments.ToListAsync();
+            var departments = await _context.Departments.ToListAsync();
+
+            if (departments.Count == 0)
+            {
+                return NotFound();
+            }
+
+            return departments;
         }
 
         /// <summary>
@@ -29,7 +36,14 @@ namespace ClassTranscribeServer.Controllers
         [HttpGet("ByUniversity/{universityId}")]
         public async Task<ActionResult<IEnumerable<Department>>> GetDepartments(string universityId)
         {
-            return await _context.Departments.Where(d => d.UniversityId == universityId).OrderBy(d => d.Acronym).ToListAsync();
+            var departments = await _context.Departments.Where(d => d.UniversityId == universityId).OrderBy(d => d.Acronym).ToListAsync();
+
+            if (departments.Count == 0)
+            {
+                return NotFound();
+            }
+
+            return departments;
         }
 
         // GET: api/Departments/5
@@ -51,7 +65,7 @@ namespace ClassTranscribeServer.Controllers
         [Authorize(Roles = Globals.ROLE_ADMIN)]
         public async Task<IActionResult> PutDepartment(string id, Department department)
         {
-            if (id != department.Id)
+            if (department == null || id != department.Id)
             {
                 return BadRequest();
             }
@@ -82,6 +96,20 @@ namespace ClassTranscribeServer.Controllers
         [Authorize(Roles = Globals.ROLE_ADMIN)]
         public async Task<ActionResult<Department>> PostDepartment(Department department)
         {
+            if (department == null)
+            {
+                return BadRequest();
+            }
+
+            var existingDepartment = await _context.Departments
+                .Where(d => d.Name == department.Name && d.UniversityId == department.UniversityId)
+                .FirstOrDefaultAsync();
+
+            if (existingDepartment != null)
+            {
+                return CreatedAtAction("GetDepartment", new { id = existingDepartment.Id }, existingDepartment);
+            }
+
             _context.Departments.Add(department);
             await _context.SaveChangesAsync();
 

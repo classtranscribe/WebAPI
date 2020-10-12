@@ -90,17 +90,19 @@ namespace ClassTranscribeServer.Controllers
                 return BadRequest();
             }
 
-            if (await _context.Courses.AnyAsync(c => c.CourseNumber == course.CourseNumber && c.DepartmentId == course.DepartmentId))
+            var existingCourse = await _context.Courses
+                .Where(c => c.CourseNumber == course.CourseNumber && c.DepartmentId == course.DepartmentId)
+                .FirstOrDefaultAsync();
+
+            if (existingCourse != null)
             {
-                var existing_course = await _context.Courses.Where(c => c.CourseNumber == course.CourseNumber && c.DepartmentId == course.DepartmentId).FirstAsync();
-                return CreatedAtAction("GetCourse", new { id = existing_course.Id }, existing_course);
+                return CreatedAtAction("GetCourse", new { id = existingCourse.Id }, existingCourse);
             }
-            else
-            {
-                _context.Courses.Add(course);
-                await _context.SaveChangesAsync();
-                return CreatedAtAction("GetCourse", new { id = course.Id }, course);
-            }
+
+            _context.Courses.Add(course);
+            await _context.SaveChangesAsync();
+
+            return CreatedAtAction("GetCourse", new { id = course.Id }, course);
         }
 
         // DELETE: api/Courses/5
