@@ -22,7 +22,14 @@ namespace ClassTranscribeServer.Controllers
         [HttpGet("ByDepartment/{departmentId}")]
         public async Task<ActionResult<IEnumerable<Course>>> GetCourses(string departmentId)
         {
-            return await _context.Courses.Where(c => c.DepartmentId == departmentId).OrderBy(c => c.CourseNumber).ToListAsync();
+            var courses = await _context.Courses.Where(c => c.DepartmentId == departmentId).OrderBy(c => c.CourseNumber).ToListAsync();
+
+            if (courses.Count == 0)
+            {
+                return NotFound();
+            }
+
+            return courses;
         }
 
         // GET: api/Courses/5
@@ -47,7 +54,7 @@ namespace ClassTranscribeServer.Controllers
         [Authorize(Roles = Globals.ROLE_ADMIN)]
         public async Task<IActionResult> PutCourse(string id, Course course)
         {
-            if (id != course.Id)
+            if (course == null || id != course.Id)
             {
                 return BadRequest();
             }
@@ -78,6 +85,11 @@ namespace ClassTranscribeServer.Controllers
         [Authorize(Roles = Globals.ROLE_ADMIN)]
         public async Task<ActionResult<Course>> PostCourse(Course course)
         {
+            if (course == null)
+            {
+                return BadRequest();
+            }
+
             if (await _context.Courses.AnyAsync(c => c.CourseNumber == course.CourseNumber && c.DepartmentId == course.DepartmentId))
             {
                 var existing_course = await _context.Courses.Where(c => c.CourseNumber == course.CourseNumber && c.DepartmentId == course.DepartmentId).FirstAsync();
