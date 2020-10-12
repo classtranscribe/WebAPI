@@ -12,7 +12,7 @@ namespace UnitTests.ControllerTests
     {
         CoursesController _controller;
 
-        public CoursesControllerTest() : base()
+        public CoursesControllerTest(GlobalFixture fixture) : base(fixture)
         {
             _controller = new CoursesController(_context, null);
         }

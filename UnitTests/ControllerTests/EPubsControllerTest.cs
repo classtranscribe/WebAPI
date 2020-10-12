@@ -12,7 +12,7 @@ namespace UnitTests.ControllerTests
     {
         EPubsController _controller;
 
-        public EPubsControllerTest() : base()
+        public EPubsControllerTest(GlobalFixture fixture) : base(fixture)
         {
             _controller = new EPubsController(null, _context, null, null);
         }
