@@ -22,14 +22,7 @@ namespace ClassTranscribeServer.Controllers
         [HttpGet("ByDepartment/{departmentId}")]
         public async Task<ActionResult<IEnumerable<Course>>> GetCourses(string departmentId)
         {
-            var courses = await _context.Courses.Where(c => c.DepartmentId == departmentId).OrderBy(c => c.CourseNumber).ToListAsync();
-
-            if (courses.Count == 0)
-            {
-                return NotFound();
-            }
-
-            return courses;
+            return await _context.Courses.Where(c => c.DepartmentId == departmentId).OrderBy(c => c.CourseNumber).ToListAsync();
         }
 
         // GET: api/Courses/5

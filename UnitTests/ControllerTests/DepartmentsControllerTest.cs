@@ -226,20 +226,20 @@ namespace UnitTests.ControllerTests
         }
 
         [Fact]
-        public async Task Get_Departments_By_University_Not_Found()
+        public async Task Get_Departments_By_University_Empty()
         {
             var getResult = await _controller.GetDepartments("not_existing");
-            Assert.IsType<NotFoundResult>(getResult.Result);
+            Assert.Empty(getResult.Value.ToList());
 
             getResult = await _controller.GetDepartments(null);
-            Assert.IsType<NotFoundResult>(getResult.Result);
+            Assert.Empty(getResult.Value.ToList());
         }
 
         [Fact]
-        public async Task Get_All_Departments_Not_Found()
+        public async Task Get_All_Departments_Empty()
         {
             var getResult = await _controller.GetDepartments();
-            Assert.IsType<NotFoundResult>(getResult.Result);
+            Assert.Empty(getResult.Value.ToList());
         }
 
         [Fact]

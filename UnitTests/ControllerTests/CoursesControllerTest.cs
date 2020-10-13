@@ -179,13 +179,13 @@ namespace UnitTests.ControllerTests
         }
 
         [Fact]
-        public async Task Get_Courses_By_Department_Not_Found()
+        public async Task Get_Courses_By_Department_Empty()
         {
             var getResult = await _controller.GetCourses("not_existing");
-            Assert.IsType<NotFoundResult>(getResult.Result);
+            Assert.Empty(getResult.Value.ToList());
 
             getResult = await _controller.GetCourses(null);
-            Assert.IsType<NotFoundResult>(getResult.Result);
+            Assert.Empty(getResult.Value.ToList());
         }
 
         [Fact]

@@ -20,14 +20,7 @@ namespace ClassTranscribeServer.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Department>>> GetDepartments()
         {
-            var departments = await _context.Departments.ToListAsync();
-
-            if (departments.Count == 0)
-            {
-                return NotFound();
-            }
-
-            return departments;
+            return await _context.Departments.ToListAsync();
         }
 
         /// <summary>
@@ -36,14 +29,7 @@ namespace ClassTranscribeServer.Controllers
         [HttpGet("ByUniversity/{universityId}")]
         public async Task<ActionResult<IEnumerable<Department>>> GetDepartments(string universityId)
         {
-            var departments = await _context.Departments.Where(d => d.UniversityId == universityId).OrderBy(d => d.Acronym).ToListAsync();
-
-            if (departments.Count == 0)
-            {
-                return NotFound();
-            }
-
-            return departments;
+            return await _context.Departments.Where(d => d.UniversityId == universityId).OrderBy(d => d.Acronym).ToListAsync();
         }
 
         // GET: api/Departments/5

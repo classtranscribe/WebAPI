@@ -112,6 +112,15 @@ namespace UnitTests.ControllerTests
                 postResult = await _controller.PostImage(imageFile, "Media", null);
                 Assert.IsType<BadRequestObjectResult>(postResult.Result);
             }
+
+            using (var stream = File.OpenRead("Assets/test.txt"))
+            {
+                // Set file length to be 0
+                var textFile = new FormFile(stream, 0, stream.Length, null, Path.GetFileName(stream.Name));
+
+                postResult = await _controller.PostImage(textFile, "Media", "id");
+                Assert.IsType<BadRequestObjectResult>(postResult.Result);
+            }
         }
 
         [Fact]
