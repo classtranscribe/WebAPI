@@ -77,6 +77,7 @@ namespace ClassTranscribeServer.Controllers
 
             try
             {
+                Console.WriteLine("parsing enum");
                 ResourceType type = (ResourceType)Enum.Parse(typeof(ResourceType), sourceType);
 
                 Image image = new Image
@@ -85,27 +86,35 @@ namespace ClassTranscribeServer.Controllers
                     SourceId = sourceId
                 };
 
+                Console.WriteLine("checking file ext");
                 // full path to file in temp location
                 if (Path.GetExtension(imageFile.FileName) != ".png" && Path.GetExtension(imageFile.FileName) != ".jpg")
                 {
                     return BadRequest("File format not permitted, only .png and .jpg files are accepted");
                 }
 
+                Console.WriteLine("getting temp file");
                 var filePath = CommonUtils.GetTmpFile();
+
+                Console.WriteLine("setting up stream");
                 using (var stream = new FileStream(filePath, FileMode.Create))
                 {
+                    Console.WriteLine("copying stream");
                     await imageFile.CopyToAsync(stream);
                 }
 
+                Console.WriteLine("getting new file record");
                 image.ImageFile = await FileRecord.GetNewFileRecordAsync(filePath, Path.GetExtension(filePath));
 
+                Console.WriteLine("adding image");
                 _context.Images.Add(image);
                 await _context.SaveChangesAsync();
 
                 return CreatedAtAction("GetImage", new { id = image.Id }, image);
             }
-            catch (ArgumentException)
+            catch (Exception e)
             {
+                Console.WriteLine($"error message: {e.Message}");
                 return BadRequest($"{sourceType} is not a valid resource type");
             }
         }

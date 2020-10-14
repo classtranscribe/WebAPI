@@ -59,6 +59,7 @@ namespace UnitTests.ControllerTests
         {
             using (var stream = File.OpenRead("Assets/test.png"))
             {
+                Console.WriteLine(stream.Length);
                 var imageFile = new FormFile(stream, 0, stream.Length, null, Path.GetFileName(stream.Name));
 
                 var imageInfos = new List<(ResourceType sourceType, string sourceId)>
@@ -75,6 +76,9 @@ namespace UnitTests.ControllerTests
                         imageInfo.sourceType.ToString(),
                         imageInfo.sourceId
                     );
+
+                    var bad = postResult.Result as BadRequestObjectResult;
+                    Console.WriteLine(bad.Value);
 
                     Assert.IsType<CreatedAtActionResult>(postResult.Result);
                 }
