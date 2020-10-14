@@ -1,15 +1,18 @@
 ﻿using ClassTranscribeDatabase;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Moq;
+using System;
+using System.IO;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Xunit;
 
 namespace UnitTests
 {
-    public class GlobalFixture
+    public class GlobalFixture : IDisposable
     {
         public readonly ServiceProvider _serviceProvider;
         public readonly IAuthorizationService _authorizationService;
@@ -20,10 +23,14 @@ namespace UnitTests
         {
             _serviceProvider = new ServiceCollection()
                 .AddEntityFrameworkInMemoryDatabase()
-                .Configure<AppSettings>(CTDbContext.GetConfigurations())
+                // Use empty configuration for AppSettings because we do not want
+                // dependencies on any environment variables or vs_appsettings.json
+                .Configure<AppSettings>(new ConfigurationBuilder().Build())
                 .BuildServiceProvider();
 
             Globals.appSettings = _serviceProvider.GetService<IOptions<AppSettings>>().Value;
+            Globals.appSettings.DATA_DIRECTORY = "test_data/data/";
+            Directory.CreateDirectory(Globals.appSettings.DATA_DIRECTORY);
 
             var mockAuth = new Mock<IAuthorizationService>();
 
@@ -36,6 +43,11 @@ namespace UnitTests
                 .Returns(Task.FromResult(AuthorizationResult.Success()));
 
             _authorizationService = mockAuth.Object;
+        }
+
+        public void Dispose()
+        {
+            Directory.Delete(Globals.appSettings.DATA_DIRECTORY, true);
         }
     }
 
