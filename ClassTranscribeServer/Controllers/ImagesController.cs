@@ -70,6 +70,11 @@ namespace ClassTranscribeServer.Controllers
                 return BadRequest("Image file is compulsory");
             }
 
+            if (sourceType == null || sourceId == null)
+            {
+                return BadRequest("Must include valid sourceType and sourceId");
+            }
+
             try
             {
                 ResourceType type = (ResourceType)Enum.Parse(typeof(ResourceType), sourceType);

@@ -1,37 +1,27 @@
 ﻿using ClassTranscribeDatabase;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 using System;
+using Xunit;
 
 namespace UnitTests.ControllerTests
 {
-    public class BaseControllerTest : IDisposable
+    [Collection("Global")]
+    public class BaseControllerTest
     {
-        public CTDbContext _context;
+        protected readonly CTDbContext _context;
+        protected readonly IAuthorizationService _authorizationService;
 
         // This constructor is run before every test, ensuring a new context and in-memory DB for each test case
         // https://xunit.net/docs/shared-context
-        public BaseControllerTest()
+        public BaseControllerTest(GlobalFixture fixture)
         {
-            // Create a fresh service provider, and therefore a fresh InMemory database instance
-            var serviceProvider = new ServiceCollection()
-                .AddEntityFrameworkInMemoryDatabase()
-                .BuildServiceProvider();
-
-            // Set up CTDbContext with an in-memory database
             var optionsBuilder = new DbContextOptionsBuilder<CTDbContext>()
                 .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
-                .UseInternalServiceProvider(serviceProvider);
+                .UseInternalServiceProvider(fixture._serviceProvider);
 
             _context = new CTDbContext(optionsBuilder.Options, null);
-            _context.Database.EnsureDeleted();
-            _context.Database.EnsureCreated();
-        }
-
-        public void Dispose()
-        {
-            _context.Database.EnsureDeleted();
-            _context.Dispose();
+            _authorizationService = fixture._authorizationService;
         }
     }
 }

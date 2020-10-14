@@ -12,7 +12,7 @@ namespace UnitTests.ControllerTests
     {
         CoursesController _controller;
 
-        public CoursesControllerTest() : base()
+        public CoursesControllerTest(GlobalFixture fixture) : base(fixture)
         {
             _controller = new CoursesController(_context, null);
         }
@@ -27,25 +27,17 @@ namespace UnitTests.ControllerTests
             };
 
             var postResult = await _controller.PostCourse(course);
-            var createdResult = postResult.Result as CreatedAtActionResult;
-
-            Assert.NotNull(createdResult);
+            Assert.IsType<CreatedAtActionResult>(postResult.Result);
 
             var getResult = await _controller.GetCourse(course.Id);
-
-            Assert.NotNull(getResult.Value);
             Assert.Equal(course, getResult.Value);
 
             course.CourseNumber = "new title";
 
             var putResult = await _controller.PutCourse(course.Id, course);
-            var noContentResult = putResult as NoContentResult;
-
-            Assert.NotNull(noContentResult);
+            Assert.IsType<NoContentResult>(putResult);
 
             getResult = await _controller.GetCourse(course.Id);
-
-            Assert.NotNull(getResult.Value);
             Assert.Equal(course, getResult.Value);
         }
 
@@ -59,17 +51,12 @@ namespace UnitTests.ControllerTests
             };
 
             var postResult = await _controller.PostCourse(course);
-            var createdResult = postResult.Result as CreatedAtActionResult;
-
-            Assert.NotNull(createdResult);
+            Assert.IsType<CreatedAtActionResult>(postResult.Result);
 
             var deleteResult = await _controller.DeleteCourse(course.Id);
-
-            Assert.NotNull(deleteResult.Value);
             Assert.Equal(course, deleteResult.Value);
 
             var getResult = await _controller.GetCourse(course.Id);
-
             Assert.Equal(Status.Deleted, getResult.Value.IsDeletedStatus);
         }
 
@@ -97,9 +84,7 @@ namespace UnitTests.ControllerTests
             foreach (var course in courses)
             {
                 var postResult = await _controller.PostCourse(course);
-                var createdResult = postResult.Result as CreatedAtActionResult;
-
-                Assert.NotNull(createdResult);
+                Assert.IsType<CreatedAtActionResult>(postResult.Result);
             }
 
             var getResult = await _controller.GetCourses(courses[0].DepartmentId);
@@ -120,9 +105,7 @@ namespace UnitTests.ControllerTests
             };
 
             var postResult = await _controller.PostCourse(course);
-            var createdResult = postResult.Result as CreatedAtActionResult;
-
-            Assert.NotNull(createdResult);
+            Assert.IsType<CreatedAtActionResult>(postResult.Result);
 
             var existingCourse = new Course
             {
@@ -131,10 +114,10 @@ namespace UnitTests.ControllerTests
             };
 
             postResult = await _controller.PostCourse(existingCourse);
-            createdResult = postResult.Result as CreatedAtActionResult;
-            var createdExistingCourse = createdResult.Value as Course;
+            Assert.IsType<CreatedAtActionResult>(postResult.Result);
 
-            Assert.NotNull(createdResult);
+            var createdResult = postResult.Result as CreatedAtActionResult;
+            var createdExistingCourse = createdResult.Value as Course;
             Assert.Equal(course.Id, createdExistingCourse.Id);
 
             var getResult = await _controller.GetCourses(course.DepartmentId);
@@ -142,6 +125,74 @@ namespace UnitTests.ControllerTests
 
             Assert.Single(coursesByDepartment);
             Assert.Equal(course, coursesByDepartment[0]);
+        }
+
+        [Fact]
+        public async Task Put_Course_Not_Found()
+        {
+            var course = new Course
+            {
+                Id = "not_existing",
+                CourseNumber = "241",
+                DepartmentId = "0000"
+            };
+
+            var putResult = await _controller.PutCourse(course.Id, course);
+            Assert.IsType<NotFoundResult>(putResult);
+        }
+
+        [Fact]
+        public async Task Put_Course_Bad_Request()
+        {
+            var course = new Course
+            {
+                Id = "not_existing",
+                CourseNumber = "241",
+                DepartmentId = "0000"
+            };
+
+            var putResult = await _controller.PutCourse("wrong_id", course);
+            Assert.IsType<BadRequestResult>(putResult);
+
+            putResult = await _controller.PutCourse(null, null);
+            Assert.IsType<BadRequestResult>(putResult);
+        }
+
+        [Fact]
+        public async Task Delete_Course_Not_Found()
+        {
+            var deleteResult = await _controller.DeleteCourse("not_existing");
+            Assert.IsType<NotFoundResult>(deleteResult.Result);
+
+            deleteResult = await _controller.DeleteCourse(null);
+            Assert.IsType<NotFoundResult>(deleteResult.Result);
+        }
+
+        [Fact]
+        public async Task Get_Course_Not_Found()
+        {
+            var getResult = await _controller.GetCourse("not_existing");
+            Assert.IsType<NotFoundResult>(getResult.Result);
+
+            getResult = await _controller.GetCourse(null);
+            Assert.IsType<NotFoundResult>(getResult.Result);
+        }
+
+        [Fact]
+        public async Task Get_Courses_By_Department_Empty()
+        {
+            var getResult = await _controller.GetCourses("not_existing");
+            Assert.Empty(getResult.Value.ToList());
+
+            getResult = await _controller.GetCourses(null);
+            Assert.Empty(getResult.Value.ToList());
+        }
+
+        [Fact]
+        public async Task Post_Null_Course()
+        {
+            var postResult = await _controller.PostCourse(null);
+            Assert.IsType<BadRequestResult>(postResult.Result);
         }
     }
 }
