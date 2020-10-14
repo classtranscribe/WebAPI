@@ -4,6 +4,7 @@ using ClassTranscribeServer.Controllers;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
+using System;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -25,9 +26,14 @@ namespace UnitTests.ControllerTests
         {
             using (var stream = File.OpenRead("Assets/test.png"))
             {
+                Console.WriteLine(stream.Length);
                 var imageFile = new FormFile(stream, 0, stream.Length, null, Path.GetFileName(stream.Name));
 
                 var postResult = await _controller.PostImage(imageFile, "Media", "example_id");
+
+                var bad = postResult.Result as BadRequestObjectResult;
+                Console.WriteLine(bad.Value);
+
                 Assert.IsType<CreatedAtActionResult>(postResult.Result);
 
                 var createdResult = postResult.Result as CreatedAtActionResult;
