@@ -118,7 +118,3 @@ def find_scenes(video_path, min_scene_length=1, abs_min=0.75, abs_max=0.98, find
     except Exception as e:
         print("findScene() throwing Exception:" + str(e))
         raise e
-
-if __name__ == "__main__":
-    scenes = find_scenes("business-4.mp4")
-    print(scenes)
