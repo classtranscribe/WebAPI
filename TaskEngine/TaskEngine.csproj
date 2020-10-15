@@ -35,7 +35,7 @@
     <ProjectReference Include="..\CTCommons\CTCommons.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
+  <ItemGroup Condition="Exists('..\vs_appsettings.json')">
     <Content Update="..\vs_appsettings.json" Link="vs_appsettings.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>

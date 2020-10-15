@@ -111,11 +111,18 @@ namespace ClassTranscribeDatabase
         public static IConfiguration GetConfigurations()
         {
             var configuration = new ConfigurationBuilder().AddEnvironmentVariables().Build();
+
             if (configuration.GetValue<string>("DEV_ENV", "NULL") != "DOCKER")
             {
                 string path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-                configuration = new ConfigurationBuilder().SetBasePath(path).AddJsonFile("vs_appsettings.json").Build();
+                string appSettingsFileName = "vs_appsettings.json";
+
+                if (File.Exists(path + Path.DirectorySeparatorChar + appSettingsFileName))
+                {
+                    return new ConfigurationBuilder().SetBasePath(path).AddJsonFile(appSettingsFileName).Build();
+                }
             }
+
             return configuration;
         }
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)

@@ -27,7 +27,6 @@ jobs:
 
       - name: Compile application
         run: |
-          echo '{ }' > vs_appsettings.json
           dotnet build ClassTranscribeServer.sln --configuration Release
 
       - name: Run unit tests
