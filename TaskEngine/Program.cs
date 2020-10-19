@@ -60,7 +60,7 @@ namespace TaskEngine
                 .AddSingleton<SceneDetectionTask>()
                 .AddSingleton<UpdateBoxTokenTask>()
                 .AddSingleton<CreateBoxTokenTask>()
-                .AddSingleton<DatabaseMigrationTask>()
+                .AddSingleton<BuildElasticIndexTask>()
                 .AddSingleton<BoxAPI>()
                 .AddScoped<Seeder>()
                 .AddScoped<SlackLogger>()
@@ -127,6 +127,10 @@ namespace TaskEngine
             serviceProvider.GetService<QueueAwakerTask>().Consume(NO_CONCURRENCY); //TODO TOREVIEW: NO_CONCURRENCY?
             serviceProvider.GetService<UpdateBoxTokenTask>().Consume(NO_CONCURRENCY);
             serviceProvider.GetService<CreateBoxTokenTask>().Consume(NO_CONCURRENCY);
+
+            // Elastic Search index should be built after TranscriptionTask
+            serviceProvider.GetService<BuildElasticIndexTask>().Consume(NO_CONCURRENCY);
+
             _logger.LogInformation("Done creating task consumers");
             //nolonger used :
             // nope serviceProvider.GetService<nope ConvertVideoToWavTask>().Consume(concurrent_videotasks);
