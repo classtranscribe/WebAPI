@@ -60,6 +60,7 @@ namespace TaskEngine
                 .AddSingleton<SceneDetectionTask>()
                 .AddSingleton<UpdateBoxTokenTask>()
                 .AddSingleton<CreateBoxTokenTask>()
+                .AddSingleton<DatabaseMigrationTask>()
                 .AddSingleton<BoxAPI>()
                 .AddScoped<Seeder>()
                 .AddScoped<SlackLogger>()

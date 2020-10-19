@@ -70,6 +70,9 @@ namespace TaskEngine.Tasks
                                 new AliasAddAction {Add = new AliasAddOperation {Index = index_string_unique, Alias = index_string_alias}}
                             }
                         });
+                    } else
+                    {
+                        var putAliasResponse = await _client.Indices.PutAliasAsync(new PutAliasRequest(index_string_unique, index_string_alias));
                     }
                 }
             }
