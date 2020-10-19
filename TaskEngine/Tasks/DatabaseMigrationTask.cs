@@ -8,15 +8,28 @@ using static ClassTranscribeDatabase.CommonUtils;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
+using Nest;
+using Elasticsearch.Net;
+using System;
+
 namespace TaskEngine.Tasks
 {
     [SuppressMessage("Microsoft.Performance", "CA1812:MarkMembersAsStatic")] // This class is never directly instantiated
     class DatabaseMigrationTask : RabbitMQTask<string>
     {
+        private readonly ElasticClient _client;
+
         public DatabaseMigrationTask(RabbitMQConnection rabbitMQ,
             ILogger<DatabaseMigrationTask> logger)
             : base(rabbitMQ, TaskType.DatabaseMigration, logger)
         {
+            // initialize elastic client
+            var node = new Uri("http://localhost:9200");
+            using (var settings = new ConnectionSettings(node))
+            {
+                //settings.DefaultIndex("classTranscribe");
+                _client = new ElasticClient(settings);
+            }
         }
         protected async override Task OnConsume(string example, TaskParameters taskParameters, ClientActiveTasks cleanup)
         {
@@ -43,7 +56,7 @@ namespace TaskEngine.Tasks
                 }
             }
 
-            _logger.LogInformation($"Example Task Done.  transcriptionCount={transcriptionCount} captionCount={captionCount}");
+            _logger.LogInformation("DatabaseMigrationTask Done");
         }
     }
 }
