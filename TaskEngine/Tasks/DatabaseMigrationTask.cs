@@ -11,6 +11,7 @@ using System.Linq;
 using Nest;
 using Elasticsearch.Net;
 using System;
+using System.Collections.Generic;
 
 namespace TaskEngine.Tasks
 {
@@ -35,24 +36,41 @@ namespace TaskEngine.Tasks
         {
             registerTask(cleanup, "DatabaseMigrationTask"); // may throw AlreadyInProgress exception
             _logger.LogInformation("DatabaseMigrationTask Starting");
-            int captionCount = 0;
-            int transcriptionCount = 0;
 
             using (var _context = CTDbContext.CreateDbContext())
             {
                 CaptionQueries captionQueries = new CaptionQueries(_context);
 
-                var transcriptions = await _context.Transcriptions.Take(30).ToListAsync();
-
-                foreach (var transcription in transcriptions)
+                var all_transcriptions = await _context.Transcriptions.Where(t => t.Language == Languages.ENGLISH).ToListAsync();
+                foreach (var transcription in all_transcriptions)
                 {
+                    var all_captions = transcription.Captions;
 
-                    var transcriptionId = transcription.Id;
-                    var videoID = transcription.VideoId;
-                    var captions = await captionQueries.GetCaptionsAsync(transcriptionId);
+                    // each index has the unique name "index_string_unique", the current in use one has the alias "index_string_alias"
+                    var index_string_base = transcription.Id + "#" + Languages.ENGLISH;
+                    var index_string_unique = index_string_base + "#" + $"{DateTime.Now:yyyyMMddHHmmss}";
+                    var index_string_alias = index_string_base + "#" + "primary";
 
-                    _logger.LogInformation($"{transcription.Id}: Caption count= {captions.Count}");
-                    transcriptionCount++;
+                    var asyncBulkIndexResponse = await _client.BulkAsync(b => b
+                        .Index(index_string_unique)
+                        .IndexMany(all_captions)
+                    );
+
+                    var alias_exist = await _client.Indices.ExistsAsync(index_string_alias);
+                    if (alias_exist.Exists)
+                    {
+                        var oldIndices = await _client.GetIndicesPointingToAliasAsync(index_string_alias);
+                        var oldIndexName = oldIndices.First().ToString();
+
+                        await _client.Indices.BulkAliasAsync(new BulkAliasRequest
+                        {
+                            Actions = new List<IAliasAction>
+                            {
+                                new AliasRemoveAction {Remove = new AliasRemoveOperation {Index = oldIndexName, Alias = index_string_alias}},
+                                new AliasAddAction {Add = new AliasAddOperation {Index = index_string_unique, Alias = index_string_alias}}
+                            }
+                        });
+                    }
                 }
             }
 
