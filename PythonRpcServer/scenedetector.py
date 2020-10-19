@@ -35,7 +35,6 @@ def find_scenes(video_path, min_scene_length=1, abs_min=0.75, abs_max=0.98, find
     """
     
     try:
-
         file_name = video_path[video_path.rfind('/')+1 : video_path.find('.')]
         directory = os.path.join(DATA_DIR, file_name)
         if not os.path.exists(directory):
