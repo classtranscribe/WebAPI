@@ -16,13 +16,13 @@ using System.Collections.Generic;
 namespace TaskEngine.Tasks
 {
     [SuppressMessage("Microsoft.Performance", "CA1812:MarkMembersAsStatic")] // This class is never directly instantiated
-    class DatabaseMigrationTask : RabbitMQTask<string>
+    class BuildElasticIndexTask : RabbitMQTask<string>
     {
         private readonly ElasticClient _client;
 
-        public DatabaseMigrationTask(RabbitMQConnection rabbitMQ,
-            ILogger<DatabaseMigrationTask> logger)
-            : base(rabbitMQ, TaskType.DatabaseMigration, logger)
+        public BuildElasticIndexTask(RabbitMQConnection rabbitMQ,
+            ILogger<BuildElasticIndexTask> logger)
+            : base(rabbitMQ, TaskType.BuildElasticIndex, logger)
         {
             // initialize elastic client
             var node = new Uri("http://localhost:9200");
@@ -34,8 +34,8 @@ namespace TaskEngine.Tasks
         }
         protected async override Task OnConsume(string example, TaskParameters taskParameters, ClientActiveTasks cleanup)
         {
-            registerTask(cleanup, "DatabaseMigrationTask"); // may throw AlreadyInProgress exception
-            _logger.LogInformation("DatabaseMigrationTask Starting");
+            registerTask(cleanup, "BuildElasticIndexTask"); // may throw AlreadyInProgress exception
+            _logger.LogInformation("BuildElasticIndexTask Starting");
 
             using (var _context = CTDbContext.CreateDbContext())
             {
@@ -77,7 +77,7 @@ namespace TaskEngine.Tasks
                 }
             }
 
-            _logger.LogInformation("DatabaseMigrationTask Done");
+            _logger.LogInformation("BuildElasticIndexTask Done");
         }
     }
 }
