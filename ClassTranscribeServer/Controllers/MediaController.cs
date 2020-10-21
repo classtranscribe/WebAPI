@@ -69,6 +69,7 @@ namespace ClassTranscribeServer.Controllers
                 CreatedAt = media.CreatedAt,
                 JsonMetadata = media.JsonMetadata,
                 SourceType = media.SourceType,
+                Duration = media.Video.Duration,
                 Transcriptions = media.Video.Transcriptions
                 .Select(t => new TranscriptionDTO
                 {
