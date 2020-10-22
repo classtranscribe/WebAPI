@@ -3,6 +3,8 @@ using ClassTranscribeDatabase.Models;
 using ClassTranscribeServer.Controllers;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -17,7 +19,9 @@ namespace UnitTests.ControllerTests
 
         public ImagesControllerTest(GlobalFixture fixture) : base(fixture)
         {
-            _controller = new ImagesController(_context, null);
+            ILogger<ImagesController> logger = fixture._serviceProvider.GetService<ILogger<ImagesController>>();
+
+            _controller = new ImagesController(_context,logger);
         }
 
         [Fact]
@@ -35,8 +39,14 @@ namespace UnitTests.ControllerTests
 
                 var getResult = await _controller.GetImage(createdImage.Id);
                 Assert.Equal(createdImage, getResult.Value);
+                
+               // TODO 
+               // Use Path.Combine - (CrossPlatform + why assume that DATA_DIRECTORY ends with a slash?)
+               // 
+               // The expected string is missing the extension
                 Assert.Equal(
-                    $"{Globals.appSettings.DATA_DIRECTORY}{createdImage.ImageFileId}",
+                    Path.Combine(Globals.appSettings.DATA_DIRECTORY,createdImage.ImageFileId + ".png"),
+
                     getResult.Value.ImageFile.Path
                 );
 

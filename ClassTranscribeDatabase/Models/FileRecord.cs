@@ -15,7 +15,9 @@ namespace ClassTranscribeDatabase.Models
     {
         private FileRecord(string path)
         {
+            // See logic in Path setter below. If /data/ is not present in the path then this little statement throws an ArgumentException
             Path = path;
+
             FileName = System.IO.Path.GetFileName(path);
         }
 
@@ -26,6 +28,7 @@ namespace ClassTranscribeDatabase.Models
         /// <param name="ext">Extension of the file</param>
         public static async Task<FileRecord> GetNewFileRecordAsync(string filepath, string ext)
         {
+            
             // Rename file.
             var tmpFile = new FileRecord(filepath);
             var uuid = System.Guid.NewGuid().ToString();

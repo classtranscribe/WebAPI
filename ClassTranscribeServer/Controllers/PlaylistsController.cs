@@ -407,6 +407,8 @@ namespace ClassTranscribeServer.Controllers
         public List<TranscriptionDTO> Transcriptions { get; set; }
         public string Name { get; set; }
         public int Index { get; set; }
+
+        public TimeSpan? Duration { get; set; }
         public WatchHistory WatchHistory { get; set; }
     }
 

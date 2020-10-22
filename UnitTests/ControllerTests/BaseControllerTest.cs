@@ -1,5 +1,7 @@
 ﻿using ClassTranscribeDatabase;
+using ClassTranscribeDatabase.Models;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System;
 using Xunit;
@@ -11,6 +13,7 @@ namespace UnitTests.ControllerTests
     {
         protected readonly CTDbContext _context;
         protected readonly IAuthorizationService _authorizationService;
+        protected readonly UserManager<ApplicationUser> _userManager;
 
         // This constructor is run before every test, ensuring a new context and in-memory DB for each test case
         // https://xunit.net/docs/shared-context
@@ -22,6 +25,7 @@ namespace UnitTests.ControllerTests
 
             _context = new CTDbContext(optionsBuilder.Options, null);
             _authorizationService = fixture._authorizationService;
+            _userManager = fixture._userManager;
         }
     }
 }
