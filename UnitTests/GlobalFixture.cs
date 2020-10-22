@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
 using RabbitMQ.Client;
@@ -21,9 +22,13 @@ namespace UnitTests
         public readonly ServiceProvider _serviceProvider;
         public readonly IAuthorizationService _authorizationService;
         public readonly UserManager<ApplicationUser> _userManager;
+        public readonly ILogger _logger;
+
+
         // 'data' must be exist (and be last). Otherwise FileRecord Path setter will fail
 
-        public readonly string _testDataDirectory = Path.Combine("test_data","automatically_deleted","data");
+        private static readonly char extraSlash_pleaseMakeMeUnnecessary = Path.DirectorySeparatorChar; // required to make the image tests almost pass, possibly required in the FileREcord Path setter code too
+        private static readonly string _testDataDirectory = Path.Combine("test_data","automatically_deleted","data") + extraSlash_pleaseMakeMeUnnecessary;
         // This constructor is run once for all tests in the "Global" collection (which should be all tests)
         // https://xunit.net/docs/shared-context
         public GlobalFixture()
@@ -39,6 +44,7 @@ namespace UnitTests
                 // Use empty configuration for AppSettings because we do not want
                 // dependencies on any environment variables or vs_appsettings.json
                 .Configure<AppSettings>(new ConfigurationBuilder().Build())
+                .AddLogging(cfg => cfg.AddConsole())
                 .BuildServiceProvider();
 
             Globals.appSettings = _serviceProvider.GetService<IOptions<AppSettings>>().Value;
