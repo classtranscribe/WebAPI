@@ -86,9 +86,12 @@ namespace ClassTranscribeServer.Controllers
                 };
 
                 // full path to file in temp location
-                if (Path.GetExtension(imageFile.FileName) != ".png" && Path.GetExtension(imageFile.FileName) != ".jpg")
+                string extension = Path.GetExtension(imageFile.FileName).ToLower();
+                var allowedExtensions = new string[] { ".png", ".jpg" };
+
+                if (! allowedExtensions.Contains(extension))
                 {
-                    return BadRequest("File format not permitted, only .png and .jpg files are accepted");
+                    return BadRequest($"File format not permitted, only {string.Join(',', allowedExtensions)} files are accepted");
                 }
 
                 var filePath = CommonUtils.GetTmpFile();
@@ -97,15 +100,16 @@ namespace ClassTranscribeServer.Controllers
                     await imageFile.CopyToAsync(stream);
                 }
 
-                image.ImageFile = await FileRecord.GetNewFileRecordAsync(filePath, Path.GetExtension(filePath));
+                image.ImageFile = await FileRecord.GetNewFileRecordAsync(filePath, extension);
 
                 _context.Images.Add(image);
                 await _context.SaveChangesAsync();
 
                 return CreatedAtAction("GetImage", new { id = image.Id }, image);
             }
-            catch (ArgumentException)
+            catch (ArgumentException ex)
             {
+                _logger.LogError(ex, $"PostImage {imageFile.FileName}");
                 return BadRequest($"{sourceType} is not a valid resource type");
             }
         }

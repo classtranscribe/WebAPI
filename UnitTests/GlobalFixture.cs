@@ -21,12 +21,17 @@ namespace UnitTests
         public readonly ServiceProvider _serviceProvider;
         public readonly IAuthorizationService _authorizationService;
         public readonly UserManager<ApplicationUser> _userManager;
-        public readonly string _testDataDirectory = "test_data/automatically_deleted/";
+        // 'data' must be exist (and be last). Otherwise FileRecord Path setter will fail
+
+        public readonly string _testDataDirectory = Path.Combine("test_data","automatically_deleted","data");
         // This constructor is run once for all tests in the "Global" collection (which should be all tests)
         // https://xunit.net/docs/shared-context
         public GlobalFixture()
         {
-           
+            if (Directory.Exists(_testDataDirectory))
+            {
+                Directory.Delete(_testDataDirectory, true);
+            }
             Directory.CreateDirectory(_testDataDirectory);
 
             _serviceProvider = new ServiceCollection()

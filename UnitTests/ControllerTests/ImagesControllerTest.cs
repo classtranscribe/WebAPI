@@ -35,6 +35,11 @@ namespace UnitTests.ControllerTests
 
                 var getResult = await _controller.GetImage(createdImage.Id);
                 Assert.Equal(createdImage, getResult.Value);
+                
+               // TODO 
+               // Use Path.Combine - (CrossPlatform + why assume that DATA_DIRECTORY ends with a slash?)
+               // 
+               // The expected string is missing the extension
                 Assert.Equal(
                     $"{Globals.appSettings.DATA_DIRECTORY}{createdImage.ImageFileId}",
                     getResult.Value.ImageFile.Path
