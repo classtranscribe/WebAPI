@@ -47,9 +47,9 @@ namespace TaskEngine.Tasks
                     var all_captions = transcription.Captions;
 
                     // each index has the unique name "index_string_unique", the current in use one has the alias "index_string_alias"
-                    var index_string_base = transcription.Id + "#" + Languages.ENGLISH;
-                    var index_string_unique = index_string_base + "#" + $"{DateTime.Now:yyyyMMddHHmmss}";
-                    var index_string_alias = index_string_base + "#" + "primary";
+                    var index_string_base = transcription.Id + "_" + Languages.ENGLISH.ToLower();
+                    var index_string_unique = index_string_base + "_" + $"{DateTime.Now:yyyyMMddHHmmss}";
+                    var index_string_alias = index_string_base + "_" + "primary";
 
                     var asyncBulkIndexResponse = await _client.BulkAsync(b => b
                         .Index(index_string_unique)
@@ -62,7 +62,7 @@ namespace TaskEngine.Tasks
                         var oldIndices = await _client.GetIndicesPointingToAliasAsync(index_string_alias);
                         var oldIndexName = oldIndices.First().ToString();
 
-                        await _client.Indices.BulkAliasAsync(new BulkAliasRequest
+                        var indexResponse = await _client.Indices.BulkAliasAsync(new BulkAliasRequest
                         {
                             Actions = new List<IAliasAction>
                             {
