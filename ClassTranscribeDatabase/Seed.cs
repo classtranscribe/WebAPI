@@ -265,6 +265,16 @@ namespace ClassTranscribeDatabase
 
             _context.SaveChanges();
 
+            // The purpose of ClassTranscribe is to provide legal access to copyrighted materials.
+            // The playlist below includes two lectures by UIUC CS Professor Chengxiang Zhai.
+            // He has given permission by email for this content to be used by ClassTranscribe.
+            // "As part of our testing of ClassTranscribe we like to check that we can download and transcribe videos 
+            // from a Youtube channel and playlist. My RA created a Youtube channel with two sample videos using 
+            // two UIUC videos. These videos are by you - they are 
+            // “Lecture 1 - Natural Language Content and Analysis” and 
+            // “Lecture 2- Text Retrieval and Search Engines”
+            // May we have your permission to use these videos for this purpose?" - Prof. Angrave
+            // "Yes, sure!" -  Prof. Chengxiang Zhai.
             Playlist youtubePlaylist = new Playlist
             {
                 Id = "CT_Test_Playlist",
