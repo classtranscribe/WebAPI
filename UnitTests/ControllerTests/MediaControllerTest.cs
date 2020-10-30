@@ -3,7 +3,6 @@ using ClassTranscribeServer.Controllers;
 using System.Threading.Tasks;
 using Xunit;
 using System;
-using ClassTranscribeServer.Utils;
 
 namespace UnitTests.ControllerTests
 {
@@ -13,10 +12,7 @@ namespace UnitTests.ControllerTests
 
         public MediaControllerTest(GlobalFixture fixture) : base(fixture)
         {
-
-
-            var userutils = new UserUtils(_userManager, _context);
-            _controller = new MediaController(_authorizationService, null, _context, userutils, null);
+            _controller = new MediaController(_authorizationService, null, _context, _userUtils, null);
         }
 
         [Fact]

@@ -229,17 +229,17 @@ namespace UnitTests.ControllerTests
         public async Task Get_Departments_By_University_Empty()
         {
             var getResult = await _controller.GetDepartments("not_existing");
-            Assert.Empty(getResult.Value.ToList());
+            Assert.Empty(getResult.Value);
 
             getResult = await _controller.GetDepartments(null);
-            Assert.Empty(getResult.Value.ToList());
+            Assert.Empty(getResult.Value);
         }
 
         [Fact]
         public async Task Get_All_Departments_Empty()
         {
             var getResult = await _controller.GetDepartments();
-            Assert.Empty(getResult.Value.ToList());
+            Assert.Empty(getResult.Value);
         }
 
         [Fact]

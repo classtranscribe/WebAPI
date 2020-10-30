@@ -86,7 +86,7 @@ namespace ClassTranscribeServer.Controllers
                 };
 
                 // full path to file in temp location
-                string extension = Path.GetExtension(imageFile.FileName).ToLower();
+                string extension = Path.GetExtension(imageFile.FileName).ToLower(System.Globalization.CultureInfo.CurrentCulture);
                 var allowedExtensions = new string[] { ".png", ".jpg" };
 
                 if (! allowedExtensions.Contains(extension))
