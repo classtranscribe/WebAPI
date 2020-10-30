@@ -30,10 +30,12 @@ namespace TaskEngine
         private readonly RpcClient _rpcClient;
         private readonly QueueAwakerTask _queueAwakerTask;
 
+        private readonly BuildElasticIndexTask _buildElasticIndexTask;
+
         public TempCode(CTDbContext c, CreateBoxTokenTask createBoxTokenTask, UpdateBoxTokenTask updateBoxTokenTask,
             SceneDetectionTask ePubGeneratorTask, ProcessVideoTask processVideoTask, GenerateVTTFileTask generateVTTFileTask,
             TranscriptionTask transcriptionTask, ConvertVideoToWavTask convertVideoToWavTask, DownloadMediaTask downloadMediaTask,
-            DownloadPlaylistInfoTask downloadPlaylistInfoTask, QueueAwakerTask queueAwakerTask, RpcClient rpcClient)
+            DownloadPlaylistInfoTask downloadPlaylistInfoTask, QueueAwakerTask queueAwakerTask, BuildElasticIndexTask buildElasticIndexTask, RpcClient rpcClient)
         {
             context = c;
             _createBoxTokenTask = createBoxTokenTask;
@@ -46,6 +48,7 @@ namespace TaskEngine
             _downloadMediaTask = downloadMediaTask;
             _downloadPlaylistInfoTask = downloadPlaylistInfoTask;
             _queueAwakerTask = queueAwakerTask;
+            _buildElasticIndexTask = buildElasticIndexTask;
             _rpcClient = rpcClient;
         }
 
@@ -109,6 +112,7 @@ namespace TaskEngine
             // A dummy awaited function call.
             await Task.Delay(0);
             // Add any temporary code
+            _buildElasticIndexTask.Publish("");
         }
 
         private async Task TestYoutubeChannelDownload()

@@ -135,7 +135,7 @@ namespace TaskEngine
             //nolonger used :
             // nope serviceProvider.GetService<nope ConvertVideoToWavTask>().Consume(concurrent_videotasks);
 
-            bool hacktest = false;
+            bool hacktest = true;
             if (hacktest)
             {
                 TempCode tempCode = serviceProvider.GetService<TempCode>();
