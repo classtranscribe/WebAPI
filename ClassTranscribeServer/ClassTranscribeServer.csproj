@@ -71,6 +71,8 @@
     <PackageReference Include="Swashbuckle.AspNetCore.Swagger" Version="5.0.0" />
     <PackageReference Include="Swashbuckle.AspNetCore.SwaggerGen" Version="5.0.0" />
     <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" Version="5.0.0" />
+    <PackageReference Include="NEST" Version="7.9.0" />
+    <PackageReference Include="Elasticsearch.Net" Version="7.9.0" />
   </ItemGroup>
 
   <ItemGroup>
