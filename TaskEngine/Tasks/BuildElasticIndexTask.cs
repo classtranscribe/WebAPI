@@ -3,6 +3,7 @@ using ClassTranscribeDatabase.Models;
 using CTCommons;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Configuration;
 using System.Threading.Tasks;
 using static ClassTranscribeDatabase.CommonUtils;
 using System.Diagnostics.CodeAnalysis;
@@ -15,7 +16,7 @@ using System.Collections.Generic;
 
 namespace TaskEngine.Tasks
 {
-    [SuppressMessage("Microsoft.Performance", "CA1812:MarkMembersAsStatic")] // This class is never directly instantiated
+    //[SuppressMessage("Microsoft.Performance", "CA1812:MarkMembersAsStatic")] // This class is never directly instantiated
     class BuildElasticIndexTask : RabbitMQTask<string>
     {
         private readonly ElasticClient _client;
@@ -24,8 +25,10 @@ namespace TaskEngine.Tasks
             ILogger<BuildElasticIndexTask> logger)
             : base(rabbitMQ, TaskType.BuildElasticIndex, logger)
         {
+            var configuration = CTDbContext.GetConfigurations();
+
             // initialize elastic client
-            var node = new Uri("http://localhost:9200");
+            var node = new Uri(configuration.GetValue<string>("ES_CONNECTION_ADDR"));
             using (var settings = new ConnectionSettings(node))
             {
                 //settings.DefaultIndex("classTranscribe");
