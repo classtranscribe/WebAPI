@@ -10,7 +10,7 @@ namespace UnitTests.ControllerTests
 {
     public class EPubsControllerTest : BaseControllerTest
     {
-        EPubsController _controller;
+        private readonly EPubsController _controller;
 
         public EPubsControllerTest(GlobalFixture fixture) : base(fixture)
         {

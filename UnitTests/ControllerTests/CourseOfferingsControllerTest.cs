@@ -12,11 +12,11 @@ namespace UnitTests.ControllerTests
 {
     public class CourseOfferingsControllerTest : BaseControllerTest
     {
-        CourseOfferingsController _controller;
+        private readonly CourseOfferingsController _controller;
 
         public CourseOfferingsControllerTest(GlobalFixture fixture) : base(fixture)
         {
-            _controller = new CourseOfferingsController(_authorizationService, _context, null);
+            _controller = new CourseOfferingsController(fixture._authorizationService, _context, null);
         }
 
         [Fact]

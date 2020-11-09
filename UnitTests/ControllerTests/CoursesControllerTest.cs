@@ -10,7 +10,7 @@ namespace UnitTests.ControllerTests
 {
     public class CoursesControllerTest : BaseControllerTest
     {
-        CoursesController _controller;
+        private readonly CoursesController _controller;
 
         public CoursesControllerTest(GlobalFixture fixture) : base(fixture)
         {

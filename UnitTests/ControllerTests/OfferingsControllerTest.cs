@@ -14,11 +14,16 @@ namespace UnitTests.ControllerTests
 {
     public class OfferingsControllerTest : BaseControllerTest
     {
-        OfferingsController _controller;
+        private readonly OfferingsController _controller;
 
         public OfferingsControllerTest(GlobalFixture fixture) : base(fixture)
         {   
-            _controller = new OfferingsController(_authorizationService, _context, _userUtils, null)
+            _controller = new OfferingsController(
+                fixture._authorizationService,
+                _context,
+                _userUtils,
+                null
+            )
             {
                 ControllerContext = fixture._controllerContext
             };
