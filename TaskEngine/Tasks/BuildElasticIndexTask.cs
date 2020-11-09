@@ -44,13 +44,13 @@ namespace TaskEngine.Tasks
             {
                 CaptionQueries captionQueries = new CaptionQueries(_context);
 
-                var all_transcriptions = await _context.Transcriptions.Where(t => t.Language == Languages.ENGLISH).ToListAsync();
+                var all_transcriptions = await _context.Transcriptions.Where(t => t.Language == Languages.ENGLISH_AMERICAN).ToListAsync();
                 foreach (var transcription in all_transcriptions)
                 {
                     var all_captions = transcription.Captions;
 
                     // each index has the unique name "index_string_unique", the current in use one has the alias "index_string_alias"
-                    var index_string_base = transcription.Id + "_" + Languages.ENGLISH.ToLower();
+                    var index_string_base = transcription.Id + "_" + Languages.ENGLISH_AMERICAN.ToLower();
                     var index_string_unique = index_string_base + "_" + $"{DateTime.Now:yyyyMMddHHmmss}";
                     var index_string_alias = index_string_base + "_" + "primary";
 
