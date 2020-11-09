@@ -25,7 +25,7 @@
   <ApplicationInsightsResourceId>/subscriptions/f12d3460-c5ee-4ccd-99f5-dd74e32ec44f/resourcegroups/CTFall19/providers/microsoft.insights/components/CT_Monitoring</ApplicationInsightsResourceId>
 </PropertyGroup>
   
-  <ItemGroup>
+  <ItemGroup Condition="Exists('..\vs_appsettings.json')">
     <Content Include="..\vs_appsettings.json" Link="vs_appsettings.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
@@ -80,6 +80,12 @@
 
   <ItemGroup>
     <WCFMetadata Include="Connected Services" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Controllers\AccountController.cs">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Compile>
   </ItemGroup>
   
 </Project>

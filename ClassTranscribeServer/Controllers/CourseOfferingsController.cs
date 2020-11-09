@@ -45,22 +45,22 @@ namespace ClassTranscribeServer.Controllers
         [Authorize(Roles = Globals.ROLE_ADMIN + "," + Globals.ROLE_INSTRUCTOR + "," + Globals.ROLE_TEACHING_ASSISTANT)]
         public async Task<ActionResult<CourseOffering>> PostCourseOffering(CourseOffering courseOffering)
         {
+            if (courseOffering == null)
+            {
+                return BadRequest();
+            }
+
+            var existingCourseOffering = await _context.CourseOfferings
+                .Where(c => c.CourseId == courseOffering.CourseId && c.OfferingId == courseOffering.OfferingId)
+                .FirstOrDefaultAsync();
+
+            if (existingCourseOffering != null)
+            {
+                return Ok("Course Offering already exists!");
+            }
+
             _context.CourseOfferings.Add(courseOffering);
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateException)
-            {
-                if (CourseOfferingExists(courseOffering.CourseId))
-                {
-                    return Ok("Course Offering already exists!");
-                }
-                else
-                {
-                    throw;
-                }
-            }
+            await _context.SaveChangesAsync();
 
             return Ok();
         }
@@ -106,6 +106,7 @@ namespace ClassTranscribeServer.Controllers
         {
             return _context.CourseOfferings.Any(e => e.CourseId == id);
         }
+
         public class CourseOfferingDTO
         {
             public Course Course { get; set; }

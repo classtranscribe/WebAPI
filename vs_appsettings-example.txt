@@ -22,7 +22,8 @@ Steps to create vs_appsettings.json for local development:
   "MAX_CONCURRENT_VIDEO_TASKS" : "1",
   "MAX_CONCURRENT_SYNC_TASKS" : "1",
   
-  "HOST_NAME":  "localhost"
+  "HOST_NAME":  "localhost",
+  "RABBITMQ_REFCOUNT_CHANNELS" : "N"
 }
 
 2. For the "AZURE_SUBSCRIPTION_KEYS" field, you need to create a free resource in the Azure portal. Follow these steps:

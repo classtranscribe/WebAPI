@@ -119,10 +119,16 @@ namespace ClassTranscribeServer.Controllers
             return Ok();
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="videoOrMediaId">A videoId or mediaId</param>
+        /// <param name="deleteExisting">If true, existing transriptions are deleted first</param>
+        /// <returns></returns>
         [HttpPost("TranscribeVideo")]
-        public ActionResult TranscribeVideo(string videoId)
+        public ActionResult TranscribeVideo(string videoOrMediaId, bool deleteExisting)
         {
-            _wakeDownloader.TranscribeVideo(videoId);
+            _wakeDownloader.TranscribeVideo(videoOrMediaId, deleteExisting);
             return Ok();
         }
 

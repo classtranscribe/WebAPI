@@ -26,6 +26,7 @@ namespace ClassTranscribeDatabase.Models
         public string TranscriptionId { get; set; }
         public int UpVote { get; set; }
         public int DownVote { get; set; }
+        [SwaggerIgnore]
         [IgnoreDataMember]
         public virtual Transcription Transcription { get; set; }
         public CaptionType CaptionType { get; set; }
@@ -62,7 +63,7 @@ namespace ClassTranscribeDatabase.Models
         /// <param name="Begin">The beginning time stamp of the recognizedSpeech</param>
         /// <param name="End">The end time stamp of the recognizedSpeech</param>
         /// <param name="recognizedSpeech">Recognized Speech received from the Speech Services API.</param>
-        public static List<Caption> AppendCaptions(int captionsCount, TimeSpan Begin, TimeSpan End, string recognizedSpeech)
+        public static List<Caption> ToCaptionEntitiesInterpolate(int captionsCount, TimeSpan Begin, TimeSpan End, string recognizedSpeech)
         {
             List<Caption> captions = new List<Caption>();
             int captionLength = Globals.CAPTION_LENGTH;

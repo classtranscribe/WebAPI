@@ -254,27 +254,37 @@ namespace ClassTranscribeServer.Controllers
             {
                 return BadRequest();
             }
+
             var offering = await _context.Offerings.FindAsync(playlist.OfferingId);
+
             if (offering == null)
             {
                 return BadRequest();
             }
+
             var authorizationResult = await _authorizationService.AuthorizeAsync(this.User, offering, Globals.POLICY_UPDATE_OFFERING);
+
             if (!authorizationResult.Succeeded)
             {
                 if (User.Identity.IsAuthenticated)
                 {
                     return new ForbidResult();
                 }
-                else
-                {
-                    return new ChallengeResult();
-                }
+
+                return new ChallengeResult();
             }
+
             if (playlist.PlaylistIdentifier != null && playlist.PlaylistIdentifier.Length > 0)
             {
                 playlist.PlaylistIdentifier = playlist.PlaylistIdentifier.Trim();
             }
+
+            // If playlists are deleted the Count != Max Index, so use the max index (still not perfect, what if 2 playlists are created at the same time)
+            if (offering.Playlists.Count > 0)
+            {
+                playlist.Index = 1 + offering.Playlists.Max(p => p.Index);
+            }
+
             _context.Playlists.Add(playlist);
             await _context.SaveChangesAsync();
             _wakeDownloader.UpdatePlaylist(playlist.Id);
@@ -397,6 +407,8 @@ namespace ClassTranscribeServer.Controllers
         public List<TranscriptionDTO> Transcriptions { get; set; }
         public string Name { get; set; }
         public int Index { get; set; }
+
+        public TimeSpan? Duration { get; set; }
         public WatchHistory WatchHistory { get; set; }
     }
 

@@ -994,6 +994,12 @@ namespace ClassTranscribeDatabase.Migrations
                     b.Property<string>("Description")
                         .HasColumnType("text");
 
+                    b.Property<TimeSpan?>("Duration")
+                        .HasColumnType("interval");
+
+                    b.Property<string>("FileMediaInfo")
+                        .HasColumnType("text");
+
                     b.Property<int>("IsDeletedStatus")
                         .HasColumnType("integer");
 

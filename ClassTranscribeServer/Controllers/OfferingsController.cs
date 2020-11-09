@@ -8,7 +8,6 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace ClassTranscribeServer.Controllers
@@ -40,7 +39,10 @@ namespace ClassTranscribeServer.Controllers
 
 
             // Filter out offerings where there is no media items available.
-            var filteredOfferings = offerings.FindAll(o => o.Playlists.SelectMany(m => m.Medias).Any()).OrderBy(o => o.Term.StartDate).ToList();
+            var filteredOfferings = offerings
+                .FindAll(o => o.Playlists != null && o.Playlists.SelectMany(m => m.Medias).Any())
+                .OrderBy(o => o.Term.StartDate)
+                .ToList();
 
             var offeringListDTO = filteredOfferings.Select(o => new OfferingDTO
             {
@@ -203,14 +205,49 @@ namespace ClassTranscribeServer.Controllers
             {
                 return BadRequest();
             }
+
+            if (newOfferingDTO.CourseId == null)
+            {
+                if (newOfferingDTO.DepartmentId == null || newOfferingDTO.NewCourseNumber == null)
+                {
+                    return BadRequest("Must specify departmentId and newCourseNumber");
+                }
+
+                var isValidDept = (await _context.Departments.FindAsync(newOfferingDTO.DepartmentId)) != null;
+
+                if (!isValidDept)
+                {
+                    return BadRequest("Invalid department ID");
+                }
+
+                var course = await _context.Courses.Where(c => c.CourseNumber == newOfferingDTO.NewCourseNumber && c.DepartmentId == newOfferingDTO.DepartmentId).FirstOrDefaultAsync();
+
+                if (course == null)
+                {
+                    course = new Course
+                    {
+                        DepartmentId = newOfferingDTO.DepartmentId,
+                        CourseNumber = newOfferingDTO.NewCourseNumber
+                    };
+
+                    await _context.Courses.AddAsync(course);
+                    await _context.SaveChangesAsync();
+                }
+
+                newOfferingDTO.CourseId = course.Id;
+            }
+
             _context.Offerings.Add(newOfferingDTO.Offering);
             await _context.SaveChangesAsync();
+
             _context.CourseOfferings.Add(new CourseOffering
             {
                 CourseId = newOfferingDTO.CourseId,
                 OfferingId = newOfferingDTO.Offering.Id
             });
+
             var user = await _userUtils.GetUser(User);
+
             if (user != null)
             {
                 await _context.UserOfferings.AddAsync(new UserOffering
@@ -219,6 +256,7 @@ namespace ClassTranscribeServer.Controllers
                     IdentityRole = _context.Roles.Where(r => r.Name == Globals.ROLE_INSTRUCTOR).FirstOrDefault(),
                     OfferingId = newOfferingDTO.Offering.Id
                 });
+
                 await _context.SaveChangesAsync();
             }
 
@@ -262,7 +300,8 @@ namespace ClassTranscribeServer.Controllers
         {
             public Offering Offering { get; set; }
             public string CourseId { get; set; }
-
+            public string DepartmentId { get; set; }
+            public string NewCourseNumber { get; set; }
         }
 
         public class OfferingDTO
