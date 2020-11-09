@@ -1,13 +1,14 @@
 ﻿using ClassTranscribeDatabase;
 using ClassTranscribeDatabase.Models;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
-using RabbitMQ.Client;
 using System;
 using System.IO;
 using System.Security.Claims;
@@ -23,12 +24,11 @@ namespace UnitTests
         public readonly IAuthorizationService _authorizationService;
         public readonly UserManager<ApplicationUser> _userManager;
         public readonly ILogger _logger;
-
+        public readonly ControllerContext _controllerContext;
 
         // 'data' must be exist (and be last). Otherwise FileRecord Path setter will fail
+        private static readonly string _testDataDirectory = Path.Combine("test_data","automatically_deleted","data");
 
-        private static readonly char extraSlash_pleaseMakeMeUnnecessary = Path.DirectorySeparatorChar; // required to make the image tests almost pass, possibly required in the FileREcord Path setter code too
-        private static readonly string _testDataDirectory = Path.Combine("test_data","automatically_deleted","data") + extraSlash_pleaseMakeMeUnnecessary;
         // This constructor is run once for all tests in the "Global" collection (which should be all tests)
         // https://xunit.net/docs/shared-context
         public GlobalFixture()
@@ -62,13 +62,24 @@ namespace UnitTests
 
             _authorizationService = mockAuth.Object;
 
-            var store = new Mock<IUserStore<ApplicationUser>> ();
+            // Setup the controller context to simulate the "User" instance variable
+            var userPrincipal = new ClaimsPrincipal(new ClaimsIdentity(new Claim[]
+            {
+                new Claim(Globals.CLAIM_USER_ID, TestGlobals.TEST_USER_ID),
+            }, "mock"));
+
+            _controllerContext = new ControllerContext()
+            {
+                HttpContext = new DefaultHttpContext() { User = userPrincipal }
+            };
+
+            var userStore = new Mock<IUserStore<ApplicationUser>> ();
 
             // No tests actually user this INSTRUCTOR1 user yet 
             // So this code is really just a demonstration for how to set up a user for testing,
             // And how to pass it into the UserManager 
             // TODO: Could also mock the user role checks too
-            store.Setup(x => x.FindByIdAsync("INSTRUCTOR1@TESTLAND", CancellationToken.None))
+            userStore.Setup(x => x.FindByIdAsync("INSTRUCTOR1@TESTLAND", CancellationToken.None))
                 .ReturnsAsync(new ApplicationUser
                 {
                     UserName = "INSTRUCTOR1@TESTLAND",
@@ -76,8 +87,7 @@ namespace UnitTests
                     
                 });
 
-            _userManager = new UserManager<ApplicationUser>(store.Object, null, null, null, null, null, null, null, null);
-
+            _userManager = new UserManager<ApplicationUser>(userStore.Object, null, null, null, null, null, null, null, null);
         }
 
         public void Dispose()
@@ -89,4 +99,9 @@ namespace UnitTests
 
     [CollectionDefinition("Global")]
     public class Global : ICollectionFixture<GlobalFixture> { }
+
+    public static class TestGlobals
+    {
+        public const string TEST_USER_ID = "TestUser";
+    }
 }

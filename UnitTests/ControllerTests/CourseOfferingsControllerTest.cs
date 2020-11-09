@@ -24,17 +24,8 @@ namespace UnitTests.ControllerTests
         {
             var offeringId = "1111";
             var userId = "13";
-
-            _context.Offerings.Add(new Offering
-            {
-                Id = offeringId
-            });
-
-            _context.UserOfferings.Add(new UserOffering
-            {
-                OfferingId = offeringId,
-                ApplicationUserId = userId
-            });
+            var courseIds = new List<string>();
+            SetupEntities(offeringId, userId, courseIds);
 
             var courseOffering = new CourseOffering
             {
@@ -140,10 +131,10 @@ namespace UnitTests.ControllerTests
         public async Task Get_CourseOfferings_By_Instructor_Empty()
         {
             var getResult = await _controller.GetCourseOfferingsByInstructor("not_existing");
-            Assert.Empty(getResult.Value.ToList());
+            Assert.Empty(getResult.Value);
 
             getResult = await _controller.GetCourseOfferingsByInstructor(null);
-            Assert.Empty(getResult.Value.ToList());
+            Assert.Empty(getResult.Value);
         }
 
         [Fact]
@@ -158,7 +149,6 @@ namespace UnitTests.ControllerTests
             IdentityRole instructorRole = new IdentityRole
             {
                 Name = Globals.ROLE_INSTRUCTOR,
-                Id = "0000",
                 NormalizedName = Globals.ROLE_INSTRUCTOR.ToUpper()
             };
             _context.Roles.Add(instructorRole);

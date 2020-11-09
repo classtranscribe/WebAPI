@@ -1,4 +1,3 @@
-using ClassTranscribeDatabase;
 using ClassTranscribeDatabase.Models;
 using ClassTranscribeServer.Controllers;
 using Microsoft.AspNetCore.Http;
@@ -39,16 +38,8 @@ namespace UnitTests.ControllerTests
 
                 var getResult = await _controller.GetImage(createdImage.Id);
                 Assert.Equal(createdImage, getResult.Value);
-                
-               // TODO 
-               // Use Path.Combine - (CrossPlatform + why assume that DATA_DIRECTORY ends with a slash?)
-               // 
-               // The expected string is missing the extension
-                Assert.Equal(
-                    Path.Combine(Globals.appSettings.DATA_DIRECTORY,createdImage.ImageFileId + ".png"),
 
-                    getResult.Value.ImageFile.Path
-                );
+                Assert.Equal(createdImage.ImageFile.Path, getResult.Value.ImageFile.Path);
 
                 var deleteResult = await _controller.DeleteImage(createdImage.Id);
                 Assert.Equal(createdImage, deleteResult.Value);

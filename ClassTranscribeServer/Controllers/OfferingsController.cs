@@ -8,7 +8,6 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace ClassTranscribeServer.Controllers
@@ -40,7 +39,10 @@ namespace ClassTranscribeServer.Controllers
 
 
             // Filter out offerings where there is no media items available.
-            var filteredOfferings = offerings.FindAll(o => o.Playlists.SelectMany(m => m.Medias).Any()).OrderBy(o => o.Term.StartDate).ToList();
+            var filteredOfferings = offerings
+                .FindAll(o => o.Playlists != null && o.Playlists.SelectMany(m => m.Medias).Any())
+                .OrderBy(o => o.Term.StartDate)
+                .ToList();
 
             var offeringListDTO = filteredOfferings.Select(o => new OfferingDTO
             {
@@ -211,7 +213,7 @@ namespace ClassTranscribeServer.Controllers
                     return BadRequest("Must specify departmentId and newCourseNumber");
                 }
 
-                var isValidDept = await _context.Departments.AnyAsync(d => d.Id == newOfferingDTO.DepartmentId);
+                var isValidDept = (await _context.Departments.FindAsync(newOfferingDTO.DepartmentId)) != null;
 
                 if (!isValidDept)
                 {

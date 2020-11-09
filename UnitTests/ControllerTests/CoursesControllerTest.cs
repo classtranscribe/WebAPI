@@ -182,10 +182,10 @@ namespace UnitTests.ControllerTests
         public async Task Get_Courses_By_Department_Empty()
         {
             var getResult = await _controller.GetCourses("not_existing");
-            Assert.Empty(getResult.Value.ToList());
+            Assert.Empty(getResult.Value);
 
             getResult = await _controller.GetCourses(null);
-            Assert.Empty(getResult.Value.ToList());
+            Assert.Empty(getResult.Value);
         }
 
         [Fact]
