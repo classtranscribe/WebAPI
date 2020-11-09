@@ -196,7 +196,7 @@ namespace ClassTranscribeServer.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error signing in User with authToken {0}.", model.Token);
+                _logger.LogError(ex, "Error signing in User with authToken {0}.", model?.Token ?? "{no token}");
                 return Unauthorized();
             }
 
