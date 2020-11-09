@@ -14,7 +14,7 @@ namespace UnitTests.ControllerTests
 {
     public class ImagesControllerTest : BaseControllerTest
     {
-        ImagesController _controller;
+        private readonly ImagesController _controller;
 
         public ImagesControllerTest(GlobalFixture fixture) : base(fixture)
         {

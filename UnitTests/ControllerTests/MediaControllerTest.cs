@@ -8,11 +8,17 @@ namespace UnitTests.ControllerTests
 {
     public class MediaControllerTest : BaseControllerTest
     {
-        MediaController _controller;
+        private readonly MediaController _controller;
 
         public MediaControllerTest(GlobalFixture fixture) : base(fixture)
         {
-            _controller = new MediaController(_authorizationService, null, _context, _userUtils, null);
+            _controller = new MediaController(
+                fixture._authorizationService,
+                null,
+                _context,
+                _userUtils,
+                null
+            );
         }
 
         [Fact]
