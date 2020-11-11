@@ -26,6 +26,7 @@ namespace TaskEngine.Tasks
         private readonly SceneDetectionTask _scenedDetectionTask;
         private readonly CreateBoxTokenTask _createBoxTokenTask;
         private readonly UpdateBoxTokenTask _updateBoxTokenTask;
+        private readonly BuildElasticIndexTask _buildElasticIndexTask;
         private readonly ExampleTask _exampleTask;
         private readonly SlackLogger _slackLogger;
 
@@ -35,7 +36,8 @@ namespace TaskEngine.Tasks
             DownloadMediaTask downloadMediaTask,
             TranscriptionTask transcriptionTask, ProcessVideoTask processVideoTask,
             GenerateVTTFileTask generateVTTFileTask, SceneDetectionTask scenedDetectionTask,
-            CreateBoxTokenTask createBoxTokenTask, UpdateBoxTokenTask updateBoxTokenTask, ExampleTask exampleTask,
+            CreateBoxTokenTask createBoxTokenTask, UpdateBoxTokenTask updateBoxTokenTask,
+            BuildElasticIndexTask buildElasticIndexTask, ExampleTask exampleTask,
             ILogger<QueueAwakerTask> logger, SlackLogger slackLogger)
             : base(rabbitMQ, TaskType.QueueAwaker, logger)
         {
@@ -48,6 +50,7 @@ namespace TaskEngine.Tasks
             _scenedDetectionTask = scenedDetectionTask;
             _createBoxTokenTask = createBoxTokenTask;
             _updateBoxTokenTask = updateBoxTokenTask;
+            _buildElasticIndexTask = buildElasticIndexTask;
             _exampleTask = exampleTask;
             _slackLogger = slackLogger;
         }
@@ -265,6 +268,7 @@ namespace TaskEngine.Tasks
                     await _slackLogger.PostMessageAsync("Periodic Check.");
                     registerTask(cleanup, "PeriodicCheck");
                     _updateBoxTokenTask.Publish("");
+                    _buildElasticIndexTask.Publish("");
                     _exampleTask.Publish("");
 
                     await DownloadAllPlaylists();
