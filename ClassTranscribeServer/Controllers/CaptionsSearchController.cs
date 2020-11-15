@@ -26,18 +26,14 @@ namespace ClassTranscribeServer.Controllers
         [HttpPost]
         public async Task<ActionResult<Caption>> Search([FromBody] string[] ids, string keywords, int page = 1, int pageSize = 10)
         {
-            if (ids == null)
+            if (ids == null || ids.Length == 0)
             {
-                return Ok();
-            }
-            List<string> indices = new List<string>();
-            foreach (string id in ids)
-            {
-                indices.Add(id + "_en-us_primary");
+
+                return NotFound();
             }
             var result = await _elasticClient.SearchAsync<Caption>(s => s
                                    .SearchType(SearchType.DfsQueryThenFetch)
-                                   .Index(indices.ToArray())
+                                   .Index(ids)
                                    .From((page - 1)*pageSize)
                                    .Size(pageSize)
                                    .Query(q => q
