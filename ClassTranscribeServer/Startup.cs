@@ -17,6 +17,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Nest;
@@ -150,7 +151,10 @@ namespace ClassTranscribeServer
             services.AddScoped<UserUtils>();
             services.AddScoped<CaptionQueries>();
 
-            var settings = new ConnectionSettings(new Uri("http://localhost:9200/"));
+            // Configure ElasticSearch client
+            var configuration = CTDbContext.GetConfigurations();
+            var connection = new Uri(configuration.GetValue<string>("ES_CONNECTION_ADDR"));
+            using var settings = new ConnectionSettings(connection);
             var client = new ElasticClient(settings);
             services.AddSingleton<IElasticClient>(client);
         }
