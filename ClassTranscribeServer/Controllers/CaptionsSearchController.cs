@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Nest;
 using System;
+using Elasticsearch.Net;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -23,7 +24,7 @@ namespace ClassTranscribeServer.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<Caption>> Search([FromBody] string[] ids, string keywords)
+        public async Task<ActionResult<Caption>> Search([FromBody] string[] ids, string keywords, int page = 1, int pageSize = 10)
         {
             if (ids == null)
             {
@@ -35,8 +36,10 @@ namespace ClassTranscribeServer.Controllers
                 indices.Add(id + "_en-us_primary");
             }
             var result = await _elasticClient.SearchAsync<Caption>(s => s
+                                   .SearchType(SearchType.DfsQueryThenFetch)
                                    .Index(indices.ToArray())
-                                   .Size(1000)
+                                   .From((page - 1)*pageSize)
+                                   .Size(pageSize)
                                    .Query(q => q
                                        .Bool(b => b
                                            .Must(m => m
@@ -44,18 +47,34 @@ namespace ClassTranscribeServer.Controllers
                                                    .Field(f => f.Text)
                                                    .Query(keywords)
                                                    .Fuzziness(Fuzziness.Auto)
-                                                       .Operator(Nest.Operator.Or)
                                                )
                                            )
                                        )
                                    )
                                );
 
-            if (result.Documents == null)
+            if (result.Total == 0)
             {
                 return NotFound();
             }
-            return Ok(result.Documents);
+            return Ok(new SearchResult<Caption>
+            {
+                Total = result.Total,
+                Page = page,
+                Results = result.Documents,
+                ElapsedMilliseconds = result.Took
+            });
         }
+    }
+
+    public class SearchResult<T>
+    {
+        public long Total { get; set; }
+
+        public int Page { get; set; }
+
+        public IEnumerable<T> Results { get; set; }
+
+        public long ElapsedMilliseconds { get; set; }
     }
 }
