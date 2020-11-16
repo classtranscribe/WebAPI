@@ -26,6 +26,7 @@ namespace ClassTranscribeServer.Controllers
         [HttpPost]
         public async Task<ActionResult<Caption>> Search([FromBody] string[] ids, string query, int page = 1, int pageSize = 10)
         {
+            // TODO: add authentication
             if (ids == null || ids.Length == 0)
             {
 
