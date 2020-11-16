@@ -24,7 +24,7 @@ namespace ClassTranscribeServer.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<Caption>> Search([FromBody] string[] ids, string keywords, int page = 1, int pageSize = 10)
+        public async Task<ActionResult<Caption>> Search([FromBody] string[] ids, string query, int page = 1, int pageSize = 10)
         {
             if (ids == null || ids.Length == 0)
             {
@@ -41,7 +41,7 @@ namespace ClassTranscribeServer.Controllers
                                            .Must(m => m
                                                .Match(m1 => m1
                                                    .Field(f => f.Text)
-                                                   .Query(keywords)
+                                                   .Query(query)
                                                    .Fuzziness(Fuzziness.Auto)
                                                )
                                            )
