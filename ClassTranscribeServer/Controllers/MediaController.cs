@@ -13,6 +13,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
+
 namespace ClassTranscribeServer.Controllers
 {
     [Route("api/[controller]")]
@@ -68,6 +69,7 @@ namespace ClassTranscribeServer.Controllers
                 CreatedAt = media.CreatedAt,
                 JsonMetadata = media.JsonMetadata,
                 SourceType = media.SourceType,
+                Duration = media.Video.Duration,
                 Transcriptions = media.Video.Transcriptions
                 .Select(t => new TranscriptionDTO
                 {
@@ -180,9 +182,12 @@ namespace ClassTranscribeServer.Controllers
                 {
                     await video1.CopyToAsync(stream);
                 }
-                media.UniqueMediaIdentifier = FileRecord.ComputeSha256HashForFile(filePath);
+                // Only do this for the first (primary) video
+                media.UniqueMediaIdentifier = await FileRecord.ComputeSha256HashForFileAsync(filePath);
+
                 media.JsonMetadata.Add("video1", JsonConvert.SerializeObject(video1));
                 media.JsonMetadata.Add("video1Path", filePath);
+               
             }
             // Copy second File
             if (video2 != null && video2.Length > 0)
@@ -201,8 +206,24 @@ namespace ClassTranscribeServer.Controllers
             }
 
             _context.Medias.Add(media);
+            
             await _context.SaveChangesAsync();
+
+
+            // The following async update of the playlists (and then the media/vido entity tasks) is the probable cause of
+            // https://github.com/classtranscribe/WebAPI/issues/92
+
+            // TODO/TOREVIEW Do we kick off multiple updaters during multiple uploads?
             _wakeDownloader.UpdatePlaylist(playlistId);
+            //TODO/TOREVIEW: Do we need a way to wait for the playlist to be updated?
+            // FrontEnd should see the playlist after the media has been processed
+            // WE need to run the DownloadPlaylist task and the Media task to fix up the Video links
+            // Calling GetName in DownloadPlayListInfoTask is likley NOT sufficient because 
+            // UpdatePlaylist alsofires off an additional task
+            // So this is an awful short term hack bandaid until we refactor the code and can do te database housekeeping here instead
+            // ie. we want to think about how to fix the *design*, not just the symptons.
+            await Task.Delay(5000); // milliseconds
+
             return CreatedAtAction("GetMedia", new { id = media.Id }, media);
         }
 

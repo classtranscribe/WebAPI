@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
-using static ClassTranscribeDatabase.CommonUtils;
 
 namespace ClassTranscribeDatabase.Models
 {
@@ -34,7 +33,7 @@ namespace ClassTranscribeDatabase.Models
     public enum AccessTypes
     {
         // Since these are persisted in the database these integer values are immutable once assigned (hence explicit)
-        Public = 0, 
+        Public = 0,
         AuthenticatedOnly = 1,
         StudentsOnly = 2,
         UniversityOnly = 3,
@@ -70,8 +69,10 @@ namespace ClassTranscribeDatabase.Models
     {
         public string FirstName { get; set; }
         public string LastName { get; set; }
+        [SwaggerIgnore]
         [IgnoreDataMember]
         public virtual List<UserOffering> UserOfferings { get; set; }
+        [SwaggerIgnore]
         [IgnoreDataMember]
         public string UniversityId { get; set; }
         public virtual University University { get; set; }
@@ -87,14 +88,19 @@ namespace ClassTranscribeDatabase.Models
     {
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public string Id { get; set; }
+        [SwaggerIgnore]
         [IgnoreDataMember]
         public DateTime CreatedAt { get; set; }
+        [SwaggerIgnore]
         [IgnoreDataMember]
         public string CreatedBy { get; set; }
+        [SwaggerIgnore]
         [IgnoreDataMember]
         public DateTime LastUpdatedAt { get; set; }
+        [SwaggerIgnore]
         [IgnoreDataMember]
         public string LastUpdatedBy { get; set; }
+        [SwaggerIgnore]
         [IgnoreDataMember]
         public Status IsDeletedStatus { get; set; }
 
@@ -117,8 +123,10 @@ namespace ClassTranscribeDatabase.Models
     {
         public string Name { get; set; }
         public string Domain { get; set; }
+        [SwaggerIgnore]
         [IgnoreDataMember]
         public virtual List<Department> Departments { get; set; }
+        [SwaggerIgnore]
         [IgnoreDataMember]
         public virtual List<Term> Terms { get; set; }
     }
@@ -127,9 +135,11 @@ namespace ClassTranscribeDatabase.Models
     {
         public string Name { get; set; }
         public string Acronym { get; set; }
+        [SwaggerIgnore]
         [IgnoreDataMember]
         public virtual List<Course> Courses { get; set; }
         public string UniversityId { get; set; }
+        [SwaggerIgnore]
         [IgnoreDataMember]
         public virtual University University { get; set; }
     }
@@ -138,8 +148,10 @@ namespace ClassTranscribeDatabase.Models
     {
         public string CourseNumber { get; set; }
         public string DepartmentId { get; set; }
+        [SwaggerIgnore]
         [IgnoreDataMember]
         public virtual Department Department { get; set; }
+        [SwaggerIgnore]
         [IgnoreDataMember]
         public virtual List<CourseOffering> CourseOfferings { get; set; }
     }
@@ -150,8 +162,10 @@ namespace ClassTranscribeDatabase.Models
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
         public string UniversityId { get; set; }
+        [SwaggerIgnore]
         [IgnoreDataMember]
         public virtual University University { get; set; }
+        [SwaggerIgnore]
         [IgnoreDataMember]
         public virtual List<Offering> Offerings { get; set; }
     }
@@ -159,12 +173,16 @@ namespace ClassTranscribeDatabase.Models
     {
         public string SectionName { get; set; }
         public string TermId { get; set; }
+        [SwaggerIgnore]
         [IgnoreDataMember]
         public virtual Term Term { get; set; }
+        [SwaggerIgnore]
         [IgnoreDataMember]
         public virtual List<CourseOffering> CourseOfferings { get; set; }
+        [SwaggerIgnore]
         [IgnoreDataMember]
         public virtual List<Playlist> Playlists { get; set; }
+        [SwaggerIgnore]
         [IgnoreDataMember]
         public virtual List<UserOffering> OfferingUsers { get; set; }
         public AccessTypes AccessType { get; set; }
@@ -182,6 +200,7 @@ namespace ClassTranscribeDatabase.Models
         public string PlaylistIdentifier { get; set; }
         public virtual List<Media> Medias { get; set; }
         public string OfferingId { get; set; }
+        [SwaggerIgnore]
         [IgnoreDataMember]
         public virtual Offering Offering { get; set; }
         public JObject JsonMetadata { get; set; }
@@ -195,9 +214,11 @@ namespace ClassTranscribeDatabase.Models
         public string UniqueMediaIdentifier { get; set; }
         public JObject JsonMetadata { get; set; }
         public string VideoId { get; set; }
+        [SwaggerIgnore]
         [IgnoreDataMember]
         public virtual Video Video { get; set; }
         public string PlaylistId { get; set; }
+        [SwaggerIgnore]
         [IgnoreDataMember]
         public virtual Playlist Playlist { get; set; }
         public string Name { get; set; }
@@ -209,15 +230,18 @@ namespace ClassTranscribeDatabase.Models
     public class Transcription : Entity
     {
         [ForeignKey("File")]
-        public string FileId { get; set; }
+        public string FileId { get; set; } // Webvtt file
         public virtual FileRecord File { get; set; }
         public virtual FileRecord SrtFile { get; set; }
+
+        public string SrtFileId { get; set; } 
         public string Language { get; set; }
         public string Description { get; set; }
         public string VideoId { get; set; }
+        [SwaggerIgnore]
         [IgnoreDataMember]
         public virtual Video Video { get; set; }
-
+        [SwaggerIgnore]
         [IgnoreDataMember]
         public virtual List<Caption> Captions { get; set; }
     }
@@ -255,6 +279,31 @@ namespace ClassTranscribeDatabase.Models
         public JObject SceneData { get; set; }
         public JObject JsonMetadata { get; set; }
 
+        // Reported duration extracted from MediaInfo. The actual video/audio/caption streams duration could be less
+        // Returns null if unknown
+        // TimeSpan.Zero means a video that is actually zero seconds
+        // See UpdateMediaProperties
+        public virtual TimeSpan? Duration { get; set; }
+        
+
+        // MediaInfo extracted from the video file
+        public virtual JObject FileMediaInfo { get; set; }
+
+
+        public virtual void UpdateMediaProperties()
+        {
+            Duration = null;
+            try
+            {
+                string s = (string)FileMediaInfo["format"]["duration"];
+                Duration = TimeSpan.FromSeconds(Convert.ToDouble(s));
+            }
+            catch (Exception ignored)
+            {
+                // Could not extract duration. We won't log this
+            }
+
+        }
         public async Task DeleteVideoAsync(CTDbContext context)
         {
             if (Video1 != null)
@@ -284,14 +333,22 @@ namespace ClassTranscribeDatabase.Models
                 await context.SaveChangesAsync();
             }
         }
+
+        public class TranscriptionStatusMessages
+        {
+            public static readonly string NOERROR = "NoError";
+            public static readonly string TIMEOUT = "ServiceTimeout";
+        };
     }
 
     public class CourseOffering : Entity
     {
         public string CourseId { get; set; }
         public string OfferingId { get; set; }
+        [SwaggerIgnore]
         [IgnoreDataMember]
         public virtual Course Course { get; set; }
+        [SwaggerIgnore]
         [IgnoreDataMember]
         public virtual Offering Offering { get; set; }
 
@@ -301,11 +358,14 @@ namespace ClassTranscribeDatabase.Models
     {
         public string OfferingId { get; set; }
         public string ApplicationUserId { get; set; }
+        [SwaggerIgnore]
         [IgnoreDataMember]
         public virtual Offering Offering { get; set; }
+        [SwaggerIgnore]
         [IgnoreDataMember]
         public virtual ApplicationUser ApplicationUser { get; set; }
         public string IdentityRoleId { get; set; }
+        [SwaggerIgnore]
         [IgnoreDataMember]
         public virtual IdentityRole IdentityRole { get; set; }
     }
@@ -329,16 +389,18 @@ namespace ClassTranscribeDatabase.Models
         public string Author { get; set; }
         public string Publisher { get; set; }
         public bool IsPublished { get; set; }
-        public string Cover { get; set; }
-        public JObject Chapters { get; set; }
+        public JObject Cover { get; set; }
+        public List<JObject> Chapters { get; set; }
     }
 
     public class WatchHistory : Entity
     {
         public string MediaId { get; set; }
+        [SwaggerIgnore]
         [IgnoreDataMember]
         public virtual Media Media { get; set; }
         public string ApplicationUserId { get; set; }
+        [SwaggerIgnore]
         [IgnoreDataMember]
         public virtual ApplicationUser ApplicationUser { get; set; }
         public JObject Json { get; set; }
@@ -392,9 +454,13 @@ namespace ClassTranscribeDatabase.Models
     {
         public ResourceType SourceType { get; set; }
         public string SourceId { get; set; }
-
         [ForeignKey("ImageFile")]
         public string ImageFileId { get; set; }
         public virtual FileRecord ImageFile { get; set; }
     }
+    [AttributeUsage(AttributeTargets.Property)]
+    public class SwaggerIgnoreAttribute : Attribute
+    {
+    }
+
 }

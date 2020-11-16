@@ -9,6 +9,7 @@ using static ClassTranscribeDatabase.CommonUtils;
 using CTCommons;
 using System.Diagnostics.CodeAnalysis;
 using System.Collections.Generic;
+using Newtonsoft.Json.Linq;
 
 namespace TaskEngine.Tasks
 {
@@ -29,6 +30,7 @@ namespace TaskEngine.Tasks
         {   
             registerTask(cleanup,videoId); // may throw AlreadyInProgress exception
             Video video;
+            bool videoUpdated = false;
             using (var _context = CTDbContext.CreateDbContext())
             {
                 video = await _context.Videos.Include(v => v.Video1)
@@ -38,32 +40,57 @@ namespace TaskEngine.Tasks
                     .Where(v => v.Id == videoId).FirstAsync();
             }
             _logger.LogInformation("Consuming" + video);
-            if (video.Video1 != null)
+            if(video.Duration == null && video.Video1 != null)
             {
-                if (video.ProcessedVideo1 == null || taskParameters.Force)
+                var mediaInfoResult = await _rpcClient.PythonServerClient.GetMediaInfoRPCAsync(new CTGrpc.File
                 {
-                    var file = await _rpcClient.PythonServerClient.ProcessVideoRPCAsync(new CTGrpc.File
+                    FilePath = video.Video1.VMPath
+                });
+
+                var mediaJson = JObject.Parse(mediaInfoResult.Json);
+                video.FileMediaInfo = mediaJson;
+                video.UpdateMediaProperties();
+                videoUpdated = true;
+            }
+            bool runbrokencode = false;
+            if (runbrokencode)
+            {
+                if (video.Video1 != null)
+                {
+                    if (video.ProcessedVideo1 == null || taskParameters.Force)
                     {
-                        FilePath = video.Video1.VMPath
-                    });
-                    video.ProcessedVideo1 = FileRecord.GetNewFileRecord(file.FilePath, file.Ext);
+                        var file = await _rpcClient.PythonServerClient.ProcessVideoRPCAsync(new CTGrpc.File
+                        {
+                            FilePath = video.Video1.VMPath
+                        });
+
+                        //This does not work
+                        video.ProcessedVideo1 = await FileRecord.GetNewFileRecordAsync(file.FilePath, file.Ext);
+                        videoUpdated = true;
+                    }
+                }
+                if (video.Video2 != null)
+                {
+                    if (video.ProcessedVideo2 == null || taskParameters.Force)
+                    {
+                        var file = await _rpcClient.PythonServerClient.ProcessVideoRPCAsync(new CTGrpc.File
+                        {
+                            FilePath = video.Video2.VMPath
+                        });
+
+                        //This does not work
+                        video.ProcessedVideo2 = await FileRecord.GetNewFileRecordAsync(file.FilePath, file.Ext);
+                        videoUpdated = true;
+                    }
                 }
             }
-            if (video.Video2 != null)
+            if (videoUpdated)
             {
-                if (video.ProcessedVideo2 == null || taskParameters.Force)
+                using (var _context = CTDbContext.CreateDbContext())
                 {
-                    var file = await _rpcClient.PythonServerClient.ProcessVideoRPCAsync(new CTGrpc.File
-                    {
-                        FilePath = video.Video2.VMPath
-                    });
-                    video.ProcessedVideo2 = FileRecord.GetNewFileRecord(file.FilePath, file.Ext);
+                    _context.Entry(video).State = EntityState.Modified;
+                    await _context.SaveChangesAsync();
                 }
-            }
-            using (var _context = CTDbContext.CreateDbContext())
-            {
-                _context.Entry(video).State = EntityState.Modified;
-                await _context.SaveChangesAsync();
             }
         }
     }

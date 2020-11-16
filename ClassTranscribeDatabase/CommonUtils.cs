@@ -19,7 +19,7 @@ namespace ClassTranscribeDatabase
             DownloadPlaylistInfo = 3,
             DownloadMedia = 4,
             ConvertMedia = 5,
-            Transcribe = 6,
+            TranscribeVideo = 6,
             ProcessVideo = 7,
             Aggregator = 8,
             GenerateVTTFile = 9,
@@ -28,16 +28,22 @@ namespace ClassTranscribeDatabase
             UpdateBoxToken = 12,
             CreateBoxToken = 13,
             UpdateOffering = 14,
-            ReTranscribePlaylist = 15
+            ReTranscribePlaylist = 15,
+            BuildElasticIndex = 16,
+            ExampleTask = 17
         }
 
         public class Languages
         {
-            public static string ENGLISH = "en-US";
+            //  Speech recognition uses a dialect
+            public static string ENGLISH_AMERICAN = "en-US";
+            
+            // Translations use just a short language code
             public static string SIMPLIFIED_CHINESE = "zh-Hans";
             public static string KOREAN = "ko";
             public static string SPANISH = "es";
             public static string FRENCH = "fr";
+            // See MSTRanscriptionTask for a full list of recognition and translation languages
         }
 
         public static string BOX_ACCESS_TOKEN = "BOX_ACCESS_TOKEN";

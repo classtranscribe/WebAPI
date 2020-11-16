@@ -42,7 +42,7 @@ namespace CTCommons.MSTranscription
         ///
         ///Output -> (START, 00:00:00, 00:00:00), (“A”, 00:00:00, 00:00:50) , (“man”, 00:00:50, 00:01:00), (“and,”, 00:01:00, 00:01:50), (“a”, 00:01:50, 00:02:00), (“woman.”, 00:02:00, 00:02:50), (END, 00:02:50, 00:02:50)
         /// </summary>
-        
+
 
         public static List<MSTWord> WordLevelTimingsToSentenceLevelTimings(string sentenceCaption, List<MSTWord> wordTimingWords)
         {
@@ -163,47 +163,66 @@ namespace CTCommons.MSTranscription
             return sb.ToString();
         }
 
-        public static List<Caption> AppendCaptions(int captionsCount, List<MSTWord> words)
+        // TODO: Rewrite this
+        // Remove similar near-duplicate code in ToCaptionEntitiesInterpolate
+        public static List<Caption> ToCaptionEntitiesWithWordTiming(int captionsCount, TimeSpan restartOffset, List<MSTWord> words)
         {
             List<Caption> captions = new List<Caption>();
-            int captionLength = Globals.CAPTION_LENGTH;
+            int thresholdCaptionLength = Globals.CAPTION_LENGTH;
             int currCounter = captionsCount + 1;
-            int currLength = 0;
-            StringBuilder currSentence = new StringBuilder();
-            TimeSpan? startTime = null;
-            foreach (MSTWord word in words)
-            {
-                if (startTime == null)
-                {
-                    startTime = new TimeSpan(word.Offset);
-                }
-                currSentence.Append(word.Word + " ");
-                currLength += word.Word.Length;
 
-                if (currLength > captionLength)
+            StringBuilder captionText = new StringBuilder();
+            TimeSpan? startTime = null;
+            TimeSpan endTime = TimeSpan.Zero;
+
+            Action emitCaption = () =>
+                   {
+                       if (startTime == null)
+                       {
+                           return; // No caption
+                       }
+
+                       captions.Add(new Caption
+                       {
+                           Index = currCounter++,
+                           Begin = (TimeSpan)startTime, // quiet compiler! I promise it will not be null
+                           End = endTime,
+                           Text = captionText.ToString().Trim()
+                       });
+
+                       captionText.Clear();
+
+                       startTime = null;
+
+                   };
+
+            foreach (var word in words)
+            {
+                int candidateLength = captionText.Length + word.Word.Length + 1;
+
+                if (startTime != null && candidateLength > thresholdCaptionLength)
                 {
-                    captions.Add(new Caption
-                    {
-                        Index = currCounter++,
-                        Begin = startTime ?? new TimeSpan(),
-                        End = new TimeSpan(word.Offset + word.Duration),
-                        Text = currSentence.ToString().Trim()
-                    });
-                    currSentence.Clear();
-                    currLength = 0;
-                    startTime = null;
+                    emitCaption();
+                }
+
+                startTime ??= new TimeSpan(word.Offset).Add(restartOffset);
+                endTime = new TimeSpan(word.Offset + word.Duration).Add(restartOffset);
+
+                captionText.Append(word.Word + " ");
+
+                // Unfortunately this can create single word captions
+                // And the preceeding caption end time and the start time of the next caption can hide these in the closed captions
+                // This might arise from a difference between the claimed start/end timings of the whole utterance (the start time of the first word)
+                // and the rest of the utterance e.g. long offsetDifference = e.Result.OffsetInTicks - wordLevelCaptions.FirstOrDefault().Offset;
+                bool endOfSentence = word.Word.Length > 0 && "?!.\"".Contains(word.Word.Last());
+
+                if (endOfSentence)
+                {
+                    emitCaption();
                 }
             }
-            if (currLength > 0)
-            {
-                captions.Add(new Caption
-                {
-                    Index = currCounter++,
-                    Begin = startTime ?? new TimeSpan(),
-                    End = new TimeSpan(words[words.Count - 1].Offset + words[words.Count - 1].Duration),
-                    Text = currSentence.ToString().Trim()
-                });
-            }
+            // captionText can be non-empty
+            emitCaption();
 
             return captions;
         }

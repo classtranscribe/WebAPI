@@ -21,7 +21,7 @@
     <Compile Remove="Migrations\20190831192323_Log.Designer.cs" />
   </ItemGroup>
 
-  <ItemGroup>
+  <ItemGroup Condition="Exists('..\vs_appsettings.json')">
     <Content Include="..\vs_appsettings.json" Link="vs_appsettings.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>

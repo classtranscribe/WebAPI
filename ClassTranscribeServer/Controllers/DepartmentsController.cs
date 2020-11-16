@@ -51,7 +51,7 @@ namespace ClassTranscribeServer.Controllers
         [Authorize(Roles = Globals.ROLE_ADMIN)]
         public async Task<IActionResult> PutDepartment(string id, Department department)
         {
-            if (id != department.Id)
+            if (department == null || id != department.Id)
             {
                 return BadRequest();
             }
@@ -82,6 +82,20 @@ namespace ClassTranscribeServer.Controllers
         [Authorize(Roles = Globals.ROLE_ADMIN)]
         public async Task<ActionResult<Department>> PostDepartment(Department department)
         {
+            if (department == null)
+            {
+                return BadRequest();
+            }
+
+            var existingDepartment = await _context.Departments
+                .Where(d => d.Name == department.Name && d.UniversityId == department.UniversityId)
+                .FirstOrDefaultAsync();
+
+            if (existingDepartment != null)
+            {
+                return CreatedAtAction("GetDepartment", new { id = existingDepartment.Id }, existingDepartment);
+            }
+
             _context.Departments.Add(department);
             await _context.SaveChangesAsync();
 
