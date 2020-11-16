@@ -50,6 +50,7 @@ namespace ClassTranscribeDatabase
         public string CILOGON_DOMAIN { get; set; }
         public string GITSHA1 { get; set; }
         public string BUILDNUMBER { get; set; }
+        public string ES_CONNECTION_ADDR { get; set; }
 
         // We let the message expire - which is likely if the server is overloaded- the periodic check will rediscover things to do later
         // The suggested value is PERIODIC_CHECK_EVERY_MINUTES -5

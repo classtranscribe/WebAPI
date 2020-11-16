@@ -153,8 +153,7 @@ namespace ClassTranscribeServer
             services.AddScoped<CaptionQueries>();
 
             // Configure ElasticSearch client
-            var configuration = CTDbContext.GetConfigurations();
-            var connection = new Uri(configuration.GetValue<string>("ES_CONNECTION_ADDR"));
+            var connection = new Uri(Globals.appSettings.ES_CONNECTION_ADDR);
             using var settings = new ConnectionSettings(connection);
             var client = new ElasticClient(settings);
             services.AddSingleton<IElasticClient>(client);
