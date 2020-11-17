@@ -43,7 +43,7 @@ namespace ClassTranscribeServer.Controllers
         [Authorize(Roles = Globals.ROLE_ADMIN)]
         public async Task<IActionResult> PutUniversity(string id, University university)
         {
-            if (id != university.Id)
+            if (university == null || id == null || id != university.Id)
             {
                 return BadRequest();
             }
@@ -74,6 +74,11 @@ namespace ClassTranscribeServer.Controllers
         [Authorize(Roles = Globals.ROLE_ADMIN)]
         public async Task<ActionResult<University>> PostUniversity(University university)
         {
+            if (university == null)
+            {
+                return BadRequest();
+            }
+
             _context.Universities.Add(university);
             await _context.SaveChangesAsync();
 
