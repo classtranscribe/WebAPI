@@ -53,11 +53,7 @@ namespace UnitTests.ControllerTests
                 }
             };
 
-            foreach (var caption in captions)
-            {
-                _context.Captions.Add(caption);
-            }
-
+            _context.Captions.AddRange(captions);
             _context.SaveChanges();
 
             var result = await _controller.GetCaptions(captions[0].TranscriptionId);
@@ -106,11 +102,7 @@ namespace UnitTests.ControllerTests
                 }
             };
 
-            foreach (var caption in captions)
-            {
-                _context.Captions.Add(caption);
-            }
-
+            _context.Captions.AddRange(captions);
             _context.SaveChanges();
 
             var result = await _controller.GetCaption(transcriptionId, index);

@@ -26,63 +26,59 @@ namespace UnitTests.ControllerTests
         [Fact]
         public async Task Basic_Post_Get_Delete_Image()
         {
-            using (var stream = File.OpenRead("Assets/test.png"))
-            {
-                var imageFile = new FormFile(stream, 0, stream.Length, null, Path.GetFileName(stream.Name));
+            using var stream = File.OpenRead("Assets/test.png");
+            var imageFile = new FormFile(stream, 0, stream.Length, null, Path.GetFileName(stream.Name));
 
-                var postResult = await _controller.PostImage(imageFile, "Media", "example_id");
-                Assert.IsType<CreatedAtActionResult>(postResult.Result);
+            var postResult = await _controller.PostImage(imageFile, "Media", "example_id");
+            Assert.IsType<CreatedAtActionResult>(postResult.Result);
 
-                var createdResult = postResult.Result as CreatedAtActionResult;
-                var createdImage = createdResult.Value as Image;
+            var createdResult = postResult.Result as CreatedAtActionResult;
+            var createdImage = createdResult.Value as Image;
 
-                var getResult = await _controller.GetImage(createdImage.Id);
-                Assert.Equal(createdImage, getResult.Value);
+            var getResult = await _controller.GetImage(createdImage.Id);
+            Assert.Equal(createdImage, getResult.Value);
 
-                Assert.Equal(createdImage.ImageFile.Path, getResult.Value.ImageFile.Path);
+            Assert.Equal(createdImage.ImageFile.Path, getResult.Value.ImageFile.Path);
 
-                var deleteResult = await _controller.DeleteImage(createdImage.Id);
-                Assert.Equal(createdImage, deleteResult.Value);
+            var deleteResult = await _controller.DeleteImage(createdImage.Id);
+            Assert.Equal(createdImage, deleteResult.Value);
 
-                getResult = await _controller.GetImage(createdImage.Id);
-                Assert.Equal(Status.Deleted, getResult.Value.IsDeletedStatus);
-            }
+            getResult = await _controller.GetImage(createdImage.Id);
+            Assert.Equal(Status.Deleted, getResult.Value.IsDeletedStatus);
         }
 
         [Fact]
         public async Task Get_Images_By_Source()
         {
-            using (var stream = File.OpenRead("Assets/test.png"))
-            {
-                var imageFile = new FormFile(stream, 0, stream.Length, null, Path.GetFileName(stream.Name));
+            using var stream = File.OpenRead("Assets/test.png");
+            var imageFile = new FormFile(stream, 0, stream.Length, null, Path.GetFileName(stream.Name));
 
-                var imageInfos = new List<(ResourceType sourceType, string sourceId)>
+            var imageInfos = new List<(ResourceType sourceType, string sourceId)>
                 {
                     (ResourceType.EPub, "ePub_id"),
                     (ResourceType.Course, "course_id"),
                     (ResourceType.EPub, "ePub_id")
                 };
 
-                foreach (var imageInfo in imageInfos)
-                {
-                    var postResult = await _controller.PostImage(
-                        imageFile,
-                        imageInfo.sourceType.ToString(),
-                        imageInfo.sourceId
-                    );
+            foreach (var imageInfo in imageInfos)
+            {
+                var postResult = await _controller.PostImage(
+                    imageFile,
+                    imageInfo.sourceType.ToString(),
+                    imageInfo.sourceId
+                );
 
-                    Assert.IsType<CreatedAtActionResult>(postResult.Result);
-                }
-
-                var getResult = await _controller.GetImagesBySource(ResourceType.EPub.ToString(), imageInfos[0].sourceId);
-                List<Image> imagesBySource = getResult.Value.ToList();
-
-                Assert.Equal(2, imagesBySource.Count);
-                Assert.Equal(imageInfos[0].sourceType, imagesBySource[0].SourceType);
-                Assert.Equal(imageInfos[0].sourceId, imagesBySource[0].SourceId);
-                Assert.Equal(imageInfos[2].sourceType, imagesBySource[1].SourceType);
-                Assert.Equal(imageInfos[2].sourceId, imagesBySource[1].SourceId);
+                Assert.IsType<CreatedAtActionResult>(postResult.Result);
             }
+
+            var getResult = await _controller.GetImagesBySource(ResourceType.EPub.ToString(), imageInfos[0].sourceId);
+            List<Image> imagesBySource = getResult.Value.ToList();
+
+            Assert.Equal(2, imagesBySource.Count);
+            Assert.Equal(imageInfos[0].sourceType, imagesBySource[0].SourceType);
+            Assert.Equal(imageInfos[0].sourceId, imagesBySource[0].SourceId);
+            Assert.Equal(imageInfos[2].sourceType, imagesBySource[1].SourceType);
+            Assert.Equal(imageInfos[2].sourceId, imagesBySource[1].SourceId);
         }
 
         [Fact]
