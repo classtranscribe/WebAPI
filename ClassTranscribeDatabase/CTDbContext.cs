@@ -60,7 +60,7 @@ namespace ClassTranscribeDatabase
         public DbSet<Message> Messages { get; set; }
         public DbSet<TaskItem> TaskItems { get; set; }
         public DbSet<Image> Images { get; set; }
-
+        
         /// <summary>
         /// This method builds a connectionstring to connect with the database.
         /// More info, https://www.learnentityframeworkcore.com/connection-strings
@@ -157,6 +157,8 @@ namespace ClassTranscribeDatabase
             // For more info, google "Soft Delete EntityFramework Core"
             //
             // A similar statement must be added for every new table added.
+            // If you decide not to perform soft-delete for a specific table, you should still add the query filter, 
+            // but should also add an "if" clause or equivalent in OnBeforeSaving(). Navigate to this function and see the details.
             builder.Entity<ApplicationUser>().HasQueryFilter(m => m.Status == Status.Active);
             builder.Entity<University>().HasQueryFilter(m => m.IsDeletedStatus == Status.Active);
             builder.Entity<Department>().HasQueryFilter(m => m.IsDeletedStatus == Status.Active);
@@ -178,7 +180,6 @@ namespace ClassTranscribeDatabase
             builder.Entity<Message>().HasQueryFilter(m => m.IsDeletedStatus == Status.Active);
             builder.Entity<EPub>().HasQueryFilter(m => m.IsDeletedStatus == Status.Active);
             builder.Entity<TaskItem>().HasQueryFilter(m => m.IsDeletedStatus == Status.Active);
-
             builder.Entity<Image>().HasQueryFilter(m => m.IsDeletedStatus == Status.Active);
 
             // Configure m-to-n relationships.
@@ -196,7 +197,7 @@ namespace ClassTranscribeDatabase
                 .HasForeignKey(pt => pt.OfferingId);
 
             builder.Entity<UserOffering>()
-            .HasKey(t => new { t.ApplicationUserId, t.OfferingId });
+            .HasKey(t => new { t.ApplicationUserId, t.OfferingId, t.IdentityRoleId });
 
             builder.Entity<UserOffering>()
                 .HasOne(pt => pt.Offering)
@@ -229,7 +230,6 @@ namespace ClassTranscribeDatabase
             builder.Entity<EPub>().Property(m => m.Chapters).HasJsonValueConversion();
             builder.Entity<TaskItem>().Property(m => m.TaskParameters).HasJsonValueConversion();
             builder.Entity<TaskItem>().Property(m => m.ResultData).HasJsonValueConversion();
-
             builder.Entity<TaskItem>().Property(m => m.RemoteResultData).HasJsonValueConversion();
 
 
@@ -250,6 +250,7 @@ namespace ClassTranscribeDatabase
             builder.Entity<TaskItem>().HasAlternateKey(t => new { t.OpaqueMessageRef });
 
         }
+
         public override int SaveChanges(bool acceptAllChangesOnSuccess)
         {
             OnBeforeSaving();
@@ -285,9 +286,16 @@ namespace ClassTranscribeDatabase
                             entity.LastUpdatedAt = now;
                             entity.LastUpdatedBy = user;
                             break;
+
                         case EntityState.Deleted:
-                            entry.State = EntityState.Modified;
-                            entity.IsDeletedStatus = Status.Deleted;
+                            if (entry.Entity is UserOffering)
+                            {
+                                //Do nothing here, do not do soft-delete for this entity.
+                            } else
+                            {
+                                entry.State = EntityState.Modified;
+                                entity.IsDeletedStatus = Status.Deleted;
+                            }
                             break;
                     }
                 }

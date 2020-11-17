@@ -94,7 +94,7 @@ namespace ClassTranscribeServer.Controllers
         // DELETE: api/UserOfferings/5
         [HttpDelete("{offeringId}/{userId}")]
         [Authorize]
-        public async Task<ActionResult<UserOffering>> DeleteUserOffering(string offeringId, string userId)
+        public async Task<ActionResult<List<UserOffering>>> DeleteUserOffering(string offeringId, string userId)
         {
             var offering = await _context.Offerings.FindAsync(offeringId);
             if (offering == null)
@@ -113,13 +113,13 @@ namespace ClassTranscribeServer.Controllers
                     return new ChallengeResult();
                 }
             }
-            var userOffering = await _context.UserOfferings.Where(uo => uo.OfferingId == offeringId && uo.ApplicationUserId == userId).FirstAsync();
+            var userOffering = await _context.UserOfferings.Where(uo => uo.OfferingId == offeringId && uo.ApplicationUserId == userId).ToListAsync();
             if (userOffering == null)
             {
                 return NotFound();
             }
 
-            _context.UserOfferings.Remove(userOffering);
+            _context.UserOfferings.RemoveRange(userOffering);
             await _context.SaveChangesAsync();
 
             return userOffering;
