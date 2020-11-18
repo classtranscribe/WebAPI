@@ -60,7 +60,7 @@ namespace ClassTranscribeDatabase
         public DbSet<Message> Messages { get; set; }
         public DbSet<TaskItem> TaskItems { get; set; }
         public DbSet<Image> Images { get; set; }
-        
+
         /// <summary>
         /// This method builds a connectionstring to connect with the database.
         /// More info, https://www.learnentityframeworkcore.com/connection-strings
