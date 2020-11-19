@@ -24,6 +24,11 @@ namespace ClassTranscribeDatabase.Migrations
                 column: "DeletedAt",
                 value: new DateTime(1900, 2, 1, 0, 0, 0, 0, DateTimeKind.Utc));
 
+            migrationBuilder.Sql(
+                "UPDATE \"WatchHistories\" " +
+                "SET \"DeletedAt\" = \"LastUpdatedAt\" " +
+                "WHERE \"IsDeletedStatus\" = 1 AND \"LastUpdatedAt\" IS NOT NULL");
+
             migrationBuilder.AddColumn<DateTime>(
                 name: "DeletedAt",
                 table: "Videos",
@@ -41,6 +46,11 @@ namespace ClassTranscribeDatabase.Migrations
                 column: "DeletedAt",
                 value: new DateTime(1900, 2, 1, 0, 0, 0, 0, DateTimeKind.Utc));
 
+            migrationBuilder.Sql(
+                "UPDATE \"Videos\" " +
+                "SET \"DeletedAt\" = \"LastUpdatedAt\" " +
+                "WHERE \"IsDeletedStatus\" = 1 AND \"LastUpdatedAt\" IS NOT NULL");
+
             migrationBuilder.AddColumn<DateTime>(
                 name: "DeletedAt",
                 table: "UserOfferings",
@@ -56,7 +66,12 @@ namespace ClassTranscribeDatabase.Migrations
                 keyColumn: "IsDeletedStatus",
                 keyValue: 1,
                 column: "DeletedAt",
-                value: new DateTime(1900, 2, 1, 0, 0, 0, 0, DateTimeKind.Utc));    
+                value: new DateTime(1900, 2, 1, 0, 0, 0, 0, DateTimeKind.Utc));
+
+            migrationBuilder.Sql(
+                "UPDATE \"UserOfferings\" " +
+                "SET \"DeletedAt\" = \"LastUpdatedAt\" " +
+                "WHERE \"IsDeletedStatus\" = 1 AND \"LastUpdatedAt\" IS NOT NULL");
 
             migrationBuilder.AddColumn<DateTime>(
                 name: "DeletedAt",
@@ -73,7 +88,12 @@ namespace ClassTranscribeDatabase.Migrations
                 keyColumn: "IsDeletedStatus",
                 keyValue: 1,
                 column: "DeletedAt",
-                value: new DateTime(1900, 2, 1, 0, 0, 0, 0, DateTimeKind.Utc));    
+                value: new DateTime(1900, 2, 1, 0, 0, 0, 0, DateTimeKind.Utc));
+
+            migrationBuilder.Sql(
+                "UPDATE \"Universities\" " +
+                "SET \"DeletedAt\" = \"LastUpdatedAt\" " +
+                "WHERE \"IsDeletedStatus\" = 1 AND \"LastUpdatedAt\" IS NOT NULL");
 
             migrationBuilder.AddColumn<DateTime>(
                 name: "DeletedAt",
@@ -90,7 +110,12 @@ namespace ClassTranscribeDatabase.Migrations
                 keyColumn: "IsDeletedStatus",
                 keyValue: 1,
                 column: "DeletedAt",
-                value: new DateTime(1900, 2, 1, 0, 0, 0, 0, DateTimeKind.Utc));    
+                value: new DateTime(1900, 2, 1, 0, 0, 0, 0, DateTimeKind.Utc));
+
+            migrationBuilder.Sql(
+                "UPDATE \"Transcriptions\" " +
+                "SET \"DeletedAt\" = \"LastUpdatedAt\" " +
+                "WHERE \"IsDeletedStatus\" = 1 AND \"LastUpdatedAt\" IS NOT NULL");
 
             migrationBuilder.AddColumn<DateTime>(
                 name: "DeletedAt",
@@ -107,7 +132,12 @@ namespace ClassTranscribeDatabase.Migrations
                 keyColumn: "IsDeletedStatus",
                 keyValue: 1,
                 column: "DeletedAt",
-                value: new DateTime(1900, 2, 1, 0, 0, 0, 0, DateTimeKind.Utc));    
+                value: new DateTime(1900, 2, 1, 0, 0, 0, 0, DateTimeKind.Utc));
+
+            migrationBuilder.Sql(
+                "UPDATE \"Terms\" " +
+                "SET \"DeletedAt\" = \"LastUpdatedAt\" " +
+                "WHERE \"IsDeletedStatus\" = 1 AND \"LastUpdatedAt\" IS NOT NULL");
 
             migrationBuilder.AddColumn<DateTime>(
                 name: "DeletedAt",
@@ -124,7 +154,12 @@ namespace ClassTranscribeDatabase.Migrations
                 keyColumn: "IsDeletedStatus",
                 keyValue: 1,
                 column: "DeletedAt",
-                value: new DateTime(1900, 2, 1, 0, 0, 0, 0, DateTimeKind.Utc));    
+                value: new DateTime(1900, 2, 1, 0, 0, 0, 0, DateTimeKind.Utc));
+
+            migrationBuilder.Sql(
+                "UPDATE \"TaskItems\" " +
+                "SET \"DeletedAt\" = \"LastUpdatedAt\" " +
+                "WHERE \"IsDeletedStatus\" = 1 AND \"LastUpdatedAt\" IS NOT NULL");
 
             migrationBuilder.AddColumn<DateTime>(
                 name: "DeletedAt",
@@ -141,7 +176,12 @@ namespace ClassTranscribeDatabase.Migrations
                 keyColumn: "IsDeletedStatus",
                 keyValue: 1,
                 column: "DeletedAt",
-                value: new DateTime(1900, 2, 1, 0, 0, 0, 0, DateTimeKind.Utc));    
+                value: new DateTime(1900, 2, 1, 0, 0, 0, 0, DateTimeKind.Utc));
+
+            migrationBuilder.Sql(
+                "UPDATE \"Subscriptions\" " +
+                "SET \"DeletedAt\" = \"LastUpdatedAt\" " +
+                "WHERE \"IsDeletedStatus\" = 1 AND \"LastUpdatedAt\" IS NOT NULL");
 
             migrationBuilder.AddColumn<DateTime>(
                 name: "DeletedAt",
@@ -158,7 +198,12 @@ namespace ClassTranscribeDatabase.Migrations
                 keyColumn: "IsDeletedStatus",
                 keyValue: 1,
                 column: "DeletedAt",
-                value: new DateTime(1900, 2, 1, 0, 0, 0, 0, DateTimeKind.Utc));    
+                value: new DateTime(1900, 2, 1, 0, 0, 0, 0, DateTimeKind.Utc));
+
+            migrationBuilder.Sql(
+                "UPDATE \"Playlists\" " +
+                "SET \"DeletedAt\" = \"LastUpdatedAt\" " +
+                "WHERE \"IsDeletedStatus\" = 1 AND \"LastUpdatedAt\" IS NOT NULL");
 
             migrationBuilder.AddColumn<DateTime>(
                 name: "DeletedAt",
@@ -175,7 +220,12 @@ namespace ClassTranscribeDatabase.Migrations
                 keyColumn: "IsDeletedStatus",
                 keyValue: 1,
                 column: "DeletedAt",
-                value: new DateTime(1900, 2, 1, 0, 0, 0, 0, DateTimeKind.Utc));    
+                value: new DateTime(1900, 2, 1, 0, 0, 0, 0, DateTimeKind.Utc));
+
+            migrationBuilder.Sql(
+                "UPDATE \"Offerings\" " +
+                "SET \"DeletedAt\" = \"LastUpdatedAt\" " +
+                "WHERE \"IsDeletedStatus\" = 1 AND \"LastUpdatedAt\" IS NOT NULL");
 
             migrationBuilder.AddColumn<DateTime>(
                 name: "DeletedAt",
@@ -192,7 +242,12 @@ namespace ClassTranscribeDatabase.Migrations
                 keyColumn: "IsDeletedStatus",
                 keyValue: 1,
                 column: "DeletedAt",
-                value: new DateTime(1900, 2, 1, 0, 0, 0, 0, DateTimeKind.Utc));    
+                value: new DateTime(1900, 2, 1, 0, 0, 0, 0, DateTimeKind.Utc));
+
+            migrationBuilder.Sql(
+                "UPDATE \"Messages\" " +
+                "SET \"DeletedAt\" = \"LastUpdatedAt\" " +
+                "WHERE \"IsDeletedStatus\" = 1 AND \"LastUpdatedAt\" IS NOT NULL");
 
             migrationBuilder.AddColumn<DateTime>(
                 name: "DeletedAt",
@@ -209,7 +264,12 @@ namespace ClassTranscribeDatabase.Migrations
                 keyColumn: "IsDeletedStatus",
                 keyValue: 1,
                 column: "DeletedAt",
-                value: new DateTime(1900, 2, 1, 0, 0, 0, 0, DateTimeKind.Utc));    
+                value: new DateTime(1900, 2, 1, 0, 0, 0, 0, DateTimeKind.Utc));
+
+            migrationBuilder.Sql(
+                "UPDATE \"Medias\" " +
+                "SET \"DeletedAt\" = \"LastUpdatedAt\" " +
+                "WHERE \"IsDeletedStatus\" = 1 AND \"LastUpdatedAt\" IS NOT NULL");
 
             migrationBuilder.AddColumn<DateTime>(
                 name: "DeletedAt",
@@ -226,7 +286,12 @@ namespace ClassTranscribeDatabase.Migrations
                 keyColumn: "IsDeletedStatus",
                 keyValue: 1,
                 column: "DeletedAt",
-                value: new DateTime(1900, 2, 1, 0, 0, 0, 0, DateTimeKind.Utc));    
+                value: new DateTime(1900, 2, 1, 0, 0, 0, 0, DateTimeKind.Utc));
+
+            migrationBuilder.Sql(
+                "UPDATE \"Logs\" " +
+                "SET \"DeletedAt\" = \"LastUpdatedAt\" " +
+                "WHERE \"IsDeletedStatus\" = 1 AND \"LastUpdatedAt\" IS NOT NULL");
 
             migrationBuilder.AddColumn<DateTime>(
                 name: "DeletedAt",
@@ -243,7 +308,12 @@ namespace ClassTranscribeDatabase.Migrations
                 keyColumn: "IsDeletedStatus",
                 keyValue: 1,
                 column: "DeletedAt",
-                value: new DateTime(1900, 2, 1, 0, 0, 0, 0, DateTimeKind.Utc));    
+                value: new DateTime(1900, 2, 1, 0, 0, 0, 0, DateTimeKind.Utc));
+
+            migrationBuilder.Sql(
+                "UPDATE \"Images\" " +
+                "SET \"DeletedAt\" = \"LastUpdatedAt\" " +
+                "WHERE \"IsDeletedStatus\" = 1 AND \"LastUpdatedAt\" IS NOT NULL");
 
             migrationBuilder.AddColumn<DateTime>(
                 name: "DeletedAt",
@@ -260,7 +330,12 @@ namespace ClassTranscribeDatabase.Migrations
                 keyColumn: "IsDeletedStatus",
                 keyValue: 1,
                 column: "DeletedAt",
-                value: new DateTime(1900, 2, 1, 0, 0, 0, 0, DateTimeKind.Utc));    
+                value: new DateTime(1900, 2, 1, 0, 0, 0, 0, DateTimeKind.Utc));
+
+            migrationBuilder.Sql(
+                "UPDATE \"FileRecords\" " +
+                "SET \"DeletedAt\" = \"LastUpdatedAt\" " +
+                "WHERE \"IsDeletedStatus\" = 1 AND \"LastUpdatedAt\" IS NOT NULL");
 
             migrationBuilder.AddColumn<DateTime>(
                 name: "DeletedAt",
@@ -277,7 +352,12 @@ namespace ClassTranscribeDatabase.Migrations
                 keyColumn: "IsDeletedStatus",
                 keyValue: 1,
                 column: "DeletedAt",
-                value: new DateTime(1900, 2, 1, 0, 0, 0, 0, DateTimeKind.Utc));    
+                value: new DateTime(1900, 2, 1, 0, 0, 0, 0, DateTimeKind.Utc));
+
+            migrationBuilder.Sql(
+                "UPDATE \"EPubs\" " +
+                "SET \"DeletedAt\" = \"LastUpdatedAt\" " +
+                "WHERE \"IsDeletedStatus\" = 1 AND \"LastUpdatedAt\" IS NOT NULL");
 
             migrationBuilder.AddColumn<DateTime>(
                 name: "DeletedAt",
@@ -294,7 +374,12 @@ namespace ClassTranscribeDatabase.Migrations
                 keyColumn: "IsDeletedStatus",
                 keyValue: 1,
                 column: "DeletedAt",
-                value: new DateTime(1900, 2, 1, 0, 0, 0, 0, DateTimeKind.Utc));    
+                value: new DateTime(1900, 2, 1, 0, 0, 0, 0, DateTimeKind.Utc));
+
+            migrationBuilder.Sql(
+                "UPDATE \"Dictionaries\" " +
+                "SET \"DeletedAt\" = \"LastUpdatedAt\" " +
+                "WHERE \"IsDeletedStatus\" = 1 AND \"LastUpdatedAt\" IS NOT NULL");
 
             migrationBuilder.AddColumn<DateTime>(
                 name: "DeletedAt",
@@ -311,7 +396,12 @@ namespace ClassTranscribeDatabase.Migrations
                 keyColumn: "IsDeletedStatus",
                 keyValue: 1,
                 column: "DeletedAt",
-                value: new DateTime(1900, 2, 1, 0, 0, 0, 0, DateTimeKind.Utc));    
+                value: new DateTime(1900, 2, 1, 0, 0, 0, 0, DateTimeKind.Utc));
+
+            migrationBuilder.Sql(
+                "UPDATE \"Departments\" " +
+                "SET \"DeletedAt\" = \"LastUpdatedAt\" " +
+                "WHERE \"IsDeletedStatus\" = 1 AND \"LastUpdatedAt\" IS NOT NULL");
 
             migrationBuilder.AddColumn<DateTime>(
                 name: "DeletedAt",
@@ -328,7 +418,12 @@ namespace ClassTranscribeDatabase.Migrations
                 keyColumn: "IsDeletedStatus",
                 keyValue: 1,
                 column: "DeletedAt",
-                value: new DateTime(1900, 2, 1, 0, 0, 0, 0, DateTimeKind.Utc));    
+                value: new DateTime(1900, 2, 1, 0, 0, 0, 0, DateTimeKind.Utc));
+
+            migrationBuilder.Sql(
+                "UPDATE \"Courses\" " +
+                "SET \"DeletedAt\" = \"LastUpdatedAt\" " +
+                "WHERE \"IsDeletedStatus\" = 1 AND \"LastUpdatedAt\" IS NOT NULL");
 
             migrationBuilder.AddColumn<DateTime>(
                 name: "DeletedAt",
@@ -345,7 +440,12 @@ namespace ClassTranscribeDatabase.Migrations
                 keyColumn: "IsDeletedStatus",
                 keyValue: 1,
                 column: "DeletedAt",
-                value: new DateTime(1900, 2, 1, 0, 0, 0, 0, DateTimeKind.Utc));    
+                value: new DateTime(1900, 2, 1, 0, 0, 0, 0, DateTimeKind.Utc));
+
+            migrationBuilder.Sql(
+                "UPDATE \"CourseOfferings\" " +
+                "SET \"DeletedAt\" = \"LastUpdatedAt\" " +
+                "WHERE \"IsDeletedStatus\" = 1 AND \"LastUpdatedAt\" IS NOT NULL");
 
             migrationBuilder.AddColumn<DateTime>(
                 name: "DeletedAt",
@@ -362,7 +462,12 @@ namespace ClassTranscribeDatabase.Migrations
                 keyColumn: "IsDeletedStatus",
                 keyValue: 1,
                 column: "DeletedAt",
-                value: new DateTime(1900, 2, 1, 0, 0, 0, 0, DateTimeKind.Utc));    
+                value: new DateTime(1900, 2, 1, 0, 0, 0, 0, DateTimeKind.Utc));
+
+            migrationBuilder.Sql(
+                "UPDATE \"Captions\" " +
+                "SET \"DeletedAt\" = \"LastUpdatedAt\" " +
+                "WHERE \"IsDeletedStatus\" = 1 AND \"LastUpdatedAt\" IS NOT NULL");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
