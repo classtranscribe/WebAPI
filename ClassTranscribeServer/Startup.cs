@@ -17,8 +17,10 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Nest;
 using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
@@ -149,6 +151,12 @@ namespace ClassTranscribeServer
             services.AddScoped<Seeder>();
             services.AddScoped<UserUtils>();
             services.AddScoped<CaptionQueries>();
+
+            // Configure ElasticSearch client
+            var connection = new Uri(Globals.appSettings.ES_CONNECTION_ADDR);
+            using var settings = new ConnectionSettings(connection);
+            var client = new ElasticClient(settings);
+            services.AddSingleton<IElasticClient>(client);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
