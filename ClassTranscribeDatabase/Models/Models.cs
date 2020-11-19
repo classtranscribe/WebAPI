@@ -103,6 +103,12 @@ namespace ClassTranscribeDatabase.Models
         [SwaggerIgnore]
         [IgnoreDataMember]
         public Status IsDeletedStatus { get; set; }
+        [SwaggerIgnore]
+        [IgnoreDataMember]
+        public DateTime DeletedAt { get; set; }
+        [SwaggerIgnore]
+        [IgnoreDataMember]
+        public string DeletedBy { get; set; }
 
         public ResourceType GetResourceType()
         {
