@@ -60,8 +60,11 @@ namespace ClassTranscribeServer.Controllers
             var user = await _userUtils.GetUser(User);
             if (user != null)
             {
-                var watchedMedias = await _context.WatchHistories
+                return _context.WatchHistories
                     .Where(w => w.ApplicationUserId == user.Id && w.Media.Id != null)
+                    .AsEnumerable()
+                    .GroupBy(w => w.MediaId)
+                    .Select(g => g.OrderByDescending(w => w.LastUpdatedAt).FirstOrDefault())
                     .Select(w => new MediaDTO
                     {
                         Id = w.Media.Id,
@@ -73,9 +76,7 @@ namespace ClassTranscribeServer.Controllers
                         WatchHistory = w
                     })
                     .OrderByDescending(m => m.WatchHistory.LastUpdatedAt)
-                    .ToListAsync();
-
-                return watchedMedias;
+                    .ToList();
             }
             else
             {
