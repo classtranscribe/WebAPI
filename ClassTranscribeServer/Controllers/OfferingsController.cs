@@ -37,36 +37,38 @@ namespace ClassTranscribeServer.Controllers
             // Store the results
             List<Offering> offerings = await _context.Offerings.ToListAsync();
 
-
-            // Filter out offerings where there is no media items available.
-            var filteredOfferings = offerings
+            // Filter out offerings where there is no media items available
+            return offerings
                 .FindAll(o => o.Playlists != null && o.Playlists.SelectMany(m => m.Medias).Any())
                 .OrderBy(o => o.Term.StartDate)
+                .Select(o => GetOfferingDTO(o))
                 .ToList();
+        }
 
-            var offeringListDTO = filteredOfferings.Select(o => new OfferingDTO
+        // GET: api/Offerings/ByInstructor/{userId}
+        /// <summary>
+        /// Gets all offerings for an instructor
+        /// </summary>
+        [HttpGet("ByInstructor/{userId}")]
+        [Authorize(Roles = Globals.ROLE_ADMIN + "," + Globals.ROLE_INSTRUCTOR)]
+        public async Task<ActionResult<IEnumerable<OfferingDTO>>> GetOfferingsByInstructor(string userId)
+        {
+            var user = await _userUtils.GetUser(User);
+
+            // This endpoint should be accessible only for the instructor who send the request (and admins)
+            if (user == null || (user.Id != userId && !User.IsInRole(Globals.ROLE_ADMIN)))
             {
-                Offering = o,
-                Courses = o.CourseOfferings.Select(co => new CourseDTO
-                {
-                    CourseId = co.Course.Id,
-                    CourseNumber = co.Course.CourseNumber,
-                    DepartmentId = co.Course.DepartmentId,
-                    DepartmentAcronym = co.Course.Department.Acronym
-                }).ToList(),
-                Term = o.Term,
-                InstructorIds = o.OfferingUsers
-                .Where(uo => uo.IdentityRole.Name == Globals.ROLE_INSTRUCTOR)
-                .Select(uo => new ApplicationUser
-                {
-                    Id = uo.ApplicationUser.Id,
-                    Email = uo.ApplicationUser.Email,
-                    FirstName = uo.ApplicationUser.FirstName,
-                    LastName = uo.ApplicationUser.LastName
-                }).ToList()
-            }).ToList();
+                return Unauthorized();
+            }
 
-            return offeringListDTO;
+            // Store the results
+            List<Offering> offerings = await _context.Offerings.ToListAsync();
+
+            return offerings
+                .FindAll(o => o.OfferingUsers.Where(uo => uo.ApplicationUserId == userId && uo.IdentityRole.Name == Globals.ROLE_INSTRUCTOR).Any())
+                .OrderByDescending(o => o.CreatedAt)
+                .Select(o => GetOfferingDTO(o))
+                .ToList();
         }
 
         // GET: api/Offerings/5
@@ -81,30 +83,7 @@ namespace ClassTranscribeServer.Controllers
                 return NotFound();
             }
 
-            OfferingDTO offeringDTO = new OfferingDTO
-            {
-                Offering = offering,
-                Courses = offering.CourseOfferings
-                .Select(co => new CourseDTO
-                {
-                    CourseId = co.Course.Id,
-                    CourseNumber = co.Course.CourseNumber,
-                    DepartmentId = co.Course.DepartmentId,
-                    DepartmentAcronym = co.Course.Department.Acronym
-                }).ToList(),
-                Term = offering.Term,
-                InstructorIds = offering.OfferingUsers
-                .Where(uo => uo.IdentityRole.Name == Globals.ROLE_INSTRUCTOR)
-                .Select(uo => new ApplicationUser
-                {
-                    Id = uo.ApplicationUser.Id,
-                    Email = uo.ApplicationUser.Email,
-                    FirstName = uo.ApplicationUser.FirstName,
-                    LastName = uo.ApplicationUser.LastName
-                }).ToList()
-            };
-
-            return offeringDTO;
+            return GetOfferingDTO(offering);
         }
 
         // PUT: api/Offerings/5
@@ -294,6 +273,32 @@ namespace ClassTranscribeServer.Controllers
         private bool OfferingExists(string id)
         {
             return _context.Offerings.Any(e => e.Id == id);
+        }
+
+        private OfferingDTO GetOfferingDTO(Offering offering)
+        {
+            return new OfferingDTO
+            {
+                Offering = offering,
+                Courses = offering.CourseOfferings
+                .Select(co => new CourseDTO
+                {
+                    CourseId = co.Course.Id,
+                    CourseNumber = co.Course.CourseNumber,
+                    DepartmentId = co.Course.DepartmentId,
+                    DepartmentAcronym = co.Course.Department.Acronym
+                }).ToList(),
+                Term = offering.Term,
+                InstructorIds = offering.OfferingUsers
+                .Where(uo => uo.IdentityRole.Name == Globals.ROLE_INSTRUCTOR)
+                .Select(uo => new ApplicationUser
+                {
+                    Id = uo.ApplicationUser.Id,
+                    Email = uo.ApplicationUser.Email,
+                    FirstName = uo.ApplicationUser.FirstName,
+                    LastName = uo.ApplicationUser.LastName
+                }).ToList()
+            };
         }
 
         public class NewOfferingDTO

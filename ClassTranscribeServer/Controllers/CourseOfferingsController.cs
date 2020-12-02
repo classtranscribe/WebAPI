@@ -102,11 +102,6 @@ namespace ClassTranscribeServer.Controllers
             return courseOfferings;
         }
 
-        private bool CourseOfferingExists(string id)
-        {
-            return _context.CourseOfferings.Any(e => e.CourseId == id);
-        }
-
         public class CourseOfferingDTO
         {
             public Course Course { get; set; }
