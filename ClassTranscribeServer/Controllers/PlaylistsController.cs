@@ -105,6 +105,7 @@ namespace ClassTranscribeServer.Controllers
                     CreatedAt = m.CreatedAt,
                     Ready = m.Video.Transcriptions.Any(),
                     SourceType = m.SourceType,
+                    Duration = m.Video.Duration,
                     Video = new VideoDTO
                     {
                         Id = m.Video.Id,
@@ -167,6 +168,7 @@ namespace ClassTranscribeServer.Controllers
                     CreatedAt = m.CreatedAt,
                     JsonMetadata = m.JsonMetadata,
                     SourceType = m.SourceType,
+                    Duration = m.Video.Duration,
                     Ready = m.Video == null ? false : m.Video.Transcriptions.Any(),
                     Video = m.Video == null ? null : new VideoDTO
                     {

@@ -70,6 +70,7 @@ namespace ClassTranscribeServer.Controllers
                         CreatedAt = w.Media.CreatedAt,
                         JsonMetadata = w.Media.JsonMetadata,
                         SourceType = w.Media.SourceType,
+                        Duration = w.Media.Video.Duration,
                         WatchHistory = w
                     })
                     .OrderByDescending(m => m.WatchHistory.LastUpdatedAt)
