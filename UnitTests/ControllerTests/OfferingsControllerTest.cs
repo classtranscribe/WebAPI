@@ -176,7 +176,6 @@ namespace UnitTests.ControllerTests
             AssertOfferingDTO(offeringsByStudent[0], offerings[1], courseId, departmentId);
         }
 
-        // TODO
         [Fact]
         public async Task Get_Offerings_By_Instructor()
         {
