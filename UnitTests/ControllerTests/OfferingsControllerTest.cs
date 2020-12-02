@@ -176,6 +176,80 @@ namespace UnitTests.ControllerTests
             AssertOfferingDTO(offeringsByStudent[0], offerings[1], courseId, departmentId);
         }
 
+        // TODO
+        [Fact]
+        public async Task Get_Offerings_By_Instructor()
+        {
+            var departmentId = "0001";
+            var courseId = "001";
+            var termId = "000";
+            SetupEntities(departmentId, courseId, termId);
+
+            var offerings = new List<Offering> {
+                new Offering
+                {
+                    SectionName = "A",
+                    TermId = termId
+                },
+                new Offering
+                {
+                    SectionName = "B",
+                    TermId = termId
+                },
+                new Offering
+                {
+                    SectionName = "C",
+                    TermId = termId
+                }
+            };
+
+            foreach (var offering in offerings)
+            {
+                var offeringDTO = new NewOfferingDTO
+                {
+                    Offering = offering,
+                    CourseId = courseId
+                };
+
+                var postResult = await _controller.PostNewOffering(offeringDTO);
+                Assert.IsType<CreatedAtActionResult>(postResult.Result);
+            }
+
+            // This offering shouldn't be returned because it was made by a different user
+            var ignoredOfferingId = "shouldIgnore";
+            _context.Offerings.Add(new Offering
+            {
+                Id = ignoredOfferingId,
+                SectionName = "D",
+                TermId = termId
+            });
+            _context.CourseOfferings.Add(new CourseOffering
+            {
+                CourseId = courseId,
+                OfferingId = ignoredOfferingId
+            });
+            _context.UserOfferings.Add(new UserOffering
+            {
+                ApplicationUserId = "otherUser",
+                IdentityRole = _context.Roles.Where(r => r.Name == Globals.ROLE_INSTRUCTOR).FirstOrDefault(),
+                OfferingId = ignoredOfferingId
+            });
+            _context.SaveChanges();
+
+            var getResult = await _controller.GetOfferingsByInstructor(TestGlobals.TEST_USER_ID);
+            List<OfferingDTO> offeringsByInstructor = getResult.Value.ToList();
+
+            Assert.Equal(3, offeringsByInstructor.Count());
+
+            for (int i = 0; i < offerings.Count(); i++)
+            {
+                // The returned offerings should be in opposite order because they are
+                // returned in descending order based on when they were created
+                var reverseIdx = offerings.Count() - i - 1;
+                AssertOfferingDTO(offeringsByInstructor[reverseIdx], offerings[i], courseId, departmentId);
+            }
+        }
+
         [Fact]
         public async Task Post_Invalid_and_Valid_Offerings()
         {
@@ -275,6 +349,38 @@ namespace UnitTests.ControllerTests
         }
 
         [Fact]
+        public async Task Get_Offerings_By_Instructor_Access_Control()
+        {
+            var otherUserId = "otherUser";
+            _context.Users.AddRange(new List<ApplicationUser>()
+            {
+                new ApplicationUser { Id = TestGlobals.TEST_USER_ID },
+                new ApplicationUser { Id = otherUserId },
+            });
+            _context.SaveChanges();
+
+            var getResult = await _controller.GetOfferingsByInstructor("none");
+            Assert.IsType<UnauthorizedResult>(getResult.Result);
+
+            getResult = await _controller.GetOfferingsByInstructor(null);
+            Assert.IsType<UnauthorizedResult>(getResult.Result);
+
+            // Tests are setup to be "logged in" as the TEST_USER, so this should pass
+            getResult = await _controller.GetOfferingsByInstructor(TestGlobals.TEST_USER_ID);
+            Assert.Empty(getResult.Value);
+
+            // Unauthorized because instructors should only be able to access their own data
+            getResult = await _controller.GetOfferingsByInstructor(otherUserId);
+            Assert.IsType<UnauthorizedResult>(getResult.Result);
+
+            MakeTestUserAdmin();
+
+            // Now authorized because admins can access all data
+            getResult = await _controller.GetOfferingsByInstructor(otherUserId);
+            Assert.IsType<UnauthorizedResult>(getResult.Result);
+        }
+
+        [Fact]
         public async Task Post_Null_Offering()
         {
             var postResult = await _controller.PostNewOffering(null);
@@ -287,6 +393,7 @@ namespace UnitTests.ControllerTests
             Assert.Single(offeringDTO.Courses);
             Assert.Equal(courseId, offeringDTO.Courses[0].CourseId);
             Assert.Equal(departmentId, offeringDTO.Courses[0].DepartmentId);
+            Assert.Equal(departmentId, offeringDTO.Courses[0].DepartmentAcronym);
             Assert.Single(offeringDTO.InstructorIds);
             Assert.Equal(TestGlobals.TEST_USER_ID, offeringDTO.InstructorIds[0].Id);
             Assert.Equal(offering.TermId, offeringDTO.Term.Id);
@@ -294,7 +401,11 @@ namespace UnitTests.ControllerTests
 
         private void SetupEntities(string departmentId, string courseId, string termId)
         {
-            _context.Departments.Add(new Department { Id = departmentId });
+            _context.Departments.Add(new Department {
+                Id = departmentId,
+                Acronym = departmentId,
+            });
+
             _context.Terms.Add(new Term { Id = termId });
             _context.Users.Add(new ApplicationUser { Id = TestGlobals.TEST_USER_ID });
 
@@ -302,7 +413,7 @@ namespace UnitTests.ControllerTests
             {
                 Id = courseId,
                 CourseNumber = courseId,
-                DepartmentId = departmentId
+                DepartmentId = departmentId,
             });
 
             _context.Roles.Add(new IdentityRole
@@ -310,6 +421,26 @@ namespace UnitTests.ControllerTests
                 Name = Globals.ROLE_INSTRUCTOR,
                 NormalizedName = Globals.ROLE_INSTRUCTOR.ToUpper()
             });
+        }
+
+        private void MakeTestUserAdmin()
+        {
+            string adminId = "admin";
+
+            _context.Roles.Add(new IdentityRole
+            {
+                Id = adminId,
+                Name = Globals.ROLE_ADMIN,
+                NormalizedName = Globals.ROLE_ADMIN.ToUpper()
+            });
+
+            _context.UserRoles.Add(new IdentityUserRole<string>
+            {
+                RoleId = adminId,
+                UserId = TestGlobals.TEST_USER_ID
+            });
+
+            _context.SaveChanges();
         }
     }
 }
