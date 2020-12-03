@@ -54,10 +54,8 @@ namespace ClassTranscribeServer.Controllers
                 {
                     return new ForbidResult();
                 }
-                else
-                {
-                    return new ChallengeResult();
-                }
+
+                return new ChallengeResult();
             }
             var temp = await _context.Logs.Where(l => l.OfferingId == offeringId && l.EventType == "filtertrans").ToListAsync();
             return temp.GroupBy(l => l.Json["value"].ToString())
@@ -89,10 +87,8 @@ namespace ClassTranscribeServer.Controllers
                 {
                     return new ForbidResult();
                 }
-                else
-                {
-                    return new ChallengeResult();
-                }
+
+                return new ChallengeResult();
             }
             // Get the user
             var user = await _userUtils.GetUser(User);
@@ -206,10 +202,8 @@ namespace ClassTranscribeServer.Controllers
                 {
                     return new ForbidResult();
                 }
-                else
-                {
-                    return new ChallengeResult();
-                }
+
+                return new ChallengeResult();
             }
 
             DateTime startTime = start ?? DateTime.Now.AddMonths(-1);
@@ -295,10 +289,8 @@ namespace ClassTranscribeServer.Controllers
                 {
                     return new ForbidResult();
                 }
-                else
-                {
-                    return new ChallengeResult();
-                }
+
+                return new ChallengeResult();
             }
 
             var medias = await _context.Medias
