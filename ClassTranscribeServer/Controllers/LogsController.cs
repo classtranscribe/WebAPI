@@ -301,7 +301,7 @@ namespace ClassTranscribeServer.Controllers
                 .Where(l => l.OfferingId == offeringId && l.EventType == eventType)
                 .ToListAsync();
 
-            IEnumerable<CourseLog> logs = timeUpdateEvents.GroupBy(x => x.UserId).Select(g => new CourseLog
+            return timeUpdateEvents.GroupBy(x => x.UserId).Select(g => new CourseLog
             {
                 User = _context.Users.Where(u => u.Id == g.Key).Select(u => new UserDetails
                 {
@@ -314,15 +314,13 @@ namespace ClassTranscribeServer.Controllers
                 {
                     MediaId = m.Id,
                     MediaName = m.Name,
-                    LastHr = g.Where(l => l.MediaId == m.Id && m.CreatedAt >= DateTime.Now.AddHours(-1)).Count(),
-                    Last3days = g.Where(l => l.MediaId == m.Id && m.CreatedAt >= DateTime.Now.AddDays(-3)).Count(),
-                    LastWeek = g.Where(l => l.MediaId == m.Id && m.CreatedAt >= DateTime.Now.AddDays(-7)).Count(),
-                    LastMonth = g.Where(l => l.MediaId == m.Id && m.CreatedAt >= DateTime.Now.AddMonths(-1)).Count(),
+                    LastHr = g.Where(l => l.MediaId == m.Id && l.CreatedAt >= DateTime.Now.AddHours(-1)).Count(),
+                    Last3days = g.Where(l => l.MediaId == m.Id && l.CreatedAt >= DateTime.Now.AddDays(-3)).Count(),
+                    LastWeek = g.Where(l => l.MediaId == m.Id && l.CreatedAt >= DateTime.Now.AddDays(-7)).Count(),
+                    LastMonth = g.Where(l => l.MediaId == m.Id && l.CreatedAt >= DateTime.Now.AddMonths(-1)).Count(),
                     Total = g.Where(l => l.MediaId == m.Id).Count(),
                 }).ToList()
-            });
-
-            return Ok(logs);
+            }).ToList();
         }
 
         /// <summary>

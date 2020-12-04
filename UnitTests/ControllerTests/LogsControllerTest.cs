@@ -334,6 +334,186 @@ namespace UnitTests.ControllerTests
         }
 
         [Fact]
+        public async Task Get_All_Course_Logs_Success()
+        {
+            var offering = new Offering
+            {
+                Id = "offering",
+                Playlists = new List<Playlist> {
+                    new Playlist
+                    {
+                        Medias = new List<Media>
+                        {
+                            new Media
+                            {
+                                Id = "media1",
+                                Name = "media1",
+                                Index = 0
+                            },
+                            new Media
+                            {
+                                Id = "media2",
+                                Name = "media2",
+                                Index = 1
+                            }
+                        }
+                    }
+                }
+            };
+
+            _context.Offerings.Add(offering);
+            _context.SaveChanges();
+
+            var result = await _controller.GetAllCourseLogs(offering.Id, string.Empty);
+            Assert.Empty(result.Value);
+
+            result = await _controller.GetAllCourseLogs(offering.Id);
+            Assert.Empty(result.Value);
+
+            var users = new List<ApplicationUser>
+            {
+                new ApplicationUser { Id = TestGlobals.TEST_USER_ID, FirstName = "test" },
+                new ApplicationUser { Id = "otherUser", FirstName = "other" },
+            };
+
+            var logs = new List<Log>
+            {
+                new Log
+                {
+                    UserId = users[0].Id,
+                    OfferingId = offering.Id,
+                    MediaId = offering.Playlists[0].Medias[0].Id,
+                    EventType = "timeupdate"
+                },
+                new Log
+                {
+                    UserId = users[0].Id,
+                    OfferingId = offering.Id,
+                    MediaId = offering.Playlists[0].Medias[0].Id,
+                    EventType = "timeupdate"
+                },
+                new Log
+                {
+                    UserId = users[0].Id,
+                    OfferingId = offering.Id,
+                    MediaId = offering.Playlists[0].Medias[1].Id,
+                    EventType = "other"
+                },
+                new Log
+                {
+                    UserId = users[0].Id,
+                    OfferingId = offering.Id,
+                    MediaId = offering.Playlists[0].Medias[1].Id,
+                    EventType = "timeupdate"
+                },
+                new Log
+                {
+                    UserId = users[1].Id,
+                    OfferingId = offering.Id,
+                    MediaId = offering.Playlists[0].Medias[0].Id,
+                    EventType = "timeupdate"
+                }
+            };
+
+            _context.Users.AddRange(users);
+            _context.Logs.AddRange(logs);
+            _context.SaveChanges();
+
+            result = await _controller.GetAllCourseLogs(offering.Id);
+
+            Assert.Equal(2, result.Value.Count());
+
+            var testUserLogs = result.Value.First(userLogInfo => userLogInfo.User.Id == users[0].Id);
+            var otherUserLogs = result.Value.First(userLogInfo => userLogInfo.User.Id == users[1].Id);
+
+            Assert.Equal(2, testUserLogs.Medias.Count());
+            Assert.Equal(users[0].Id, testUserLogs.User.Id);
+            Assert.Equal(users[0].FirstName, testUserLogs.User.FirstName);
+
+            Assert.Equal(offering.Playlists[0].Medias[0].Id, testUserLogs.Medias[0].MediaId);
+            Assert.Equal(offering.Playlists[0].Medias[0].Name, testUserLogs.Medias[0].MediaName);
+            Assert.Equal(2, testUserLogs.Medias[0].Total);
+            Assert.Equal(2, testUserLogs.Medias[0].LastHr);
+            Assert.Equal(2, testUserLogs.Medias[0].Last3days);
+            Assert.Equal(2, testUserLogs.Medias[0].LastWeek);
+            Assert.Equal(2, testUserLogs.Medias[0].LastMonth);
+
+            Assert.Equal(offering.Playlists[0].Medias[1].Id, testUserLogs.Medias[1].MediaId);
+            Assert.Equal(offering.Playlists[0].Medias[1].Name, testUserLogs.Medias[1].MediaName);
+            Assert.Equal(1, testUserLogs.Medias[1].Total);
+            Assert.Equal(1, testUserLogs.Medias[1].LastHr);
+            Assert.Equal(1, testUserLogs.Medias[1].Last3days);
+            Assert.Equal(1, testUserLogs.Medias[1].LastWeek);
+            Assert.Equal(1, testUserLogs.Medias[1].LastMonth);
+
+            Assert.Equal(2, otherUserLogs.Medias.Count());
+            Assert.Equal(users[1].Id, otherUserLogs.User.Id);
+            Assert.Equal(users[1].FirstName, otherUserLogs.User.FirstName);
+
+            Assert.Equal(offering.Playlists[0].Medias[0].Id, otherUserLogs.Medias[0].MediaId);
+            Assert.Equal(offering.Playlists[0].Medias[0].Name, otherUserLogs.Medias[0].MediaName);
+            Assert.Equal(1, otherUserLogs.Medias[0].Total);
+            Assert.Equal(1, otherUserLogs.Medias[0].LastHr);
+            Assert.Equal(1, otherUserLogs.Medias[0].Last3days);
+            Assert.Equal(1, otherUserLogs.Medias[0].LastWeek);
+            Assert.Equal(1, otherUserLogs.Medias[0].LastMonth);
+
+            Assert.Equal(offering.Playlists[0].Medias[1].Id, otherUserLogs.Medias[1].MediaId);
+            Assert.Equal(offering.Playlists[0].Medias[1].Name, otherUserLogs.Medias[1].MediaName);
+            Assert.Equal(0, otherUserLogs.Medias[1].Total);
+            Assert.Equal(0, otherUserLogs.Medias[1].LastHr);
+            Assert.Equal(0, otherUserLogs.Medias[1].Last3days);
+            Assert.Equal(0, otherUserLogs.Medias[1].LastWeek);
+            Assert.Equal(0, otherUserLogs.Medias[1].LastMonth);
+
+            result = await _controller.GetAllCourseLogs(offering.Id, "other");
+
+            Assert.Single(result.Value);
+
+            Assert.Equal(2, result.Value.ElementAt(0).Medias.Count());
+            Assert.Equal(users[0].Id, result.Value.ElementAt(0).User.Id);
+            Assert.Equal(users[0].FirstName, result.Value.ElementAt(0).User.FirstName);
+
+            Assert.Equal(offering.Playlists[0].Medias[0].Id, result.Value.ElementAt(0).Medias[0].MediaId);
+            Assert.Equal(offering.Playlists[0].Medias[0].Name, result.Value.ElementAt(0).Medias[0].MediaName);
+            Assert.Equal(0, result.Value.ElementAt(0).Medias[0].Total);
+            Assert.Equal(0, result.Value.ElementAt(0).Medias[0].LastHr);
+            Assert.Equal(0, result.Value.ElementAt(0).Medias[0].Last3days);
+            Assert.Equal(0, result.Value.ElementAt(0).Medias[0].LastWeek);
+            Assert.Equal(0, result.Value.ElementAt(0).Medias[0].LastMonth);
+
+            Assert.Equal(offering.Playlists[0].Medias[1].Id, result.Value.ElementAt(0).Medias[1].MediaId);
+            Assert.Equal(offering.Playlists[0].Medias[1].Name, result.Value.ElementAt(0).Medias[1].MediaName);
+            Assert.Equal(1, result.Value.ElementAt(0).Medias[1].Total);
+            Assert.Equal(1, result.Value.ElementAt(0).Medias[1].LastHr);
+            Assert.Equal(1, result.Value.ElementAt(0).Medias[1].Last3days);
+            Assert.Equal(1, result.Value.ElementAt(0).Medias[1].LastWeek);
+            Assert.Equal(1, result.Value.ElementAt(0).Medias[1].LastMonth);
+        }
+
+        [Fact]
+        public async Task Get_All_Course_Logs_Fail()
+        {
+            var result = await _controller.GetAllCourseLogs("none", "none");
+            Assert.IsType<BadRequestResult>(result.Result);
+
+            result = await _controller.GetAllCourseLogs(null, "none");
+            Assert.IsType<BadRequestResult>(result.Result);
+
+            result = await _controller.GetAllCourseLogs("none", null);
+            Assert.IsType<BadRequestResult>(result.Result);
+
+            result = await _controller.GetAllCourseLogs(null, null);
+            Assert.IsType<BadRequestResult>(result.Result);
+
+            result = await _controller.GetAllCourseLogs("none");
+            Assert.IsType<BadRequestResult>(result.Result);
+
+            result = await _controller.GetAllCourseLogs(null);
+            Assert.IsType<BadRequestResult>(result.Result);
+        }
+
+        [Fact]
         public async Task Get_Event_Types_Success()
         {
             var result = await _controller.GetEventTypes();
