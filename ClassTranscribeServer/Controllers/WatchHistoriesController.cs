@@ -6,7 +6,6 @@ using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace ClassTranscribeServer.Controllers
@@ -140,11 +139,6 @@ namespace ClassTranscribeServer.Controllers
             await _context.SaveChangesAsync();
 
             return watchHistory;
-        }
-
-        private bool WatchHistoryExists(string id)
-        {
-            return _context.WatchHistories.Any(e => e.Id == id);
         }
     }
 }
