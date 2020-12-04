@@ -44,7 +44,7 @@ namespace ClassTranscribeServer.Controllers
         [Authorize(Roles = Globals.ROLE_ADMIN)]
         public async Task<IActionResult> PutTerm(string id, Term term)
         {
-            if (id != term.Id)
+            if (term == null || id == null || id != term.Id)
             {
                 return BadRequest();
             }
@@ -75,6 +75,11 @@ namespace ClassTranscribeServer.Controllers
         [Authorize(Roles = Globals.ROLE_ADMIN)]
         public async Task<ActionResult<Term>> PostTerm(Term term)
         {
+            if (term == null)
+            {
+                return BadRequest();
+            }
+
             _context.Terms.Add(term);
             await _context.SaveChangesAsync();
 

@@ -282,7 +282,7 @@ namespace ClassTranscribeServer.Controllers
             }
 
             // If playlists are deleted the Count != Max Index, so use the max index (still not perfect, what if 2 playlists are created at the same time)
-            if (offering.Playlists.Count > 0)
+            if (offering.Playlists != null && offering.Playlists.Count > 0)
             {
                 playlist.Index = 1 + offering.Playlists.Max(p => p.Index);
             }
@@ -303,7 +303,14 @@ namespace ClassTranscribeServer.Controllers
             {
                 return BadRequest();
             }
+
             var playlist = await _context.Playlists.FindAsync(id);
+
+            if (playlist == null)
+            {
+                return NotFound();
+            }
+
             var authorizationResult = await _authorizationService.AuthorizeAsync(this.User, playlist.Offering, Globals.POLICY_UPDATE_OFFERING);
             if (!authorizationResult.Succeeded)
             {
@@ -315,10 +322,6 @@ namespace ClassTranscribeServer.Controllers
                 {
                     return new ChallengeResult();
                 }
-            }
-            if (playlist == null)
-            {
-                return NotFound();
             }
 
             _context.Playlists.Remove(playlist);
@@ -332,7 +335,7 @@ namespace ClassTranscribeServer.Controllers
         public async Task<ActionResult> Reorder(string offeringId, List<string> playlistIds)
         {
             var offering = await _context.Offerings.FindAsync(offeringId);
-            if (playlistIds == null || !playlistIds.Any() || offering == null || offering.Playlists.Count != playlistIds.Count)
+            if (playlistIds == null || !playlistIds.Any() || offering == null || offering.Playlists == null || offering.Playlists.Count != playlistIds.Count)
             {
                 return BadRequest();
             }

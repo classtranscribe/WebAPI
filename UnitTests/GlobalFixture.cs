@@ -36,6 +36,7 @@ namespace UnitTests
 
             var mockWake = new Mock<WakeDownloader>(MockBehavior.Strict, null);
             mockWake.Setup(wake => wake.UpdateVTTFile(It.IsAny<string>()));
+            mockWake.Setup(wake => wake.UpdatePlaylist(It.IsAny<string>()));
 
             _serviceProvider = new ServiceCollection()
                 .AddEntityFrameworkInMemoryDatabase()
