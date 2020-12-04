@@ -83,8 +83,7 @@ namespace UnitTests.ControllerTests
                     PlaylistId = "none2",
                     JsonMetadata = new JObject(new JProperty("foo", "baz")),
                     SourceType = SourceType.Box
-                },
-
+                }
             };
 
             var wh1 = new WatchHistory
