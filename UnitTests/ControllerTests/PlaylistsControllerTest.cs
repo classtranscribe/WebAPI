@@ -2,6 +2,7 @@ using ClassTranscribeDatabase.Models;
 using ClassTranscribeServer;
 using ClassTranscribeServer.Controllers;
 using Microsoft.AspNetCore.Mvc;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -100,7 +101,8 @@ namespace UnitTests.ControllerTests
                             SourceType = SourceType.Local,
                             Video = new Video()
                             {
-                                Transcriptions = new List<Transcription>()
+                                Transcriptions = new List<Transcription>(),
+                                Duration = TimeSpan.FromSeconds(13)
                             }
                         }
                     }
@@ -125,7 +127,8 @@ namespace UnitTests.ControllerTests
                             SourceType = SourceType.Echo360,
                             Video = new Video()
                             {
-                                Transcriptions = new List<Transcription>()
+                                Transcriptions = new List<Transcription>(),
+                                Duration = TimeSpan.FromSeconds(1313)
                             }
                         }
                     }
@@ -145,6 +148,7 @@ namespace UnitTests.ControllerTests
             Assert.Equal(playlists[0].Index, result.Value.ElementAt(0).Index);
             Assert.Equal(playlists[0].Medias[0].Id, result.Value.ElementAt(0).Medias[0].Id);
             Assert.Equal(playlists[0].Medias[0].SourceType, result.Value.ElementAt(0).Medias[0].SourceType);
+            Assert.Equal(playlists[0].Medias[0].Video.Duration, result.Value.ElementAt(0).Medias[0].Duration);
 
             Assert.Equal(playlists[2].Id, result.Value.ElementAt(1).Id);
             Assert.Equal(playlists[2].SourceType, result.Value.ElementAt(1).SourceType);
@@ -152,6 +156,7 @@ namespace UnitTests.ControllerTests
             Assert.Equal(playlists[2].Index, result.Value.ElementAt(1).Index);
             Assert.Equal(playlists[2].Medias[0].Id, result.Value.ElementAt(1).Medias[0].Id);
             Assert.Equal(playlists[2].Medias[0].SourceType, result.Value.ElementAt(1).Medias[0].SourceType);
+            Assert.Equal(playlists[2].Medias[0].Video.Duration, result.Value.ElementAt(1).Medias[0].Duration);
         }
 
         [Fact]
@@ -190,7 +195,14 @@ namespace UnitTests.ControllerTests
                 Name = "foo",
                 Medias = new List<Media>()
                 {
-                    new Media { Id = "media_foo", SourceType = SourceType.Local }
+                    new Media {
+                        Id = "media_foo",
+                        SourceType = SourceType.Local,
+                        Video = new Video {
+                            Duration = TimeSpan.FromSeconds(13),
+                            Transcriptions = new List<Transcription>(),
+                        },
+                    }
                 }
             };
 
@@ -203,6 +215,7 @@ namespace UnitTests.ControllerTests
             Assert.Equal(playlist.Name, result.Value.Name);
             Assert.Equal(playlist.Medias[0].Id, result.Value.Medias[0].Id);
             Assert.Equal(playlist.Medias[0].SourceType, result.Value.Medias[0].SourceType);
+            Assert.Equal(playlist.Medias[0].Video.Duration, result.Value.Medias[0].Duration);
         }
 
         [Fact]
