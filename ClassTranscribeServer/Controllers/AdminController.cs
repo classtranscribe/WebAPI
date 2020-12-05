@@ -42,10 +42,8 @@ namespace ClassTranscribeServer.Controllers
                 {
                     return new ForbidResult();
                 }
-                else
-                {
-                    return new ChallengeResult();
-                }
+
+                return new ChallengeResult();
             }
             _wakeDownloader.UpdateOffering(offeringId);
             return Ok();

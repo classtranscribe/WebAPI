@@ -8,7 +8,6 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace ClassTranscribeServer.Controllers
@@ -55,10 +54,8 @@ namespace ClassTranscribeServer.Controllers
                 {
                     return new ForbidResult();
                 }
-                else
-                {
-                    return new ChallengeResult();
-                }
+
+                return new ChallengeResult();
             }
             var temp = await _context.Logs.Where(l => l.OfferingId == offeringId && l.EventType == "filtertrans").ToListAsync();
             return temp.GroupBy(l => l.Json["value"].ToString())
@@ -90,10 +87,8 @@ namespace ClassTranscribeServer.Controllers
                 {
                     return new ForbidResult();
                 }
-                else
-                {
-                    return new ChallengeResult();
-                }
+
+                return new ChallengeResult();
             }
             // Get the user
             var user = await _userUtils.GetUser(User);
@@ -193,24 +188,27 @@ namespace ClassTranscribeServer.Controllers
             DateTime? start = null, DateTime? end = null)
         {
             var offering = await _context.Offerings.FindAsync(offeringId);
+
             if (offering == null)
             {
                 return BadRequest();
             }
+
             var authorizationResult = await _authorizationService.AuthorizeAsync(this.User, offering, Globals.POLICY_UPDATE_OFFERING);
+
             if (!authorizationResult.Succeeded)
             {
                 if (User.Identity.IsAuthenticated)
                 {
                     return new ForbidResult();
                 }
-                else
-                {
-                    return new ChallengeResult();
-                }
+
+                return new ChallengeResult();
             }
+
             DateTime startTime = start ?? DateTime.Now.AddMonths(-1);
             DateTime endTime = end ?? DateTime.Now;
+
             var timeUpdateEvents = await _context.Logs
                 .Where(l => l.CreatedAt >= startTime && l.CreatedAt <= endTime && l.OfferingId == offeringId && l.EventType == eventType)
                 .Select(l => new
@@ -222,6 +220,7 @@ namespace ClassTranscribeServer.Controllers
                 }).ToListAsync();
 
             IEnumerable<CourseLog> logs;
+
             if (start == null)
             {
                 logs = timeUpdateEvents.GroupBy(x => x.UserId).Select(g => new CourseLog
@@ -263,6 +262,65 @@ namespace ClassTranscribeServer.Controllers
             }
 
             return Ok(logs);
+        }
+
+        /// <summary>
+        /// Gets all course logs for an offering
+        /// Relevant issue: https://github.com/classtranscribe/WebAPI/issues/50
+        /// eventType is an optional parameter (defaults to "timeupdate")
+        /// Logs returned only if the logged in user is an instructor for the given offeringId
+        /// </summary>
+        [HttpGet("AllCourseLogs")]
+        [Authorize]
+        public async Task<ActionResult<IEnumerable<CourseLog>>> GetAllCourseLogs(string offeringId, string eventType = "timeupdate")
+        {
+            var offering = await _context.Offerings.FindAsync(offeringId);
+
+            if (offering == null)
+            {
+                return BadRequest();
+            }
+
+            var authorizationResult = await _authorizationService.AuthorizeAsync(this.User, offering, Globals.POLICY_UPDATE_OFFERING);
+
+            if (!authorizationResult.Succeeded)
+            {
+                if (User.Identity.IsAuthenticated)
+                {
+                    return new ForbidResult();
+                }
+
+                return new ChallengeResult();
+            }
+
+            var medias = await _context.Medias
+                .Where(m => m.Playlist.OfferingId == offeringId)
+                .ToListAsync();
+
+            var timeUpdateEvents = await _context.Logs
+                .Where(l => l.OfferingId == offeringId && l.EventType == eventType)
+                .ToListAsync();
+
+            return timeUpdateEvents.GroupBy(x => x.UserId).Select(g => new CourseLog
+            {
+                User = _context.Users.Where(u => u.Id == g.Key).Select(u => new UserDetails
+                {
+                    Email = u.Email,
+                    FirstName = u.FirstName,
+                    LastName = u.LastName,
+                    Id = u.Id
+                }).FirstOrDefault(),
+                Medias = medias.OrderBy(m => m.Index).Select(m => new MediaLog
+                {
+                    MediaId = m.Id,
+                    MediaName = m.Name,
+                    LastHr = g.Where(l => l.MediaId == m.Id && l.CreatedAt >= DateTime.Now.AddHours(-1)).Count(),
+                    Last3days = g.Where(l => l.MediaId == m.Id && l.CreatedAt >= DateTime.Now.AddDays(-3)).Count(),
+                    LastWeek = g.Where(l => l.MediaId == m.Id && l.CreatedAt >= DateTime.Now.AddDays(-7)).Count(),
+                    LastMonth = g.Where(l => l.MediaId == m.Id && l.CreatedAt >= DateTime.Now.AddMonths(-1)).Count(),
+                    Total = g.Where(l => l.MediaId == m.Id).Count(),
+                }).ToList()
+            }).ToList();
         }
 
         /// <summary>
@@ -316,10 +374,12 @@ namespace ClassTranscribeServer.Controllers
         public class MediaLog
         {
             public string MediaId { get; set; }
+            public string MediaName { get; set; }
             public int LastHr { get; set; }
             public int Last3days { get; set; }
             public int LastWeek { get; set; }
             public int LastMonth { get; set; }
+            public int Total { get; set; }
             public int Count { get; set; }
         }
     }

@@ -59,10 +59,8 @@ namespace ClassTranscribeServer.Controllers
                 {
                     return new ForbidResult();
                 }
-                else
-                {
-                    return new ChallengeResult();
-                }
+
+                return new ChallengeResult();
             }
             UserOffering userOffering = new UserOffering
             {
@@ -108,10 +106,8 @@ namespace ClassTranscribeServer.Controllers
                 {
                     return new ForbidResult();
                 }
-                else
-                {
-                    return new ChallengeResult();
-                }
+
+                return new ChallengeResult();
             }
             var userOffering = await _context.UserOfferings.Where(uo => uo.OfferingId == offeringId && uo.ApplicationUserId == userId).ToListAsync();
             if (userOffering == null)
@@ -142,10 +138,8 @@ namespace ClassTranscribeServer.Controllers
                 {
                     return new ForbidResult();
                 }
-                else
-                {
-                    return new ChallengeResult();
-                }
+
+                return new ChallengeResult();
             }
             List<UserOffering> userOfferings = new List<UserOffering>();
             IdentityRole identityRole = _context.Roles.Where(r => r.Name == roleName).FirstOrDefault();
@@ -192,10 +186,8 @@ namespace ClassTranscribeServer.Controllers
                 {
                     return new ForbidResult();
                 }
-                else
-                {
-                    return new ChallengeResult();
-                }
+
+                return new ChallengeResult();
             }
 
             IdentityRole identityRole = _context.Roles.Where(r => r.Name == roleName).FirstOrDefault();
@@ -219,10 +211,8 @@ namespace ClassTranscribeServer.Controllers
                 {
                     return new ForbidResult();
                 }
-                else
-                {
-                    return new ChallengeResult();
-                }
+
+                return new ChallengeResult();
             }
 
             IdentityRole identityRole = _context.Roles.Where(r => r.Name == roleName).FirstOrDefault();

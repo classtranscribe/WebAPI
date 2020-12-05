@@ -151,10 +151,8 @@ namespace ClassTranscribeServer.Controllers
                 {
                     return new ForbidResult();
                 }
-                else
-                {
-                    return new ChallengeResult();
-                }
+
+                return new ChallengeResult();
             }
             List<MediaDTO> medias = p.Medias
                 .OrderBy(m => m.Index)
@@ -217,10 +215,8 @@ namespace ClassTranscribeServer.Controllers
                 {
                     return new ForbidResult();
                 }
-                else
-                {
-                    return new ChallengeResult();
-                }
+
+                return new ChallengeResult();
             }
             var p = await _context.Playlists.FindAsync(playlist.Id);
             p.Name = playlist.Name;
@@ -316,10 +312,8 @@ namespace ClassTranscribeServer.Controllers
                 {
                     return new ForbidResult();
                 }
-                else
-                {
-                    return new ChallengeResult();
-                }
+
+                return new ChallengeResult();
             }
 
             _context.Playlists.Remove(playlist);
@@ -344,10 +338,8 @@ namespace ClassTranscribeServer.Controllers
                 {
                     return new ForbidResult();
                 }
-                else
-                {
-                    return new ChallengeResult();
-                }
+
+                return new ChallengeResult();
             }
             var playlists = new List<Playlist>();
             for (int i = 0; i < playlistIds.Count; i++)
