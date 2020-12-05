@@ -295,6 +295,8 @@ namespace ClassTranscribeDatabase
                             {
                                 entry.State = EntityState.Modified;
                                 entity.IsDeletedStatus = Status.Deleted;
+                                entity.DeletedAt = now;
+                                entity.DeletedBy = user;
                             }
                             break;
                     }
