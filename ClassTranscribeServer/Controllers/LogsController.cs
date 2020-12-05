@@ -319,6 +319,7 @@ namespace ClassTranscribeServer.Controllers
                     LastWeek = g.Where(l => l.MediaId == m.Id && l.CreatedAt >= DateTime.Now.AddDays(-7)).Count(),
                     LastMonth = g.Where(l => l.MediaId == m.Id && l.CreatedAt >= DateTime.Now.AddMonths(-1)).Count(),
                     Total = g.Where(l => l.MediaId == m.Id).Count(),
+                    Duration = m.Video?.Duration,
                 }).ToList()
             }).ToList();
         }
@@ -381,6 +382,7 @@ namespace ClassTranscribeServer.Controllers
             public int LastMonth { get; set; }
             public int Total { get; set; }
             public int Count { get; set; }
+            public TimeSpan? Duration { get; set; }
         }
     }
 }

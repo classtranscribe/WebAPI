@@ -348,7 +348,11 @@ namespace UnitTests.ControllerTests
                             {
                                 Id = "media1",
                                 Name = "media1",
-                                Index = 0
+                                Index = 0,
+                                Video = new Video
+                                {
+                                    Duration = TimeSpan.FromSeconds(13)
+                                }
                             },
                             new Media
                             {
@@ -437,6 +441,7 @@ namespace UnitTests.ControllerTests
             Assert.Equal(2, testUserLogs.Medias[0].Last3days);
             Assert.Equal(2, testUserLogs.Medias[0].LastWeek);
             Assert.Equal(2, testUserLogs.Medias[0].LastMonth);
+            Assert.Equal(offering.Playlists[0].Medias[0].Video.Duration, testUserLogs.Medias[0].Duration);
 
             Assert.Equal(offering.Playlists[0].Medias[1].Id, testUserLogs.Medias[1].MediaId);
             Assert.Equal(offering.Playlists[0].Medias[1].Name, testUserLogs.Medias[1].MediaName);
@@ -457,6 +462,7 @@ namespace UnitTests.ControllerTests
             Assert.Equal(1, otherUserLogs.Medias[0].Last3days);
             Assert.Equal(1, otherUserLogs.Medias[0].LastWeek);
             Assert.Equal(1, otherUserLogs.Medias[0].LastMonth);
+            Assert.Equal(offering.Playlists[0].Medias[0].Video.Duration, otherUserLogs.Medias[0].Duration);
 
             Assert.Equal(offering.Playlists[0].Medias[1].Id, otherUserLogs.Medias[1].MediaId);
             Assert.Equal(offering.Playlists[0].Medias[1].Name, otherUserLogs.Medias[1].MediaName);
@@ -481,6 +487,7 @@ namespace UnitTests.ControllerTests
             Assert.Equal(0, result.Value.ElementAt(0).Medias[0].Last3days);
             Assert.Equal(0, result.Value.ElementAt(0).Medias[0].LastWeek);
             Assert.Equal(0, result.Value.ElementAt(0).Medias[0].LastMonth);
+            Assert.Equal(offering.Playlists[0].Medias[0].Video.Duration, result.Value.ElementAt(0).Medias[0].Duration);
 
             Assert.Equal(offering.Playlists[0].Medias[1].Id, result.Value.ElementAt(0).Medias[1].MediaId);
             Assert.Equal(offering.Playlists[0].Medias[1].Name, result.Value.ElementAt(0).Medias[1].MediaName);
