@@ -2,6 +2,7 @@ using ClassTranscribeDatabase.Models;
 using ClassTranscribeServer.Controllers;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json.Linq;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -74,7 +75,8 @@ namespace UnitTests.ControllerTests
                     Name = "exampleMedia",
                     PlaylistId = "none",
                     JsonMetadata = new JObject(new JProperty("foo", "bar")),
-                    SourceType = SourceType.Kaltura
+                    SourceType = SourceType.Kaltura,
+                    Video = new Video { Duration = TimeSpan.FromSeconds(13) }
                 },
                 new Media
                 {
@@ -137,6 +139,7 @@ namespace UnitTests.ControllerTests
             Assert.Equal(medias[0].PlaylistId, result.Value.ElementAt(1).PlaylistId);
             Assert.Equal(medias[0].JsonMetadata, result.Value.ElementAt(1).JsonMetadata);
             Assert.Equal(medias[0].SourceType, result.Value.ElementAt(1).SourceType);
+            Assert.Equal(medias[0].Video.Duration, result.Value.ElementAt(1).Duration);
             Assert.Equal(wh1, result.Value.ElementAt(1).WatchHistory);
         }
 
