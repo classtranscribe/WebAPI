@@ -85,10 +85,8 @@ namespace ClassTranscribeServer.Controllers
                 {
                     return new ForbidResult();
                 }
-                else
-                {
-                    return new ChallengeResult();
-                }
+
+                return new ChallengeResult();
             }
             var courseOfferings = await _context.CourseOfferings.Where(co => co.OfferingId == offeringId && co.CourseId == courseId).ToListAsync();
             if (courseOfferings == null)

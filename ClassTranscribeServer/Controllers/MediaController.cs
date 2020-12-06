@@ -53,10 +53,8 @@ namespace ClassTranscribeServer.Controllers
                 {
                     return new ForbidResult();
                 }
-                else
-                {
-                    return new ChallengeResult();
-                }
+
+                return new ChallengeResult();
             }
 
             var v = await _context.Videos.FindAsync(media.VideoId);
@@ -264,10 +262,8 @@ namespace ClassTranscribeServer.Controllers
                 {
                     return new ForbidResult();
                 }
-                else
-                {
-                    return new ChallengeResult();
-                }
+
+                return new ChallengeResult();
             }
             var medias = new List<Media>();
             for (int i = 0; i < mediaIds.Count; i++)

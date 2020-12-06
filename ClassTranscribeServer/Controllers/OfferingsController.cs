@@ -101,10 +101,8 @@ namespace ClassTranscribeServer.Controllers
                 {
                     return new ForbidResult();
                 }
-                else
-                {
-                    return new ChallengeResult();
-                }
+
+                return new ChallengeResult();
             }
 
             _context.Entry(offering).State = EntityState.Modified;
@@ -145,10 +143,8 @@ namespace ClassTranscribeServer.Controllers
                 {
                     return new ForbidResult();
                 }
-                else
-                {
-                    return new ChallengeResult();
-                }
+
+                return new ChallengeResult();
             }
             offering.JsonMetadata = jsonMetadata;
             _context.Entry(offering).State = EntityState.Modified;
@@ -258,10 +254,8 @@ namespace ClassTranscribeServer.Controllers
                 {
                     return new ForbidResult();
                 }
-                else
-                {
-                    return new ChallengeResult();
-                }
+
+                return new ChallengeResult();
             }
 
             _context.Offerings.Remove(offering);

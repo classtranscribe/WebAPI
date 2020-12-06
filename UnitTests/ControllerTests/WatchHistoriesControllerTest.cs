@@ -68,15 +68,85 @@ namespace UnitTests.ControllerTests
         [Fact]
         public async Task Get_All_Watch_History_For_User_Success()
         {
-            var media = new Media
-            {
-                Id = "media",
-                Name = "exampleMedia",
-                PlaylistId = "none",
-                JsonMetadata = new JObject(new JProperty("foo", "bar")),
-                SourceType = SourceType.Kaltura,
-                Video = new Video { Duration = TimeSpan.FromSeconds(13) }
+            var medias = new List<Media>() {
+                new Media
+                {
+                    Id = "media",
+                    Name = "exampleMedia",
+                    PlaylistId = "none",
+                    JsonMetadata = new JObject(new JProperty("foo", "bar")),
+                    SourceType = SourceType.Kaltura,
+                    Video = new Video { Duration = TimeSpan.FromSeconds(13) }
+                },
+                new Media
+                {
+                    Id = "media2",
+                    Name = "exampleMedia2",
+                    PlaylistId = "none2",
+                    JsonMetadata = new JObject(new JProperty("foo", "baz")),
+                    SourceType = SourceType.Box
+                }
             };
+
+            var wh1 = new WatchHistory
+            {
+                MediaId = medias[0].Id,
+                ApplicationUserId = TestGlobals.TEST_USER_ID,
+                Json = new JObject(new JProperty("hello", "world")),
+            };
+
+            var wh2 = new WatchHistory
+            {
+                MediaId = medias[1].Id,
+                ApplicationUserId = TestGlobals.TEST_USER_ID,
+                Json = new JObject(new JProperty("bar", "baz"))
+            };
+
+            var shouldBeIgnored = new List<WatchHistory>()
+            {
+                new WatchHistory
+                {
+                    MediaId = medias[0].Id,
+                    ApplicationUserId = "other_user"
+                },
+                new WatchHistory
+                {
+                    MediaId = "non_existing",
+                    ApplicationUserId = TestGlobals.TEST_USER_ID
+                },
+            };
+
+            _context.Users.Add(new ApplicationUser { Id = TestGlobals.TEST_USER_ID });
+            _context.Medias.AddRange(medias);
+
+            _context.WatchHistories.Add(wh1);
+            _context.SaveChanges(); // save changes twice so wh2 has LastUpdatedAt later than wh1's LastUpdatedAt
+
+            _context.WatchHistories.Add(wh2);
+            _context.WatchHistories.AddRange(shouldBeIgnored);
+            _context.SaveChanges();
+
+            var result = await _controller.GetAllWatchHistoryForUser();
+            Assert.Equal(2, result.Value.Count());
+
+            Assert.Equal(medias[1].Name, result.Value.ElementAt(0).Name);
+            Assert.Equal(medias[1].PlaylistId, result.Value.ElementAt(0).PlaylistId);
+            Assert.Equal(medias[1].JsonMetadata, result.Value.ElementAt(0).JsonMetadata);
+            Assert.Equal(medias[1].SourceType, result.Value.ElementAt(0).SourceType);
+            Assert.Equal(wh2, result.Value.ElementAt(0).WatchHistory);
+
+            Assert.Equal(medias[0].Name, result.Value.ElementAt(1).Name);
+            Assert.Equal(medias[0].PlaylistId, result.Value.ElementAt(1).PlaylistId);
+            Assert.Equal(medias[0].JsonMetadata, result.Value.ElementAt(1).JsonMetadata);
+            Assert.Equal(medias[0].SourceType, result.Value.ElementAt(1).SourceType);
+            Assert.Equal(medias[0].Video.Duration, result.Value.ElementAt(1).Duration);
+            Assert.Equal(wh1, result.Value.ElementAt(1).WatchHistory);
+        }
+
+        [Fact]
+        public async Task Get_All_Watch_History_For_User_Filters_Duplicates()
+        {
+            var media = new Media { Id = "media", Name = "exampleMedia" };
 
             var wh1 = new WatchHistory
             {
@@ -92,20 +162,6 @@ namespace UnitTests.ControllerTests
                 Json = new JObject(new JProperty("bar", "baz"))
             };
 
-            var shouldBeIgnored = new List<WatchHistory>()
-            {
-                new WatchHistory
-                {
-                    MediaId = media.Id,
-                    ApplicationUserId = "other_user"
-                },
-                new WatchHistory
-                {
-                    MediaId = "non_existing",
-                    ApplicationUserId = TestGlobals.TEST_USER_ID
-                },
-            };
-
             _context.Users.Add(new ApplicationUser { Id = TestGlobals.TEST_USER_ID });
             _context.Medias.Add(media);
 
@@ -113,28 +169,18 @@ namespace UnitTests.ControllerTests
             _context.SaveChanges(); // save changes twice so wh2 has LastUpdatedAt later than wh1's LastUpdatedAt
 
             _context.WatchHistories.Add(wh2);
-            _context.WatchHistories.AddRange(shouldBeIgnored);
             _context.SaveChanges();
 
             var result = await _controller.GetAllWatchHistoryForUser();
-            Assert.Equal(2, result.Value.Count());
+            Assert.Single(result.Value);
 
+            Assert.Equal(media.Id, result.Value.ElementAt(0).Id);
             Assert.Equal(media.Name, result.Value.ElementAt(0).Name);
-            Assert.Equal(media.PlaylistId, result.Value.ElementAt(0).PlaylistId);
-            Assert.Equal(media.JsonMetadata, result.Value.ElementAt(0).JsonMetadata);
-            Assert.Equal(media.SourceType, result.Value.ElementAt(0).SourceType);
-            Assert.Equal(media.Video.Duration, result.Value.ElementAt(0).Duration);
+            Assert.Equal(wh2.Json, result.Value.ElementAt(0).WatchHistory.Json);
             Assert.Equal(wh2, result.Value.ElementAt(0).WatchHistory);
-
-            Assert.Equal(media.Name, result.Value.ElementAt(1).Name);
-            Assert.Equal(media.PlaylistId, result.Value.ElementAt(1).PlaylistId);
-            Assert.Equal(media.JsonMetadata, result.Value.ElementAt(1).JsonMetadata);
-            Assert.Equal(media.SourceType, result.Value.ElementAt(1).SourceType);
-            Assert.Equal(media.Video.Duration, result.Value.ElementAt(1).Duration);
-            Assert.Equal(wh1, result.Value.ElementAt(1).WatchHistory);
         }
 
-        [Fact]
+            [Fact]
         public async Task Get_All_Watch_History_For_User_Fail()
         {
             var result = await _controller.GetAllWatchHistoryForUser();
