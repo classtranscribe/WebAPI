@@ -541,9 +541,6 @@ namespace ClassTranscribeDatabase.Migrations
                     b.Property<int>("IsDeletedStatus")
                         .HasColumnType("integer");
 
-                    b.Property<bool>("IsPublished")
-                        .HasColumnType("boolean");
-
                     b.Property<string>("JsonMetadata")
                         .HasColumnType("text");
 
@@ -656,9 +653,6 @@ namespace ClassTranscribeDatabase.Migrations
                     b.Property<int>("IsDeletedStatus")
                         .HasColumnType("integer");
 
-                    b.Property<bool>("IsPublished")
-                        .HasColumnType("boolean");
-
                     b.Property<string>("JsonMetadata")
                         .HasColumnType("text");
 
@@ -710,9 +704,6 @@ namespace ClassTranscribeDatabase.Migrations
 
                     b.Property<int>("IsDeletedStatus")
                         .HasColumnType("integer");
-
-                    b.Property<bool>("IsPublished")
-                        .HasColumnType("boolean");
 
                     b.Property<string>("JsonMetadata")
                         .HasColumnType("text");

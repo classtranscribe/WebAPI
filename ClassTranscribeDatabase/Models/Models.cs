@@ -197,7 +197,6 @@ namespace ClassTranscribeDatabase.Models
         public string Description { get; set; }
         public JObject JsonMetadata { get; set; }
         public Visibility Visibility { get; set; }
-        public bool IsPublished { get; set; }
     }
 
     public class Playlist : Entity
@@ -213,7 +212,6 @@ namespace ClassTranscribeDatabase.Models
         public JObject JsonMetadata { get; set; }
         public int Index { get; set; }
         public Visibility Visibility { get; set; }
-        public bool IsPublished { get; set; }
     }
 
     public class Media : Entity
@@ -233,7 +231,6 @@ namespace ClassTranscribeDatabase.Models
         public int Index { get; set; }
         public virtual List<WatchHistory> WatchHistories { get; set; }
         public Visibility Visibility { get; set; }
-        public bool IsPublished { get; set; }
     }
 
     public class Transcription : Entity
