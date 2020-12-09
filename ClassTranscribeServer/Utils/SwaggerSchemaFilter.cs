@@ -1,13 +1,9 @@
 ﻿using ClassTranscribeDatabase.Models;
-using Microsoft.OpenApi.Any;
 using Microsoft.OpenApi.Models;
 using Newtonsoft.Json;
 using Swashbuckle.AspNetCore.SwaggerGen;
-using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Threading.Tasks;
 
 namespace ClassTranscribeServer.Utils
 {
@@ -27,8 +23,10 @@ namespace ClassTranscribeServer.Utils
         public void Apply(OpenApiSchema schema, SchemaFilterContext context)
         {
 
-            if (schema.Properties.Count == 0)
+            if (schema == null || context == null || schema.Properties.Count == 0)
+            {
                 return;
+            }
 
             const BindingFlags bindingFlags = BindingFlags.Public |
                                               BindingFlags.NonPublic |

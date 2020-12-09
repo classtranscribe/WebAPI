@@ -17,13 +17,11 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
-using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Nest;
 using System;
 using System.Collections.Generic;
-using System.IdentityModel.Tokens.Jwt;
 using System.IO;
 using System.Reflection;
 using System.Text;
@@ -34,7 +32,10 @@ namespace ClassTranscribeServer
     {
         public Startup(IOptions<AppSettings> appSettings)
         {
-            Globals.appSettings = appSettings.Value;
+            if (appSettings != null)
+            {
+                Globals.appSettings = appSettings.Value;
+            }
         }
 
         readonly string MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
@@ -143,7 +144,6 @@ namespace ClassTranscribeServer
                     }
                 });
                 c.SchemaFilter<SwaggerSchemaFilter>();
-                c.OperationFilter<FileUploadOperation>(); //Register File Upload Operation Filter
             });
             services.AddApplicationInsightsTelemetry(Globals.appSettings.APPLICATION_INSIGHTS_KEY);
             services.AddScoped<RabbitMQConnection>();
@@ -153,10 +153,13 @@ namespace ClassTranscribeServer
             services.AddScoped<CaptionQueries>();
 
             // Configure ElasticSearch client
-            var connection = new Uri(Globals.appSettings.ES_CONNECTION_ADDR);
-            using var settings = new ConnectionSettings(connection);
-            var client = new ElasticClient(settings);
-            services.AddSingleton<IElasticClient>(client);
+            if (!string.IsNullOrEmpty(Globals.appSettings.ES_CONNECTION_ADDR))
+            {
+                var connection = new Uri(Globals.appSettings.ES_CONNECTION_ADDR);
+                using var settings = new ConnectionSettings(connection);
+                var client = new ElasticClient(settings);
+                services.AddSingleton<IElasticClient>(client);
+            }
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -201,7 +204,11 @@ namespace ClassTranscribeServer
             {
                 endpoints.MapDefaultControllerRoute().RequireAuthorization();
             });
-            seeder.Seed();
+
+            if (seeder != null)
+            {
+                seeder.Seed();
+            }
         }
     }
 }

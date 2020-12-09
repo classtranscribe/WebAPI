@@ -38,7 +38,7 @@ namespace TaskEngine.Tasks
         protected async override Task OnConsume(string example, TaskParameters taskParameters, ClientActiveTasks cleanup)
         {
             registerTask(cleanup, "BuildElasticIndexTask"); // may throw AlreadyInProgress exception
-            _logger.LogInformation("BuildElasticIndexTask Starting");
+            GetLogger().LogInformation("BuildElasticIndexTask Starting");
 
             using (var _context = CTDbContext.CreateDbContext())
             {
@@ -50,7 +50,7 @@ namespace TaskEngine.Tasks
                     var all_captions = transcription.Captions;
 
                     // each index has the unique name "index_string_unique", the current in use one has the alias "index_string_alias"
-                    var index_string_base = transcription.Id + "_" + Languages.ENGLISH_AMERICAN.ToLower();
+                    var index_string_base = transcription.Id + "_" + Languages.ENGLISH_AMERICAN.ToLower(System.Globalization.CultureInfo.CurrentCulture);
                     var index_string_unique = index_string_base + "_" + $"{DateTime.Now:yyyyMMddHHmmss}";
                     var index_string_alias = index_string_base + "_" + "primary";
 
@@ -80,7 +80,7 @@ namespace TaskEngine.Tasks
                 }
             }
 
-            _logger.LogInformation("BuildElasticIndexTask Done");
+            GetLogger().LogInformation("BuildElasticIndexTask Done");
         }
     }
 }

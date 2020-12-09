@@ -269,7 +269,7 @@ namespace ClassTranscribeServer.Controllers
             return _context.Offerings.Any(e => e.Id == id);
         }
 
-        private OfferingDTO GetOfferingDTO(Offering offering)
+        private static OfferingDTO GetOfferingDTO(Offering offering)
         {
             return new OfferingDTO
             {

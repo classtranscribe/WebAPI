@@ -13,15 +13,15 @@ namespace TaskEngine
     [SuppressMessage("Microsoft.Performance", "CA1812:MarkMembersAsStatic")] // This class is never directly instantiated
     public abstract class RabbitMQTask<T>
     {
-        protected RabbitMQConnection _rabbitMQ { get; set; }
-        protected string _queueName;
-        protected readonly ILogger _logger;
+        private RabbitMQConnection _rabbitMQ { get; set; }
+        private string _queueName;
+        private readonly ILogger _logger;
 
         // All access to _inProgress and _unregisterLater should be locked using _inProgress
         // We keep track of all active tasks for this process
         // Note  during message consumption there is a another ClientActiveTasks object which tracks
         // the task currently running for that message
-        protected static Dictionary<string, ClientActiveTasks> _inProgress = new Dictionary<string, ClientActiveTasks>();
+        private static Dictionary<string, ClientActiveTasks> _inProgress = new Dictionary<string, ClientActiveTasks>();
        
 
         public RabbitMQTask() { }
@@ -136,11 +136,31 @@ namespace TaskEngine
                 return new ClientActiveTasks(_inProgress[_queueName]);
             }
         }
+
+        protected ILogger GetLogger()
+        {
+            return _logger;
+        }
     }
     [Serializable]
     public class InProgressException : Exception
     {
-        public InProgressException(String message) : base(message) { }
+        public InProgressException(string message) : base(message) { }
+
+        public InProgressException()
+        {
+            throw new NotImplementedException();
+        }
+
+        public InProgressException(string message, Exception innerException) : base(message, innerException)
+        {
+            throw new NotImplementedException();
+        }
+
+        protected InProgressException(System.Runtime.Serialization.SerializationInfo serializationInfo, System.Runtime.Serialization.StreamingContext streamingContext)
+        {
+            throw new NotImplementedException();
+        }
     }
 
 

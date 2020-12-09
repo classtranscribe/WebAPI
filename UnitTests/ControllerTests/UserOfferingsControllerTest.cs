@@ -108,9 +108,9 @@ namespace UnitTests.ControllerTests
             var addResultInstructor = await _controller.AddUsersToOffering(offeringId, Globals.ROLE_INSTRUCTOR, mailIds);
             var addResultStudent = await _controller.AddUsersToOffering(offeringId, Globals.ROLE_STUDENT, mailIds);
             var addResultTA = await _controller.AddUsersToOffering(offeringId, Globals.ROLE_TEACHING_ASSISTANT, mailIds);
-            Assert.Equal(1, addResultInstructor.Value.Count());
-            Assert.Equal(1, addResultStudent.Value.Count());
-            Assert.Equal(1, addResultTA.Value.Count());
+            Assert.Single(addResultInstructor.Value);
+            Assert.Single(addResultStudent.Value);
+            Assert.Single(addResultTA.Value);
 
             var userId = addResultInstructor.Value.First().ApplicationUserId;
             var userResult1 = _context.UserOfferings.Where(u => u.ApplicationUserId == userId);
@@ -128,11 +128,11 @@ namespace UnitTests.ControllerTests
 
             List<string> mailIds = new List<string>() { "mailId1@test.edu" };
             var addResultStudent1 = await _controller.AddUsersToOffering(offeringId, Globals.ROLE_STUDENT, mailIds);
-            Assert.Equal(1, addResultStudent1.Value.Count());
+            Assert.Single(addResultStudent1.Value);
             var addResultStudent = await _controller.AddUsersToOffering(offeringId, Globals.ROLE_STUDENT, mailIds);
 
             var getResult1 = await _controller.GetUserOfferingsByOfferingId(offeringId);
-            Assert.Equal(1, getResult1.Value.Count());
+            Assert.Single(getResult1.Value);
         }
 
         [Fact]
@@ -146,17 +146,17 @@ namespace UnitTests.ControllerTests
 
             List<string> mailIds = new List<string>() { email };
             var addResultStudent = await _controller.AddUsersToOffering(offeringId, Globals.ROLE_STUDENT, mailIds);
-            Assert.Equal(1, addResultStudent.Value.Count());
+            Assert.Single(addResultStudent.Value);
 
             await _controller.DeleteUserFromOffering(offeringId, Globals.ROLE_STUDENT, mailIds);
             var getResult = await _controller.GetUserOfferingsByOfferingId(offeringId);
             Assert.Empty(getResult.Value);
 
             var addResultInstructor = await _controller.AddUsersToOffering(offeringId, Globals.ROLE_INSTRUCTOR, mailIds);
-            Assert.Equal(1, addResultInstructor.Value.Count());
+            Assert.Single(addResultInstructor.Value);
 
             var getResult1 = await _controller.GetUserOfferingsByOfferingId(offeringId);
-            Assert.Equal(1, getResult1.Value.Count());
+            Assert.Single(getResult1.Value);
 
             var userId = addResultInstructor.Value.First().ApplicationUserId;
             var userResult = _context.UserOfferings.Where(u => u.ApplicationUserId == userId);
@@ -240,7 +240,7 @@ namespace UnitTests.ControllerTests
             Assert.Contains(userIds[2], getResult.Value);
 
             var getResult1 = await _controller.GetUsersOfOffering(offeringId, Globals.ROLE_STUDENT);
-            Assert.Equal(1, getResult1.Value.Count());
+            Assert.Single(getResult1.Value);
             Assert.Equal(id1, getResult.Value.First());
 
             var getResult2 = await _controller.GetUsersOfOffering(offeringId, Globals.ROLE_TEACHING_ASSISTANT);
