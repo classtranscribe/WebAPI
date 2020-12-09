@@ -99,7 +99,7 @@ namespace TaskEngine
         /// <param name="keyId"></param>
         public void registerTask(HashSet<object> cleanup, Object keyId)
         {
-            if (keyId == null)
+            if (cleanup == null || keyId == null)
             {
                 return;
             }

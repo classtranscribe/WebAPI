@@ -292,25 +292,25 @@ namespace Tests
         }
 
 
-        [Theory]
-        [ClassData(typeof(TestData))]
-        public void AssertResultIsCorrect( string _token, string _api, string _method, string[] _input, string _expectation)
-        {
+        //[Theory]
+        //[ClassData(typeof(TestData))]
+        //public void AssertResultIsCorrect( string _token, string _api, string _method, string[] _input, string _expectation)
+        //{
 
-            //Setting.GenerateSetting();
-            Setting.baseUrl = "https://localhost:5001/";
-            Setting.ignoreProperties = new List<string>
-            {
-                "concurrencyStamp",
-                "securityStamp"
-            };
+        //    //Setting.GenerateSetting();
+        //    Setting.baseUrl = "https://localhost:5001/";
+        //    Setting.ignoreProperties = new List<string>
+        //    {
+        //        "concurrencyStamp",
+        //        "securityStamp"
+        //    };
 
             //TestCase t = new TestCase(_token, _api, _method, _input, _expectation);
 
             //AssertInfo log = t.Run();
 
             //Assert.Equal("succeed", log.assert);
-        }
+        //}
 
 
     }
