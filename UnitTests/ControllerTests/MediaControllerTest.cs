@@ -145,6 +145,8 @@ namespace UnitTests.ControllerTests
             Assert.Equal(string.Empty, media.PlaylistId);
             Assert.Equal(SourceType.Local, media.SourceType);
             Assert.Equal(JsonConvert.SerializeObject(videoFile), media.JsonMetadata["video1"]);
+            Assert.Equal(PublishStatus.Published, media.PublishStatus);
+            Assert.Equal(Visibility.Visible, media.Visibility);
         }
 
         [Fact]
