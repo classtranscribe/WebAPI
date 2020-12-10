@@ -15,13 +15,15 @@ namespace ClassTranscribeServer
 
         public static IWebHostBuilder CreateWebHostBuilder(string[] args)
         {
-            return WebHost.CreateDefaultBuilder(args)
-                .ConfigureServices(c => c.AddOptions().Configure<AppSettings>(CTDbContext.GetConfigurations()))
-              
-                //.ConfigureLogging((context, logging) => {
-                //    logging.AddFilter("Microsoft.EntityFrameworkCore.Database.Command", LogLevel.Warning);
-                //})
-                .UseStartup<Startup>();
+            var v = WebHost.CreateDefaultBuilder(args)
+                .ConfigureServices(c => c.AddOptions().Configure<AppSettings>(CTDbContext.GetConfigurations()));
+            
+            // TODO: This filter could be a environment variable setting
+            // However we are still building the configuration at this point (is AppSettings configured here?)
+                v.ConfigureLogging((context, logging) => {
+                    logging.AddFilter("Microsoft.EntityFrameworkCore.Database.Command", LogLevel.Warning);
+                });
+            return v.UseStartup<Startup>();
         }
     }
 }
