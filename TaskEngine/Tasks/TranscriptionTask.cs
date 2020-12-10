@@ -41,7 +41,7 @@ namespace TaskEngine.Tasks
         }
         private async void buildMockCaptions(string videoId)
         {
-            _logger.LogInformation($"Building Mock Captions for video {videoId}");
+            GetLogger().LogInformation($"Building Mock Captions for video {videoId}");
 
             using (var _context = CTDbContext.CreateDbContext())
             {
@@ -113,7 +113,7 @@ namespace TaskEngine.Tasks
 
                 if (video.TranscriptionStatus == Video.TranscriptionStatusMessages.NOERROR)
                 {
-                    _logger.LogInformation($"{videoId}:Skipping Transcribing of- already complete");
+                    GetLogger().LogInformation($"{videoId}:Skipping Transcribing of- already complete");
                     return;
                 }
 
@@ -139,7 +139,7 @@ namespace TaskEngine.Tasks
                     {
                         translations = Globals.appSettings.LANGUAGE_TRANSLATIONS.Split(',').ToList();
                     }
-                    _logger.LogInformation($"{videoId}: ({sourceLanguage}). Translation(s) = ({String.Join(',', translations)})");
+                    GetLogger().LogInformation($"{videoId}: ({sourceLanguage}). Translation(s) = ({String.Join(',', translations)})");
 
 
                     // Different languages may not be as complete
@@ -161,7 +161,7 @@ namespace TaskEngine.Tasks
                             TimeSpan lastCaptionTime = existing.Select(c => c.End).Max();
                             startAfterMap[language] = lastCaptionTime;
 
-                            _logger.LogInformation($"{ videoId}:{language}. Last Caption at {lastCaptionTime}");
+                            GetLogger().LogInformation($"{ videoId}:{language}. Last Caption at {lastCaptionTime}");
                         }
                     }
 
@@ -190,7 +190,7 @@ namespace TaskEngine.Tasks
                         if (theCaptions.Any())
                         {
                             var t = _context.Transcriptions.SingleOrDefault(t => t.VideoId == video.Id && t.Language == theLanguage);
-                            _logger.LogInformation($"Find Existing Transcriptions null={t == null}");
+                            GetLogger().LogInformation($"Find Existing Transcriptions null={t == null}");
                             // Did we get the default or an existing Transcription entity?
                             if (t == null)
                             {
@@ -224,7 +224,7 @@ namespace TaskEngine.Tasks
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, $"{videoId}: Transcription Exception:${ex.StackTrace}");
+                    GetLogger().LogError(ex, $"{videoId}: Transcription Exception:${ex.StackTrace}");
                     video.TranscribingAttempts += 1000;
                     await _context.SaveChangesAsync();
                     throw;

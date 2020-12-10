@@ -79,7 +79,7 @@ namespace TaskEngine.Tasks
                     {
                         // Notification to Instructor.
                     }
-                    _logger.LogError(e.Message);
+                    GetLogger().LogError(e.Message);
                 }
                 return newMedia;
             }
@@ -130,7 +130,7 @@ namespace TaskEngine.Tasks
                     {
                         // Notification to Instructor.
                     }
-                    _logger.LogError(e.Message);
+                    GetLogger().LogError(e.Message);
                 }
                 return newMedia;
             }
@@ -202,7 +202,7 @@ namespace TaskEngine.Tasks
                     {
                         // Notification to Instructor.
                     }
-                    _logger.LogError(e.Message);
+                    GetLogger().LogError(e.Message);
                 }
                 return newMedia;
             }
@@ -286,7 +286,7 @@ namespace TaskEngine.Tasks
             }
             catch (Box.V2.Exceptions.BoxSessionInvalidatedException e)
             {
-                _logger.LogError(e, "Box Token Failure.");
+                GetLogger().LogError(e, "Box Token Failure.");
                 await _slack.PostErrorAsync(e, "Box Token Failure.");
                 throw;
             }

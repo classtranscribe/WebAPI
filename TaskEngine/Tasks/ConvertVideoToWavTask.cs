@@ -2,16 +2,12 @@
 using ClassTranscribeDatabase.Models;
 using Microsoft.Extensions.Logging;
 using System;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using CTCommons.Grpc;
 using static ClassTranscribeDatabase.CommonUtils;
 using CTCommons;
 using System.Diagnostics.CodeAnalysis;
-using System.Text;
-
-using System.Collections.Generic;
 
 namespace TaskEngine.Tasks
 {
@@ -30,9 +26,6 @@ namespace TaskEngine.Tasks
             _rpcClient = rpcClient;
             _transcriptionTask = transcriptionTask;
         }
-        
-        #pragma warning disable 1998
-        //Tasks/ConvertVideoToWavTask.cs(32,39): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread. [/src/TaskEngine/TaskEngine.csproj]
 
         protected override Task OnConsume(string videoId, TaskParameters taskParameters, ClientActiveTasks cleanup)
         {
@@ -53,7 +46,7 @@ namespace TaskEngine.Tasks
             {
                 // Get the video object
                 var video = await _context.Videos.FindAsync(videoId);
-                _logger.LogInformation("Consuming" + video);
+                GetLogger().LogInformation("Consuming" + video);
                 // Make RPC call to produce audio file.
                 var file = await _rpcClient.PythonServerClient.ConvertVideoToWavRPCWithOffsetAsync(new CTGrpc.FileForConversion
                 {

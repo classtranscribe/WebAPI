@@ -135,7 +135,7 @@ namespace UnitTests.ControllerTests
             {
                 AuthMethod = AuthMethod.CILogon,
                 Token = "none",
-                CallbackURL = "none"
+                CallbackURL = new System.Uri("https://www.google.com")
             });
             Assert.IsType<UnauthorizedResult>(result.Result);
         }

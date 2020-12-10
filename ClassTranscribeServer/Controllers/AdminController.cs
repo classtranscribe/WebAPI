@@ -182,7 +182,12 @@ namespace ClassTranscribeServer.Controllers
                 await stream.CopyToAsync(memory);
             }
             memory.Position = 0;
-            return File(memory, "text/csv", Path.GetFileNameWithoutExtension(path) + ".csv");
+
+            var fileToReturn = File(memory, "text/csv", Path.GetFileNameWithoutExtension(path) + ".csv");
+
+            memory.Dispose();
+
+            return fileToReturn;
         }
 
         /// <summary>
@@ -192,7 +197,9 @@ namespace ClassTranscribeServer.Controllers
         [HttpGet("GetVersion")]
         [AllowAnonymous]
         [Produces("application/json")]
+        #pragma warning disable CA1822 // The warning suggests marking this as static but ASP.NET doesn't support static endpoints
         public ActionResult<BuildVersionDTO> GetVersion()
+        #pragma warning restore CA1822
         {
             BuildVersionDTO result = new BuildVersionDTO()
             {

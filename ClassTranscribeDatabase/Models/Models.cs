@@ -307,7 +307,7 @@ namespace ClassTranscribeDatabase.Models
                 string s = (string)FileMediaInfo["format"]["duration"];
                 Duration = TimeSpan.FromSeconds(Convert.ToDouble(s));
             }
-            catch (Exception ignored)
+            catch (Exception)
             {
                 // Could not extract duration. We won't log this
             }

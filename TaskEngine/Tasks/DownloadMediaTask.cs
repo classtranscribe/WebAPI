@@ -48,7 +48,7 @@ namespace TaskEngine.Tasks
                 media = await _context.Medias.Where(m => m.Id == mediaId)
                     .Include(m => m.Playlist).FirstAsync();
             }
-            _logger.LogInformation("Consuming" + media);
+            GetLogger().LogInformation("Consuming" + media);
             Video video = new Video();
             switch (media.SourceType)
             {
@@ -80,7 +80,7 @@ namespace TaskEngine.Tasks
                         await _context.SaveChangesAsync();
                         latestMedia.VideoId = video.Id;
                         await _context.SaveChangesAsync();
-                        _logger.LogInformation("Downloaded:" + video);
+                        GetLogger().LogInformation("Downloaded:" + video);
                         _transcriptionTask.Publish(video.Id);
                         _processVideoTask.Publish(video.Id);
                     }
@@ -98,7 +98,7 @@ namespace TaskEngine.Tasks
                             await _context.SaveChangesAsync();
                             latestMedia.VideoId = video.Id;
                             await _context.SaveChangesAsync();
-                            _logger.LogInformation("Downloaded:" + video);
+                            GetLogger().LogInformation("Downloaded:" + video);
                             _transcriptionTask.Publish(video.Id);
                             _processVideoTask.Publish(video.Id);
                         }
@@ -109,7 +109,7 @@ namespace TaskEngine.Tasks
                             var existingVideo = await _context.Videos.Where(v => v.Video1Id == file.First().Id).FirstAsync();
                             latestMedia.VideoId = existingVideo.Id;
                             await _context.SaveChangesAsync();
-                            _logger.LogInformation("Existing Video:" + existingVideo);
+                            GetLogger().LogInformation("Existing Video:" + existingVideo);
 
                             // Deleting downloaded video as it's duplicate.
                             await video.DeleteVideoAsync(_context);
@@ -189,7 +189,7 @@ namespace TaskEngine.Tasks
             else
             {
                 // Deleting media is fine if download failed as we can get it back from the echo playlist.
-                _logger.LogError("DownloadEchoVideo failed. mediaId {0}, removing Media record", media.Id);
+                GetLogger().LogError("DownloadEchoVideo failed. mediaId {0}, removing Media record", media.Id);
                 using (var context = CTDbContext.CreateDbContext())
                 {
                     context.Medias.Remove(media);
@@ -218,7 +218,7 @@ namespace TaskEngine.Tasks
             else
             {
                 // Deleting media is fine if download failed as we can get it back from the youtube playlist.
-                _logger.LogError("DownloadYoutubeVideo failed. mediaId {0}, removing Media record", media.Id);
+                GetLogger().LogError("DownloadYoutubeVideo failed. mediaId {0}, removing Media record", media.Id);
                 using (var context = CTDbContext.CreateDbContext())
                 {
                     context.Medias.Remove(media);
@@ -249,7 +249,7 @@ namespace TaskEngine.Tasks
             }
             catch (Exception e)
             {
-                _logger.LogError(e, "DownloadLocalPlaylist failed. mediaId {0}", media.Id);
+                GetLogger().LogError(e, "DownloadLocalPlaylist failed. mediaId {0}", media.Id);
                 using (var context = CTDbContext.CreateDbContext())
                 {
                     context.Medias.Remove(media);
@@ -282,7 +282,7 @@ namespace TaskEngine.Tasks
                 else
                 {
                     // Deleting media is fine if download failed as we can get it back from the youtube playlist.
-                    _logger.LogError("DownloadBoxVideo failed. mediaId {0}, removing Media record", media.Id);
+                    GetLogger().LogError("DownloadBoxVideo failed. mediaId {0}, removing Media record", media.Id);
                     using (var context = CTDbContext.CreateDbContext())
                     {
                         context.Medias.Remove(media);
@@ -293,7 +293,7 @@ namespace TaskEngine.Tasks
             }
             catch (Box.V2.Exceptions.BoxSessionInvalidatedException e)
             {
-                _logger.LogError(e, "Box Token Failure.");
+                GetLogger().LogError(e, "Box Token Failure.");
                 await _slack.PostErrorAsync(e, "Box Token Failure.");
                 throw;
             }
