@@ -39,6 +39,7 @@ namespace UnitTests.ControllerTests
 
             var offering = new Offering
             {
+                Id = "offering",
                 SectionName = "A",
                 TermId = termId
             };
@@ -59,6 +60,10 @@ namespace UnitTests.ControllerTests
 
             var getResult = await _controller.GetOffering(offering.Id);
             AssertOfferingDTO(getResult.Value, offering, courseId, departmentId);
+
+            var newOffering = _context.Offerings.Find(offering.Id);
+            Assert.Equal(PublishStatus.Published, newOffering.PublishStatus);
+            Assert.Equal(Visibility.Visible, newOffering.Visibility);
         }
 
         [Fact]

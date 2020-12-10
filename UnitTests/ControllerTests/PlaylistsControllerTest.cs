@@ -296,6 +296,8 @@ namespace UnitTests.ControllerTests
 
             var newPlaylist = _context.Playlists.Find(playlist.Id);
             Assert.Equal(playlist, newPlaylist);
+            Assert.Equal(PublishStatus.Published, playlist.PublishStatus);
+            Assert.Equal(Visibility.Visible, playlist.Visibility);
         }
 
         [Fact]

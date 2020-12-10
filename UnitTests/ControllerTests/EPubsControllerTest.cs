@@ -44,6 +44,8 @@ namespace UnitTests.ControllerTests
 
             getResult = await _controller.GetEPub(ePub.Id);
             Assert.Equal(ePub, getResult.Value);
+            Assert.Equal(PublishStatus.Published, getResult.Value.PublishStatus);
+            Assert.Equal(Visibility.Visible, getResult.Value.Visibility);
         }
 
         [Fact]
