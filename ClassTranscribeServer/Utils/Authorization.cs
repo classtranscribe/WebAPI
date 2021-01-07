@@ -31,6 +31,10 @@ namespace ClassTranscribeServer.Authorization
                                                        UpdateOfferingRequirement requirement,
                                                        Offering offering)
         {
+            if (context == null)
+            {
+                return;
+            }
 
             var user = await _userUtils.GetUser(context.User);
             var InstructorRole = await _roleManager.FindByNameAsync(Globals.ROLE_INSTRUCTOR);
@@ -64,17 +68,22 @@ namespace ClassTranscribeServer.Authorization
                                                        ReadOfferingRequirement requirement,
                                                        Offering offering)
         {
+            if (context == null)
+            {
+                return;
+            }
+
             var user = await _userUtils.GetUser(context.User);
             
-            if (offering.AccessType == AccessTypes.Public)
+            if (offering != null && offering.AccessType == AccessTypes.Public)
             {
                 context.Succeed(requirement);
             }
-            else if (offering.AccessType == AccessTypes.AuthenticatedOnly && user != null)
+            else if (offering != null && offering.AccessType == AccessTypes.AuthenticatedOnly && user != null)
             {
                 context.Succeed(requirement);
             }
-            else if (offering.AccessType == AccessTypes.UniversityOnly && user != null)
+            else if (offering != null && offering.AccessType == AccessTypes.UniversityOnly && user != null)
             {
                 var universityId = await _ctDbContext.CourseOfferings.Where(co => co.OfferingId == offering.Id)
                     .Select(c => c.Course.Department.UniversityId).FirstAsync();
@@ -83,7 +92,7 @@ namespace ClassTranscribeServer.Authorization
                     context.Succeed(requirement);
                 }
             }
-            else if (offering.AccessType == AccessTypes.StudentsOnly && user != null && offering.OfferingUsers.Select(ou => ou.ApplicationUser).Contains(user))
+            else if (offering != null && offering.AccessType == AccessTypes.StudentsOnly && user != null && offering.OfferingUsers.Select(ou => ou.ApplicationUser).Contains(user))
             {
                 context.Succeed(requirement);
             }

@@ -105,6 +105,7 @@ namespace ClassTranscribeServer.Controllers
                     CreatedAt = m.CreatedAt,
                     Ready = m.Video.Transcriptions.Any(),
                     SourceType = m.SourceType,
+                    Duration = m.Video?.Duration,
                     Video = new VideoDTO
                     {
                         Id = m.Video.Id,
@@ -151,10 +152,8 @@ namespace ClassTranscribeServer.Controllers
                 {
                     return new ForbidResult();
                 }
-                else
-                {
-                    return new ChallengeResult();
-                }
+
+                return new ChallengeResult();
             }
             List<MediaDTO> medias = p.Medias
                 .OrderBy(m => m.Index)
@@ -167,6 +166,7 @@ namespace ClassTranscribeServer.Controllers
                     CreatedAt = m.CreatedAt,
                     JsonMetadata = m.JsonMetadata,
                     SourceType = m.SourceType,
+                    Duration = m.Video?.Duration,
                     Ready = m.Video == null ? false : m.Video.Transcriptions.Any(),
                     Video = m.Video == null ? null : new VideoDTO
                     {
@@ -217,10 +217,8 @@ namespace ClassTranscribeServer.Controllers
                 {
                     return new ForbidResult();
                 }
-                else
-                {
-                    return new ChallengeResult();
-                }
+
+                return new ChallengeResult();
             }
             var p = await _context.Playlists.FindAsync(playlist.Id);
             p.Name = playlist.Name;
@@ -280,7 +278,7 @@ namespace ClassTranscribeServer.Controllers
             }
 
             // If playlists are deleted the Count != Max Index, so use the max index (still not perfect, what if 2 playlists are created at the same time)
-            if (offering.Playlists.Count > 0)
+            if (offering.Playlists != null && offering.Playlists.Count > 0)
             {
                 playlist.Index = 1 + offering.Playlists.Max(p => p.Index);
             }
@@ -301,7 +299,14 @@ namespace ClassTranscribeServer.Controllers
             {
                 return BadRequest();
             }
+
             var playlist = await _context.Playlists.FindAsync(id);
+
+            if (playlist == null)
+            {
+                return NotFound();
+            }
+
             var authorizationResult = await _authorizationService.AuthorizeAsync(this.User, playlist.Offering, Globals.POLICY_UPDATE_OFFERING);
             if (!authorizationResult.Succeeded)
             {
@@ -309,14 +314,8 @@ namespace ClassTranscribeServer.Controllers
                 {
                     return new ForbidResult();
                 }
-                else
-                {
-                    return new ChallengeResult();
-                }
-            }
-            if (playlist == null)
-            {
-                return NotFound();
+
+                return new ChallengeResult();
             }
 
             _context.Playlists.Remove(playlist);
@@ -330,7 +329,7 @@ namespace ClassTranscribeServer.Controllers
         public async Task<ActionResult> Reorder(string offeringId, List<string> playlistIds)
         {
             var offering = await _context.Offerings.FindAsync(offeringId);
-            if (playlistIds == null || !playlistIds.Any() || offering == null || offering.Playlists.Count != playlistIds.Count)
+            if (playlistIds == null || !playlistIds.Any() || offering == null || offering.Playlists == null || offering.Playlists.Count != playlistIds.Count)
             {
                 return BadRequest();
             }
@@ -341,10 +340,8 @@ namespace ClassTranscribeServer.Controllers
                 {
                     return new ForbidResult();
                 }
-                else
-                {
-                    return new ChallengeResult();
-                }
+
+                return new ChallengeResult();
             }
             var playlists = new List<Playlist>();
             for (int i = 0; i < playlistIds.Count; i++)

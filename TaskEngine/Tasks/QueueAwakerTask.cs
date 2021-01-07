@@ -174,7 +174,7 @@ namespace TaskEngine.Tasks
 
                 // Completed Transcriptions which haven't generated vtt files
                 // TODO: Should also check dates too
-                _logger.LogInformation($"Finding incomplete VTTs, Transcriptions and Downloads from before {tooRecentCutoff}, minutesCutOff=({minutesCutOff})");
+                GetLogger().LogInformation($"Finding incomplete VTTs, Transcriptions and Downloads from before {tooRecentCutoff}, minutesCutOff=({minutesCutOff})");
 
 
                 // Todo Could also check for secondary video too
@@ -199,7 +199,7 @@ namespace TaskEngine.Tasks
             // However some of these may already be in progress
             // So don't queue theses
 
-            _logger.LogInformation($"Found {todoProcessVideos.Count},{todoVTTs.Count},{todoTranscriptions.Count},{todoDownloads.Count} counts before filtering");
+            GetLogger().LogInformation($"Found {todoProcessVideos.Count},{todoVTTs.Count},{todoTranscriptions.Count},{todoDownloads.Count} counts before filtering");
             ClientActiveTasks currentProcessVideos = _processVideoTask.GetCurrentTasks();
             todoProcessVideos.RemoveAll(e => currentProcessVideos.Contains(e));
 
@@ -213,24 +213,24 @@ namespace TaskEngine.Tasks
             ClientActiveTasks currentDownloads = _transcriptionTask.GetCurrentTasks();
             todoDownloads.RemoveAll(e => currentDownloads.Contains(e));
 
-            _logger.LogInformation($"Current In progress  {currentProcessVideos.Count},{currentVTTs.Count},{currentTranscription.Count},{currentDownloads.Count} counts after filtering");
-            _logger.LogInformation($"Found {todoProcessVideos.Count},{todoVTTs.Count},{todoTranscriptions.Count},{todoDownloads.Count} counts after filtering");
+            GetLogger().LogInformation($"Current In progress  {currentProcessVideos.Count},{currentVTTs.Count},{currentTranscription.Count},{currentDownloads.Count} counts after filtering");
+            GetLogger().LogInformation($"Found {todoProcessVideos.Count},{todoVTTs.Count},{todoTranscriptions.Count},{todoDownloads.Count} counts after filtering");
 
 
             // Now we have a list of new things we want to do
-            _logger.LogInformation($"Publishing processingVideos ({String.Join(",", todoProcessVideos)})");
+            GetLogger().LogInformation($"Publishing processingVideos ({String.Join(",", todoProcessVideos)})");
 
             todoProcessVideos.ForEach(t => _processVideoTask.Publish(t));
 
-            _logger.LogInformation($"Publishing todoVTTs ({String.Join(",", todoVTTs)})");
+            GetLogger().LogInformation($"Publishing todoVTTs ({String.Join(",", todoVTTs)})");
 
             todoVTTs.ForEach(t => _generateVTTFileTask.Publish(t));
 
-            _logger.LogInformation($"Publishing todoTranscriptions ({String.Join(",", todoTranscriptions)})");
+            GetLogger().LogInformation($"Publishing todoTranscriptions ({String.Join(",", todoTranscriptions)})");
 
             todoTranscriptions.ForEach(v => _transcriptionTask.Publish(v));
 
-            _logger.LogInformation($"Publishing todoDownloads ({String.Join(",", todoDownloads)})");
+            GetLogger().LogInformation($"Publishing todoDownloads ({String.Join(",", todoDownloads)})");
 
             todoDownloads.ForEach(m => _downloadMediaTask.Publish(m));
 
@@ -238,7 +238,7 @@ namespace TaskEngine.Tasks
             /// Code Not deleted because one day we will just reuse the one wav file and use an offset into that file
             //(await context.Videos.Where(v => v.Medias.Any() && v.Audio == null).ToListAsync()).ForEach(v => _convertVideoToWavTask.Publish(v.Id));
             // Videos which have failed in transcribing
-            _logger.LogInformation("Pending Jobs - completed");
+            GetLogger().LogInformation("Pending Jobs - completed");
         }
         /// Requests _downloadPlaylistInfoTask for all recent playlists
         private async Task DownloadAllPlaylists()
@@ -253,10 +253,10 @@ namespace TaskEngine.Tasks
                 //TODO/TOREVIEW: Suggest Term.EndDate < Today plus 2 weeks (but let's check the semester dates in the DB and document this in the frontend)
                 playlists = await _context.Offerings.Where(o => o.Term.StartDate >= period).SelectMany(o => o.Playlists).Select(p => p.Id).ToListAsync();
             }
-            _logger.LogInformation($"DownloadAllPlaylists(); _downloadPlaylistInfoTask publishing {playlists.Count} tasks");
+            GetLogger().LogInformation($"DownloadAllPlaylists(); _downloadPlaylistInfoTask publishing {playlists.Count} tasks");
             playlists.ForEach(p => _downloadPlaylistInfoTask.Publish(p));
             
-            _logger.LogInformation("DownloadAllPlaylists() - Complete");
+            GetLogger().LogInformation("DownloadAllPlaylists() - Complete");
         }
 
         protected async override Task OnConsume(JObject jObject, TaskParameters taskParameters, ClientActiveTasks cleanup)
@@ -321,20 +321,20 @@ namespace TaskEngine.Tasks
                 else if (type == TaskType.TranscribeVideo.ToString())
                 {
                     var id = jObject["videoOrMediaId"].ToString();
-                    _logger.LogInformation($"{type}:{id}");
+                    GetLogger().LogInformation($"{type}:{id}");
                     var video = await _context.Videos.FindAsync(id);
                     if(video == null)
                     {
                         var media = await _context.Medias.FindAsync(id);
                         if( media != null)
                         {
-                            _logger.LogInformation($"{id}: media Found. videoID=({media.VideoId})");
+                            GetLogger().LogInformation($"{id}: media Found. videoID=({media.VideoId})");
                             video = media.Video;
                         }
                     }
                     if( video == null)
                     {
-                        _logger.LogInformation($"No video found for video/mediaId ({id})");
+                        GetLogger().LogInformation($"No video found for video/mediaId ({id})");
                         return;
 
                      }
@@ -344,10 +344,10 @@ namespace TaskEngine.Tasks
                     {
                         deleteExisting = jObject["DeleteExisting"].Value<bool>();
                     }
-                    catch (Exception ignored) { }
+                    catch (Exception) { }
                     if (deleteExisting)
                     {
-                        _logger.LogInformation($"{id}:Removing Transcriptions for video ({video.Id})");
+                        GetLogger().LogInformation($"{id}:Removing Transcriptions for video ({video.Id})");
                         
                         var transcriptions = video.Transcriptions;
                         _context.Transcriptions.RemoveRange(transcriptions);

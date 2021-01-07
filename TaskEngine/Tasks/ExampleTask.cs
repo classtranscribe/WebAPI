@@ -21,7 +21,7 @@ namespace TaskEngine.Tasks
         protected async override Task OnConsume(string example, TaskParameters taskParameters, ClientActiveTasks cleanup)
         {
             registerTask(cleanup, "ExampleTask"); // may throw AlreadyInProgress exception
-            _logger.LogInformation("Example Task Starting");
+            GetLogger().LogInformation("Example Task Starting");
             int captionCount = 0;
             int transcriptionCount = 0;
            
@@ -38,12 +38,12 @@ namespace TaskEngine.Tasks
                     var videoID = transcription.VideoId;
                     var captions = await captionQueries.GetCaptionsAsync(transcriptionId);
 
-                    _logger.LogInformation($"{transcription.Id}: Caption count= {captions.Count}");
+                    GetLogger().LogInformation($"{transcription.Id}: Caption count= {captions.Count}");
                     transcriptionCount++;
                 }
             }
 
-            _logger.LogInformation($"Example Task Done.  transcriptionCount={transcriptionCount} captionCount={captionCount}");
+            GetLogger().LogInformation($"Example Task Done.  transcriptionCount={transcriptionCount} captionCount={captionCount}");
         }
     }
 }

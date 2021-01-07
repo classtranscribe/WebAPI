@@ -62,6 +62,12 @@ namespace ClassTranscribeDatabase.Models
         Hidden = 1
     }
 
+    public enum PublishStatus
+    {
+        Published = 0,
+        NotPublished = 1
+    }
+
     /// <summary>
     /// This class represents a User of ClassTranscribe.
     /// </summary>
@@ -103,6 +109,12 @@ namespace ClassTranscribeDatabase.Models
         [SwaggerIgnore]
         [IgnoreDataMember]
         public Status IsDeletedStatus { get; set; }
+        [SwaggerIgnore]
+        [IgnoreDataMember]
+        public DateTime? DeletedAt { get; set; }
+        [SwaggerIgnore]
+        [IgnoreDataMember]
+        public string? DeletedBy { get; set; }
 
         public ResourceType GetResourceType()
         {
@@ -191,6 +203,7 @@ namespace ClassTranscribeDatabase.Models
         public string Description { get; set; }
         public JObject JsonMetadata { get; set; }
         public Visibility Visibility { get; set; }
+        public PublishStatus PublishStatus { get; set; }
     }
 
     public class Playlist : Entity
@@ -206,6 +219,7 @@ namespace ClassTranscribeDatabase.Models
         public JObject JsonMetadata { get; set; }
         public int Index { get; set; }
         public Visibility Visibility { get; set; }
+        public PublishStatus PublishStatus { get; set; }
     }
 
     public class Media : Entity
@@ -225,6 +239,7 @@ namespace ClassTranscribeDatabase.Models
         public int Index { get; set; }
         public virtual List<WatchHistory> WatchHistories { get; set; }
         public Visibility Visibility { get; set; }
+        public PublishStatus PublishStatus { get; set; }
     }
 
     public class Transcription : Entity
@@ -298,7 +313,7 @@ namespace ClassTranscribeDatabase.Models
                 string s = (string)FileMediaInfo["format"]["duration"];
                 Duration = TimeSpan.FromSeconds(Convert.ToDouble(s));
             }
-            catch (Exception ignored)
+            catch (Exception)
             {
                 // Could not extract duration. We won't log this
             }
@@ -388,7 +403,8 @@ namespace ClassTranscribeDatabase.Models
         public string Language { get; set; }
         public string Author { get; set; }
         public string Publisher { get; set; }
-        public bool IsPublished { get; set; }
+        public Visibility Visibility { get; set; }
+        public PublishStatus PublishStatus { get; set; }
         public JObject Cover { get; set; }
         public List<JObject> Chapters { get; set; }
     }

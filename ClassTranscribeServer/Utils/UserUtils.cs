@@ -31,7 +31,7 @@ namespace ClassTranscribeServer.Utils
                 UserName = emailId,
                 Email = emailId
             };
-            var result = await _userManager.CreateAsync(user, user.Email);
+            await _userManager.CreateAsync(user, user.Email);
             University university = await GetUniversity(user.Email);
             user.University = university;
             await _context.SaveChangesAsync();
@@ -40,6 +40,11 @@ namespace ClassTranscribeServer.Utils
 
         public async Task<University> GetUniversity(string mailId)
         {
+            if (string.IsNullOrEmpty(mailId))
+            {
+                return await _context.Universities.FindAsync("0000");
+            }
+
             string domain = mailId.Split('@')[1];
 
             // Some GSVU emails can have "mail." prefix
@@ -54,7 +59,7 @@ namespace ClassTranscribeServer.Utils
             else
             {
                 string universityName = GetUniversityName(domain);
-                if (universityName == "")
+                if (string.IsNullOrEmpty(universityName))
                 {
                     // If domain is unknown return Special University as Unknown
                     university = await _context.Universities.FindAsync("0000");

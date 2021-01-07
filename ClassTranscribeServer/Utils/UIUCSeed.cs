@@ -7,8 +7,9 @@ using System.Linq;
 
 namespace TaskEngine.Utils
 {
-    public class UIUCSeed
+    public static class UIUCSeed
     {
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Naming", "CA1707:Identifiers should not contain underscores")]
         public class CSVCourse
         {
             public string TERM_DESC { get; set; }
@@ -30,6 +31,7 @@ namespace TaskEngine.Utils
             var csvReader = new CsvReader(reader, System.Globalization.CultureInfo.CurrentCulture);
             var records = csvReader.GetRecords<CSVCourse>();
             List<CSVCourse> csvCourses = new List<CSVCourse>(records);
+
             using (var _context = CTDbContext.CreateDbContext())
             {
                 Department eceDept = _context.Departments.Where(d => d.Acronym == "ECE" && d.UniversityId == "1001").FirstOrDefault();
@@ -41,6 +43,8 @@ namespace TaskEngine.Utils
                 _context.Courses.AddRange(courses);
                 _context.SaveChanges();
             }
+
+            csvReader.Dispose();
         }
     }
 }

@@ -1,8 +1,7 @@
 ﻿using ClassTranscribeDatabase;
-using ClassTranscribeDatabase.Models;
+using ClassTranscribeServer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -12,8 +11,6 @@ using Moq;
 using System;
 using System.IO;
 using System.Security.Claims;
-using System.Threading;
-using System.Threading.Tasks;
 using Xunit;
 
 namespace UnitTests
@@ -22,11 +19,9 @@ namespace UnitTests
     {
         public readonly ServiceProvider _serviceProvider;
         public readonly IAuthorizationService _authorizationService;
-        public readonly UserManager<ApplicationUser> _userManager;
-        public readonly ILogger _logger;
         public readonly ControllerContext _controllerContext;
 
-        // 'data' must be exist (and be last). Otherwise FileRecord Path setter will fail
+        // 'data' must exist (and be last). Otherwise FileRecord Path setter will fail
         private static readonly string _testDataDirectory = Path.Combine("test_data","automatically_deleted","data");
 
         // This constructor is run once for all tests in the "Global" collection (which should be all tests)
@@ -39,26 +34,34 @@ namespace UnitTests
             }
             Directory.CreateDirectory(_testDataDirectory);
 
+            var mockWake = new Mock<WakeDownloader>(MockBehavior.Strict, null);
+            mockWake.Setup(wake => wake.UpdateVTTFile(It.IsAny<string>()));
+            mockWake.Setup(wake => wake.UpdatePlaylist(It.IsAny<string>()));
+
             _serviceProvider = new ServiceCollection()
                 .AddEntityFrameworkInMemoryDatabase()
                 // Use empty configuration for AppSettings because we do not want
                 // dependencies on any environment variables or vs_appsettings.json
                 .Configure<AppSettings>(new ConfigurationBuilder().Build())
                 .AddLogging(cfg => cfg.AddConsole())
+                .AddScoped(sp => mockWake.Object)
+                .AddScoped<MockUserManager>()
+                .AddScoped<MockSignInManager>()
                 .BuildServiceProvider();
 
             Globals.appSettings = _serviceProvider.GetService<IOptions<AppSettings>>().Value;
             Globals.appSettings.DATA_DIRECTORY = _testDataDirectory;
+            Globals.appSettings.JWT_KEY = TestGlobals.TEST_JWT_KEY;
 
             var mockAuth = new Mock<IAuthorizationService>();
 
             // Set up mock authorization service to always return success
             mockAuth.Setup(
-                a => a.AuthorizeAsync(
+                auth => auth.AuthorizeAsync(
                             It.IsAny<ClaimsPrincipal>(),
                             It.IsAny<object>(),
                             It.IsAny<string>()))
-                .Returns(Task.FromResult(AuthorizationResult.Success()));
+                .ReturnsAsync(AuthorizationResult.Success());
 
             _authorizationService = mockAuth.Object;
 
@@ -72,36 +75,14 @@ namespace UnitTests
             {
                 HttpContext = new DefaultHttpContext() { User = userPrincipal }
             };
-
-            var userStore = new Mock<IUserStore<ApplicationUser>> ();
-
-            // No tests actually user this INSTRUCTOR1 user yet 
-            // So this code is really just a demonstration for how to set up a user for testing,
-            // And how to pass it into the UserManager 
-            // TODO: Could also mock the user role checks too
-            userStore.Setup(x => x.FindByIdAsync("INSTRUCTOR1@TESTLAND", CancellationToken.None))
-                .ReturnsAsync(new ApplicationUser
-                {
-                    UserName = "INSTRUCTOR1@TESTLAND",
-                    Id = "INSTRUCTOR1@TESTLAND"
-                    
-                });
-
-            _userManager = new UserManager<ApplicationUser>(userStore.Object, null, null, null, null, null, null, null, null);
         }
 
         public void Dispose()
         {
-            // A tiny bit safer than using Globals.appSettings.DATA_DIRECTORY
             Directory.Delete(_testDataDirectory, true);
         }
     }
 
     [CollectionDefinition("Global")]
     public class Global : ICollectionFixture<GlobalFixture> { }
-
-    public static class TestGlobals
-    {
-        public const string TEST_USER_ID = "TestUser";
-    }
 }
