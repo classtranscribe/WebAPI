@@ -62,6 +62,7 @@ namespace TaskEngine
                 .AddSingleton<CreateBoxTokenTask>()
                 .AddSingleton<BuildElasticIndexTask>()
                 .AddSingleton<ExampleTask>()
+                .AddSingleton<CleanUpElasticIndexTask>()
                 
                 .AddSingleton<BoxAPI>()
                 .AddScoped<Seeder>()
@@ -133,13 +134,16 @@ namespace TaskEngine
             // Elastic Search index should be built after TranscriptionTask
             serviceProvider.GetService<BuildElasticIndexTask>().Consume(NO_CONCURRENCY);
 
+            // Outdated Elastic Search index would be removed
+            serviceProvider.GetService<CleanUpElasticIndexTask>().Consume(NO_CONCURRENCY);
+
             serviceProvider.GetService<ExampleTask>().Consume(NO_CONCURRENCY);
             
             _logger.LogInformation("Done creating task consumers");
             //nolonger used :
             // nope serviceProvider.GetService<nope ConvertVideoToWavTask>().Consume(concurrent_videotasks);
 
-            bool hacktest = false;
+            bool hacktest = true;
             if (hacktest)
             {
                 TempCode tempCode = serviceProvider.GetService<TempCode>();

@@ -30,7 +30,8 @@ namespace ClassTranscribeDatabase
             UpdateOffering = 14,
             ReTranscribePlaylist = 15,
             BuildElasticIndex = 16,
-            ExampleTask = 17
+            ExampleTask = 17,
+            CleanUpElasticIndex = 18
         }
 
         public class Languages
