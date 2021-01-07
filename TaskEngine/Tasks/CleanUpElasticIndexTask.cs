@@ -16,7 +16,6 @@ using System.Collections.Generic;
 
 namespace TaskEngine.Tasks
 {
-    //[SuppressMessage("Microsoft.Performance", "CA1812:MarkMembersAsStatic")] // This class is never directly instantiated
     class CleanUpElasticIndexTask : RabbitMQTask<string>
     {
         private readonly ElasticClient _client;
@@ -40,47 +39,49 @@ namespace TaskEngine.Tasks
             registerTask(cleanup, "CleanUpElasticIndexTask"); // may throw AlreadyInProgress exception
             _logger.LogInformation("CleanUpElasticIndexTask Starting");
 
-            //using (var _context = CTDbContext.CreateDbContext())
-            //{
-            //    CaptionQueries captionQueries = new CaptionQueries(_context);
+            var result = await _client.Indices.GetAsync(new GetIndexRequest(Indices.All));
+            var indices = result.Indices;
+            foreach (var index in indices)
+            {
+                string index_name = index.Key.ToString();
 
-            //    var all_transcriptions = await _context.Transcriptions.Where(t => t.Language == Languages.ENGLISH_AMERICAN).ToListAsync();
-            //    foreach (var transcription in all_transcriptions)
-            //    {
-            //        var all_captions = transcription.Captions;
+                // elastic search internal management index starts with '.'
+                if (index_name[0] == '.')
+                {
+                    continue;
+                }
 
-            //        // each index has the unique name "index_string_unique", the current in use one has the alias "index_string_alias"
-            //        var index_string_base = transcription.Id + "_" + Languages.ENGLISH_AMERICAN.ToLower();
-            //        var index_string_unique = index_string_base + "_" + $"{DateTime.Now:yyyyMMddHHmmss}";
-            //        var index_string_alias = index_string_base + "_" + "primary";
+                _logger.LogInformation(index.Key.ToString());
+                string[] parts = index_name.Split("_");
+                var index_string_id = parts[0];
+                var index_string_lang = parts[1];
+                var index_string_time = parts[2];
 
-            //        var asyncBulkIndexResponse = await _client.BulkAsync(b => b
-            //            .Index(index_string_unique)
-            //            .IndexMany(all_captions)
-            //        );
+                // Indices that were created in the last 2 days would not be removed.
+                DateTime createdAt = DateTime.ParseExact(index_string_time, "yyyyMMddHHmmss", null);
+                _logger.LogInformation("Created at: " + createdAt.ToString());
+                DateTime range = DateTime.Now.AddDays(-2);
+                if (DateTime.Compare(createdAt, range) >= 0)
+                {
+                    _logger.LogInformation("Skipped: Index is created in the last two days");
+                    continue;
+                }
 
-            //        var alias_exist = await _client.Indices.ExistsAsync(index_string_alias);
-            //        if (alias_exist.Exists)
-            //        {
-            //            var oldIndices = await _client.GetIndicesPointingToAliasAsync(index_string_alias);
-            //            var oldIndexName = oldIndices.First().ToString();
+                // If alias exist, this index is currently in use and should not be removed.
+                var index_string_alias = index_string_id + "_" + index_string_lang + "_" + "primary";
+                var cur_index = await _client.GetIndicesPointingToAliasAsync(index_string_alias);
+                var cur_index_list = cur_index.ToList();
+                if (cur_index_list.Any() && cur_index_list[0].ToString() == index_name)
+                {
+                    _logger.LogInformation("Skipped: Index is in use");
+                    continue;
+                }
 
-            //            var indexResponse = await _client.Indices.BulkAliasAsync(new BulkAliasRequest
-            //            {
-            //                Actions = new List<IAliasAction>
-            //                {
-            //                    new AliasRemoveAction {Remove = new AliasRemoveOperation {Index = oldIndexName, Alias = index_string_alias}},
-            //                    new AliasAddAction {Add = new AliasAddOperation {Index = index_string_unique, Alias = index_string_alias}}
-            //                }
-            //            });
-            //        }
-            //        else
-            //        {
-            //            var putAliasResponse = await _client.Indices.PutAliasAsync(new PutAliasRequest(index_string_unique, index_string_alias));
-            //        }
-            //    }
-            //}
-
+                // remove index
+                var resp = _client.Indices.DeleteAsync(index_name);
+                _logger.LogInformation(resp.Result.ToString());
+                _logger.LogInformation("Removed");
+            }
             _logger.LogInformation("CleanUpElasticIndexTask Done");
         }
     }
