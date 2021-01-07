@@ -37,7 +37,7 @@ namespace TaskEngine.Tasks
         protected async override Task OnConsume(string example, TaskParameters taskParameters, ClientActiveTasks cleanup)
         {
             registerTask(cleanup, "CleanUpElasticIndexTask"); // may throw AlreadyInProgress exception
-            _logger.LogInformation("CleanUpElasticIndexTask Starting");
+            GetLogger().LogInformation("CleanUpElasticIndexTask Starting");
 
             var result = await _client.Indices.GetAsync(new GetIndexRequest(Indices.All));
             var indices = result.Indices;
@@ -51,7 +51,7 @@ namespace TaskEngine.Tasks
                     continue;
                 }
 
-                _logger.LogInformation(index.Key.ToString());
+                GetLogger().LogInformation(index.Key.ToString());
                 string[] parts = index_name.Split("_");
                 var index_string_id = parts[0];
                 var index_string_lang = parts[1];
@@ -59,11 +59,11 @@ namespace TaskEngine.Tasks
 
                 // Indices that were created in the last 2 days would not be removed.
                 DateTime createdAt = DateTime.ParseExact(index_string_time, "yyyyMMddHHmmss", null);
-                _logger.LogInformation("Created at: " + createdAt.ToString());
+                GetLogger().LogInformation("Created at: " + createdAt.ToString());
                 DateTime range = DateTime.Now.AddDays(-2);
                 if (DateTime.Compare(createdAt, range) >= 0)
                 {
-                    _logger.LogInformation("Skipped: Index is created in the last two days");
+                    GetLogger().LogInformation("Skipped: Index is created in the last two days");
                     continue;
                 }
 
@@ -73,16 +73,16 @@ namespace TaskEngine.Tasks
                 var cur_index_list = cur_index.ToList();
                 if (cur_index_list.Any() && cur_index_list[0].ToString() == index_name)
                 {
-                    _logger.LogInformation("Skipped: Index is in use");
+                    GetLogger().LogInformation("Skipped: Index is in use");
                     continue;
                 }
 
                 // remove index
                 var resp = _client.Indices.DeleteAsync(index_name);
-                _logger.LogInformation(resp.Result.ToString());
-                _logger.LogInformation("Removed");
+                GetLogger().LogInformation(resp.Result.ToString());
+                GetLogger().LogInformation("Removed");
             }
-            _logger.LogInformation("CleanUpElasticIndexTask Done");
+            GetLogger().LogInformation("CleanUpElasticIndexTask Done");
         }
     }
 }
