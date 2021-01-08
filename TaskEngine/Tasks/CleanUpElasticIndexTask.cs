@@ -75,7 +75,7 @@ namespace TaskEngine.Tasks
                     if (DateTime.Compare(createdAt, range) >= 0)
                     {
                         GetLogger().LogInformation("Skipped: Index does not exceed time_to_live");
-                        //continue;
+                        continue;
                     }
 
                     // If alias exist, this index is currently in use and should not be removed.
