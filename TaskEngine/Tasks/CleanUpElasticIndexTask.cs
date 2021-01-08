@@ -75,7 +75,7 @@ namespace TaskEngine.Tasks
                     if (DateTime.Compare(createdAt, range) >= 0)
                     {
                         GetLogger().LogInformation("Skipped: Index does not exceed time_to_live");
-                        continue;
+                        //continue;
                     }
 
                     // If alias exist, this index is currently in use and should not be removed.
@@ -90,7 +90,7 @@ namespace TaskEngine.Tasks
 
                     // remove index
                     GetLogger().LogInformation("Removing Index: " + index_name);
-                    var resp = _client.Indices.Delete(index_name);
+                    var resp = await _client.Indices.DeleteAsync(index_name);
                     GetLogger().LogInformation(resp.ToString());
                 }
                 catch (Exception e)
