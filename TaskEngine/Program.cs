@@ -62,6 +62,7 @@ namespace TaskEngine
                 .AddSingleton<CreateBoxTokenTask>()
                 .AddSingleton<BuildElasticIndexTask>()
                 .AddSingleton<ExampleTask>()
+                .AddSingleton<CleanUpElasticIndexTask>()
                 
                 .AddSingleton<BoxAPI>()
                 .AddScoped<Seeder>()
@@ -132,6 +133,9 @@ namespace TaskEngine
 
             // Elastic Search index should be built after TranscriptionTask
             serviceProvider.GetService<BuildElasticIndexTask>().Consume(NO_CONCURRENCY);
+
+            // Outdated Elastic Search index would be removed
+            serviceProvider.GetService<CleanUpElasticIndexTask>().Consume(NO_CONCURRENCY);
 
             serviceProvider.GetService<ExampleTask>().Consume(NO_CONCURRENCY);
             
