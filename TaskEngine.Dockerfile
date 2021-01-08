@@ -13,13 +13,6 @@ RUN dotnet restore ./CTCommons/CTCommons.csproj
 COPY ./TaskEngine/TaskEngine.csproj ./TaskEngine/TaskEngine.csproj
 RUN dotnet restore ./TaskEngine/TaskEngine.csproj
 
-
-# We should not need the local env variables in this file
-# Is this why application insights was not working?
-# If we do need this at build time for Application Insights then we have work todo
-##nonono COPY ./vs_appsettings.json ./vs_appsettings.json
-RUN echo '{}' > ./vs_appsettings.json
-
 COPY ./world_universities_and_domains.json ./world_universities_and_domains.json
 COPY ./ct.proto ./ct.proto
 COPY ./ClassTranscribeDatabase ./ClassTranscribeDatabase

@@ -53,10 +53,8 @@ namespace ClassTranscribeServer.Controllers
                 {
                     return new ForbidResult();
                 }
-                else
-                {
-                    return new ChallengeResult();
-                }
+
+                return new ChallengeResult();
             }
 
             var v = await _context.Videos.FindAsync(media.VideoId);
@@ -69,6 +67,7 @@ namespace ClassTranscribeServer.Controllers
                 CreatedAt = media.CreatedAt,
                 JsonMetadata = media.JsonMetadata,
                 SourceType = media.SourceType,
+                Duration = media.Video.Duration,
                 Transcriptions = media.Video.Transcriptions
                 .Select(t => new TranscriptionDTO
                 {
@@ -263,10 +262,8 @@ namespace ClassTranscribeServer.Controllers
                 {
                     return new ForbidResult();
                 }
-                else
-                {
-                    return new ChallengeResult();
-                }
+
+                return new ChallengeResult();
             }
             var medias = new List<Media>();
             for (int i = 0; i < mediaIds.Count; i++)

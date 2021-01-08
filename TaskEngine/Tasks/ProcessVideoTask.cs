@@ -39,7 +39,7 @@ namespace TaskEngine.Tasks
                     .Include(v => v.ProcessedVideo2)
                     .Where(v => v.Id == videoId).FirstAsync();
             }
-            _logger.LogInformation("Consuming" + video);
+            GetLogger().LogInformation("Consuming" + video);
             if(video.Duration == null && video.Video1 != null)
             {
                 var mediaInfoResult = await _rpcClient.PythonServerClient.GetMediaInfoRPCAsync(new CTGrpc.File

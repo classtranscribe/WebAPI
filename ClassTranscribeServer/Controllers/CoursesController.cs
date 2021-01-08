@@ -47,7 +47,7 @@ namespace ClassTranscribeServer.Controllers
         [Authorize(Roles = Globals.ROLE_ADMIN)]
         public async Task<IActionResult> PutCourse(string id, Course course)
         {
-            if (id != course.Id)
+            if (course == null || id != course.Id)
             {
                 return BadRequest();
             }
@@ -78,17 +78,24 @@ namespace ClassTranscribeServer.Controllers
         [Authorize(Roles = Globals.ROLE_ADMIN)]
         public async Task<ActionResult<Course>> PostCourse(Course course)
         {
-            if (await _context.Courses.AnyAsync(c => c.CourseNumber == course.CourseNumber && c.DepartmentId == course.DepartmentId))
+            if (course == null)
             {
-                var existing_course = await _context.Courses.Where(c => c.CourseNumber == course.CourseNumber && c.DepartmentId == course.DepartmentId).FirstAsync();
-                return CreatedAtAction("GetCourse", new { id = existing_course.Id }, existing_course);
+                return BadRequest();
             }
-            else
+
+            var existingCourse = await _context.Courses
+                .Where(c => c.CourseNumber == course.CourseNumber && c.DepartmentId == course.DepartmentId)
+                .FirstOrDefaultAsync();
+
+            if (existingCourse != null)
             {
-                _context.Courses.Add(course);
-                await _context.SaveChangesAsync();
-                return CreatedAtAction("GetCourse", new { id = course.Id }, course);
+                return CreatedAtAction("GetCourse", new { id = existingCourse.Id }, existingCourse);
             }
+
+            _context.Courses.Add(course);
+            await _context.SaveChangesAsync();
+
+            return CreatedAtAction("GetCourse", new { id = course.Id }, course);
         }
 
         // DELETE: api/Courses/5

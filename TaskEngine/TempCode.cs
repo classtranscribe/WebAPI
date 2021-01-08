@@ -29,11 +29,13 @@ namespace TaskEngine
         private readonly DownloadPlaylistInfoTask _downloadPlaylistInfoTask;
         private readonly RpcClient _rpcClient;
         private readonly QueueAwakerTask _queueAwakerTask;
+        private readonly CleanUpElasticIndexTask _cleanUpElasticIndexTask;
 
         public TempCode(CTDbContext c, CreateBoxTokenTask createBoxTokenTask, UpdateBoxTokenTask updateBoxTokenTask,
             SceneDetectionTask ePubGeneratorTask, ProcessVideoTask processVideoTask, GenerateVTTFileTask generateVTTFileTask,
             TranscriptionTask transcriptionTask, ConvertVideoToWavTask convertVideoToWavTask, DownloadMediaTask downloadMediaTask,
-            DownloadPlaylistInfoTask downloadPlaylistInfoTask, QueueAwakerTask queueAwakerTask, RpcClient rpcClient)
+            DownloadPlaylistInfoTask downloadPlaylistInfoTask, QueueAwakerTask queueAwakerTask,
+            CleanUpElasticIndexTask cleanUpElasticIndexTask, RpcClient rpcClient)
         {
             context = c;
             _createBoxTokenTask = createBoxTokenTask;
@@ -47,6 +49,7 @@ namespace TaskEngine
             _downloadPlaylistInfoTask = downloadPlaylistInfoTask;
             _queueAwakerTask = queueAwakerTask;
             _rpcClient = rpcClient;
+            _cleanUpElasticIndexTask = cleanUpElasticIndexTask;
         }
 
         public void CleanUpInvalidVideos()
@@ -109,6 +112,7 @@ namespace TaskEngine
             // A dummy awaited function call.
             await Task.Delay(0);
             // Add any temporary code
+            _cleanUpElasticIndexTask.Publish("");
         }
 
         private async Task TestYoutubeChannelDownload()

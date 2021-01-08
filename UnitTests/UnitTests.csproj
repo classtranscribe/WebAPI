@@ -2,7 +2,6 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
-
     <IsPackable>false</IsPackable>
   </PropertyGroup>
 
@@ -13,10 +12,16 @@
     <PackageReference Include="coverlet.collector" Version="1.2.0" />
     <PackageReference Include="EntityFramework" Version="6.4.4" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="3.1.8" />
+    <PackageReference Include="Moq" Version="4.14.6" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\ClassTranscribeServer\ClassTranscribeServer.csproj" />
     <ProjectReference Include="..\ClassTranscribeDatabase\ClassTranscribeDatabase.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Assets\*">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 </Project>

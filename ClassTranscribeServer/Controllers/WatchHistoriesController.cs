@@ -6,7 +6,6 @@ using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace ClassTranscribeServer.Controllers
@@ -60,8 +59,11 @@ namespace ClassTranscribeServer.Controllers
             var user = await _userUtils.GetUser(User);
             if (user != null)
             {
-                var watchedMedias = await _context.WatchHistories
+                return _context.WatchHistories
                     .Where(w => w.ApplicationUserId == user.Id && w.Media.Id != null)
+                    .AsEnumerable()
+                    .GroupBy(w => w.MediaId)
+                    .Select(g => g.OrderByDescending(w => w.LastUpdatedAt).FirstOrDefault())
                     .Select(w => new MediaDTO
                     {
                         Id = w.Media.Id,
@@ -70,12 +72,11 @@ namespace ClassTranscribeServer.Controllers
                         CreatedAt = w.Media.CreatedAt,
                         JsonMetadata = w.Media.JsonMetadata,
                         SourceType = w.Media.SourceType,
+                        Duration = w.Media.Video != null ? w.Media.Video.Duration : null,
                         WatchHistory = w
                     })
                     .OrderByDescending(m => m.WatchHistory.LastUpdatedAt)
-                    .ToListAsync();
-
-                return watchedMedias;
+                    .ToList();
             }
             else
             {
@@ -140,11 +141,6 @@ namespace ClassTranscribeServer.Controllers
             await _context.SaveChangesAsync();
 
             return watchHistory;
-        }
-
-        private bool WatchHistoryExists(string id)
-        {
-            return _context.WatchHistories.Any(e => e.Id == id);
         }
     }
 }

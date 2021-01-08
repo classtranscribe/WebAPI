@@ -23,6 +23,7 @@ using System.Threading.Tasks;
 namespace ClassTranscribeServer.Controllers
 {
     [Route("api/[controller]/[action]")]
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types")]
     public class AccountController : BaseController
     {
         private readonly SignInManager<ApplicationUser> _signInManager;
@@ -42,6 +43,11 @@ namespace ClassTranscribeServer.Controllers
         [NonAction]
         public async Task<LoggedInDTO> Login(ApplicationUser user)
         {
+            if (user == null)
+            {
+                throw new ApplicationException("INVALID_LOGIN_ATTEMPT");
+            }
+
             var result = await _signInManager.PasswordSignInAsync(user.Email, user.Email, false, false);
 
             if (result.Succeeded)
@@ -69,6 +75,11 @@ namespace ClassTranscribeServer.Controllers
         [NonAction]
         public async Task<LoggedInDTO> Register(ApplicationUser user)
         {
+            if (user == null)
+            {
+                throw new ApplicationException("INVALID_REGISTRATION_ATTEMPT");
+            }
+
             var result = await _userManager.CreateAsync(user, user.Email);
             University university = await _userUtils.GetUniversity(user.Email);
             user.University = university;
@@ -167,6 +178,11 @@ namespace ClassTranscribeServer.Controllers
         [HttpPost]
         public async Task<ActionResult<LoggedInDTO>> SignIn([FromBody] LoginDto model)
         {
+            if (model == null)
+            {
+                return Unauthorized();
+            }
+
             LoggedInDTO loggedInDTO;
             try
             {
@@ -196,7 +212,7 @@ namespace ClassTranscribeServer.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error signing in User with authToken {0}.", model.Token);
+                _logger.LogError(ex, "Error signing in User with authToken {0}.", model.Token ?? "{no token}");
                 return Unauthorized();
             }
 
@@ -252,7 +268,7 @@ namespace ClassTranscribeServer.Controllers
         }
 
         [NonAction]
-        public static async Task<ApplicationUser> ValidateCILogonAuthCode(string authCode, string callbackURL)
+        public static async Task<ApplicationUser> ValidateCILogonAuthCode(string authCode, Uri callbackURL)
         {
             string cilogonDomain = "https://" + Globals.appSettings.CILOGON_DOMAIN + "/"; // Your Auth0 domain
             string cilogonClientId = Globals.appSettings.CILOGON_CLIENT_ID; // Your API Identifier
@@ -306,7 +322,7 @@ namespace ClassTranscribeServer.Controllers
             [Required]
             public string Token { get; set; }
             public AuthMethod AuthMethod { get; set; }
-            public string CallbackURL { get; set; }
+            public Uri CallbackURL { get; set; }
         }
 
         public enum AuthMethod

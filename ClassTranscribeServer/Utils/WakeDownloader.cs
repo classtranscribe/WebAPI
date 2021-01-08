@@ -19,7 +19,7 @@ namespace ClassTranscribeServer
             Wake(msg);
         }
 
-        public void UpdatePlaylist(string playlistId)
+        public virtual void UpdatePlaylist(string playlistId)
         {
             JObject msg = new JObject();
             msg.Add("Type", TaskType.DownloadPlaylistInfo.ToString());
@@ -27,7 +27,7 @@ namespace ClassTranscribeServer
             Wake(msg);
         }
 
-        public void UpdateVTTFile(string transcriptionId)
+        public virtual void UpdateVTTFile(string transcriptionId)
         {
             JObject msg = new JObject();
             msg.Add("Type", TaskType.GenerateVTTFile.ToString());

@@ -12,7 +12,7 @@ namespace ClientSdk.Client
         {
             return new MyClient(baseUrl, http)
             {
-                token = _token
+                Token = _token
             };
         }
     }

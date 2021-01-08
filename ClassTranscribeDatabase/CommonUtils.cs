@@ -29,7 +29,9 @@ namespace ClassTranscribeDatabase
             CreateBoxToken = 13,
             UpdateOffering = 14,
             ReTranscribePlaylist = 15,
-            ExampleTask = 16
+            BuildElasticIndex = 16,
+            ExampleTask = 17,
+            CleanUpElasticIndex = 18
         }
 
         public class Languages
