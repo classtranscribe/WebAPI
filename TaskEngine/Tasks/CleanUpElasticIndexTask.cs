@@ -19,6 +19,7 @@ namespace TaskEngine.Tasks
     class CleanUpElasticIndexTask : RabbitMQTask<string>
     {
         private readonly ElasticClient _client;
+        private readonly int _time_to_live;
 
         public CleanUpElasticIndexTask(RabbitMQConnection rabbitMQ,
             ILogger<CleanUpElasticIndexTask> logger)
@@ -28,6 +29,7 @@ namespace TaskEngine.Tasks
 
             // initialize elastic client
             var node = new Uri(configuration.GetValue<string>("ES_CONNECTION_ADDR"));
+            _time_to_live = Int32.Parse(configuration.GetValue<string>("ES_INDEX_TIME_TO_LIVE"));
             using (var settings = new ConnectionSettings(node))
             {
                 //settings.DefaultIndex("classTranscribe");
@@ -60,10 +62,10 @@ namespace TaskEngine.Tasks
                 // Indices that were created in the last 2 days would not be removed.
                 DateTime createdAt = DateTime.ParseExact(index_string_time, "yyyyMMddHHmmss", null);
                 GetLogger().LogInformation("Created at: " + createdAt.ToString());
-                DateTime range = DateTime.Now.AddDays(-2);
+                DateTime range = DateTime.Now.AddMinutes(-_time_to_live);
                 if (DateTime.Compare(createdAt, range) >= 0)
                 {
-                    GetLogger().LogInformation("Skipped: Index is created in the last two days");
+                    GetLogger().LogInformation("Skipped: Index does not exceed time_to_live");
                     continue;
                 }
 
