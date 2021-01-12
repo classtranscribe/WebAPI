@@ -154,7 +154,8 @@ namespace UnitTests.ControllerTests
                 new Offering
                 {
                     SectionName = "C",
-                    TermId = termId
+                    TermId = termId,
+                    PublishStatus = PublishStatus.NotPublished
                 }
             };
 
@@ -170,9 +171,13 @@ namespace UnitTests.ControllerTests
                 Assert.IsType<CreatedAtActionResult>(postResult.Result);
             }
 
-            var playlist = new Playlist { OfferingId = offerings[1].Id };
-            _context.Playlists.Add(playlist);
-            _context.Medias.Add(new Media { PlaylistId = playlist.Id });
+            var playlistB = new Playlist { OfferingId = offerings[1].Id };
+            _context.Playlists.Add(playlistB);
+            _context.Medias.Add(new Media { PlaylistId = playlistB.Id });
+
+            var playlistC = new Playlist { OfferingId = offerings[2].Id };
+            _context.Playlists.Add(playlistC);
+            _context.Medias.Add(new Media { PlaylistId = playlistC.Id });
 
             var getResult = await _controller.GetOfferingsByStudent();
             List<OfferingDTO> offeringsByStudent = getResult.Value.ToList();
