@@ -66,9 +66,12 @@ namespace ClassTranscribeDatabase
                 }
             }
             _logger.LogInformation("Migration starting");
-
-            _context.Database.Migrate();
-
+            using (var localcontext = CTDbContext.CreateDbContext())
+            {
+                // Default is 30 seconds
+                localcontext.Database.SetCommandTimeout(60*60); // in seconds
+                localcontext.Database.Migrate();
+            }
             _logger.LogInformation("Migration complete");
             _logger.LogInformation("Creating roles");
 
