@@ -115,7 +115,8 @@ namespace ClassTranscribeServer.Controllers
                     Transcriptions = m.Video.Transcriptions.Select(t => new TranscriptionDTO
                     {
                         Id = t.Id,
-                        Path = t.File.Path,
+                        Path = t.File.Path ,
+                        SrtPath = t.SrtFile.Path,
                         Language = t.Language
                     }).ToList()
                 }).ToList()
@@ -376,6 +377,8 @@ namespace ClassTranscribeServer.Controllers
     {
         public string Id { get; set; }
         public string Path { get; set; }
+        public string SrtPath { get; set; }
+        
         public string Language { get; set; }
     }
 
