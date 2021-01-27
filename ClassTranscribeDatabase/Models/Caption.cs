@@ -30,28 +30,38 @@ namespace ClassTranscribeDatabase.Models
         public virtual Transcription Transcription { get; set; }
         public CaptionType CaptionType { get; set; }
 
+        private string GetEscapedText() {
+            // <>& must be escaped &lt &gt &amp; The replacement order is important
+            String escape = Text.Replace("&","&amp;").Replace("<","&lt;").Replace(">","&gt;");
+            // The VTT spec says the text may not contain '-->'
+            while(escape.Contains("-->")) {
+                escape = escape.Replace("-->","=>");
+            }
+            // The string may not contain an empty line
+            while(escape.Contains("\n\n")) {
+                escape = escape.Replace("\n\n","\n");
+            }
+            return escape;
+        }
+        
         /// <summary>
         /// Convert a line of caption to an srt subtitle format.
+        /// See https://en.wikipedia.org/wiki/SubRip
         /// </summary>
-        public string SrtSubtitle()
+        public string SrtSubtitle(int reindex)
         {
-            string a = "";
-            a += Index + "\n";
-            a += string.Format("{0:hh\\:mm\\:ss\\,fff} --> {1:hh\\:mm\\:ss\\,fff}\n", Begin, End);
-            a += Text + "\n\n";
-            return a;
+            string time= string.Format("{0:hh\\:mm\\:ss\\,fff} --> {1:hh\\:mm\\:ss\\,fff}", Begin, End);
+            return $"\n{reindex}\n{time}\n{GetEscapedText()}\n\n";
         }
 
         /// <summary>
         /// Convert a line of caption to an webVTT subtitle format.
+        /// See https://developer.mozilla.org/en-US/docs/Web/API/WebVTT_API
         /// </summary>
         public string WebVTTSubtitle()
         {
-            string a = "";
-            a += Index + "\n";
-            a += string.Format("{0:hh\\:mm\\:ss\\.fff} --> {1:hh\\:mm\\:ss\\.fff}\n", Begin, End);
-            a += Text + "\n\n";
-            return a;
+            string time = string.Format("{0:hh\\:mm\\:ss\\.fff} --> {1:hh\\:mm\\:ss\\.fff}", Begin, End);
+            return $"\n{time}\n{GetEscapedText()}\n\n";
         }
 
         /// <summary>
@@ -124,12 +134,15 @@ namespace ClassTranscribeDatabase.Models
         public static string GenerateSrtFile(List<Caption> captions)
         {
             string srtFile = CommonUtils.GetTmpFile();
-            string Subtitle = "";
+            string header = "";
+            StringBuilder content = new StringBuilder(header, 100 * captions.Count);
+            int captionCounter = 1;
             foreach (Caption caption in captions)
             {
-                Subtitle += caption.SrtSubtitle();
+                content.Append(caption.SrtSubtitle(captionCounter));
+                captionCounter ++;
             }
-            WriteTextToFile(Subtitle, srtFile);
+            WriteTextToFile(content.ToString(), srtFile);
             return srtFile;
         }
 
@@ -139,13 +152,19 @@ namespace ClassTranscribeDatabase.Models
         /// <returns>The path of the generated vtt file</returns>
         public static string GenerateWebVTTFile(List<Caption> captions, string language)
         {
-            string vttFile = CommonUtils.GetTmpFile();
-            string Subtitle = "WEBVTT Kind: captions; Language: " + language + "\n\n";
+            string now = DateTime.UtcNow.ToString("o", System.Globalization.CultureInfo.InvariantCulture);
+           
+            string header1 = $"WEBVTT Kind: captions; Language: {language}\n\n";
+            string header2 = $"NOTE\nCreated on {now} by ClassTranscribe\n\n";
+            StringBuilder content = new StringBuilder(header1, 100 * captions.Count);
+            content.Append(header2);
+
             foreach (Caption caption in captions)
             {
-                Subtitle += caption.WebVTTSubtitle();
+                content.Append( caption.WebVTTSubtitle());
             }
-            WriteTextToFile(Subtitle, vttFile);
+            string vttFile = CommonUtils.GetTmpFile();
+            WriteTextToFile(content.ToString(), vttFile);
             return vttFile;
         }
 
