@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -25,7 +26,6 @@ namespace ClassTranscribeServer.Controllers
             _authorizationService = authorizationService;
             _wakeDownloader = wakeDownloader;
         }
-
 
         [HttpPost("UpdateOffering")]
         public async Task<ActionResult> UpdateOffering(string offeringId)
@@ -69,6 +69,56 @@ namespace ClassTranscribeServer.Controllers
         }
 
         /// <summary> 
+        ///  Regenerate one Caption (vtt, srt) file of the given Transcription
+        /// </summary>
+        [HttpPost("UpdateVTTFile")]
+        [Authorize(Roles = Globals.ROLE_ADMIN)]
+        public ActionResult UpdateVTTFile(string transcriptionId)
+        {
+            _logger.LogInformation($"Enqueueing {transcriptionId} caption regeneration");
+            _wakeDownloader.UpdateVTTFile(transcriptionId);
+            return Ok();
+        }
+
+        /// <summary> 
+        ///  Regenerate all Caption (vtt, srt) files of the given course offering
+        /// </summary>
+        [HttpPost("UpdateVTTFilesInCourseOffering")]
+        [Authorize(Roles = Globals.ROLE_ADMIN)]
+        public async Task<ActionResult> UpdateVTTFilesInCourseOffering(string offeringId = null)
+        {
+
+            var playlistIds = await _context.Playlists.Where(p => p.OfferingId == offeringId).Select(p => p.Id).ToListAsync();
+            _logger.LogInformation($"UpdateVTTFilesinPlaylist(${offeringId}): Found {playlistIds.Count} playlists");
+
+            var videoIds = await _context.Medias.Where(m => playlistIds.Contains(m.PlaylistId)).Select(m => m.VideoId).ToListAsync();
+            _logger.LogInformation($"UpdateVTTFilesinPlaylist(): Found {videoIds.Count} videos");
+            var transcriptionIds = await _context.Transcriptions.Where(t => videoIds.Contains(t.VideoId)).Select(t => t.Id).ToListAsync();
+            _logger.LogInformation($"UpdateVTTFilesinPlaylist(): Found {transcriptionIds.Count} vtt transcriptions to regenerate");
+            foreach (var t in transcriptionIds)
+            {
+                _wakeDownloader.UpdateVTTFile(t);
+            }
+            return Ok($"Requested {transcriptionIds.Count} Transcriptions to be regenerated from {videoIds.Count} videos in {playlistIds.Count} playlists");
+        }
+        /// <summary> 
+        ///  Regenerate all Caption (vtt, srt) files of all transcriptions
+        /// </summary>
+        [HttpPost("UpdateAllVTTFiles")]
+        [Authorize(Roles = Globals.ROLE_ADMIN)]
+        public async Task<ActionResult> UpdateAllVTTFiles()
+        {
+            var transcriptionIds = await _context.Transcriptions.Select(t => t.Id).ToListAsync();
+            _logger.LogInformation($"UpdateAllVTTFiles: Enqueueing {transcriptionIds.Count} vtt transcriptions to regenerate");
+            foreach (var t in transcriptionIds)
+            {
+                _wakeDownloader.UpdateVTTFile(t);
+            }
+            return Ok();
+        }
+
+
+        /// <summary> 
         ///  Enqueue DownloadPlaylist task, which updates one playlist.
         /// </summary>
         /// <remarks>
@@ -85,7 +135,7 @@ namespace ClassTranscribeServer.Controllers
             _wakeDownloader.UpdatePlaylist(playlistId);
             return Ok();
         }
-        
+
         /// <summary>
         /// Requests a re-download of missing media
         /// </summary>
@@ -147,7 +197,7 @@ namespace ClassTranscribeServer.Controllers
 
         [HttpGet("CreateBoxToken")]
         [AllowAnonymous]
-        public ActionResult CreateBoxToken([FromQuery]string code)
+        public ActionResult CreateBoxToken([FromQuery] string code)
         {
             _wakeDownloader.CreateBoxToken(code);
             return Ok("Request made to createBoxToken.");
@@ -197,9 +247,9 @@ namespace ClassTranscribeServer.Controllers
         [HttpGet("GetVersion")]
         [AllowAnonymous]
         [Produces("application/json")]
-        #pragma warning disable CA1822 // The warning suggests marking this as static but ASP.NET doesn't support static endpoints
+#pragma warning disable CA1822 // The warning suggests marking this as static but ASP.NET doesn't support static endpoints
         public ActionResult<BuildVersionDTO> GetVersion()
-        #pragma warning restore CA1822
+#pragma warning restore CA1822
         {
             BuildVersionDTO result = new BuildVersionDTO()
             {
@@ -213,6 +263,6 @@ namespace ClassTranscribeServer.Controllers
         {
             public string Commit { get; set; }
             public string Build { get; set; }
-        }        
+        }
     }
 }

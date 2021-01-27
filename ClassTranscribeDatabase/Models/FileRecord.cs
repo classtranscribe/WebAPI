@@ -60,7 +60,7 @@ namespace ClassTranscribeDatabase.Models
             return IsValidFile(Path, minLen);
         }
 
-
+        // Callers should mark this object modified and save it to the DB
         public void ReplaceWith(FileRecord newFile)
         {
 
@@ -75,7 +75,7 @@ namespace ClassTranscribeDatabase.Models
                 File.Delete(newFile.Path); // perhaps we are moving across volumes
             }
             this.Hash = newFile.Hash;
-            this.PrivatePath = newFile.PrivatePath;
+            // don't set this.PrivatePath; we've just moved the new contents to use the same original path of this object
 
         }
 
