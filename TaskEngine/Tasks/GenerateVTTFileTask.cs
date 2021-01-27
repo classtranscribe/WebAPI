@@ -22,20 +22,20 @@ namespace TaskEngine.Tasks
         {
             registerTask(cleanup, transcriptionId); // may throw AlreadyInProgress exception
             
-            GetLogger().LogInformation("Creating VTT/SRT files for "+transcriptionId);
+            GetLogger().LogInformation($"Creating VTT & SRT files for ({transcriptionId})");
 
             using (var _context = CTDbContext.CreateDbContext())
             {
                 var transcription = await _context.Transcriptions.FindAsync(transcriptionId);
-                FileRecord existingVtt = await _context.FileRecords.FindAsync(transcription.FileId);
-                FileRecord existingSrt = await _context.FileRecords.FindAsync(transcription.SrtFileId);
-
 
                 CaptionQueries captionQueries = new CaptionQueries(_context);
                 var captions = await captionQueries.GetCaptionsAsync(transcription.Id);
 
                 var vttfile = await FileRecord.GetNewFileRecordAsync(Caption.GenerateWebVTTFile(captions, transcription.Language), ".vtt");
-                if (string.IsNullOrEmpty(transcription.FileId))
+
+                FileRecord? existingVtt = await _context.FileRecords.FindAsync(transcription.FileId);
+
+                if (existingVtt is null)
                 {
                     GetLogger().LogInformation($"{transcriptionId}: Creating new vtt file {vttfile.FileName}"); 
                     await _context.FileRecords.AddAsync(vttfile);
@@ -44,13 +44,14 @@ namespace TaskEngine.Tasks
                 }
                 else
                 {   
-                     GetLogger().LogInformation($"{transcriptionId}: replacing existing vtt file contents {existingVtt.FileName}");              
+                    GetLogger().LogInformation($"{transcriptionId}: replacing existing vtt file contents {existingVtt.FileName}");              
                     existingVtt.ReplaceWith(vttfile);
                     _context.Entry(existingVtt).State = EntityState.Modified;
                 }
+                FileRecord? existingSrt = await _context.FileRecords.FindAsync(transcription.SrtFileId);
 
                 var srtfile = await FileRecord.GetNewFileRecordAsync(Caption.GenerateSrtFile(captions), ".srt");
-                if (string.IsNullOrEmpty(transcription.SrtFileId))
+                if (srtfile is null)
                 {
                     GetLogger().LogInformation($"{transcriptionId}: Creating new srt file {srtfile.FileName}"); 
 
@@ -60,7 +61,7 @@ namespace TaskEngine.Tasks
                 }
                 else
                 {
-                     GetLogger().LogInformation($"{transcriptionId}: replacing existing srt file contents {existingSrt.FileName}");              
+                    GetLogger().LogInformation($"{transcriptionId}: replacing existing srt file contents {existingSrt.FileName}");              
                     existingSrt.ReplaceWith(srtfile);
                     _context.Entry(existingSrt).State = EntityState.Modified;
                 }
