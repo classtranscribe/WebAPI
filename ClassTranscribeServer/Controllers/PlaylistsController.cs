@@ -115,8 +115,8 @@ namespace ClassTranscribeServer.Controllers
                     Transcriptions = m.Video.Transcriptions.Select(t => new TranscriptionDTO
                     {
                         Id = t.Id,
-                        Path = t.File.Path ,
-                        SrtPath = t.SrtFile.Path,
+                        Path = t.File != null ? t.File.Path : null,
+                        SrtPath = t.SrtFile != null ? t.SrtFile.Path : null,
                         Language = t.Language
                     }).ToList()
                 }).ToList()
@@ -179,6 +179,7 @@ namespace ClassTranscribeServer.Controllers
                     {
                         Id = t.Id,
                         Path = t.File != null ? t.File.Path : null,
+                        SrtPath = t.SrtFile != null ? t.SrtFile.Path : null,
                         Language = t.Language
                     }).ToList(),
                     WatchHistory = user != null ? m.WatchHistories.Where(w => w.ApplicationUserId == user.Id).FirstOrDefault() : null
