@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.Serialization;
@@ -70,6 +70,7 @@ namespace ClassTranscribeDatabase.Models
             string t = GetXMLEscapedText().Replace("\n", "<br/>");
 
             return $"<span {time}>{t}</span>\n";
+
         }
 
         /// <summary>
@@ -161,6 +162,7 @@ namespace ClassTranscribeDatabase.Models
                 captionCounter++;
             }
             WriteTextToUTF8File(content.ToString(), srtFile);
+
             return srtFile;
         }
 
@@ -226,7 +228,7 @@ namespace ClassTranscribeDatabase.Models
             content.Append("    </div>");
             content.Append("</body></tt>");
             return content.ToString();
-        }
+       }
 
 
 
