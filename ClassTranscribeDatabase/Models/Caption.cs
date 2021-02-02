@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.Serialization;
@@ -30,28 +30,47 @@ namespace ClassTranscribeDatabase.Models
         public virtual Transcription Transcription { get; set; }
         public CaptionType CaptionType { get; set; }
 
-        private string GetEscapedText() {
+        private string GetVTTEscapedText()
+        {
             // <>& must be escaped &lt &gt &amp; The replacement order is important
-            String escape = Text.Replace("&","&amp;").Replace("<","&lt;").Replace(">","&gt;");
+            String escape = Text.Replace("&", "&amp;").Replace("<", "&lt;").Replace(">", "&gt;");
             // The VTT spec says the text may not contain '-->'
-            while(escape.Contains("-->")) {
-                escape = escape.Replace("-->","=>");
+            while (escape.Contains("-->"))
+            {
+                escape = escape.Replace("-->", "=>");
             }
             // The string may not contain an empty line
-            while(escape.Contains("\n\n")) {
-                escape = escape.Replace("\n\n","\n");
+            while (escape.Contains("\n\n"))
+            {
+                escape = escape.Replace("\n\n", "\n");
             }
             return escape;
         }
-        
+
+        private string GetXMLEscapedText()
+        {
+            StringBuilder result = new StringBuilder(Text, Text.Length + 32);
+            return result.Replace("&", "&amp;").Replace("<", "&lt;").Replace(">", "&gt").Replace("'", "&apos;").Replace("\"", "&quot;").ToString();
+        }
+
         /// <summary>
         /// Convert a line of caption to an srt subtitle format.
         /// See https://en.wikipedia.org/wiki/SubRip
-        /// </summary>
+        /// </summary> 
         public string SrtSubtitle(int reindex)
         {
-            string time= string.Format("{0:hh\\:mm\\:ss\\,fff} --> {1:hh\\:mm\\:ss\\,fff}", Begin, End);
-            return $"\n{reindex}\n{time}\n{GetEscapedText()}\n\n";
+            string time = string.Format("{0:hh\\:mm\\:ss\\,fff} --> {1:hh\\:mm\\:ss\\,fff}", Begin, End);
+            return $"{reindex}\n{time}\n{GetVTTEscapedText()}\n\n";
+        }
+
+        public string DXFPSubtitle()
+        {// see https://www.w3.org/TR/ttml1/#timing
+         //<span begin = "00:00:03.400" end = "00:00:06.177" >Hello xml </span>
+            string time = string.Format("begin=\"{0:hh\\:mm\\:ss\\.fff}\" end=\"{1:hh\\:mm\\:ss\\.fff}\">", Begin, End);
+            string t = GetXMLEscapedText().Replace("\n", "<br/>");
+
+            return $"<span {time}>{t}</span>\n";
+
         }
 
         /// <summary>
@@ -61,7 +80,7 @@ namespace ClassTranscribeDatabase.Models
         public string WebVTTSubtitle()
         {
             string time = string.Format("{0:hh\\:mm\\:ss\\.fff} --> {1:hh\\:mm\\:ss\\.fff}", Begin, End);
-            return $"\n{time}\n{GetEscapedText()}\n\n";
+            return $"{time}\n{GetVTTEscapedText()}\n\n";
         }
 
         /// <summary>
@@ -131,29 +150,43 @@ namespace ClassTranscribeDatabase.Models
         /// Generate an srt file from a list of captions.
         /// </summary>
         /// <returns>The path of the generated srt file</returns>
+        /// 
         public static string GenerateSrtFile(List<Caption> captions)
         {
+            string content = GenerateSrtString(captions);
             string srtFile = CommonUtils.GetTmpFile();
+            WriteTextToUTF8File(content, srtFile);
+            return srtFile;
+        }
+        public static string GenerateSrtString(List<Caption> captions)
+        {
             string header = "";
             StringBuilder content = new StringBuilder(header, 100 * captions.Count);
             int captionCounter = 1;
             foreach (Caption caption in captions)
             {
                 content.Append(caption.SrtSubtitle(captionCounter));
-                captionCounter ++;
+                captionCounter++;
             }
-            WriteTextToFile(content.ToString(), srtFile);
-            return srtFile;
+            return content.ToString();
         }
-
         /// <summary>
         /// Generate a webVTT file from a list of captions.
         /// </summary>
         /// <returns>The path of the generated vtt file</returns>
+        /// 
         public static string GenerateWebVTTFile(List<Caption> captions, string language)
         {
+            String contents = GenerateWebVTTString(captions, language);
+            string vttFile = CommonUtils.GetTmpFile();
+            WriteTextToUTF8File(contents, vttFile);
+            return vttFile;
+        }
+
+    public static string GenerateWebVTTString(List<Caption> captions, string language)
+        {
             string now = DateTime.UtcNow.ToString("o", System.Globalization.CultureInfo.InvariantCulture);
-           
+
             string header1 = $"WEBVTT Kind: captions; Language: {language}\n\n";
             string header2 = $"NOTE\nCreated on {now} by ClassTranscribe\n\n";
             StringBuilder content = new StringBuilder(header1, 100 * captions.Count);
@@ -161,21 +194,59 @@ namespace ClassTranscribeDatabase.Models
 
             foreach (Caption caption in captions)
             {
-                content.Append( caption.WebVTTSubtitle());
+                content.Append(caption.WebVTTSubtitle());
             }
-            string vttFile = CommonUtils.GetTmpFile();
-            WriteTextToFile(content.ToString(), vttFile);
-            return vttFile;
+            return content.ToString();
         }
 
+        //Sketch of  New dxfp format - not yet tested nor integrated into rest of the code
+        // we don't need or use this format so it would be better to generate it dynamically i.e. as part of a web controller request as needed
+        // 
+        public static string GenerateDXFPString(List<Caption> captions, string language)
+        {
+            string now = DateTime.UtcNow.ToString("o", System.Globalization.CultureInfo.InvariantCulture);
+            string header = @"
+<?xml version=""1.0"" encoding=""utf-8""?>
+<tt xml:lang=""en"" xmlns=""http://www.w3.org/ns/ttml""
+	xmlns:tts=""http://www.w3.org/ns/ttml#styling""
+	xmlns:ttm=""http://www.w3.org/ns/ttml#metadata"">
+	<head>
+		<styling>
+			<style xml:id=""defaultCaption"" tts:fontSize=""10"" tts:fontFamily=""SansSerif""
+			tts:fontWeight=""normal"" tts:fontStyle=""normal""
+			tts:textDecoration=""none"" tts:color=""white""
+			tts:backgroundColor=""black"" />
+		</styling>
+		
+	</head>	<body>";
+
+            StringBuilder content = new StringBuilder(header, 100 * captions.Count);
+
+            content.Append($"   < div style=\"defaultCaption\" xml:lang=\"{language}\">");
+            foreach (Caption caption in captions)
+            {
+                content.Append(caption.DXFPSubtitle());
+            }
+            content.Append("    </div>");
+            content.Append("</body></tt>");
+            return content.ToString();
+       }
+
+
+
         /// <summary>
-        /// Parse a WebVTT file into a list of captions.
+        /// Parse a WebVTT file into a list of captions. (apparently unused)
         /// </summary>
         /// <returns>A list of the caption representing the vtt file or null if unsuccessful</returns>
         public static List<Caption> WebVTTFileToCaption(string file)
         {
-            List<Caption> captions = new List<Caption>();
             string text = File.ReadAllText(file);
+            return WebVTTContentsToCaption(text);
+        }
+            
+        public static List<Caption> WebVTTContentsToCaption(string text)
+        {
+            List<Caption> captions = new List<Caption>();
             string[] cues = text.Split("\n\n");
             int idx = 0;
 
@@ -219,10 +290,11 @@ namespace ClassTranscribeDatabase.Models
         /// <summary>
         /// Write text to a file.
         /// </summary>
-        public static void WriteTextToFile(string text, string file)
+        public static void WriteTextToUTF8File(string text, string file)
         {
-            //Pass the filepath and filename to the StreamWriter Constructor
-            StreamWriter sw = new StreamWriter(file, false, Encoding.UTF8);
+            // Using UTF8Encoding(false) ensures no Byte Order Mark is written.
+            // (no BOM is actually preferred for utf-8; it's also unnecessary for utf-8)
+            StreamWriter sw = new StreamWriter(file, false, new UTF8Encoding(false));
             //Write a line of text
             sw.WriteLine(text);
             //Close the file
