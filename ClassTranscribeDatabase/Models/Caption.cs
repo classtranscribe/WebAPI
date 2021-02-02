@@ -150,9 +150,16 @@ namespace ClassTranscribeDatabase.Models
         /// Generate an srt file from a list of captions.
         /// </summary>
         /// <returns>The path of the generated srt file</returns>
+        /// 
         public static string GenerateSrtFile(List<Caption> captions)
         {
+            string content = GenerateSrtString(captions);
             string srtFile = CommonUtils.GetTmpFile();
+            WriteTextToUTF8File(content, srtFile);
+            return srtFile;
+        }
+        public static string GenerateSrtString(List<Caption> captions)
+        {
             string header = "";
             StringBuilder content = new StringBuilder(header, 100 * captions.Count);
             int captionCounter = 1;
@@ -161,11 +168,8 @@ namespace ClassTranscribeDatabase.Models
                 content.Append(caption.SrtSubtitle(captionCounter));
                 captionCounter++;
             }
-            WriteTextToUTF8File(content.ToString(), srtFile);
-
-            return srtFile;
+            return content.ToString();
         }
-
         /// <summary>
         /// Generate a webVTT file from a list of captions.
         /// </summary>
@@ -173,7 +177,7 @@ namespace ClassTranscribeDatabase.Models
         /// 
         public static string GenerateWebVTTFile(List<Caption> captions, string language)
         {
-            String contents = GenerateWebVTTFile(captions, language);
+            String contents = GenerateWebVTTString(captions, language);
             string vttFile = CommonUtils.GetTmpFile();
             WriteTextToUTF8File(contents, vttFile);
             return vttFile;
@@ -215,8 +219,6 @@ namespace ClassTranscribeDatabase.Models
 		</styling>
 		
 	</head>	<body>";
-
-
 
             StringBuilder content = new StringBuilder(header, 100 * captions.Count);
 
