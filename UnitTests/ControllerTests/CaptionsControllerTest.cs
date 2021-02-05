@@ -342,7 +342,7 @@ namespace UnitTests.ControllerTests
                     Id = "C1",
                     TranscriptionId = transcriptions[0].Id,
                     Index = 0,
-                    Text = "hello bob",
+                    Text = "Yes, Fortran!",
                     CaptionType = CaptionType.TextCaption
                 },
                 new Caption
@@ -350,7 +350,7 @@ namespace UnitTests.ControllerTests
                     Id = "C2",
                     TranscriptionId = transcriptions[1].Id,
                     Index = 0,
-                    Text = "hello claude",
+                    Text = "Oui, Fortran!",
                     CaptionType = CaptionType.TextCaption
                 }
 
@@ -369,10 +369,10 @@ namespace UnitTests.ControllerTests
             _context.SaveChanges();
 
 
-            var noResults = await _controller.SearchInOffering("nosuchcourse", "hello");
+            var noResults = await _controller.SearchInOffering("nosuchcourse", "Fortran");
             Assert.Empty(noResults.Value);
 
-            var bothResults = await _controller.SearchInOffering(offering.Id, "hello");
+            var bothResults = await _controller.SearchInOffering(offering.Id, "fortran");
             
             List<SearchedCaptionDTO> bothResultList = bothResults.Value.ToList();
             Assert.Equal(captions.Count, bothResultList.Count());
@@ -381,7 +381,7 @@ namespace UnitTests.ControllerTests
                 Assert.Equal(transcriptions[i].Language, bothResultList[i].Language );
             }
 
-            var oneFrenchResult = await _controller.SearchInOffering(offering.Id, "hello","fr");
+            var oneFrenchResult = await _controller.SearchInOffering(offering.Id, "fortran", "fr");
             
             Assert.Single(oneFrenchResult.Value);
             var c = oneFrenchResult.Value.First(); 
@@ -393,7 +393,7 @@ namespace UnitTests.ControllerTests
             Assert.Equal(media.Name, c.MediaName);
             Assert.Equal(playlist.Name, c.PlaylistName);
 
-            var noSpanishResults = await _controller.SearchInOffering(offering.Id, "hello", "es");
+            var noSpanishResults = await _controller.SearchInOffering(offering.Id, "fortran", "es");
             Assert.Empty(noSpanishResults.Value);
         }
     }
