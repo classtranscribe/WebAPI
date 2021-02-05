@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
+using static ClassTranscribeServer.Controllers.CaptionsController;
 
 namespace UnitTests.ControllerTests
 {
@@ -311,6 +312,89 @@ namespace UnitTests.ControllerTests
 
             result = await _controller.SearchInOffering(null, null);
             Assert.Empty(result.Value);
+        }
+
+        [Fact]
+        public async Task Search_In_Offering()
+        {
+            var video = new Video { Id = "789" };
+   
+            var transcriptions = new List<Transcription>()
+            {
+                new Transcription
+                {
+                    Id="1001",
+                    Language="en-US",
+                    VideoId = video.Id
+
+                },
+                new Transcription
+                {
+                    Id="1002",
+                    Language="fr",
+                    VideoId = video.Id
+                }
+            };
+            var captions = new List<Caption>()
+            {
+                new Caption
+                {
+                    Id = "C1",
+                    TranscriptionId = transcriptions[0].Id,
+                    Index = 0,
+                    Text = "Yes, Fortran!",
+                    CaptionType = CaptionType.TextCaption
+                },
+                new Caption
+                {
+                    Id = "C2",
+                    TranscriptionId = transcriptions[1].Id,
+                    Index = 0,
+                    Text = "Oui, Fortran!",
+                    CaptionType = CaptionType.TextCaption
+                }
+
+            };
+
+            var offering = new CourseOffering { Id = "2123000"};
+            var playlist = new Playlist { Id = "2456" , OfferingId = offering.Id, Name = "Playlist 1"};
+            var media = new Media { Id = "2678", PlaylistId = playlist.Id , VideoId = video.Id, Name = "Media 1"};
+            
+            _context.CourseOfferings.Add(offering);
+            _context.Playlists.Add(playlist);
+            _context.Medias.Add(media);
+            _context.Videos.Add(video);
+            _context.Transcriptions.AddRange(transcriptions);
+            _context.Captions.AddRange(captions);
+            _context.SaveChanges();
+
+
+            var noResults = await _controller.SearchInOffering("nosuchcourse", "Fortran");
+            Assert.Empty(noResults.Value);
+
+            var bothResults = await _controller.SearchInOffering(offering.Id, "fortran");
+            
+            List<SearchedCaptionDTO> bothResultList = bothResults.Value.ToList();
+            Assert.Equal(captions.Count, bothResultList.Count());
+            for (int i = 0; i < captions.Count; i++) {
+                Assert.Equal(captions[i].Text, bothResultList[i].Caption.Text);
+                Assert.Equal(transcriptions[i].Language, bothResultList[i].Language );
+            }
+
+            var oneFrenchResult = await _controller.SearchInOffering(offering.Id, "fortran", "fr");
+            
+            Assert.Single(oneFrenchResult.Value);
+            var c = oneFrenchResult.Value.First(); 
+            Assert.Equal( captions[1].Text, c.Caption.Text);
+            Assert.Null(c.Caption.Transcription);
+            
+            Assert.Equal(media.Id, c.MediaId );
+            Assert.Equal(playlist.Id, c.PlaylistId);
+            Assert.Equal(media.Name, c.MediaName);
+            Assert.Equal(playlist.Name, c.PlaylistName);
+
+            var noSpanishResults = await _controller.SearchInOffering(offering.Id, "fortran", "es");
+            Assert.Empty(noSpanishResults.Value);
         }
     }
 }
