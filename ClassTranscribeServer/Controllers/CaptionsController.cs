@@ -141,26 +141,32 @@ namespace ClassTranscribeServer.Controllers
 
         // POST: api/Captions
         [HttpGet("SearchInOffering")]
-        public async Task<ActionResult<IEnumerable<SearchedCaptionDTO>>> SearchInOffering(string offeringId, string query)
-        {
-
-
+        public async Task<ActionResult<IEnumerable<SearchedCaptionDTO>>> SearchInOffering(string offeringId, string query, string filterLanguage="")
+        { 
             var allVideos = await _context.Medias.Where(m => m.Playlist.OfferingId == offeringId)
                 .Select(m => new { m.VideoId, m.Video, MediaId = m.Id, m.PlaylistId, PlaylistName = m.Playlist.Name, MediaName = m.Name }).ToListAsync();
 
-            var captions = await _context.Medias.Where(m => m.Playlist.OfferingId == offeringId)
+            
+            var allOfferingCaptions = _context.Medias.Where(m => m.Playlist.OfferingId == offeringId)
                 .Select(m => m.Video).SelectMany(v => v.Transcriptions)
-                    .SelectMany(t => t.Captions)
-                    .Where(c => EF.Functions.ToTsVector("english", c.Text).Matches(query))
-                    .Take(100).Select(c => new SearchedCaptionDTO
+                    .Where(t => (string.IsNullOrWhiteSpace(filterLanguage) || t.Language == filterLanguage))
+                    .SelectMany(t => t.Captions);
+
+// ToTsVector is not implemented for the in-memory database used for testing
+
+            var matchingCaptions = _context.Database.IsNpgsql() ?
+                    allOfferingCaptions.Where(c => EF.Functions.ToTsVector("english", c.Text).Matches(query))
+                    : allOfferingCaptions.Where(c => c.Text.Contains(query, System.StringComparison.OrdinalIgnoreCase));
+
+            var result = await matchingCaptions.Take(100).Select(c => new SearchedCaptionDTO
                     {
                         Caption = c,
-                        VideoId = c.Transcription.VideoId
+                        VideoId = c.Transcription.VideoId,
+                        Language = c.Transcription.Language
                     }).ToListAsync();
 
             // Stitch the two.
-
-            captions.ForEach(c =>
+            result.ForEach(c =>
             {
                 var v = allVideos.Where(v => v.VideoId == c.VideoId).First();
                 c.Caption.Transcription = null;
@@ -170,7 +176,7 @@ namespace ClassTranscribeServer.Controllers
                 c.PlaylistName = v.PlaylistName;
             });
 
-            return captions;
+            return result;
         }
 
         public class SearchedCaptionDTO
@@ -181,6 +187,7 @@ namespace ClassTranscribeServer.Controllers
             public string VideoId { get; set; }
             public string MediaName { get; set; }
             public string PlaylistName { get; set; }
+            public string Language { get; set; }
         }
 
         private bool CaptionExists(string id)
