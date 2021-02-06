@@ -372,7 +372,10 @@ namespace UnitTests.ControllerTests
             var noResults = await _controller.SearchInOffering("nosuchcourse", "Fortran");
             Assert.Empty(noResults.Value);
 
-            var bothResults = await _controller.SearchInOffering(offering.Id, "fortran");
+            var onlyEnglishResults = await _controller.SearchInOffering(offering.Id, "fortran");
+            Assert.Single(onlyEnglishResults.Value);
+
+            var bothResults = await _controller.SearchInOffering(offering.Id, "fortran","");
             
             List<SearchedCaptionDTO> bothResultList = bothResults.Value.ToList();
             Assert.Equal(captions.Count, bothResultList.Count());
@@ -393,8 +396,10 @@ namespace UnitTests.ControllerTests
             Assert.Equal(media.Name, c.MediaName);
             Assert.Equal(playlist.Name, c.PlaylistName);
 
-            var noSpanishResults = await _controller.SearchInOffering(offering.Id, "fortran", "es");
-            Assert.Empty(noSpanishResults.Value);
+            var expandedSpanishResults = await _controller.SearchInOffering(offering.Id, "Oui", "es");
+            // will drop language filter if no results are found and research against all languages
+            Assert.Single(expandedSpanishResults.Value);
+
         }
     }
 }

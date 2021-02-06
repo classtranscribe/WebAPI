@@ -170,11 +170,10 @@ namespace ClassTranscribeServer.Controllers
 
         // POST: api/Captions
         [HttpGet("SearchInOffering")]
-        public async Task<ActionResult<IEnumerable<SearchedCaptionDTO>>> SearchInOffering(string offeringId, string query, string filterLanguage = "")
+        public async Task<ActionResult<IEnumerable<SearchedCaptionDTO>>> SearchInOffering(string offeringId, string query, string filterLanguage = "en-US")
         {
             var allVideos = await _context.Medias.Where(m => m.Playlist.OfferingId == offeringId)
                 .Select(m => new { m.VideoId, m.Video, MediaId = m.Id, m.PlaylistId, PlaylistName = m.Playlist.Name, MediaName = m.Name }).ToListAsync();
-
 
             var allOfferingCaptions = _context.Medias.Where(m => m.Playlist.OfferingId == offeringId)
                 .Select(m => m.Video).SelectMany(v => v.Transcriptions)
@@ -187,8 +186,15 @@ namespace ClassTranscribeServer.Controllers
             // Todo: We should set suggested langugae
             // The language setting ignores the most common words (a the etc) and provides rules for reducing words
             // to their simplified form (e.g. plural to singular); so this code is non-optimal for non-English captions
+
+            // It would be useful to do this per transcription language
+            // e.g. toPGLanguage( c.Transcription.Language) - but Entity Framework cant inline toPGLanguage and assemble it into SQL
+            // So when all languages are included, the current implementation below is biased towards English.
+            // A more comprehensive solution might iterate through all languages
+            var pgLanguage = toPGLanguage(filterLanguage.Length == 0 ? "en" : filterLanguage);
+
             var matchingCaptions = _context.Database.IsNpgsql() ?
-                    allOfferingCaptions.Where(c => EF.Functions.ToTsVector(toPGLanguage(c.Transcription.Language), c.Text).Matches(query))
+                    allOfferingCaptions.Where(c => EF.Functions.ToTsVector(pgLanguage, c.Text).Matches(query))
                     : allOfferingCaptions.Where(c => c.Text.Contains(query, System.StringComparison.OrdinalIgnoreCase));
 
             var result = await matchingCaptions.Take(100).Select(c => new SearchedCaptionDTO
@@ -208,6 +214,12 @@ namespace ClassTranscribeServer.Controllers
                 c.MediaName = v.MediaName;
                 c.PlaylistName = v.PlaylistName;
             });
+
+            if(result.Count ==0 && filterLanguage.Length>0)
+            {
+                // repeat but with no language restriction
+                return await SearchInOffering(offeringId, query,"");
+            }
 
             return result;
         }
