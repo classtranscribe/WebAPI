@@ -3,12 +3,19 @@ using ClassTranscribeDatabase.Models;
 using ClassTranscribeServer.Utils;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Microsoft.Net.Http.Headers;
+using Newtonsoft.Json.Linq;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Text;
+using System.Threading; // CancellationToken
+
 
 namespace ClassTranscribeServer.Controllers
 {
@@ -16,8 +23,11 @@ namespace ClassTranscribeServer.Controllers
     [ApiController]
     public class LogsController : BaseController
     {
+        private readonly int DB_LONGTIMEOUT_SECONDS = 60*30; /* 30 minutes. Default of 30seconds is insufficient to download all of the logs */
+    
         private readonly IAuthorizationService _authorizationService;
         private readonly UserUtils _userUtils;
+
         public LogsController(IAuthorizationService authorizationService, CTDbContext context, UserUtils userUtils, ILogger<LogsController> logger) : base(context, logger)
         {
             _authorizationService = authorizationService;
@@ -333,6 +343,92 @@ namespace ClassTranscribeServer.Controllers
         public async Task<IEnumerable<string>> GetEventTypes()
         {
             return await _context.Logs.Select(l => l.EventType).Distinct().ToListAsync();
+        }
+
+        /// <summary>
+        /// Return the raw log table
+        /// </summary>
+        /// <param name="from"></param>
+        /// <param name="to"></param>
+        /// <returns></returns>
+        [HttpGet("GetAllCourseLogsByDateRange")]
+        [Authorize(Roles = Globals.ROLE_ADMIN)]
+        // Example Test: curl --insecure "https://localhost/api/Logs/GetAllCourseLogsByDateRange?from=1/1/2020&to=2/2/2020" -H "Authorization: Bearer ..."
+        public async  Task<IActionResult> GetAllCourseLogsByDateRange(DateTime from, DateTime to)
+        {
+            DateTime startDump = DateTime.Now;
+            HttpContext.Response.StatusCode = 200;
+            var headers = HttpContext.Response.Headers;
+            headers["Content-Disposition"] = $"attachment; filename=logs-{startDump.ToString("yyyyMMddTHHmmss")}.tsv";
+            headers["Content-Type"] = "text/tab-separated-values; charset=utf-8";
+            headers["Cache-Control"] = "no-cache";
+            CancellationToken cancellationToken = HttpContext.RequestAborted;
+            await HttpContext.Response.StartAsync(cancellationToken);
+
+            _logger.LogInformation($"GetAllCourseLogsByDateRange({from.ToString("yyyyMMddTHHmmss")},{to.ToString("yyyyMMddTHHmmss")})");
+            // I doubt we're close to optimal performance (e.g. it is "awaiting" every line, and we're not re-using byte[] objects)
+            // But we're must avoid loading the entire set of events into memory
+            // There's lots of bad example code on the interwebs e.g. examples that load the entire result into memory
+            // This pipe-based version (BodyWriter) appears to be appropriate
+            // On my laptop a complete table scan with no matching results takes 90s
+            // a curl request in a local CMD window returns 143K events in 300s; and seems to be (correctly limited) by the client's download speed.
+            // Local curl test: For all 1,328,947 events from 2019.  Processing time: 308.5116288 seconds. 4307 emitted events per second.
+            // Note there can be a long delay (e.g. 40s) before the first event is written
+            // See also-
+            // https://docs.microsoft.com/en-us/aspnet/core/fundamentals/middleware/request-response?view=aspnetcore-5.0
+            // https://nodogmablog.bryanhogan.net/2019/06/streaming-results-from-entity-framework-core-and-web-api-core/
+            // Turn off tracking, Do not materialize
+            
+            using (var localcontext = CTDbContext.CreateDbContext())
+            {
+                localcontext.Database.SetCommandTimeout(DB_LONGTIMEOUT_SECONDS); //default 30s is too short to complete
+                
+                // When developing You can use use this line instead
+                //xxx var logs = localcontext.Logs.AsNoTracking().Take(1000).Select(l => 
+                var logs = localcontext.Logs.AsNoTracking().Where(l => l.CreatedAt >= from && l.CreatedAt <= to);
+
+                var writer = HttpContext.Response.BodyWriter;
+   
+                await writer.WriteAsync(
+                    System.Text.Encoding.UTF8.GetBytes(
+                        "CreatedAt\tUserId\tOfferingId\tMediaId\tEventType\tJson\n"));
+ 
+                int count = 0;
+                const int flushEvery = 25000; // Explicitly flushing occasionally may ensure we don't allow buffer to get infinitely large when the client is slow
+                DateTime lastLogTime = DateTime.Now;
+                foreach (var l in logs) {
+                    if(count == 0) {
+                        lastLogTime = DateTime.Now;
+                        _logger.LogInformation($"Writing first log event after {(lastLogTime - startDump).TotalSeconds} seconds.");
+                    }
+                    string line = 
+                    $"{l.CreatedAt}\t{l.UserId}\t{l.OfferingId}\t{l.MediaId}\t{l.EventType}\t\"{JsonConvert.SerializeObject(l.Json).Replace("\"","\\\"")}\"\n";
+
+                    await writer.WriteAsync(System.Text.Encoding.UTF8.GetBytes(line));
+
+                    if( ((++count) % flushEvery) == 0) {
+                        await writer.FlushAsync(cancellationToken);
+                        var now = DateTime.Now;
+                        _logger.LogInformation($"{count} log events written. Currently {(int)(flushEvery / ((now - lastLogTime).TotalSeconds))} events per second.");  
+                        lastLogTime = now;
+                    }
+                }
+                // Is this the best order for FlushAsync & CompleteAsync? It seems to work for us.
+                // There's bug discussions about the exact implementation even in 2020
+                // https://github.com/dotnet/aspnetcore/issues/12334
+                await writer.FlushAsync(cancellationToken);
+                _logger.LogInformation($"Flushed all log events. {count} total log event(s) written.");
+
+                _logger.LogInformation("Completing");
+                await writer.CompleteAsync(); // No more writes
+
+                
+            var duration = (DateTime.Now - startDump).TotalSeconds;
+            _logger.LogInformation($"Complete. Total time: {duration} seconds for {count} events. {(int)(count/duration)} events per second. ");
+
+            } // Now we've finished writing we can close the database context
+            // Do not attempt to close this before the final flush
+            return new EmptyResult(); // already processed
         }
 
         /// <summary>
