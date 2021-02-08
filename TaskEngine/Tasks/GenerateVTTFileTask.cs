@@ -48,10 +48,11 @@ namespace TaskEngine.Tasks
                     existingVtt.ReplaceWith(vttfile);
                     _context.Entry(existingVtt).State = EntityState.Modified;
                 }
-                FileRecord? existingSrt = await _context.FileRecords.FindAsync(transcription.SrtFileId);
 
                 var srtfile = await FileRecord.GetNewFileRecordAsync(Caption.GenerateSrtFile(captions), ".srt");
-                if (srtfile is null)
+
+                FileRecord? existingSrt = await _context.FileRecords.FindAsync(transcription.SrtFileId);
+                if (existingSrt is null)
                 {
                     GetLogger().LogInformation($"{transcriptionId}: Creating new srt file {srtfile.FileName}"); 
 
