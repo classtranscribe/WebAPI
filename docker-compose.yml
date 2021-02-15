@@ -1,0 +1,128 @@
+version: "3.4"
+
+services:
+  pythonrpcserver:
+    build:
+      context: .
+      dockerfile: ./pythonrpcserver.Dockerfile
+    container_name: "pythonrpcserver"
+    env_file:
+      - "config.env"
+    environment: 
+      - "DEV_MODE=DOCKER"
+      - TEST_SIGN_IN=true
+    volumes:
+        - "./docker_data/data:/data"
+    ports:
+      - "127.0.0.1:50051:50051"
+  
+  api:
+    # localhost:5080/swag
+    build:
+      context: .
+      target: publish
+      dockerfile: ./API.Dockerfile
+    volumes:
+      - "./docker_data/data:/data"
+    container_name: "api"
+    depends_on:
+      - db
+      - rabbitmq
+      - elasticsearch
+    env_file:
+      - "config.env"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - DEV_ENV=DOCKER
+      - TEST_SIGN_IN=true
+      - ASPNETCORE_URLS=http://+:80
+    command: "/wait-for rabbitmq:5672 --timeout=50 -- dotnet /app/ClassTranscribeServer.dll"
+    ports:
+      - "127.0.0.1:5080:80"
+
+  taskengine:
+    build:
+      context: .
+      target: publish
+      dockerfile: ./TaskEngine.Dockerfile
+
+    #image: classtranscribe/taskengine:latest
+    volumes:
+      - "./docker_data/data:/data"
+    container_name: "taskengine"
+    depends_on:
+      - db
+      - rabbitmq
+      - pythonrpcserver
+      - elasticsearch
+    env_file:
+      - "config.env"
+    environment: 
+      - DEV_ENV=DOCKER
+      - TEST_SIGN_IN=true
+    command: "/wait-for rabbitmq:5672 --timeout=50 -- dotnet /app/TaskEngine.dll"
+   
+  
+  frontend:
+    image: classtranscribe/frontend:latest
+    env_file:
+      - "config.env"
+    container_name: "frontend"
+    
+  db:
+    image: postgres:11.7
+    volumes:
+      - "./docker_data/postgres:/pgdata"
+    ports:
+      - "127.0.0.1:5432:5432"
+    env_file:
+      - "config.env"
+    environment:
+      - PGDATA=/pgdata/data
+      - POSTGRES_DB=ct
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-ctpass}
+    container_name: "db"
+
+# pgadmin is a web application to browse the database
+  pgadmin:
+    container_name: "pgadmin"
+    image: dpage/pgadmin4:latest
+    depends_on:
+      - db
+    volumes:
+      - "./docker_data/pgadmin:/var/lib/pgadmin"
+    env_file:
+      - "config.env"
+    environment:
+      # To update default email and password delete the contents of ./docker_data/pgadmin
+      - PGADMIN_DEFAULT_EMAIL=a@a
+      - PGADMIN_DEFAULT_PASSWORD=ctpass
+      - PGADMIN_LISTEN_PORT=5050
+    ports:
+      - "127.0.0.1:5050:5050"    
+
+  rabbitmq:
+    container_name: "rabbitmq"
+    image: rabbitmq:management
+    env_file:
+      - "config.env"
+    environment:
+      #- RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS=-rabbitmq_management path_prefix "/rabbitmq"
+      - RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS=-rabbitmq_management"
+      - RABBITMQ_DEFAULT_USER=ctdev
+      - RABBITMQ_DEFAULT_PASS=ctpass
+    ports:
+      - "127.0.0.1:5672:5672"
+      - "127.0.0.1:15672:15672"
+
+  elasticsearch:
+    container_name: elasticsearch
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.6.2
+    volumes:
+      - "./docker_data/elasticsearch:/usr/share/elasticsearch/data"
+    environment:
+      - discovery.type=single-node
+    ports:
+      - "127.0.0.1:9200:9200"
+      - "127.0.0.1:9300:9300" 

@@ -67,7 +67,7 @@ namespace CTCommons
             var factory = new ConnectionFactory()
             {
 
-                HostName = Globals.appSettings.RABBITMQ_SERVER_NAME.Length > 0 ? Globals.appSettings.RABBITMQ_SERVER_NAME : Globals.appSettings.RabbitMQServer,
+                HostName = Globals.appSettings.RabbitMQServerName,
                 UserName = Globals.appSettings.ADMIN_USER_ID,
                 Password = Globals.appSettings.ADMIN_PASSWORD,
                 Port = Convert.ToUInt16(Globals.appSettings.RABBITMQ_PORT) // 5672

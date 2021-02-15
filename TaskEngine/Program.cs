@@ -41,10 +41,13 @@ namespace TaskEngine
                     builder.AddConsole();
                     builder.AddFilter<Microsoft.Extensions.Logging.ApplicationInsights.ApplicationInsightsLoggerProvider>
                              ("", LogLevel.Warning);
-                    builder.AddApplicationInsights(configuration.GetValue<string>("APPLICATION_INSIGHTS_KEY"));
+                    string? insightKey = configuration.GetValue<string>("APPLICATION_INSIGHTS_KEY");
+                    if(!string.IsNullOrWhiteSpace(insightKey)) {
+                        builder.AddApplicationInsights(insightKey);
+                    }
                 })
                 .AddOptions()
-                .Configure<AppSettings>(configuration)
+                .Configure<AppSettings>(configuration) // This does not configure Globals.AppSettings
                 .AddDbContext<CTDbContext>(options => options.UseLazyLoadingProxies().UseNpgsql(CTDbContext.ConnectionStringBuilder()))
                 .AddSingleton<RabbitMQConnection>()
                 .AddSingleton<CaptionQueries>()

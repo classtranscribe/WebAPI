@@ -18,26 +18,31 @@ namespace TaskEngine.Tasks
 {
     class CleanUpElasticIndexTask : RabbitMQTask<string>
     {
-        private readonly ElasticClient _client;
+        private readonly ElasticClient? _client;
         private readonly int _time_to_live;
 
         public CleanUpElasticIndexTask(RabbitMQConnection rabbitMQ,
             ILogger<CleanUpElasticIndexTask> logger)
             : base(rabbitMQ, TaskType.CleanUpElasticIndex, logger)
         {
-            var configuration = CTDbContext.GetConfigurations();
-
-            // initialize elastic client
-            var node = new Uri(configuration.GetValue<string>("ES_CONNECTION_ADDR"));
-            _time_to_live = Int32.Parse(configuration.GetValue<string>("ES_INDEX_TIME_TO_LIVE"));
-            using (var settings = new ConnectionSettings(node))
-            {
-                //settings.DefaultIndex("classTranscribe");
-                _client = new ElasticClient(settings);
+            string connection = Globals.appSettings.ESConnectionAddress;
+            if(connection.Length > 0) {
+                _time_to_live = Int32.Parse(Globals.appSettings.ES_INDEX_TIME_TO_LIVE);
+            
+                // initialize elastic client
+                var node = new Uri(connection);
+                using (var settings = new ConnectionSettings(node))
+                {
+                    _client = new ElasticClient(settings);
+                }
             }
         }
         protected async override Task OnConsume(string example, TaskParameters taskParameters, ClientActiveTasks cleanup)
         {
+            if( _client is null) {
+                GetLogger().LogInformation("CleanUpElasticIndexTask - no client - skipping task");
+                return;
+            }
             registerTask(cleanup, "CleanUpElasticIndexTask"); // may throw AlreadyInProgress exception
             GetLogger().LogInformation("CleanUpElasticIndexTask Starting");
 

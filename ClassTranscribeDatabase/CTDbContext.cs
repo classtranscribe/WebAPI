@@ -67,17 +67,7 @@ namespace ClassTranscribeDatabase
         /// </summary>        
         public static string ConnectionStringBuilder()
         {
-            // Sample connection string -> Server=<POSTGRES_SERVER_NAME>;Port=5432;Database=<POSTGRES_DB_NAME>;User Id=<POSTGRES_USER>;Password=<POSTGRES_PASSWORD>;
-            // TODO/TOREVIEW: Should MaxPoolSize <= Database's max connection limit?
-            // TODO: Max MaxPoolSize and port should be configurable
-
-            var configurations = CTDbContext.GetConfigurations();
-            return "Server=" + configurations["POSTGRES_SERVER_NAME"]
-                + ";Port=5432"
-                + ";Database=" + configurations["POSTGRES_DB"]
-                + ";User Id=" + configurations["ADMIN_USER_ID"]
-                + ";Password=" + configurations["ADMIN_PASSWORD"]
-                + ";MaxPoolSize=1000;";
+            return Globals.appSettings.DatabaseConnectionString;
         }
 
         /// <summary>
@@ -111,7 +101,8 @@ namespace ClassTranscribeDatabase
         public static IConfiguration GetConfigurations()
         {
             var configuration = new ConfigurationBuilder().AddEnvironmentVariables().Build();
-
+            return configuration;
+            /* MARKED FOR FUTURE DELETION
             if (configuration.GetValue<string>("DEV_ENV", "NULL") != "DOCKER")
             {
                 string path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
@@ -124,6 +115,7 @@ namespace ClassTranscribeDatabase
             }
 
             return configuration;
+            */
         }
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {

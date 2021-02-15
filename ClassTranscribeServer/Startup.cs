@@ -32,6 +32,7 @@ namespace ClassTranscribeServer
     {
         public Startup(IOptions<AppSettings> appSettings)
         {
+            // The following should no longer be required; A new AppSetting object is automatically referenced in Globals.appSettings by its constructor
             if (appSettings != null)
             {
                 Globals.appSettings = appSettings.Value;
@@ -145,7 +146,9 @@ namespace ClassTranscribeServer
                 });
                 c.SchemaFilter<SwaggerSchemaFilter>();
             });
-            services.AddApplicationInsightsTelemetry(Globals.appSettings.APPLICATION_INSIGHTS_KEY);
+            if(Globals.appSettings.APPLICATION_INSIGHTS_KEY.Length > 0) {
+                services.AddApplicationInsightsTelemetry(Globals.appSettings.APPLICATION_INSIGHTS_KEY);
+            }
             services.AddScoped<RabbitMQConnection>();
             services.AddScoped<WakeDownloader>();
             services.AddScoped<Seeder>();
@@ -153,9 +156,10 @@ namespace ClassTranscribeServer
             services.AddScoped<CaptionQueries>();
 
             // Configure ElasticSearch client
-            if (!string.IsNullOrEmpty(Globals.appSettings.ES_CONNECTION_ADDR))
+            string esconn =  Globals.appSettings.ESConnectionAddress;
+            if (esconn.Length>0)
             {
-                var connection = new Uri(Globals.appSettings.ES_CONNECTION_ADDR);
+                var connection = new Uri(esconn);
                 using var settings = new ConnectionSettings(connection);
                 var client = new ElasticClient(settings);
                 services.AddSingleton<IElasticClient>(client);
@@ -183,10 +187,16 @@ namespace ClassTranscribeServer
             app.UseAuthentication();
             // Enable middleware to serve generated Swagger as a JSON endpoint.
             app.UseSwagger();
+            String data_dir = Globals.appSettings.DATA_DIRECTORY;
+            String absolute_data_dir = Path.GetFullPath(data_dir);
+            if(! Directory.Exists(absolute_data_dir)) {
+                
+                Directory.CreateDirectory(absolute_data_dir);
+            }
             app.UseStaticFiles(new StaticFileOptions
             {
                 ServeUnknownFileTypes = true,
-                FileProvider = new PhysicalFileProvider(Globals.appSettings.DATA_DIRECTORY),
+                FileProvider = new PhysicalFileProvider(absolute_data_dir),
                 RequestPath = "/data"
             });
 
