@@ -36,9 +36,12 @@ services:
       - DEV_ENV=DOCKER
       - TEST_SIGN_IN=true
       - ASPNETCORE_URLS=http://+:80
+    labels:
+      - "traefik.enable=true"
+      - "traefik.backend=api"
+      - "traefik.port=80"
+      - "traefik.frontend.rule=PathPrefix: /api/,/data/,/swag"
     command: "/wait-for rabbitmq:5672 --timeout=50 -- dotnet /app/ClassTranscribeServer.dll"
-    ports:
-      - "127.0.0.1:5080:80"
 
   taskengine:
     build:
@@ -84,7 +87,7 @@ services:
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-ctpass}
     container_name: "db"
 
-# pgadmin is a web application to browse the database
+# pgadmin is a standalone web application to browse the database
   pgadmin:
     container_name: "pgadmin"
     image: dpage/pgadmin4:latest
@@ -92,15 +95,21 @@ services:
       - db
     volumes:
       - "./docker_data/pgadmin:/var/lib/pgadmin"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.backend=pgadmin"
+      - "traefik.port=80"
+      - "traefik.frontend.rule=PathPrefix:/pgadmin"
     env_file:
       - "config.env"
     environment:
       # To update default email and password delete the contents of ./docker_data/pgadmin
       - PGADMIN_DEFAULT_EMAIL=a@a
       - PGADMIN_DEFAULT_PASSWORD=ctpass
-      - PGADMIN_LISTEN_PORT=5050
-    ports:
-      - "127.0.0.1:5050:5050"    
+      #- PGADMIN_LISTEN_PORT=80
+      - SCRIPT_NAME=/pgadmin
+      - MASTER_PASSWORD_REQUIRED=False
+
 
   rabbitmq:
     container_name: "rabbitmq"
@@ -108,13 +117,17 @@ services:
     env_file:
       - "config.env"
     environment:
-      #- RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS=-rabbitmq_management path_prefix "/rabbitmq"
-      - RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS=-rabbitmq_management"
+      - RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS=-rabbitmq_management path_prefix "/rabbitmq"
       - RABBITMQ_DEFAULT_USER=ctdev
       - RABBITMQ_DEFAULT_PASS=ctpass
+    labels:
+      - "traefik.enable=true"
+      - "traefik.backend=rabbitmq"
+      - "traefik.port=15672"
+      - "traefik.frontend.rule=PathPrefix:/rabbitmq"
     ports:
       - "127.0.0.1:5672:5672"
-      - "127.0.0.1:15672:15672"
+      
 
   elasticsearch:
     container_name: elasticsearch
@@ -122,7 +135,35 @@ services:
     volumes:
       - "./docker_data/elasticsearch:/usr/share/elasticsearch/data"
     environment:
-      - discovery.type=single-node
+      - discovery.type=single-node   
     ports:
       - "127.0.0.1:9200:9200"
-      - "127.0.0.1:9300:9300" 
+      #- "127.0.0.1:9300:9300"
+
+  traefik:
+    image: traefik:v1.7
+    command:
+      - --loglevel=INFO
+      - --api
+      # Entrypoints
+      - --defaultentrypoints=https,http
+      - --entryPoints=Name:http Address::5000 Redirect.EntryPoint:https
+      - --entryPoints=Name:https Address::5443 TLS
+      # DOCKER
+      - --docker=true
+      - --docker.endpoint=unix:///var/run/docker.sock
+      - --docker.exposedbydefault=false
+      - --docker.watch=true
+    ports:
+      - "127.0.0.1:5000:5000"
+      - "127.0.0.1:5443:5443"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.backend=traefik"
+      - "traefik.port=8080"
+      - "traefik.frontend.rule=PathPrefixStrip:/traefik"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      #- ./docker_data/traefik/config:/config
+    container_name: "traefik"
+
