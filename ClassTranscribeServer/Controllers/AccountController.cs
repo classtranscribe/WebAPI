@@ -19,6 +19,7 @@ using System.Security.Claims;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Web;
 
 namespace ClassTranscribeServer.Controllers
 {
@@ -273,14 +274,15 @@ namespace ClassTranscribeServer.Controllers
             string cilogonDomain = "https://" + Globals.appSettings.CILOGON_DOMAIN + "/"; // Your Auth0 domain
             string cilogonClientId = Globals.appSettings.CILOGON_CLIENT_ID; // Your API Identifier
             string cilogonClientSecret = Globals.appSettings.CILOGON_CLIENT_SECRET;
-            
+            string cilogonClientToken = HttpUtility.UrlEncode(authCode);
+
             // Get id_token from authorization code.
             var client = new RestClient($"{cilogonDomain}oauth2/token");
             var request = new RestRequest(Method.POST);
             request.AddHeader("content-type", "application/x-www-form-urlencoded");
-            request.AddParameter("application/x-www-form-urlencoded", $"grant_type=authorization_code&client_id={cilogonClientId}&client_secret={cilogonClientSecret}&code={authCode}&redirect_uri={callbackURL}", ParameterType.RequestBody);
+            request.AddParameter("application/x-www-form-urlencoded", $"grant_type=authorization_code&client_id={cilogonClientId}&client_secret={cilogonClientSecret}&code={cilogonClientToken}&redirect_uri={callbackURL}", ParameterType.RequestBody);
             IRestResponse response = client.Execute(request);
-            var id_token = JObject.Parse(response.Content)["id_token"].ToString();
+            var id_token = HttpUtility.UrlEncode(JObject.Parse(response.Content)["id_token"].ToString());
 
             return await ValidateIdToken(cilogonDomain, cilogonClientId, id_token);            
         }
