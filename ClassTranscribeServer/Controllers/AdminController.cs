@@ -203,43 +203,6 @@ namespace ClassTranscribeServer.Controllers
             return Ok("Request made to createBoxToken.");
         }
 
-        [HttpGet("GetLogs")]
-        [Authorize(Roles = Globals.ROLE_ADMIN)]
-        public async Task<IActionResult> GetLogs(DateTime from, DateTime to)
-        {
-            var logs = await _context.Logs.Where(l => l.CreatedAt >= from && l.CreatedAt <= to).Select(l => new
-            {
-                l.Id,
-                l.CreatedAt,
-                l.UserId,
-                l.OfferingId,
-                l.MediaId,
-                l.EventType,
-                l.Json
-            }).ToListAsync();
-            var path = CommonUtils.GetTmpFile();
-            using (var writer = new StreamWriter(path))
-            {
-                using (var csv = new CsvWriter(writer, System.Globalization.CultureInfo.CurrentCulture))
-                {
-                    csv.WriteRecords(logs);
-                }
-            }
-
-            var memory = new MemoryStream();
-            using (var stream = new FileStream(path, FileMode.Open))
-            {
-                await stream.CopyToAsync(memory);
-            }
-            memory.Position = 0;
-
-            var fileToReturn = File(memory, "text/csv", Path.GetFileNameWithoutExtension(path) + ".csv");
-
-            memory.Dispose();
-
-            return fileToReturn;
-        }
-
         /// <summary>
         /// Returns the sha1 commit hash and build number, or 'unspecified' if these are unknown
         /// Example result : {"Commit":"hexadecimalnumber","Build":"123"}
