@@ -106,9 +106,9 @@ def find_scenes(video_path, min_scene_length=1, abs_min=0.75, abs_max=0.98, find
             res, frame = cap.read()
             img_file = os.path.join(DATA_DIR, file_name, "%d.jpg"%i)
             cv2.imwrite(img_file, frame)
-
-            scene['start'] = datetime.utcfromtimestamp(timestamps[scene['start']]).strftime("%H:%M:%S:%f")[:12]
-            scene['end'] = datetime.utcfromtimestamp(timestamps[scene['end'] ]).strftime("%H:%M:%S:%f")[:12]            
+            # we dont want microsecond accuracy; the [:12] cuts off the last 3 unwanted digits
+            scene['start'] = datetime.utcfromtimestamp(timestamps[scene['start']]).strftime("%H:%M:%S.%f")[:12]
+            scene['end'] = datetime.utcfromtimestamp(timestamps[scene['end'] ]).strftime("%H:%M:%S.%f")[:12]            
             scene['img_file'] = img_file
             
 
