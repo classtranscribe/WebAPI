@@ -280,6 +280,8 @@ namespace ClassTranscribeDatabase.Models
         public string ProcessedVideo2Id { get; set; }
         public virtual FileRecord ProcessedVideo2 { get; set; }
 
+        public string PhraseWords {get; set; }
+
         [ForeignKey("Audio")]
         public string AudioId { get; set; }
         public virtual FileRecord Audio { get; set; }

@@ -116,6 +116,14 @@ namespace CTCommons.MSTranscription
 
         }
 
+        private void addPhraseList(TranslationRecognizer recognizer, List<string> wordsList) {
+        var phraseList = PhraseListGrammar.FromRecognizer(recognizer);            
+            foreach (string word in wordsList)
+            {
+                phraseList.AddPhrase(word);
+            }
+        }
+
         private async Task<MSTResult> performRecognitionAsync(string logId, string filePath, SpeechTranslationConfig speechConfig, TimeSpan restartOffset,
             string sourceLanguage, Dictionary<string, List<Caption>> captions, Dictionary<string, TimeSpan> startAfterMap)
         {
