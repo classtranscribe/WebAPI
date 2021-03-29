@@ -3,6 +3,7 @@ using ClassTranscribeDatabase.Models;
 using ClassTranscribeServer.Authorization;
 using ClassTranscribeServer.Utils;
 using CTCommons;
+using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
@@ -145,7 +146,7 @@ namespace ClassTranscribeServer
                 });
                 c.SchemaFilter<SwaggerSchemaFilter>();
             });
-            services.AddApplicationInsightsTelemetry(Globals.appSettings.APPLICATION_INSIGHTS_KEY);
+            //notused services.AddApplicationInsightsTelemetry(Globals.appSettings.APPLICATION_INSIGHTS_KEY);
             services.AddScoped<RabbitMQConnection>();
             services.AddScoped<WakeDownloader>();
             services.AddScoped<Seeder>();
@@ -183,13 +184,7 @@ namespace ClassTranscribeServer
             app.UseAuthentication();
             // Enable middleware to serve generated Swagger as a JSON endpoint.
             app.UseSwagger();
-            app.UseStaticFiles(new StaticFileOptions
-            {
-                ServeUnknownFileTypes = true,
-                FileProvider = new PhysicalFileProvider(Globals.appSettings.DATA_DIRECTORY),
-                RequestPath = "/data"
-            });
-
+   
             // Enable middleware to serve swagger-ui (HTML, JS, CSS, etc.), 
             // specifying the Swagger JSON endpoint.
             app.UseSwaggerUI(c =>
@@ -199,10 +194,31 @@ namespace ClassTranscribeServer
             });
 
             app.UseRouting();
+            
             app.UseAuthorization();
+        /* we havent configured any middleware compression prior to UseStaticFiles() 
+                 * and compression doesnt seem to be used when I examined the response headers of an mp4 request
+                 * but let's explicitly turn it off because we do not want to waste any time tryng to 
+                 * compress images, audio and video content - which is 99.9% of our served content
+                 * See https://gunnarpeipman.com/aspnet-core-compress-gzip-brotli-content-encoding/ 
+                */
+            if(false) {
+                //notused 
+                app.UseStaticFiles(new StaticFileOptions
+                {
+                    ServeUnknownFileTypes = true,
+                    FileProvider = new PhysicalFileProvider(Globals.appSettings.DATA_DIRECTORY),
+                    RequestPath = "/data",
+                    HttpsCompression = HttpsCompressionMode.DoNotCompress
+                    // OnPrepareResponse= prepareStaticFileResponse
+                });
+            }
+
             app.UseEndpoints(endpoints =>
             {
-                endpoints.MapDefaultControllerRoute().RequireAuthorization();
+//                endpoints.MapControllerRoute(name: "StaticFile", pattern: "data/{**id}",defaults: new { controller = "StaticFile", action = "GetFile"});
+
+                endpoints.MapDefaultControllerRoute().RequireAuthorization();      
             });
 
             if (seeder != null)
