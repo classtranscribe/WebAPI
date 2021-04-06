@@ -12,6 +12,7 @@ using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
 
@@ -40,9 +41,11 @@ namespace ClassTranscribeServer.Controllers
         /* We have files in subdirectories too. Though I experimented with route matching in Startup.cs, the following route definition is required. */
         //[Route("/data/{*id}")]
 
-        [HttpGet("{*relpath}")]        
-        public async Task<ActionResult> GetFile(string? relpath)
+        [HttpGet("{*relpath}")]   
+        // Will be Task<ActionResult> when we need to do async access checks     
+        public ActionResult GetFile(string? relpath)
         {
+        
             string urlpath =  HttpContext.Request.Path;
            
             string urlsubpath = urlpath.Split("/data/",2)[1]; // drop /data/
@@ -52,33 +55,41 @@ namespace ClassTranscribeServer.Controllers
             {
                 return NotFound();
             }
-            // See Authorization.cs
-            string? referer = HttpContext.Request.Headers["Referer"];
-           
-            if(string.IsNullOrEmpty(referer) || !  referer.Contains( HttpContext.Request.Host.Host,System.StringComparison.InvariantCultureIgnoreCase)) {
-                return NotFound();
+            // Require Authenticated user
+            if( ! checkFileAccess(urlsubpath, User ) ) {
+                return Unauthorized();
             }
-
-            // An experiement to simulate MediaController-
-            var standinMedia = await _context.Medias.FirstAsync();
-            var authorizationResult = await _authorizationService.AuthorizeAsync(User, standinMedia, Globals.POLICY_READ_OFFERING);
-            //if(! authorizationResult.Succeeded) {
-            //    return new ForbidResult();
-            //}urlsubpath.EndsWith(".txt") && 
-            if( User.Identity.IsAuthenticated)
-            {
-                // When tested this was never true.
-                //return Ok("User.Identity.IsAuthenticated is true " + urlsubpath); 
-            }
-
             var readStream = fileInfo.CreateReadStream();
             var mimeType = "application/octet-stream"; // arbitrary data
            
             return File(readStream, mimeType, enableRangeProcessing:true);
-           
-            
-            // AppContext.SetSwitch("Switch.Microsoft.AspNetCore.Mvc.EnableRangeProcessing", true);
         }
 
+        private bool checkFileAccess(string path, ClaimsPrincipal User) {
+            if(User.Identity.IsAuthenticated) {
+                // Will be set if a valid Bearer token is presented
+                // Future implementation can verify User access for a specific resource
+            //var standinMedia = await _context.Medias.FirstAsync();
+            //var authorizationResult = await _authorizationService.AuthorizeAsync(User, standinMedia, Globals.POLICY_READ_OFFERING);
+            //if(! authorizationResult.Succeeded) {
+            //    return new ForbidResult();
+            //}urlsubpath.EndsWith(".txt") && 
+                return true;
+            }
+            // Referer checks are deprecated and will be removed in the future
+            string? referer = HttpContext.Request.Headers["Referer"];
+               
+            if(string.IsNullOrEmpty(referer)) {
+                return false;
+            }
+            if (referer.Contains( HttpContext.Request.Host.Host,System.StringComparison.InvariantCultureIgnoreCase)) {
+                return true;
+            }
+            bool acceptLocalHost = (Globals.appSettings.TEST_SIGN_IN == "true");
+            if( acceptLocalHost && referer.Contains( "localhost",System.StringComparison.InvariantCultureIgnoreCase)) {
+                return true;
+            }
+            return false;
+        }
     }
 }
