@@ -57,7 +57,7 @@ namespace ClassTranscribeServer.Controllers
             }
             // Require Authenticated user
             if( ! checkFileAccess(urlsubpath, User ) ) {
-                return Unauthorized();
+                return Forbid();
             }
             var readStream = fileInfo.CreateReadStream();
             var mimeType = "application/octet-stream"; // arbitrary data
