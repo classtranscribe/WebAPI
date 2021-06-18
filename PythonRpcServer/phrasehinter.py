@@ -158,7 +158,7 @@ def require_minimum_occurence(transactions, min_support):
     sorted_a = sorted(output.items())
     sorted_value = sorted(sorted_a, key=operator.itemgetter(1), reverse=True)
 
-    result = [' '.join(words) for words in sorted_value.keys()]
+    result = [' '.join(words) for words,count in sorted_value]
     return result
 
 
@@ -169,8 +169,11 @@ def to_phrase_hints(raw_phrases):
         all_words = [] # ['The', 'cat', 'A', 'dog'' ,'A' ,'dog'']
         for phrase in raw_phrases.split('\n'): # e.g. data from scene['phrases']:
            all_phrases.append(phrase)
-           all_words.extend(phrase)
-        
+           all_words.extend(phrase.split(' '))
+
+        print('all_phrases',all_phrases)
+        print('all_words',all_words)
+
         words_count = dict( Counter(all_words) ) 
         
         delete_inplace_unwanted_characters(words_count)
@@ -182,8 +185,9 @@ def to_phrase_hints(raw_phrases):
          #  if it occurs fewer times than this, then discard it
         minimum_occurence = 2 
         frequent_phrases= require_minimum_occurence(all_phrases, minimum_occurence)
-
-        result = set(words_list)
+        print('words_list',words_list)
+        print('frequent_phrases',frequent_phrases)
+        result = words_list
         result += frequent_phrases
         
         return '\n'.join(list(result))
