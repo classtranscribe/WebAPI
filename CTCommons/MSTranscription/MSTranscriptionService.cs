@@ -51,9 +51,9 @@ namespace CTCommons.MSTranscription
             _rpcClient = rpcClient;
         }
 
-        public async Task<MSTResult> RecognitionWithVideoStreamAsync(string logId, FileRecord videoFile, Key key, Dictionary<string, List<Caption>> captions, string sourceLanguage, Dictionary<string, TimeSpan> startAfterMap)
+        public async Task<MSTResult> RecognitionWithVideoStreamAsync(string logId, FileRecord videoFile, Key key, Dictionary<string, List<Caption>> captions, string sourceLanguage, string phraseHints, Dictionary<string, TimeSpan> startAfterMap)
         {
-            return await RecognitionWithVideoStreamAsync(logId, videoFile.VMPath, key, captions, sourceLanguage, startAfterMap);
+            return await RecognitionWithVideoStreamAsync(logId, videoFile.VMPath, key, captions, sourceLanguage, phraseHints, startAfterMap);
         }
         /// <summary>
         /// Returns true if Cognitive Services supports this language code for recognition. Must match exactly in correct case e.g. en-US
@@ -87,7 +87,7 @@ namespace CTCommons.MSTranscription
                 // do not rethrow
             }
         }
-        public async Task<MSTResult> RecognitionWithVideoStreamAsync(string logId, string videoFilePath, Key key, Dictionary<string, List<Caption>> captions, string sourceLanguage, Dictionary<string, TimeSpan> startAfterMap)
+        public async Task<MSTResult> RecognitionWithVideoStreamAsync(string logId, string videoFilePath, Key key, Dictionary<string, List<Caption>> captions, string sourceLanguage, string phraseHints, Dictionary<string, TimeSpan> startAfterMap)
         {
 
             List<string> outputLanguages = startAfterMap.Keys.ToList<string>();
@@ -104,7 +104,7 @@ namespace CTCommons.MSTranscription
 
 
                 var result = await performRecognitionAsync(logId, trimmedAudioFile.FilePath, speechConfig, restartOffset,
-                    sourceLanguage, captions, startAfterMap);
+                    sourceLanguage, captions, phraseHints, startAfterMap);
 
                 return result;
 
@@ -117,7 +117,7 @@ namespace CTCommons.MSTranscription
         }
 
         private async Task<MSTResult> performRecognitionAsync(string logId, string filePath, SpeechTranslationConfig speechConfig, TimeSpan restartOffset,
-            string sourceLanguage, Dictionary<string, List<Caption>> captions, Dictionary<string, TimeSpan> startAfterMap)
+            string sourceLanguage, Dictionary<string, List<Caption>> captions, string phraseHints, Dictionary<string, TimeSpan> startAfterMap)
         {
             using (var audioInput = WavHelper.OpenWavFile(filePath))
             {
@@ -128,6 +128,24 @@ namespace CTCommons.MSTranscription
                 string errorCode = "";
                 using (var recognizer = new TranslationRecognizer(speechConfig, audioInput))
                 {
+                    //  PhraseList 
+                    if( phraseHints.Length > 0) {
+                        var grammar = PhraseListGrammar.FromRecognizer(recognizer);
+
+                        var phrase_payload = 0;
+
+                        foreach (var phrase in phraseHints.Split('\n')){
+                            // conservative estimate byte requirements usng UTF-16, plus 16 bytes for list item overhead
+                            phrase_payload += 2 * phrase.Length + 16; 
+                            if(phrase_payload >= 1<<16) {
+                                _logger.LogInformation($"{logId}: phrase hints exceeded maximum phrase list byte limit");
+                                break;
+                            } 
+                            if(phrase.Length > 0) {
+                                grammar.AddPhrase(phrase);
+                            }
+                        }
+                    }
                     recognizer.Recognized += (s, e) =>
                     {
                         if (e.Result.Reason == ResultReason.TranslatedSpeech)

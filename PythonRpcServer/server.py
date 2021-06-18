@@ -41,6 +41,10 @@ class PythonServerServicer(ct_pb2_grpc.PythonServerServicer):
     def GetScenesRPC(self, request, context):
         res = scenedetector.find_scenes(request.filePath)
         return ct_pb2.JsonString(json = res)
+
+    def ToPhraseHintsRPC(self, request, context):
+        res = videophrases.to_phrase_hints(request.rawPhraseData)
+        return res
     
     def GetKalturaChannelEntriesRPC(self, request, context):
         kalturaprovider = KalturaProvider()

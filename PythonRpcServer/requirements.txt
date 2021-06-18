@@ -30,3 +30,5 @@ traitlets==4.3.3
 urllib3==1.25.8
 wcwidth==0.1.9
 scikit-image==0.17.2
+nltk==3.6.2
+pytesseract==0.3.7

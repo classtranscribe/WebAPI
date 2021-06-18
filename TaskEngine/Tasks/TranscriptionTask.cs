@@ -25,17 +25,15 @@ namespace TaskEngine.Tasks
        
         private readonly MSTranscriptionService _msTranscriptionService;
         private readonly GenerateVTTFileTask _generateVTTFileTask;
-        private readonly SceneDetectionTask _sceneDetectionTask;
         private readonly CaptionQueries _captionQueries;
 
 
         public TranscriptionTask(RabbitMQConnection rabbitMQ, MSTranscriptionService msTranscriptionService,
-            GenerateVTTFileTask generateVTTFileTask, SceneDetectionTask sceneDetectionTask, ILogger<TranscriptionTask> logger, CaptionQueries captionQueries)
+            GenerateVTTFileTask generateVTTFileTask, ILogger<TranscriptionTask> logger, CaptionQueries captionQueries)
             : base(rabbitMQ, TaskType.TranscribeVideo, logger)
         {
             _msTranscriptionService = msTranscriptionService;
             _generateVTTFileTask = generateVTTFileTask;
-            _sceneDetectionTask = sceneDetectionTask;
             _captionQueries = captionQueries;
 
         }
@@ -116,7 +114,11 @@ namespace TaskEngine.Tasks
                     GetLogger().LogInformation($"{videoId}:Skipping Transcribing of- already complete");
                     return;
                 }
-
+                var phraseHints = "";
+                try {
+                    phraseHints = (string) video.SceneData["phraseHints"];
+                    } catch(Exception ignored) {}
+                GetLogger().LogInformation($"{videoId}:Using Phrase Hints length = {phraseHints.Length}");
                 // GetKey can throw if the video.Id is currently being transcribed
                 // However registerTask should have already detected that
                 Key key = TaskEngineGlobals.KeyProvider.GetKey(video.Id);
@@ -173,7 +175,7 @@ namespace TaskEngine.Tasks
                     //}
 
 
-                    var result = await _msTranscriptionService.RecognitionWithVideoStreamAsync(videoId, video.Video1, key, captionsMap, sourceLanguage, startAfterMap);
+                    var result = await _msTranscriptionService.RecognitionWithVideoStreamAsync(videoId, video.Video1, key, captionsMap, sourceLanguage, phraseHints, startAfterMap);
 
                     if (video.JsonMetadata == null)
                     {
@@ -219,8 +221,10 @@ namespace TaskEngine.Tasks
 
 
                     await _context.SaveChangesAsync();
-                    _sceneDetectionTask.Publish(video.Id);
+                    // we now do the scene detection first because we want to complete the OCR and phrase list
+                    //Not any more xxx_sceneDetectionTask.xxxPublish(video.Id);
                     video.Transcriptions.ForEach(t => _generateVTTFileTask.Publish(t.Id));
+                     
                 }
                 catch (Exception ex)
                 {

@@ -186,8 +186,11 @@ namespace TaskEngine.Tasks
                     t => t.Captions.Count > 0 && t.File == null && t.CreatedAt < tooRecentCutoff
                     ).OrderByDescending(t => t.CreatedAt).Select(e => e.Id).ToListAsync();
 
-                todoTranscriptions = await context.Videos.AsNoTracking().Where(
-                    v => v.TranscribingAttempts < 1 && v.TranscriptionStatus != "NoError" && v.Medias.Any() && v.CreatedAt < tooRecentCutoff
+                todoTranscriptions = await context.Videos.AsNoTracking().Where( 
+                   #TODO
+                    TODO
+                        v.TranscribingAttempts < 41 && v.TranscriptionStatus != "NoError" && 
+                        v.Medias.Any() && v.CreatedAt < tooRecentCutoff
                     ).OrderByDescending(t => t.CreatedAt).Select(e => e.Id).ToListAsync();
 
                 // Medias for which no videos have downloaded
