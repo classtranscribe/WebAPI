@@ -29,7 +29,7 @@ def test_filter_common_corpus_words():
 	print("----------test_filter_common_corpus_words---PASSED----------")
 
 def test_require_minimum_occurence():
-	print("----------test_require_minimum_occurencex---STARTED----------")
+	print("----------test_require_minimum_occurence---STARTED----------")
 	min_support = 2
 
 	# Test 1: Testing General Input
@@ -39,15 +39,15 @@ def test_require_minimum_occurence():
 	result_1 = ph.require_minimum_occurence(input_1, min_support)
 	assert(result_1 == expected_1)
 
-	# Test 2: Testing N > 1000 Input
-	num_sentences = 1200 # Try 1000
-	input_2 = nltk.corpus.brown.sents()[:num_sentences] # List of List of words
+	# Test 2: Testing very large Input
+	num_sentences = 10000 
+	input_2 = nltk.corpus.brown.sents()[:num_sentences] 
 	
 	expected_2 = []
 	result_2 = ph.require_minimum_occurence(input_2, min_support)
 	assert(result_2 == expected_2)
 
-	print("----------test_require_minimum_occurencex---PASSED----------")
+	print("----------test_require_minimum_occurence---PASSED----------")
 
 def test_to_phrase_hints():
 	input = 'Hello\nHow are you?\nWhat will it, make of this speech?\nI wonder;...\nDrinkably Deliciousy Delightful\nDrinkably Deliciousy Delightful'
@@ -55,7 +55,8 @@ def test_to_phrase_hints():
 	print('test_to_phrase_hints:',result)
 
 def test_corpus_long_input():
-	num_sentences = 100
+	print("----------test_corpus_long_input---STARTED----------")
+	num_sentences = 1000
 	corpus = nltk.corpus.brown.sents()[:num_sentences] # List of List of words
 	
 	text = '\n'.join( [' '.join(words) for words in corpus] )
@@ -66,6 +67,8 @@ def test_corpus_long_input():
 	duration = time.time()- start_time
 	print(f"{duration:.2} seconds.")
 
+	print("----------test_corpus_long_input---PASSED----------")
+
 
 def run_phrasehinter_tests():
 	test_delete_inplace_unwanted_characters()
@@ -73,7 +76,7 @@ def run_phrasehinter_tests():
 	test_filter_common_corpus_words()
 	test_require_minimum_occurence()
 	#test_to_phrase_hints()
-	#test_corpus_long_input()
+	test_corpus_long_input()
 
 if __name__ == '__main__': 
 	run_phrasehinter_tests();

@@ -82,19 +82,21 @@ def filter_common_corpus_words(words_count, scale_factor=300):
 
     return result
 
-def require_minimum_occurence(transactions, min_support, abort_threshold=1000):
+def require_minimum_occurence(transactions, min_support, abort_threshold=5000):
     """
     A function that extracts the mximal frequent sequential patterns from the raw string
     """
 
     # generate frequent sequential patterns through PrefixSpan library
-    if len(transactions) > abort_threshold: # If N > 1000, return an empty result
+    if len(transactions) > abort_threshold: # Return an empty result If N is too large
         return []
 
     ps = PrefixSpan(transactions)
-    pattern_count = ps.frequent(min_support)
+    pattern_count = ps.frequent(min_support, closed=True)
     all_patterns = [pattern[1] for pattern in pattern_count if len(pattern[1]) > 1] # [['A', 'B'], ['A', 'B', 'C'], ['B', 'C']]
-   
+    unique_patterns = [' '.join(pattern) for pattern in all_patterns] # ['A B C']
+
+    """
     # filter subset patterns out from all_patterns
     max_patterns = all_patterns.copy() # [['A', 'B', 'C']]
     for first_pattern in all_patterns:
@@ -107,6 +109,7 @@ def require_minimum_occurence(transactions, min_support, abort_threshold=1000):
     
     # format the filtered max_patterns into a list of strings
     unique_patterns = [' '.join(pattern) for pattern in max_patterns] # ['A B C']
+    """
 
     return unique_patterns
 
