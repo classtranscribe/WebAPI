@@ -32,13 +32,19 @@ def test_filter_common_corpus_words():
 
 def test_require_minimum_occurence():
 	print('test_require_minimum_occurence')
-	#result= ph.require_minimum_occurence(transcations, min_support)
+	phrases='Hello\nHow are you?\nWhat will it make of this speech?\nI wonder\nDrinkably Deliciousy Delightful\nDrinkably Deliciousy Delightful'.split('\n')
+	input=[ phrase.split(' ') for phrase in phrases ]
+	expected = ['Drinkably Deliciousy Delightful']
+	min_support = 2
+	result = ph.require_minimum_occurence(input, min_support)
+	print('test_require_minimum_occurence:',result)
+	assert(result == expected)
 	pass
 
 def test_to_phrase_hints():
-	input='Hello\nHow are you?\nWhat will it make of this speech?\nI wonder'
+	input = 'Hello\nHow are you?\nWhat will it, make of this speech?\nI wonder;...\nDrinkably Deliciousy Delightful\nDrinkably Deliciousy Delightful'
 	result = ph.to_phrase_hints(input)
-	print(result)
+	print('test_to_phrase_hints:',result)
 
 def run_phrasehinter_tests():
 	test_delete_inplace_unwanted_characters()

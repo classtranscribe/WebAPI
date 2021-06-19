@@ -1,13 +1,16 @@
-import nltk
+import re
+import operator
+
+from string import ascii_letters, digits
+from collections import Counter
+
+#import nltk
 
 from nltk.probability import FreqDist
 from nltk.corpus import brown
 from nltk.corpus import stopwords
 
-from collections import Counter
 
-import operator
-from string import ascii_letters, digits
 
 # Work with phrases that we have extracted per scene to create useful phrase list for speech recognition
 
@@ -167,8 +170,13 @@ def to_phrase_hints(raw_phrases):
         #Step 1; gather all of the data across all scenes. 
         all_phrases = [ ] # [ ['The','cat'], ['A', 'dog'],['A', 'dog'],['A', 'dog'],...]
         all_words = [] # ['The', 'cat', 'A', 'dog'' ,'A' ,'dog'']
+        # Unwanted punctuation
+        p = re.compile(r"(\.|\?|,|:|;|'" + '|")')
         for phrase in raw_phrases.split('\n'): # e.g. data from scene['phrases']:
-           all_phrases.append(phrase)
+           words = p.sub(' ', phrase)
+           words = [w for w in words.split(' ') if len(w) > 0 ]
+
+           all_phrases.append(words)
            all_words.extend(phrase.split(' '))
 
         print('all_phrases',all_phrases)
