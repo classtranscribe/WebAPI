@@ -2,13 +2,8 @@ import re
 import operator
 
 from string import ascii_letters, digits
-from collections import Counter
-
-#import nltk
-
-from nltk.probability import FreqDist
-from nltk.corpus import brown
-from nltk.corpus import stopwords
+from collections import Counter,defaultdict
+from nltk.corpus import brown,stopwords
 
 
 
@@ -49,43 +44,41 @@ def filter_stop_words(phraseList):
 
     return output
 
+_brown_corpus_count = defaultdict(lambda:0)
 
-def filter_common_corpus_words(phraseDict):
+def get_brown_corpus_count():
+    
+    #Only calcuate this once
+    if len(_brown_corpus_count) == 0:
+        for sentence in brown.sents():
+            for word in sentence:
+                _brown_corpus_count[word.lower()] += 1
+
+    return _brown_corpus_count
+
+
+def filter_common_corpus_words(words_count):
     """
     A function that removes the words in phrase dictionary that has a frequency lower than its
     frequency in the Brown corpus. Returns a phrase list after the removals.
     """
-    phraseList = []
+    # a word count dictionary for all brown corpus words
+    corpus_counts = get_brown_corpus_count()
+    corpus_total = sum(corpus_counts.values()) 
 
     # get the total number of words from phrase list dictionary
-    total_phraseList_count = 0
-    for word, count in phraseDict.items():
-        total_phraseList_count += count
+    total_word_count = sum(words_count.values())
+    
+    result = []
+    
+    # include 'rare' words  i.e. have a higher frequency than expected using the Brown corpus
+    for word, count in words_count.items():
+        word_freq = count / total_word_count
+        corpus_freq = corpus_counts.get(word.lower(), 0) / corpus_total
+        if word_freq >= corpus_freq :
+             result.append(word)
 
-    # a word count dictionary for all brown corpus words
-    corpus_word_dict = {}
-    brown_total = 0
-    for sentence in brown.sents():
-        for word in sentence:
-            brown_total += 1
-            count = corpus_word_dict.get(word.lower(), -1)
-            if count == -1:
-                corpus_word_dict[word.lower()] = 1
-            else:
-                corpus_word_dict[word.lower()] = count + 1
-
-    # remove words in phrase list that has lower frequency that in brown corpus
-    for word, count in phraseDict.items():
-        phraseDict_freq = count / total_phraseList_count
-        brown_count = corpus_word_dict.get(word, -1)
-        if brown_count == -1:
-            phraseList.append(word)
-        else:
-            brown_freq = brown_count / brown_total
-            if phraseDict_freq > brown_freq:
-                phraseList.append(word)
-
-    return phraseList
+    return result
 
 def require_minimum_occurence(transactions, min_support):
     """
@@ -93,7 +86,7 @@ def require_minimum_occurence(transactions, min_support):
     """
 
     def make_n(last, second, n, makedict):
-        list_last = list(last)
+        #unusedlist_last = list(last)
         output = []
         for name in last:
             for second_name in second:
@@ -167,6 +160,7 @@ def require_minimum_occurence(transactions, min_support):
 
 def to_phrase_hints(raw_phrases):
     try:
+        canon_map = {} # i -> I. TODO
         #Step 1; gather all of the data across all scenes. 
         all_phrases = [ ] # [ ['The','cat'], ['A', 'dog'],['A', 'dog'],['A', 'dog'],...]
         all_words = [] # ['The', 'cat', 'A', 'dog'' ,'A' ,'dog'']
@@ -174,13 +168,14 @@ def to_phrase_hints(raw_phrases):
         p = re.compile(r"(\.|\?|,|:|;|'" + '|")')
         for phrase in raw_phrases.split('\n'): # e.g. data from scene['phrases']:
            words = p.sub(' ', phrase)
+           
            words = [w for w in words.split(' ') if len(w) > 0 ]
 
            all_phrases.append(words)
            all_words.extend(phrase.split(' '))
 
-        print('all_phrases',all_phrases)
-        print('all_words',all_words)
+        #print('all_phrases',all_phrases)
+        #print('all_words',all_words)
 
         words_count = dict( Counter(all_words) ) 
         
@@ -198,7 +193,7 @@ def to_phrase_hints(raw_phrases):
         result = words_list
         result += frequent_phrases
         
-        return '\n'.join(list(result))
+        return '\n'.join(result)
     
     except Exception as e:
             print("to_phrase_suggestions() throwing Exception:" + str(e))
