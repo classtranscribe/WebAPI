@@ -4,6 +4,7 @@ import operator
 from string import ascii_letters, digits
 from collections import Counter,defaultdict
 from nltk.corpus import brown,stopwords
+from prefixspan import PrefixSpan
 
 
 
@@ -58,7 +59,7 @@ def get_brown_corpus_count():
     return _brown_corpus_count
 
 
-def filter_common_corpus_words(words_count):
+def filter_common_corpus_words(words_count, scale_factor=300):
     """
     A function that removes the words in phrase dictionary that has a frequency lower than its
     frequency in the Brown corpus. Returns a phrase list after the removals.
@@ -76,87 +77,38 @@ def filter_common_corpus_words(words_count):
     for word, count in words_count.items():
         word_freq = count / total_word_count
         corpus_freq = corpus_counts.get(word.lower(), 0) / corpus_total
-        if word_freq >= corpus_freq :
+        if word_freq >= (corpus_freq * scale_factor):
              result.append(word)
 
     return result
 
-def require_minimum_occurence(transactions, min_support):
+def require_minimum_occurence(transactions, min_support, abort_threshold=1000):
     """
-    A function that extracts the frequent itemsets from the phrase lists from OCR
+    A function that extracts the mximal frequent sequential patterns from the raw string
     """
 
-    def make_n(last, second, n, makedict):
-        #unusedlist_last = list(last)
-        output = []
-        for name in last:
-            for second_name in second:
-                if name[n - 1] == second_name[0]:
-                    temp_list = list(name)
-                    tempcpy = temp_list.copy()
-                    temp_list.append(second_name[1])
-                    output.append(tuple(temp_list))
-                    t = frozenset(temp_list)
-                    makedict[t] = tempcpy
-        return output
+    # generate frequent sequential patterns through PrefixSpan library
+    if len(transactions) > abort_threshold: # If N > 1000, return an empty result
+        return []
 
-    def n_check(trans, names, n):
-        n_list = {}
-        removelist = []
-        subset = []
-        for name in names:
-            counter = 0
-            for sentence in trans:
-                for i in range(len(sentence) - n + 1):
-                    has = True
-                    for j in range(n):
-                        if sentence[i + j] != name[j]:
-                            has = False
-                    if (has):
-                        counter += 1
-            if (counter >= 2):
-                fname = frozenset(name)
-                son = makedict[fname]
-                son = [son]
-                for i in range(len(name) - 1):
-                    if i == 0:
-                        continue
-                    subset = subset + [name[i:len(name)]]
-                removelist = removelist + son
-                n_list[name] = counter
-        return n_list, removelist, subset
+    ps = PrefixSpan(transactions)
+    pattern_count = ps.frequent(min_support)
+    all_patterns = [pattern[1] for pattern in pattern_count if len(pattern[1]) > 1] # [['A', 'B'], ['A', 'B', 'C'], ['B', 'C']]
+   
+    # filter subset patterns out from all_patterns
+    max_patterns = all_patterns.copy() # [['A', 'B', 'C']]
+    for first_pattern in all_patterns:
+        for second_pattern in all_patterns:
+            if first_pattern == second_pattern:
+                continue
+            if set(first_pattern) <= set(second_pattern):
+                max_patterns.remove(first_pattern)
+                break
+    
+    # format the filtered max_patterns into a list of strings
+    unique_patterns = [' '.join(pattern) for pattern in max_patterns] # ['A B C']
 
-    double_base_counter = Counter()
-    makedict = {}
-    for sentence in transactions:
-        for i in range(len(sentence) - 1):
-            temp = (sentence[i], sentence[i + 1])
-            double_base_counter[temp] += 1
-
-    base_list2 = dict((word_pair, double_base_counter[word_pair]) for word_pair in double_base_counter if
-                      double_base_counter[word_pair] >= min_support)
-    second_support_names = list(base_list2)
-
-    last = base_list2
-    count = 2
-    output = base_list2.copy()
-    while (len(last) > 0 and count < 5):
-        names_new = make_n(last, second_support_names, count, makedict)
-        last, removelist, subs = n_check(transactions, names_new, count + 1)
-        output.update(last)
-        for i in removelist:
-            if tuple(i) in output.keys():
-                del output[tuple(i)]
-        for i in subs:
-            if i in output:
-                del output[i]
-        count += 1
-
-    sorted_a = sorted(output.items())
-    sorted_value = sorted(sorted_a, key=operator.itemgetter(1), reverse=True)
-
-    result = [' '.join(words) for words,count in sorted_value]
-    return result
+    return unique_patterns
 
 
 def to_phrase_hints(raw_phrases):
