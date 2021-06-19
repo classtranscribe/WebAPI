@@ -1,11 +1,5 @@
+import time
 import nltk
-from nltk.probability import FreqDist
-from nltk.corpus import brown
-from collections import Counter
-from nltk.corpus import stopwords
-import operator
-from string import ascii_letters, digits
-
 import phrasehinter as ph
 
 def test_delete_inplace_unwanted_characters():
@@ -46,12 +40,26 @@ def test_to_phrase_hints():
 	result = ph.to_phrase_hints(input)
 	print('test_to_phrase_hints:',result)
 
+def test_corpus_long_input():
+	num_sentences = 100
+	corpus = nltk.corpus.brown.sents()[:num_sentences] # List of List of words
+	
+	text = '\n'.join( [' '.join(words) for words in corpus] )
+	text = text.replace('``','')
+	print(f"{len(text)} characters")
+	start_time = time.time()
+	result = ph.to_phrase_hints(text)
+	duration = time.time()- start_time
+	print(f"{duration:.2} seconds.")
+
+
 def run_phrasehinter_tests():
 	test_delete_inplace_unwanted_characters()
 	test_filter_stop_words()
 	test_filter_common_corpus_words()
 	test_require_minimum_occurence()
 	test_to_phrase_hints()
+	test_corpus_long_input()
 
 if __name__ == '__main__': 
 	run_phrasehinter_tests();

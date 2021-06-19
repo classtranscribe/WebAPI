@@ -19,8 +19,8 @@ from nltk.corpus import brown,stopwords
 #  python -m nltk.downloader brown
 #  python -m nltk.downloader stopwords
 
-# Original code in https://github.com/lijiaxi2018/advanced-speech-recognition
-
+# Based on original code at https://github.com/lijiaxi2018/advanced-speech-recognition
+# Created as part of Undergraduate Project for Angrave for Spring 2021
 def delete_inplace_unwanted_characters(wordCountDict):
     """
     A function that cleans up in place each individual word dictionary in wordCountDict, and leaving only numbers and ascii letters
@@ -44,16 +44,17 @@ def filter_stop_words(phraseList):
 
     return output
 
-_brown_corpus_count = defaultdict(lambda:0)
+_brown_corpus_count = None
 
 def get_brown_corpus_count():
-    
+    global _brown_corpus_count
     #Only calcuate this once
-    if len(_brown_corpus_count) == 0:
+    if _brown_corpus_count is None:
+        corpus = defaultdict(lambda:0)
         for sentence in brown.sents():
             for word in sentence:
-                _brown_corpus_count[word.lower()] += 1
-
+                corpus[word.lower()] += 1
+        _brown_corpus_count = corpus # In case we're multithreaded, share only after the dataset is complete
     return _brown_corpus_count
 
 
