@@ -1,0 +1,1995 @@
+WEBVTT Kind: captions; Language: en-US
+
+NOTE
+Created on 2021-02-26T23:55:26.3718355Z by ClassTranscribe
+
+00:01:11.120 --> 00:01:14.640
+greetings welcome back to CS four forty ECE four forty
+
+00:01:14.650 --> 00:01:18.590
+eight artificial intelligence so i'm going to spend
+
+00:01:18.600 --> 00:01:20.960
+the rest of this week talking about variations of
+
+00:01:20.970 --> 00:01:23.720
+search algorithms and in fact next monday as well
+
+00:01:24.460 --> 00:01:27.270
+some of you came up to came up to me after class on friday
+
+00:01:27.280 --> 00:01:29.780
+and said isn't what you presented just exactly dijkstra
+
+00:01:29.790 --> 00:01:32.280
+'s algorithm and the answer is actually it's a super
+
+00:01:32.290 --> 00:01:35.440
+set of dijkstra 's algorithm an inspired by those
+
+00:01:35.450 --> 00:01:38.380
+questions actually my plan is to start today by talking
+
+00:01:38.390 --> 00:01:39.600
+about dijkstra 's algorithm
+
+00:01:42.710 --> 00:01:45.710
+and it and that i would have talked about it by the end
+
+00:01:45.720 --> 00:01:48.990
+of today but normally in the past whenever i've taught
+
+00:01:49.000 --> 00:01:51.850
+this material i've started out with breadth first
+
+00:01:51.860 --> 00:01:54.250
+search or depth first search because those are both
+
+00:01:54.260 --> 00:01:57.780
+much easier in fact than dijkstra 's algorithm dijkstra
+
+00:01:57.790 --> 00:02:00.230
+'s algorithm turns out to be the hardest of the three
+
+00:02:00.240 --> 00:02:03.970
+algorithms that i want to talk about today in the textbook
+
+00:02:03.980 --> 00:02:07.050
+these three algorithms are called uninformed search
+
+00:02:07.340 --> 00:02:09.730
+meaning that these are the search algorithms you
+
+00:02:09.740 --> 00:02:12.500
+can use when you have no guess
+
+00:02:12.800 --> 00:02:16.910
+as to how far the place you are right now is from the
+
+00:02:16.920 --> 00:02:17.440
+endpoint
+
+00:02:18.100 --> 00:02:21.180
+so if you have no guess how far the place you are is from
+
+00:02:21.190 --> 00:02:24.540
+the endpoint then you can do one of one of two things
+
+00:02:24.550 --> 00:02:28.600
+basically depth first search pics a particular direction
+
+00:02:28.610 --> 00:02:31.050
+an keeps going that direction as long as you can
+
+00:02:31.730 --> 00:02:34.110
+that's called a depth first search you keep going
+
+00:02:34.120 --> 00:02:37.080
+as long as you can until you hit a wall and then when
+
+00:02:37.090 --> 00:02:39.710
+you hit a wall you turn around and go back and take the
+
+00:02:39.720 --> 00:02:42.850
+first turning and try there right this is if you think
+
+00:02:42.860 --> 00:02:46.110
+about strategies for finding your way out of a maze
+
+00:02:46.220 --> 00:02:48.950
+one way is to a depth first search where you keep going
+
+00:02:48.960 --> 00:02:51.750
+as far as you can and then only backtrack when you're
+
+00:02:51.760 --> 00:02:54.830
+forced to the alternative is something called breadth
+
+00:02:54.840 --> 00:02:58.830
+first search breadth first searches where you make
+
+00:02:58.840 --> 00:03:01.890
+clones of yourself and each clone of yourself goes
+
+00:03:01.900 --> 00:03:02.230
+down
+
+00:03:02.290 --> 00:03:05.610
+one of the path so if you can turn either left or right
+
+00:03:05.640 --> 00:03:08.460
+then you have to have you divide your party if you're
+
+00:03:08.470 --> 00:03:10.190
+playing dungeons and dragons you divide your party
+
+00:03:10.200 --> 00:03:13.080
+in two half of the group goes to the left and half goes
+
+00:03:13.090 --> 00:03:13.710
+to the right
+
+00:03:14.530 --> 00:03:18.060
+left and right and then when you reach the next juncture
+
+00:03:18.070 --> 00:03:20.380
+in the maze you have to divide each of those subgroups
+
+00:03:20.390 --> 00:03:23.400
+into in order to go down four pads all at once and so
+
+00:03:23.410 --> 00:03:26.880
+on you keep going down all of the paths all at the same
+
+00:03:26.890 --> 00:03:31.720
+time it requires a lot more memory space because you
+
+00:03:31.730 --> 00:03:34.300
+have to divide all of your memory among all of those
+
+00:03:34.310 --> 00:03:34.910
+paths
+
+00:03:35.590 --> 00:03:37.800
+read first search however has the advantage that
+
+00:03:37.810 --> 00:03:41.300
+it's guaranteed to find the shortest path uniform
+
+00:03:41.310 --> 00:03:44.060
+cost search is the version of breadth first search
+
+00:03:44.070 --> 00:03:47.260
+that's applicable when every step you take might
+
+00:03:47.270 --> 00:03:48.480
+have a different cost
+
+00:03:49.060 --> 00:03:52.640
+so in the romania example from last time the distance
+
+00:03:52.650 --> 00:03:55.460
+between cities are not always the same it's not always
+
+00:03:55.470 --> 00:03:59.640
+one mile from one city to the next in the mazes in MP
+
+00:03:59.650 --> 00:04:03.080
+one it's always one mile from one square on the maze
+
+00:04:03.090 --> 00:04:06.100
+to the next one but in the romania search that's not
+
+00:04:06.110 --> 00:04:09.870
+the case and so we have to adjust the algorithm in order
+
+00:04:09.880 --> 00:04:12.680
+to deal with the fact that different different cities
+
+00:04:12.690 --> 00:04:15.650
+are different distances apart and that turns out
+
+00:04:15.660 --> 00:04:18.520
+to be exactly the same as dijkstra 's algorithm so
+
+00:04:18.530 --> 00:04:20.290
+the thing that you've already learned
+
+00:04:20.370 --> 00:04:22.750
+is in fact the hardest thing that i'm going to teach
+
+00:04:22.760 --> 00:04:25.340
+you today so this is another one of those lectures
+
+00:04:25.350 --> 00:04:27.360
+where if you still remember dijkstra 's algorithm
+
+00:04:27.370 --> 00:04:30.180
+you can kind of relax and not have to worry too much
+
+00:04:30.820 --> 00:04:34.620
+in so Dijkstra's algorithm is here's a sort of pseudo
+
+00:04:34.630 --> 00:04:37.620
+code for dijkstra 's algorithm and here's an animation
+
+00:04:37.630 --> 00:04:39.820
+from wikipedia that shows how it works
+
+00:04:40.390 --> 00:04:44.290
+the basic idea is that you're given you're given a
+
+00:04:44.300 --> 00:04:47.660
+set of distances you know from any city to any other
+
+00:04:47.670 --> 00:04:51.840
+city how far is it so will call that D sub NL that's the
+
+00:04:51.850 --> 00:04:56.040
+distance from node N to node world state end to world
+
+00:04:56.050 --> 00:04:56.830
+state L
+
+00:04:57.670 --> 00:05:00.190
+and we start out with an unvisited list which lists
+
+00:05:00.220 --> 00:05:03.170
+all of the nodes except for the start every node that
+
+00:05:03.180 --> 00:05:07.050
+you have not yet explored has an infinite cost that
+
+00:05:07.060 --> 00:05:09.090
+infinity there that just means you don't know how
+
+00:05:09.100 --> 00:05:09.730
+to get there
+
+00:05:10.310 --> 00:05:13.700
+right so if i look up here we have distances and then
+
+00:05:13.710 --> 00:05:16.660
+initially we just say i don't know how to get there
+
+00:05:16.670 --> 00:05:19.320
+so every node is infinite and then we started out at
+
+00:05:19.330 --> 00:05:21.810
+the start node and we look at all of its neighbors and
+
+00:05:21.820 --> 00:05:25.840
+we take the cost of each of those neighbors an now we
+
+00:05:25.850 --> 00:05:28.840
+know a way to get there everything that's in this blue
+
+00:05:28.850 --> 00:05:31.080
+list is something that i've actually found a way to
+
+00:05:31.090 --> 00:05:33.380
+get there and so it's cost is less than infinite
+
+00:05:34.190 --> 00:05:38.680
+right and that's that gradually expands and by taking
+
+00:05:38.710 --> 00:05:41.060
+this argument operation right here
+
+00:05:41.680 --> 00:05:44.230
+means that this algorithm is guaranteed to find the
+
+00:05:44.240 --> 00:05:47.750
+shortest path right at any given time we look through
+
+00:05:47.760 --> 00:05:50.410
+the entire unvisited list and we find out which of
+
+00:05:50.420 --> 00:05:53.590
+the nodes that which of the nodes that we still haven't
+
+00:05:53.600 --> 00:05:57.570
+been to is closest to the nodes that we've been to before
+
+00:05:57.700 --> 00:06:00.870
+and we go there and by doing that were guaranteed to
+
+00:06:00.880 --> 00:06:04.890
+find the shortest possible path to the target
+
+00:06:05.640 --> 00:06:07.790
+right everybody kind of remembering how this works
+
+00:06:08.290 --> 00:06:11.870
+the provable guarantee comes from this step it comes
+
+00:06:11.880 --> 00:06:16.110
+from the path that we never explore an of the paths
+
+00:06:16.120 --> 00:06:18.690
+that are left open to us we always explore the shortest
+
+00:06:18.700 --> 00:06:19.100
+one
+
+00:06:20.220 --> 00:06:22.770
+and by doing so we're guaranteed that when we finally
+
+00:06:22.780 --> 00:06:27.080
+find a path to the goal the path that we find is the shortest
+
+00:06:27.090 --> 00:06:28.820
+possible path to the goal
+
+00:06:29.740 --> 00:06:30.200
+right
+
+00:06:31.410 --> 00:06:33.560
+there's only one problem with this algorithm for
+
+00:06:33.570 --> 00:06:37.110
+this class this algorithm works fine if you're trying
+
+00:06:37.120 --> 00:06:38.790
+to find your way out of a maze
+
+00:06:39.610 --> 00:06:41.860
+but if you're trying to solve the traveling salesman
+
+00:06:41.870 --> 00:06:44.280
+problem this problem this algorithm doesn't work
+
+00:06:45.060 --> 00:06:48.220
+why not OK this is probably a new statement that you've
+
+00:06:48.230 --> 00:06:51.200
+never heard before why would this algorithm be problematic
+
+00:06:51.210 --> 00:06:53.190
+if you were trying to solve this traveling salesman
+
+00:06:53.200 --> 00:06:53.620
+problem
+
+00:06:56.300 --> 00:06:59.050
+traveling salesman problem requires you to go from
+
+00:06:59.060 --> 00:06:59.860
+A to B
+
+00:07:04.380 --> 00:07:07.960
+yes that's the fundamental it so the traveling salesman
+
+00:07:07.970 --> 00:07:10.930
+problem requires you to figure out how to get to every
+
+00:07:10.940 --> 00:07:14.690
+city at least once requires you to go from A to B through
+
+00:07:14.850 --> 00:07:15.860
+another set of points
+
+00:07:16.490 --> 00:07:19.580
+and so actually the state definition where were we
+
+00:07:19.590 --> 00:07:22.670
+here we go all nodes all of the states except the start
+
+00:07:22.700 --> 00:07:27.060
+the state definition is a binary vector with a length
+
+00:07:27.090 --> 00:07:29.950
+equal to the number of cities that you have to cover
+
+00:07:30.430 --> 00:07:33.000
+if you have to visit one hundred cities and you want
+
+00:07:33.010 --> 00:07:35.300
+to find the shortest possible path to those one hundred
+
+00:07:35.310 --> 00:07:39.540
+cities you have two to the one hundredth power different
+
+00:07:39.550 --> 00:07:43.940
+possible states and so this unvisited list has to
+
+00:07:43.950 --> 00:07:46.800
+be two to the one hundredth power right
+
+00:07:47.410 --> 00:07:50.960
+which is large i mean it's certainly something you
+
+00:07:50.970 --> 00:07:53.540
+could fit in your laptop but it would take a lot of time
+
+00:07:53.550 --> 00:07:58.360
+to simply allocate that much disk space you want to
+
+00:07:58.370 --> 00:08:00.740
+allocate that much disk space and fill it with
+
+00:08:01.440 --> 00:08:04.850
+one google 's worth of zeros with two to the one hundredth
+
+00:08:04.860 --> 00:08:05.690
+different zeros
+
+00:08:06.620 --> 00:08:07.470
+and so what
+
+00:08:08.820 --> 00:08:11.850
+what was proposed actually i think originally in
+
+00:08:11.860 --> 00:08:15.410
+the nineteen forties was to swap out the well shortly
+
+00:08:15.420 --> 00:08:17.670
+after dijkstra anyway it was to swap out that unvisited
+
+00:08:17.680 --> 00:08:20.560
+list and instead keep track only of these blue points
+
+00:08:20.660 --> 00:08:23.000
+keep track only of the ones that are on the frontier
+
+00:08:23.010 --> 00:08:26.220
+you know how to get to that state but but you haven't
+
+00:08:26.230 --> 00:08:27.780
+figured out where you can go from there
+
+00:08:28.690 --> 00:08:31.500
+so we start out with a frontier that has nothing in
+
+00:08:31.510 --> 00:08:35.260
+it and we then we put the start node into the frontier
+
+00:08:35.270 --> 00:08:38.840
+and we open the start node and then the only nodes that
+
+00:08:38.850 --> 00:08:42.640
+go into the frontier or the nodes that have a V sub end
+
+00:08:42.650 --> 00:08:43.610
+less than infinity
+
+00:08:44.520 --> 00:08:47.650
+right so basically we're saying if i've never if the
+
+00:08:47.660 --> 00:08:51.350
+cost to get to that node is still infinity why am i keeping
+
+00:08:51.360 --> 00:08:52.050
+it in memory
+
+00:08:52.700 --> 00:08:56.160
+there's no reason to keep it on disk if the cost is infinity
+
+00:08:56.290 --> 00:08:58.750
+and so we will only keep track of things that have a
+
+00:08:58.760 --> 00:09:03.890
+cost less than infinity and this it computes this
+
+00:09:03.900 --> 00:09:06.930
+is exactly the same algorithm the only difference
+
+00:09:06.940 --> 00:09:09.850
+is that we're not storing on disk all of those infinity
+
+00:09:09.860 --> 00:09:12.350
+'s the only things were storing on disk are the ones
+
+00:09:12.360 --> 00:09:14.760
+that have a value other than infinity
+
+00:09:15.580 --> 00:09:15.950
+right
+
+00:09:17.020 --> 00:09:20.690
+uhm i wanted to kind of call that out first of all because
+
+00:09:20.720 --> 00:09:24.030
+really this is the same thing as dijkstra but that
+
+00:09:24.040 --> 00:09:27.900
+subtle difference is going to come back to us again
+
+00:09:28.160 --> 00:09:30.670
+as you start to look at the traveling salesman problem
+
+00:09:30.680 --> 00:09:36.350
+in MP one if you have if you're set of possible world
+
+00:09:36.360 --> 00:09:40.340
+states is two to the one hundredth or larger possibly
+
+00:09:40.350 --> 00:09:42.980
+infinite you don't want to enumerate all of them
+
+00:09:43.870 --> 00:09:47.500
+what you want to do is to try to guess in advance which
+
+00:09:47.510 --> 00:09:50.380
+of those world states might actually be on the path
+
+00:09:50.390 --> 00:09:53.490
+between your start and the goal and you want to enumerate
+
+00:09:53.500 --> 00:09:56.380
+those first and ignore everything else so you can
+
+00:09:56.390 --> 00:09:59.880
+see in this animation when it finally finds the goal
+
+00:09:59.910 --> 00:10:02.540
+it won't have actually enumerated all of the states
+
+00:10:02.570 --> 00:10:05.400
+in the entire square it's only enumerated the states
+
+00:10:05.410 --> 00:10:09.760
+that are have a cost less than the goal state so it enumerates
+
+00:10:09.770 --> 00:10:11.780
+everything that has a cost less than the goal and then
+
+00:10:11.790 --> 00:10:14.560
+it found the goal and it says OK now i'm
+
+00:10:14.620 --> 00:10:16.610
+i'm guaranteed that that's the shortest path
+
+00:10:17.420 --> 00:10:19.940
+there's not very many states that it doesn't enumerate
+
+00:10:19.950 --> 00:10:22.390
+in this example but in a traveling salesman problem
+
+00:10:22.400 --> 00:10:25.110
+the number it doesn't enumerate would be huge it would
+
+00:10:25.120 --> 00:10:29.070
+be the number it doesn't enumerate would be would
+
+00:10:29.080 --> 00:10:31.690
+be the vast majority of all of the states that you could
+
+00:10:31.700 --> 00:10:32.200
+consider
+
+00:10:33.820 --> 00:10:36.590
+so this is these are the
+
+00:10:37.250 --> 00:10:39.360
+exactly the same algorithm they actually evaluate
+
+00:10:39.370 --> 00:10:42.760
+exactly the same nodes in exactly the same order the
+
+00:10:42.770 --> 00:10:45.240
+thing they compute is the same the only difference
+
+00:10:45.250 --> 00:10:48.340
+really is what they store in memory dykstra 's stores
+
+00:10:49.040 --> 00:10:51.960
+of value for every single one of the nodes and uniform
+
+00:10:51.970 --> 00:10:55.700
+cost stores of value only for the nodes whose cost
+
+00:10:55.730 --> 00:10:58.650
+is less than infinity the nodes that you've explored
+
+00:10:59.680 --> 00:11:01.750
+that makes sense so is that it's actually the same
+
+00:11:01.760 --> 00:11:02.360
+thing but
+
+00:11:04.890 --> 00:11:08.120
+so do you still need Dijkstra actually we're going
+
+00:11:08.130 --> 00:11:09.810
+to spend this week talking about different things
+
+00:11:09.820 --> 00:11:12.560
+that you can implement that are very similar to dijkstra
+
+00:11:12.570 --> 00:11:15.780
+but not quite the same so i would recommend so for MP
+
+00:11:15.790 --> 00:11:17.860
+one for example i would recommend not implementing
+
+00:11:17.870 --> 00:11:21.680
+dijkstra because some of the problems in MP one will
+
+00:11:21.690 --> 00:11:24.570
+have nearly infinite state space will have exponentially
+
+00:11:24.580 --> 00:11:27.500
+large state space and i would recommend instead implementing
+
+00:11:27.510 --> 00:11:29.910
+something like uniform cost search or breadth first
+
+00:11:29.920 --> 00:11:31.350
+search or a star search
+
+00:11:32.170 --> 00:11:33.200
+did that answer your question
+
+00:11:35.580 --> 00:11:36.310
+um
+
+00:11:48.060 --> 00:11:51.300
+so uniform cost search the computational efficiency
+
+00:11:51.310 --> 00:11:54.200
+is exactly the same as dijkstra so does that mean you
+
+00:11:54.210 --> 00:11:57.080
+don't need extra anymore basically yes basically
+
+00:11:57.090 --> 00:12:01.040
+it means that this isn't a slightly this is uniform
+
+00:12:01.050 --> 00:12:03.920
+cost search is has exactly the same computational
+
+00:12:03.930 --> 00:12:06.580
+efficiency as dijkstra but better space efficiency
+
+00:12:06.610 --> 00:12:08.880
+and therefore when somebody tells you to implement
+
+00:12:08.890 --> 00:12:11.360
+dijkstra i would say from now on for the rest of your
+
+00:12:11.370 --> 00:12:13.560
+life what you probably want to implement is uniform
+
+00:12:13.570 --> 00:12:14.520
+cost search instead
+
+00:12:15.640 --> 00:12:17.870
+because it's basically the same thing but with better
+
+00:12:17.880 --> 00:12:18.270
+space
+
+00:12:19.360 --> 00:12:19.760
+yeah
+
+00:12:20.330 --> 00:12:21.560
+i'm yeah
+
+00:12:24.050 --> 00:12:26.030
+interesting question thanks other questions
+
+00:12:28.970 --> 00:12:31.460
+so let's look at the romania task for example last
+
+00:12:31.470 --> 00:12:34.700
+time we got as far as this we got to saying that OK now
+
+00:12:34.710 --> 00:12:37.580
+i know that i can go from Arad to subu and from sibiu
+
+00:12:37.590 --> 00:12:40.630
+to order tea in two hundred and ninety one kilometers
+
+00:12:40.830 --> 00:12:43.720
+and now we know that if we go from there and will find
+
+00:12:43.750 --> 00:12:47.820
+a faster way to or idea how do we guarantee that we get
+
+00:12:47.830 --> 00:12:51.520
+there if we're performing actually i'm going to look
+
+00:12:51.760 --> 00:12:53.880
+at this part of the map i'm going to look at the problem
+
+00:12:53.890 --> 00:12:56.000
+of finding out how to get to bucharest
+
+00:12:56.750 --> 00:12:59.300
+and that's interesting because i could go from sebu
+
+00:12:59.310 --> 00:13:02.640
+by way of fungus which is covered up here and that would
+
+00:13:02.650 --> 00:13:07.760
+give me fewer steps to get to bucharest right but if
+
+00:13:07.770 --> 00:13:11.140
+i go through sabu and then Rimnicu Vilcea and then put
+
+00:13:11.150 --> 00:13:14.890
+a city and then bucharest that would get me less kilometers
+
+00:13:15.070 --> 00:13:17.300
+and so this is an interesting case where
+
+00:13:18.230 --> 00:13:21.560
+breadth first search the algorithm that i'll describe
+
+00:13:21.570 --> 00:13:25.360
+to later on in today's lecture would fail but dijkstra
+
+00:13:25.370 --> 00:13:28.270
+'s algorithm or uniform cost search will succeed
+
+00:13:28.680 --> 00:13:31.600
+let me focus in on that part of the chart so we have Rim
+
+00:13:31.610 --> 00:13:36.100
+NICU Vilcea chair that's i'm leaving it as RV anfa got
+
+00:13:36.110 --> 00:13:39.200
+us i'm writing that out in full so those are
+
+00:13:40.700 --> 00:13:43.340
+those are this city that's hidden under here and this
+
+00:13:43.350 --> 00:13:45.730
+city that's hidden under here and we're going to try
+
+00:13:45.740 --> 00:13:49.710
+to follow forward to see how a uniform cost search
+
+00:13:49.740 --> 00:13:53.470
+would find the way to find the way to bucharest so right
+
+00:13:53.480 --> 00:13:56.870
+now the things on the things on the frontier RV and
+
+00:13:56.880 --> 00:13:57.520
+Fagaras
+
+00:13:58.170 --> 00:14:02.110
+and so we know that because the step cost is greater
+
+00:14:02.120 --> 00:14:06.890
+than or equal to zero that means that every node on
+
+00:14:06.900 --> 00:14:10.420
+the best path has a cost that's less than the goal right
+
+00:14:10.700 --> 00:14:13.620
+the distance to RV is guaranteed to be less than or
+
+00:14:13.630 --> 00:14:18.060
+equal to the distance to the goal if RV is on the best
+
+00:14:18.070 --> 00:14:18.480
+path
+
+00:14:20.060 --> 00:14:22.590
+if it's on the if it's not on the best path that might
+
+00:14:22.600 --> 00:14:23.300
+not be true
+
+00:14:23.990 --> 00:14:27.420
+so we can so let's expand the one that's closest will
+
+00:14:27.430 --> 00:14:30.600
+expand the one that has this lowest total cost so far
+
+00:14:31.350 --> 00:14:34.450
+at the lowest total cost so far as RV that's closest
+
+00:14:34.480 --> 00:14:37.490
+to where we started we expand that we get the Pitesti
+
+00:14:38.380 --> 00:14:42.870
+and so when we choose the one that has the minimum cost
+
+00:14:42.880 --> 00:14:45.550
+of all of the ones on the frontier that means that we
+
+00:14:45.560 --> 00:14:49.130
+choose the lowest cost nodes first so now we have fungus
+
+00:14:49.140 --> 00:14:52.630
+and put a city on the frontier and fog loss is closer
+
+00:14:52.640 --> 00:14:53.640
+to the origin
+
+00:14:54.540 --> 00:14:56.430
+and so this is where you know if we're playing dungeons
+
+00:14:56.440 --> 00:14:59.570
+and dragons we've split our group into two teams one
+
+00:14:59.580 --> 00:15:02.090
+team is going by way of fog at US one team is going by
+
+00:15:02.100 --> 00:15:05.730
+way of a testy and we say OK foget us has the lowest cost
+
+00:15:05.740 --> 00:15:08.950
+you guys go next and find out where you can go and they
+
+00:15:08.960 --> 00:15:12.370
+discover oh look we can get to bucharest in one more
+
+00:15:12.380 --> 00:15:12.800
+step
+
+00:15:14.700 --> 00:15:18.110
+but here's the trick the reason why uniform cost search
+
+00:15:18.140 --> 00:15:19.020
+actually works
+
+00:15:19.760 --> 00:15:22.550
+just because we found a path to bucharest doesn't
+
+00:15:22.560 --> 00:15:23.740
+mean it's the best path
+
+00:15:25.020 --> 00:15:28.410
+right we have to wait until we reach a point where we've
+
+00:15:28.420 --> 00:15:32.350
+explored all of the intermediate nodes that have
+
+00:15:32.360 --> 00:15:34.100
+a cost less than four fifty
+
+00:15:34.770 --> 00:15:38.640
+because in this case battesti is closer to the origin
+
+00:15:38.670 --> 00:15:41.390
+than bucharest is and so it's possible that there
+
+00:15:41.400 --> 00:15:45.910
+is a path by way of pretesti to bucharest which is shorter
+
+00:15:47.200 --> 00:15:51.120
+and that is in fact the case if we since now we have bucharest
+
+00:15:51.130 --> 00:15:54.540
+and put a city on the frontier pitesti has a lower cost
+
+00:15:55.150 --> 00:15:57.040
+so we expand capacity first
+
+00:15:58.340 --> 00:16:00.750
+we expand potassium we've discovered lo and behold
+
+00:16:00.760 --> 00:16:04.490
+there is a path and this path has a shorter cost to get
+
+00:16:04.500 --> 00:16:08.140
+to bucharest and so we change the entry for bucharest
+
+00:16:08.930 --> 00:16:11.520
+the entry for bucharest goes from being four hundred
+
+00:16:11.530 --> 00:16:13.880
+fifty kilometers from the starting point to being
+
+00:16:13.890 --> 00:16:15.880
+only four hundred and eighteen kilometers from the
+
+00:16:15.890 --> 00:16:16.520
+starting point
+
+00:16:18.360 --> 00:16:21.130
+so every predecessor with a cost less than the best
+
+00:16:21.140 --> 00:16:25.190
+possible path will be expanded before we get to the
+
+00:16:25.200 --> 00:16:25.630
+goal
+
+00:16:26.360 --> 00:16:30.590
+right now our frontier only has one note on it are frontier
+
+00:16:30.600 --> 00:16:33.360
+now only has bucharest on it with a cost of four hundred
+
+00:16:33.370 --> 00:16:37.070
+and eighteen kilometers and so we expand it and when
+
+00:16:37.080 --> 00:16:40.230
+we expand it that's when we decide that we found the
+
+00:16:40.240 --> 00:16:44.030
+best path right now there's nothing else that we haven't
+
+00:16:44.040 --> 00:16:48.070
+expanded with a lower cost than four hundred and eighteen
+
+00:16:48.880 --> 00:16:52.480
+and so we're guaranteed that there is no path with
+
+00:16:52.490 --> 00:16:54.340
+the cost less than four hundred and eighteen
+
+00:16:55.530 --> 00:16:58.040
+because we've expanded all the nodes that we could
+
+00:16:58.050 --> 00:17:00.980
+get to in less than four hundred and eighteen kilometers
+
+00:17:02.600 --> 00:17:05.030
+and so that's the main idea the main idea is that everything
+
+00:17:05.040 --> 00:17:08.570
+that could possibly be faster we explore it before
+
+00:17:08.580 --> 00:17:09.590
+we make our decision
+
+00:17:10.160 --> 00:17:13.940
+by the time we make the decision we've tested everything
+
+00:17:13.950 --> 00:17:15.380
+that could possibly be better
+
+00:17:17.590 --> 00:17:19.530
+there's some computational considerations how
+
+00:17:19.540 --> 00:17:23.490
+do you do this how do you find the minimum cost of all
+
+00:17:23.500 --> 00:17:26.430
+of the nodes that are on the frontier the naive implementation
+
+00:17:26.440 --> 00:17:29.870
+is let's just keep a list of the frontier and every
+
+00:17:29.880 --> 00:17:31.930
+time i need to find the minimum i'll go through that
+
+00:17:31.940 --> 00:17:35.570
+list and find the one that has the lowest cost that's
+
+00:17:35.600 --> 00:17:38.710
+order of N complexity per search step but we can do
+
+00:17:38.720 --> 00:17:41.610
+better by keeping it as a priority queue just keep
+
+00:17:41.620 --> 00:17:43.800
+your keep your frontier as a sorted list
+
+00:17:44.980 --> 00:17:49.230
+right it's sorted according to cost and therefore
+
+00:17:49.240 --> 00:17:51.840
+the first one in the list is always the lowest cost
+
+00:17:52.510 --> 00:17:55.830
+and as you know a quicksort algorithm requires only
+
+00:17:55.860 --> 00:18:01.010
+the logarithm of N to insert a new node into the frontier
+
+00:18:01.130 --> 00:18:04.490
+and so we've turned in order N operation into an order
+
+00:18:04.500 --> 00:18:05.590
+of log in operation
+
+00:18:07.340 --> 00:18:08.520
+that's kind of important
+
+00:18:10.000 --> 00:18:13.380
+the other thing we need is we need to we need to be able
+
+00:18:13.390 --> 00:18:16.960
+to figure out if that node has already been searched
+
+00:18:16.970 --> 00:18:21.020
+and if so we need to update its cost to a lower cost and
+
+00:18:21.030 --> 00:18:23.940
+we can do that by keeping the explored list as a hashtable
+
+00:18:24.390 --> 00:18:27.280
+a hashtable means that you have some hashing function
+
+00:18:27.290 --> 00:18:29.880
+that tells you the index where you're going to look
+
+00:18:29.890 --> 00:18:33.200
+up pitesti you enter the name pitesti and that's turned
+
+00:18:33.210 --> 00:18:35.620
+into an integer of some kind and that integer tells
+
+00:18:35.630 --> 00:18:38.800
+you where to look it up and so the total complexity
+
+00:18:38.810 --> 00:18:39.960
+is just order of one
+
+00:18:40.320 --> 00:18:43.870
+right with an order of one complexity we test weather
+
+00:18:43.880 --> 00:18:46.930
+bucharest has already been discovered and if it's
+
+00:18:46.940 --> 00:18:49.760
+been discovered then we update its cost to the new
+
+00:18:49.770 --> 00:18:52.510
+version of the same cost so with a couple of tricks
+
+00:18:52.520 --> 00:18:56.330
+like this we can take this process and make it at most
+
+00:18:56.360 --> 00:18:59.230
+order of log N per node that we explore
+
+00:19:02.010 --> 00:19:06.030
+the complexity of the complexity is still the size
+
+00:19:06.040 --> 00:19:08.290
+of the total search right this search tree can get
+
+00:19:08.300 --> 00:19:10.470
+pretty large and i'm going to talk about that next
+
+00:19:10.700 --> 00:19:13.710
+but for each of these nodes in the search tree we're
+
+00:19:13.720 --> 00:19:17.590
+only doing login operations so the complexity now
+
+00:19:17.600 --> 00:19:20.760
+is dominated by how big do we allow this search tree
+
+00:19:20.770 --> 00:19:21.120
+to get
+
+00:19:21.810 --> 00:19:23.160
+alright question so far
+
+00:19:27.430 --> 00:19:29.860
+and now the second half of the lecture i need to tell
+
+00:19:29.870 --> 00:19:32.380
+you about how big can this search tree actually get
+
+00:19:32.410 --> 00:19:36.150
+because that kind of matters and to do that i'm going
+
+00:19:36.160 --> 00:19:40.100
+to simplify and talk about breadth first search breadth
+
+00:19:40.110 --> 00:19:43.450
+first search is a special case of uniform cost search
+
+00:19:43.480 --> 00:19:47.920
+when each of the steps has the same cost and by making
+
+00:19:47.930 --> 00:19:51.220
+each of the steps the same cost things like computational
+
+00:19:51.230 --> 00:19:53.790
+complexity are easier to write down
+
+00:19:55.240 --> 00:19:57.970
+so let's talk about that we want it's a special case
+
+00:19:57.980 --> 00:20:00.870
+of uniform cost when every step has exactly the same
+
+00:20:00.880 --> 00:20:04.270
+cost for example finding your way out of a bayes right
+
+00:20:04.280 --> 00:20:07.630
+or even in fact the traveling salesman problem if
+
+00:20:07.640 --> 00:20:13.200
+every step is one grid step so D sub NL is exactly one
+
+00:20:13.500 --> 00:20:17.890
+for every N and L that our neighbors so to get from the
+
+00:20:17.900 --> 00:20:20.890
+start to the goal in this maze you can see right away
+
+00:20:20.900 --> 00:20:23.790
+that that will take three steps i've made this the
+
+00:20:23.800 --> 00:20:25.890
+simplest may as i possibly could so that
+
+00:20:26.250 --> 00:20:28.540
+so that it would be something i could solve in a series
+
+00:20:28.550 --> 00:20:30.850
+of slides on the overhead on the overhead projector
+
+00:20:31.770 --> 00:20:36.230
+right so the advantage of that we're going to implement
+
+00:20:36.260 --> 00:20:39.330
+ucs we're going to implement a uniform uniform cost
+
+00:20:39.340 --> 00:20:43.660
+search we're going to sort the frontier based on the
+
+00:20:43.670 --> 00:20:45.190
+cost of that node
+
+00:20:46.880 --> 00:20:49.850
+but now the cost is just equal to the number of steps
+
+00:20:49.860 --> 00:20:51.060
+that it took you to get there
+
+00:20:52.120 --> 00:20:52.570
+right
+
+00:20:53.510 --> 00:20:56.460
+an the number of steps that it took you to get there
+
+00:20:56.470 --> 00:20:59.630
+is a strictly increasing function if i take
+
+00:21:00.180 --> 00:21:03.920
+a node that has zero steps to get there and i expand
+
+00:21:03.930 --> 00:21:06.890
+it both of its neighbors will have a cost of one step
+
+00:21:07.580 --> 00:21:08.040
+right
+
+00:21:08.970 --> 00:21:15.140
+and so we can keep the frontiers sorted by simply implementing
+
+00:21:15.150 --> 00:21:16.960
+it is a first in first out queue
+
+00:21:17.890 --> 00:21:21.980
+the first the nodes A and B will go into the frontier
+
+00:21:22.320 --> 00:21:24.300
+and those are the first ones that should come out
+
+00:21:25.550 --> 00:21:29.140
+right and now let's see the frontier has A and B so let
+
+00:21:29.150 --> 00:21:32.840
+me just pop off the first item in that queue a has a neighbor
+
+00:21:32.850 --> 00:21:36.540
+which is C i'll put C i'll attach C at the end of the
+
+00:21:36.550 --> 00:21:39.760
+frontier over here and then the next one i expand will
+
+00:21:39.770 --> 00:21:42.370
+be B because this is a fifo
+
+00:21:42.980 --> 00:21:43.400
+right
+
+00:21:44.210 --> 00:21:47.260
+because keeping it as a fifo guarantees that it will
+
+00:21:47.270 --> 00:21:49.520
+be sorted in priority order
+
+00:21:50.160 --> 00:21:54.220
+so we expand be we get this node D and we add that to the
+
+00:21:54.230 --> 00:21:57.060
+end of the frontier and the next one we expand is C A
+
+00:21:57.070 --> 00:21:59.060
+know that tells us there's a note over there that we
+
+00:21:59.070 --> 00:21:59.820
+should expand
+
+00:22:01.700 --> 00:22:04.610
+now the next one we expand is D will expand that we found
+
+00:22:04.620 --> 00:22:07.870
+a path to G but we don't know yet if that's the best path
+
+00:22:08.060 --> 00:22:11.800
+so will put that at the end of the Q and will pop one that
+
+00:22:11.810 --> 00:22:16.210
+has a lower cost node E will discover that node E has
+
+00:22:16.220 --> 00:22:18.570
+a neighbor which is F and the next thing that we expand
+
+00:22:18.580 --> 00:22:23.310
+will be G and when we expand G this time we're guaranteed
+
+00:22:23.320 --> 00:22:26.710
+that there's no other path that has a lower cost because
+
+00:22:26.720 --> 00:22:29.680
+if there was we would we would have already seen it
+
+00:22:30.740 --> 00:22:33.280
+so now we pop G from the frontier
+
+00:22:34.350 --> 00:22:37.060
+we get the best path and we were guaranteed that that
+
+00:22:37.070 --> 00:22:39.440
+is the best path because we've explored everything
+
+00:22:39.450 --> 00:22:40.480
+that has a lower cost
+
+00:22:42.200 --> 00:22:42.690
+makes sense
+
+00:22:45.840 --> 00:22:46.720
+oh it's the best
+
+00:23:00.880 --> 00:23:02.580
+OK um
+
+00:23:05.000 --> 00:23:07.890
+for BFS in particular that's probably true for uniform
+
+00:23:07.900 --> 00:23:09.450
+cost search that wouldn't be true
+
+00:23:10.080 --> 00:23:10.780
+yeah
+
+00:23:11.550 --> 00:23:14.040
+yeah i think yeah because we're guaranteed that
+
+00:23:14.600 --> 00:23:19.630
+at this point for example F and G have the same cost
+
+00:23:20.040 --> 00:23:23.190
+and so anywhere we could go from F would be a higher
+
+00:23:23.200 --> 00:23:25.590
+cost than G has so that's uh
+
+00:23:26.740 --> 00:23:29.060
+yeah and even at this point we're guaranteed that
+
+00:23:29.070 --> 00:23:32.400
+anywhere we go from E will have a cost that's greater
+
+00:23:32.410 --> 00:23:34.790
+than or equal to G so we could have just popped a G at
+
+00:23:34.800 --> 00:23:38.090
+this point yeah that's true i guess that's true for
+
+00:23:38.100 --> 00:23:41.170
+BFS in particular but not for some other search methods
+
+00:23:41.770 --> 00:23:44.480
+in general we do want to wait until we pop G from the
+
+00:23:44.490 --> 00:23:47.300
+frontier but for BFS in particular maybe we could
+
+00:23:47.310 --> 00:23:48.330
+have done that before hand
+
+00:23:49.690 --> 00:23:50.330
+good thanks
+
+00:23:55.340 --> 00:23:55.970
+um
+
+00:23:57.450 --> 00:24:01.230
+OK so we need to i mean when we try to now we're going
+
+00:24:01.240 --> 00:24:03.370
+to get into this proving of algorithms thing right
+
+00:24:03.400 --> 00:24:06.280
+we need to know does the algorithm actually give you
+
+00:24:06.550 --> 00:24:09.610
+an answer at all does it find a solution if a solution
+
+00:24:09.620 --> 00:24:10.240
+exists
+
+00:24:11.780 --> 00:24:14.210
+if it does is it guaranteed to find the best solution
+
+00:24:14.780 --> 00:24:17.320
+these things are called we have words for these in
+
+00:24:17.330 --> 00:24:20.760
+AI they are called completeness an optimality completeness
+
+00:24:20.770 --> 00:24:23.140
+just means does the algorithm actually generate
+
+00:24:23.170 --> 00:24:25.370
+a solution at all does it ever stop
+
+00:24:26.120 --> 00:24:29.620
+optimality means does it always find the best solution
+
+00:24:29.800 --> 00:24:35.020
+and if it finds the best solution we can ask how computationally
+
+00:24:35.030 --> 00:24:39.060
+efficient is it how much how many cycles of processing
+
+00:24:39.070 --> 00:24:41.780
+speed does it require that's time complexity and
+
+00:24:41.790 --> 00:24:45.120
+how many registers of storage space does it require
+
+00:24:45.150 --> 00:24:48.170
+that space complexity so we can compare different
+
+00:24:48.180 --> 00:24:50.660
+algorithms using these strategies
+
+00:24:53.230 --> 00:24:55.900
+this will be important today to compare bread first
+
+00:24:55.910 --> 00:24:59.600
+and depth first search and then on wednesday i'll
+
+00:24:59.610 --> 00:25:02.020
+tell you about something called a star search with
+
+00:25:02.030 --> 00:25:05.360
+which beats both of them on time complexity
+
+00:25:06.150 --> 00:25:08.620
+they are measured in terms of these variables so these
+
+00:25:08.630 --> 00:25:11.000
+are the variables that will need this week i'll introduce
+
+00:25:11.010 --> 00:25:13.020
+a different set of variables next week but this week
+
+00:25:13.030 --> 00:25:16.280
+will need B which is the branching factor that is from
+
+00:25:16.290 --> 00:25:19.080
+any given place in the maze how many other places could
+
+00:25:19.090 --> 00:25:22.420
+you get to so for a maze this is typically a maximum
+
+00:25:22.430 --> 00:25:23.000
+of four
+
+00:25:23.750 --> 00:25:27.700
+right D is the depth of the salute of the optimum solution
+
+00:25:27.740 --> 00:25:32.400
+so this is not known in advance right in terms of if
+
+00:25:32.410 --> 00:25:35.340
+you know that the optimum solution is only three steps
+
+00:25:35.580 --> 00:25:38.130
+can you guarantee that your algorithm will actually
+
+00:25:38.140 --> 00:25:41.880
+make it there in three steps so this is we can talk about
+
+00:25:41.910 --> 00:25:45.280
+how much computation does it take in terms of the optimum
+
+00:25:45.290 --> 00:25:48.410
+solution or in terms of the worst case solution the
+
+00:25:48.420 --> 00:25:51.350
+maximum length of any possible path in the state space
+
+00:25:51.420 --> 00:25:54.280
+and remember this last one might actually be infinite
+
+00:25:54.840 --> 00:25:57.300
+it might be that we have loops
+
+00:25:57.900 --> 00:26:00.810
+in the state space if there are loops you can get rid
+
+00:26:00.820 --> 00:26:03.850
+of them by the trick of keeping track of your explored
+
+00:26:03.860 --> 00:26:06.720
+states right then you can guarantee you won't go on
+
+00:26:06.730 --> 00:26:09.130
+a loop if you never repeat a state that you've already
+
+00:26:09.140 --> 00:26:13.030
+seen but some state space is really are infinite there
+
+00:26:13.040 --> 00:26:15.410
+are some problems that you need to solve where you
+
+00:26:15.420 --> 00:26:20.460
+could so for example finding finding the finding
+
+00:26:20.470 --> 00:26:23.030
+the next floating number in the sequence after one
+
+00:26:23.040 --> 00:26:25.910
+the next floating number is one point zero zero zero
+
+00:26:25.920 --> 00:26:28.010
+zero zero zero zero zero
+
+00:26:28.170 --> 00:26:30.520
+well actually an infinite number of zeros followed
+
+00:26:30.530 --> 00:26:34.800
+by a one right so the problem of there are problems
+
+00:26:34.810 --> 00:26:37.440
+where the state space that you have to consider is
+
+00:26:37.450 --> 00:26:41.280
+actually infinite in size in which case M might be
+
+00:26:41.290 --> 00:26:41.860
+infinity
+
+00:26:44.490 --> 00:26:45.060
+um
+
+00:26:46.020 --> 00:26:48.570
+so bread first search is complete we can guarantee
+
+00:26:48.580 --> 00:26:51.930
+that if the branching factor is finite if there's
+
+00:26:51.940 --> 00:26:55.810
+a finite number of things you could do at anytime breadth
+
+00:26:55.820 --> 00:26:58.090
+first search is complete even without an explored
+
+00:26:58.100 --> 00:27:00.650
+set you're guaranteed that you'll find a solution
+
+00:27:00.660 --> 00:27:03.010
+and in fact you're guaranteed to find the optimum
+
+00:27:03.020 --> 00:27:03.610
+solution
+
+00:27:04.280 --> 00:27:06.600
+the time complexity though is exponential
+
+00:27:07.660 --> 00:27:08.270
+um
+
+00:27:08.950 --> 00:27:09.960
+right so you've
+
+00:27:10.510 --> 00:27:13.030
+have you heard about NP complete and i'll talk about
+
+00:27:13.040 --> 00:27:15.610
+it again next week NP complete or the set of problems
+
+00:27:15.620 --> 00:27:18.750
+where there is no polynomial known polynomial time
+
+00:27:18.760 --> 00:27:21.730
+solution but in polynomial time we can check whether
+
+00:27:21.740 --> 00:27:23.840
+or not a given solution is correct
+
+00:27:25.710 --> 00:27:30.470
+search in general is NP it's not search in general
+
+00:27:30.480 --> 00:27:32.930
+we don't know whether we even have a polynomial check
+
+00:27:32.960 --> 00:27:35.270
+but we do know that the solution in general is not a
+
+00:27:35.280 --> 00:27:38.150
+polynomial time problem it's an exponential time
+
+00:27:38.160 --> 00:27:41.020
+problem so i've given you an algorithm which is useless
+
+00:27:41.030 --> 00:27:44.070
+in practice because in practice you don't want exponential
+
+00:27:44.080 --> 00:27:44.940
+time problems
+
+00:27:46.430 --> 00:27:49.760
+will be dealing this week with cases where where that
+
+00:27:49.770 --> 00:27:51.980
+exponential time is actually solvable but it's worth
+
+00:27:51.990 --> 00:27:52.980
+keeping in mind that
+
+00:27:53.990 --> 00:27:55.700
+we're talking about exponential
+
+00:27:56.490 --> 00:28:00.210
+uniform cost search fixes this second point so uniform
+
+00:28:00.220 --> 00:28:02.930
+cost search is this is exactly the same slide is this
+
+00:28:02.940 --> 00:28:05.770
+one except for the second bullet point breadth first
+
+00:28:05.780 --> 00:28:09.230
+search is optimal if every step has the same cost and
+
+00:28:09.240 --> 00:28:12.390
+uniform cost search is optimal even if the costs are
+
+00:28:12.400 --> 00:28:16.200
+different between between steps there essentially
+
+00:28:16.210 --> 00:28:19.670
+the same algorithm but breadth first search is a simplification
+
+00:28:23.130 --> 00:28:23.660
+OK
+
+00:28:24.370 --> 00:28:25.220
+so far so good
+
+00:28:26.870 --> 00:28:30.660
+alright now let's talk about this last bullet point
+
+00:28:32.180 --> 00:28:35.250
+when when when you think about when you think about
+
+00:28:35.260 --> 00:28:37.420
+theseus exploring the maze was theseus who explored
+
+00:28:37.430 --> 00:28:38.550
+them they fought the minotaur
+
+00:28:39.270 --> 00:28:40.900
+anybody remember their mythology when you think
+
+00:28:40.910 --> 00:28:43.790
+about people going into mazes and fighting against
+
+00:28:44.880 --> 00:28:49.240
+half human half cow shaped animals you generally
+
+00:28:49.250 --> 00:28:51.040
+think about them following something a little bit
+
+00:28:51.050 --> 00:28:53.280
+different from bedford do you think about them walking
+
+00:28:53.290 --> 00:28:56.160
+until they run into a wall and then backing up and then
+
+00:28:56.170 --> 00:28:59.700
+walking the next way you know the standard when you're
+
+00:28:59.710 --> 00:29:03.280
+learning how to survive in ancient greek ruins the
+
+00:29:03.290 --> 00:29:05.260
+first thing they tell you is to follow the right hand
+
+00:29:05.270 --> 00:29:07.990
+wall and never let go of the right hand wall
+
+00:29:08.640 --> 00:29:13.100
+that's actually a depth first search the reason that
+
+00:29:13.130 --> 00:29:17.310
+that's advisable for an adventurer on your own with
+
+00:29:17.320 --> 00:29:20.520
+only one of you is that it's space complexity is not
+
+00:29:20.550 --> 00:29:21.320
+exponential
+
+00:29:21.970 --> 00:29:24.330
+is space complexity is actually linear
+
+00:29:25.020 --> 00:29:26.710
+so let's talk about that
+
+00:29:27.630 --> 00:29:30.990
+that depth first search a depth first search is the
+
+00:29:31.000 --> 00:29:35.780
+idea that we expand the deepest node first so if i can
+
+00:29:35.790 --> 00:29:41.240
+get from S to either P or E or D then i choose one of those
+
+00:29:41.250 --> 00:29:42.580
+at random and pursue it
+
+00:29:43.310 --> 00:29:46.810
+so i'll choose D and expanded and get to be or see and
+
+00:29:46.820 --> 00:29:50.180
+then i'll just keep on going i'll pick a direction
+
+00:29:50.190 --> 00:29:52.670
+and keep on going until i run into a wall
+
+00:29:53.490 --> 00:29:54.500
+that's exactly this
+
+00:29:55.630 --> 00:29:55.910
+sorry
+
+00:29:57.270 --> 00:30:00.200
+most recently is the one that i pop off
+
+00:30:01.270 --> 00:30:04.100
+so we've taken the this first in first out queue and
+
+00:30:04.110 --> 00:30:07.160
+turned it into a last in first out stack whichever
+
+00:30:07.170 --> 00:30:09.500
+node that i've put onto the frontier most recently
+
+00:30:09.510 --> 00:30:11.630
+that's the one that i want to keep pursuing
+
+00:30:13.270 --> 00:30:15.240
+so that looks like this first of all we started out
+
+00:30:15.250 --> 00:30:19.480
+with S on the frontier and then we push D E and P under
+
+00:30:19.490 --> 00:30:21.920
+the frontier because here's D and here's E and here
+
+00:30:21.930 --> 00:30:24.860
+is P we can get to all of them from S and then will choose
+
+00:30:24.870 --> 00:30:28.060
+one of those at random maybe just by order of the letters
+
+00:30:28.070 --> 00:30:31.020
+right so will choose one of those at random and expanded
+
+00:30:31.030 --> 00:30:35.880
+and we get D from D we can get to B C or E choose one of those
+
+00:30:35.890 --> 00:30:40.360
+at random and expand it from B we can get to a and so we've
+
+00:30:40.370 --> 00:30:42.760
+kind of followed this path down the depth
+
+00:30:43.500 --> 00:30:46.490
+DBA bang we hit a wall
+
+00:30:47.660 --> 00:30:50.990
+can't go any further once were in node a there's no
+
+00:30:51.000 --> 00:30:51.750
+place to go
+
+00:30:52.430 --> 00:30:56.300
+so when i popped a off of the frontier i've got a partial
+
+00:30:56.310 --> 00:30:58.370
+path which is useless
+
+00:30:59.890 --> 00:31:02.220
+and one of the interesting things about depth first
+
+00:31:02.230 --> 00:31:03.220
+search is that
+
+00:31:03.950 --> 00:31:07.320
+if we know that this partial path is useless we don't
+
+00:31:07.330 --> 00:31:09.130
+even need to keep it on disk anymore
+
+00:31:09.810 --> 00:31:14.140
+we can go back to our node object and we can tell the
+
+00:31:14.150 --> 00:31:17.960
+a node delete yourself and save me some disk space
+
+00:31:18.460 --> 00:31:20.960
+we can tell the binod delete yourself and save me some
+
+00:31:20.970 --> 00:31:21.690
+disk space
+
+00:31:22.730 --> 00:31:25.920
+right so now we just have this partial path down to
+
+00:31:26.130 --> 00:31:29.860
+SD and then we don't know about be anymore we know we
+
+00:31:29.870 --> 00:31:34.420
+could go to either C or E B we've forgotten it's no longer
+
+00:31:34.430 --> 00:31:35.660
+relevant to the problem
+
+00:31:38.330 --> 00:31:41.210
+breadth first search has a computational complexity
+
+00:31:41.220 --> 00:31:45.470
+which is order of B to the D right the computational
+
+00:31:45.480 --> 00:31:48.250
+complexity the list of the nodes that we expand is
+
+00:31:48.260 --> 00:31:50.750
+written up there and you can see them first we look
+
+00:31:50.760 --> 00:31:53.710
+at the nodes we can get to in zero steps then the nodes
+
+00:31:53.720 --> 00:31:56.750
+we can get two in one step then two steps then three
+
+00:31:56.760 --> 00:32:00.300
+steps then four steps and in the fourth step we find
+
+00:32:00.310 --> 00:32:02.570
+the solution and so we're guaranteed that that's
+
+00:32:02.580 --> 00:32:03.150
+optimum
+
+00:32:04.870 --> 00:32:07.040
+we're guaranteed that there's no shorter path to
+
+00:32:07.050 --> 00:32:10.300
+goal because we've already explored all of the shorter
+
+00:32:10.310 --> 00:32:10.880
+paths
+
+00:32:11.680 --> 00:32:15.020
+right the problem with breadth first search is that
+
+00:32:15.030 --> 00:32:18.450
+we also need to store that entire tree in memory we
+
+00:32:18.460 --> 00:32:20.100
+can't forget any of it
+
+00:32:20.850 --> 00:32:21.270
+right
+
+00:32:22.050 --> 00:32:25.220
+so if the branching factor here is three and the number
+
+00:32:25.230 --> 00:32:28.230
+of steps to the optimum solution is four then we need
+
+00:32:28.240 --> 00:32:30.880
+to have three to the fourth we need to have at least
+
+00:32:30.890 --> 00:32:34.520
+eighty one registers preallocated in order to run
+
+00:32:34.530 --> 00:32:35.750
+this run this search
+
+00:32:36.470 --> 00:32:39.210
+depth first on the other hand has a difference between
+
+00:32:39.220 --> 00:32:40.290
+space and time
+
+00:32:41.620 --> 00:32:44.160
+computational complexity time complexity is actually
+
+00:32:44.170 --> 00:32:48.250
+a lot worse because over here i wound up exploring
+
+00:32:48.260 --> 00:32:51.290
+some paths that were even longer than the best possible
+
+00:32:51.300 --> 00:32:51.750
+path
+
+00:32:52.500 --> 00:32:52.910
+right
+
+00:32:54.240 --> 00:32:56.590
+in fact it's not even optimum because the path that
+
+00:32:56.600 --> 00:32:59.850
+i finally end up with is this path to goal which is also
+
+00:32:59.880 --> 00:33:01.650
+not the optimum path
+
+00:33:02.490 --> 00:33:04.860
+over here i've assumed that i did find the optimum
+
+00:33:04.870 --> 00:33:05.500
+path but
+
+00:33:06.650 --> 00:33:09.260
+the advantage of the advantage of depth first search
+
+00:33:09.270 --> 00:33:11.650
+is that the only path that you keep in memory are the
+
+00:33:11.660 --> 00:33:14.060
+ones that you are currently exploring all the ones
+
+00:33:14.070 --> 00:33:16.120
+that we've previously forgotten has been greyed
+
+00:33:16.130 --> 00:33:19.580
+out and deleted from deleted from storage
+
+00:33:20.540 --> 00:33:23.990
+so we keep in memory that we've gone by way of D and E
+
+00:33:24.000 --> 00:33:26.570
+and P are also possibilities at that juncture in case
+
+00:33:26.580 --> 00:33:29.140
+we have to go back there we keep in memory that we've
+
+00:33:29.150 --> 00:33:32.210
+gone by way of E and we've already explored B&amp;C so we
+
+00:33:32.220 --> 00:33:33.010
+can delete them
+
+00:33:33.580 --> 00:33:36.210
+we've gone by way of R and we've already explored H
+
+00:33:36.220 --> 00:33:39.730
+so we can delete it we've gone by way of F and we've already
+
+00:33:39.740 --> 00:33:41.680
+explored C so we can delete that
+
+00:33:42.890 --> 00:33:46.420
+right so we get this difference actually between
+
+00:33:46.430 --> 00:33:49.970
+the computational complexity which is even worse
+
+00:33:50.690 --> 00:33:53.120
+and the space complexity which is quite a lot better
+
+00:33:53.850 --> 00:33:56.420
+the computational complexity for the depth first
+
+00:33:56.430 --> 00:34:00.600
+search is order of B to the M where M is the longest possible
+
+00:34:00.610 --> 00:34:05.620
+path in the maze so if the best path is only four steps
+
+00:34:05.630 --> 00:34:08.070
+but there are paths that take forty steps
+
+00:34:09.160 --> 00:34:11.270
+then the computation could be really bad
+
+00:34:12.010 --> 00:34:15.600
+on the other hand that storage spaces is great because
+
+00:34:15.610 --> 00:34:17.950
+we can tell that rita delete itself as we go
+
+00:34:20.610 --> 00:34:21.030
+all right
+
+00:34:25.300 --> 00:34:27.790
+and that's actually all that i had to tell you about
+
+00:34:27.800 --> 00:34:30.610
+today i'm talking much too fast recently basically
+
+00:34:30.620 --> 00:34:32.270
+we have three algorithms that i wanted to tell you
+
+00:34:32.280 --> 00:34:35.330
+about today uniform cost search which is dijkstra
+
+00:34:35.340 --> 00:34:38.570
+'s algorithm with this with this twist it's dijkstra
+
+00:34:38.580 --> 00:34:41.490
+'s algorithm except that we don't save all of the world
+
+00:34:41.500 --> 00:34:44.250
+states to memory we only save to memory the ones that
+
+00:34:44.260 --> 00:34:46.010
+have a cost less than infinity
+
+00:34:46.660 --> 00:34:50.700
+um breadth first search is the same thing when every
+
+00:34:50.710 --> 00:34:55.230
+step has exactly one takes exactly one the same cost
+
+00:34:55.240 --> 00:34:56.210
+as every other step
+
+00:34:57.040 --> 00:35:00.610
+and depth first search is this thesis approach we
+
+00:35:00.620 --> 00:35:03.570
+keep on walking into the maze until we hit a wall and
+
+00:35:03.580 --> 00:35:05.000
+then backtrack as necessary
+
+00:35:05.750 --> 00:35:08.460
+usually what you want is something like a uniform
+
+00:35:08.470 --> 00:35:10.800
+cost search or a breadth first search because usually
+
+00:35:10.810 --> 00:35:14.410
+complexity matters but there are situations where
+
+00:35:14.450 --> 00:35:17.560
+space matters a lot more and so depth first search
+
+00:35:17.570 --> 00:35:20.200
+will be useful on next week when we start figuring
+
+00:35:20.210 --> 00:35:22.320
+out how to solve crossword puzzles and things like
+
+00:35:22.330 --> 00:35:22.580
+that
+
+00:35:23.540 --> 00:35:25.450
+right that's actually all that i wanted to talk about
+
+00:35:25.460 --> 00:35:29.490
+today on wednesday i'll tell you about a better heuristic
+
+00:35:29.500 --> 00:35:32.710
+than the cost something kind of like dijkstra 's algorithm
+
+00:35:32.720 --> 00:35:36.510
+but with a better measure of how good each path is alright
+
+00:35:36.540 --> 00:35:37.110
+see you then
+
+00:56:37.440 --> 00:56:38.050
+bing
+
+

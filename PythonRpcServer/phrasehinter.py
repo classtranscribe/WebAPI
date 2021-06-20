@@ -40,8 +40,8 @@ def filter_stop_words(phraseList):
     A function to remove the common words
     """
 
-    s = set(stopwords.words('english'))
-    output = [ w for w in phraseList if w.lower() not in s]
+    stop_words = get_stop_words_set()
+    output = [ w for w in phraseList if w.lower() not in stop_words]
 
     return output
 
@@ -57,6 +57,17 @@ def get_brown_corpus_count():
                 corpus[word.lower()] += 1
         _brown_corpus_count = corpus # In case we're multithreaded, share only after the dataset is complete
     return _brown_corpus_count
+
+_stop_words_set = None
+
+def get_stop_words_set():
+    global _stop_words_set
+    #Only calcuate this once
+    if _stop_words_set is None:
+        _stop_words_set = set(stopwords.words('english'))
+        _stop_words_set.add('would')
+        _stop_words_set.add('said')
+    return _stop_words_set
 
 
 def filter_common_corpus_words(words_count, scale_factor=300):
@@ -82,7 +93,7 @@ def filter_common_corpus_words(words_count, scale_factor=300):
 
     return result
 
-def require_minimum_occurence(transactions, min_support, abort_threshold=5000):
+def require_minimum_occurence(transactions, min_support, abort_threshold=5000, maximum_phrase=500):
     """
     A function that extracts the mximal frequent sequential patterns from the raw string
     """
@@ -93,25 +104,30 @@ def require_minimum_occurence(transactions, min_support, abort_threshold=5000):
 
     ps = PrefixSpan(transactions)
     pattern_count = ps.frequent(min_support, closed=True)
-    all_patterns = [pattern[1] for pattern in pattern_count if len(pattern[1]) > 1] # [['A', 'B'], ['A', 'B', 'C'], ['B', 'C']]
-    unique_patterns = [' '.join(pattern) for pattern in all_patterns] # ['A B C']
 
-    """
-    # filter subset patterns out from all_patterns
-    max_patterns = all_patterns.copy() # [['A', 'B', 'C']]
-    for first_pattern in all_patterns:
-        for second_pattern in all_patterns:
-            if first_pattern == second_pattern:
-                continue
-            if set(first_pattern) <= set(second_pattern):
-                max_patterns.remove(first_pattern)
-                break
+    # sort the frequent items by their frequency 
+    sorted_pattern_count = sorted(pattern_count, key=lambda pattern_count:pattern_count[0], reverse=True)
+    all_patterns = [pattern[1] for pattern in sorted_pattern_count]
+    #all_patterns = [pattern[1] for pattern in sorted_pattern_count if len(pattern[1]) > 1]
     
-    # format the filtered max_patterns into a list of strings
-    unique_patterns = [' '.join(pattern) for pattern in max_patterns] # ['A B C']
-    """
+    # remove phrases that contains stop words
+    stop_words = get_stop_words_set()
 
-    return unique_patterns
+    nonstop_patterns = []
+    for pattern in all_patterns:
+        non_stop = True
+        for word in pattern:
+            if word.lower() in stop_words:
+                non_stop = False
+                break    
+        if non_stop == True:
+            nonstop_patterns.append(pattern)
+    
+    # format the result frequent pattern
+    unique_patterns = [' '.join(pattern) for pattern in nonstop_patterns] # ['A B C']
+    selected_patterns = unique_patterns[:min(maximum_phrase, len(unique_patterns))]
+
+    return selected_patterns
 
 
 def to_phrase_hints(raw_phrases):
@@ -141,11 +157,12 @@ def to_phrase_hints(raw_phrases):
 
         words_list = filter_stop_words(words_list) # e.g. a, an,the,...
 
-         #  if it occurs fewer times than this, then discard it
+        #  if it occurs fewer times than this, then discard it
         minimum_occurence = 2 
         frequent_phrases= require_minimum_occurence(all_phrases, minimum_occurence)
-        #print('words_list',words_list)
-        #print('frequent_phrases',frequent_phrases)
+        print('words_list',words_list)
+        print('frequent_phrases',frequent_phrases)
+        print('final_length',len(words_list) + len(frequent_phrases))
         result = words_list
         result += frequent_phrases
         
