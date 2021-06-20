@@ -144,8 +144,8 @@ def to_phrase_hints(raw_phrases):
          #  if it occurs fewer times than this, then discard it
         minimum_occurence = 2 
         frequent_phrases= require_minimum_occurence(all_phrases, minimum_occurence)
-        print('words_list',words_list)
-        print('frequent_phrases',frequent_phrases)
+        #print('words_list',words_list)
+        #print('frequent_phrases',frequent_phrases)
         result = words_list
         result += frequent_phrases
         

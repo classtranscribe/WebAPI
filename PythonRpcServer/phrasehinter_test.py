@@ -47,6 +47,24 @@ def test_require_minimum_occurence():
 	result_2 = ph.require_minimum_occurence(input_2, min_support)
 	assert(result_2 == expected_2)
 
+	# Test 3: Testing For Minimum Support
+	phrases_3='Hello\nThe weather is so nice\nThe weather is so nice\nThe weather is so nice\nThe weather is so nice\nHow are you?\nHow are you?\nHow are you?\nI wonder\nI wonder\nDrinkably Deliciousy Delightful\nDrinkably Deliciousy Delightful\nDrinkably Deliciousy Delightful'.split('\n')
+	input_3=[ phrase.split(' ') for phrase in phrases_3 ]
+	expected_3 = ['Drinkably Deliciousy Delightful', 'How are you?', 'The weather is so nice']
+	result_3 = ph.require_minimum_occurence(input_3, 3)
+	assert(len(result_3) == len(expected_3))
+	for phrase in expected_3:
+		assert(phrase in result_3)
+	
+	# Test 4: Testing Closure Property
+	phrases_4='I wonder\nwonder it\nwonder it\nI wonder it\nI wonder\nI wonder it Drinkably Deliciousy Delightful\nI wonder it'.split('\n')
+	input_4=[ phrase.split(' ') for phrase in phrases_4 ]
+	expected_4 = ['I wonder it', 'wonder it', 'I wonder']
+	result_4 = ph.require_minimum_occurence(input_4, min_support)
+	assert(len(result_4) == len(expected_4))
+	for phrase in expected_4:
+		assert(phrase in result_4)
+
 	print("----------test_require_minimum_occurence---PASSED----------")
 
 def test_to_phrase_hints():
@@ -56,7 +74,7 @@ def test_to_phrase_hints():
 
 def test_corpus_long_input():
 	print("----------test_corpus_long_input---STARTED----------")
-	num_sentences = 1000
+	num_sentences = 500
 	corpus = nltk.corpus.brown.sents()[:num_sentences] # List of List of words
 	
 	text = '\n'.join( [' '.join(words) for words in corpus] )
