@@ -67,6 +67,9 @@ def get_stop_words_set():
         _stop_words_set = set(stopwords.words('english'))
         _stop_words_set.add('would')
         _stop_words_set.add('said')
+        _stop_words_set.add('could')
+        _stop_words_set.add('us')
+        _stop_words_set.add('ok')
     return _stop_words_set
 
 
@@ -107,12 +110,33 @@ def require_minimum_occurence(transactions, min_support, abort_threshold=5000, m
 
     # sort the frequent items by their frequency 
     sorted_pattern_count = sorted(pattern_count, key=lambda pattern_count:pattern_count[0], reverse=True)
-    all_patterns = [pattern[1] for pattern in sorted_pattern_count]
-    #all_patterns = [pattern[1] for pattern in sorted_pattern_count if len(pattern[1]) > 1]
-    
-    # remove phrases that contains stop words
+    all_patterns = [pattern[1] for pattern in sorted_pattern_count if len(pattern[1]) > 1]
+
+    # get stop words
     stop_words = get_stop_words_set()
 
+    # filter pattern of length 1
+    frequent_once_phrases = dict()
+    for pattern in sorted_pattern_count:
+        if len(pattern[1]) == 1:
+            frequent_once_phrases.update({pattern[1][0] : pattern[0]})
+    
+    #print("frequent_once_phrases_length", len(frequent_once_phrases))
+    #print("frequent_once_phrases", frequent_once_phrases)
+    
+    filtered_once_phrase = filter_common_corpus_words(frequent_once_phrases, scale_factor=100)
+    
+    #print("filtered_once_phrase_length", len(filtered_once_phrase))
+    #print("filtered_once_phrase", filtered_once_phrase)
+    
+    nonstop_filtered_once_phrase = filter_stop_words(filtered_once_phrase)
+    
+    #print("nonstop_filtered_once_phrase_length", len(nonstop_filtered_once_phrase))
+    #print("nonstop_filtered_once_phrase", nonstop_filtered_once_phrase)
+    
+    #print(list(set(frequent_once_phrases) - set(filtered_once_phrase)))
+    
+    # remove phrases that contains stop words
     nonstop_patterns = []
     for pattern in all_patterns:
         non_stop = True
@@ -125,6 +149,7 @@ def require_minimum_occurence(transactions, min_support, abort_threshold=5000, m
     
     # format the result frequent pattern
     unique_patterns = [' '.join(pattern) for pattern in nonstop_patterns] # ['A B C']
+    unique_patterns += nonstop_filtered_once_phrase
     selected_patterns = unique_patterns[:min(maximum_phrase, len(unique_patterns))]
 
     return selected_patterns
@@ -159,12 +184,16 @@ def to_phrase_hints(raw_phrases):
 
         #  if it occurs fewer times than this, then discard it
         minimum_occurence = 2 
-        frequent_phrases= require_minimum_occurence(all_phrases, minimum_occurence)
-        print('words_list',words_list)
-        print('frequent_phrases',frequent_phrases)
-        print('final_length',len(words_list) + len(frequent_phrases))
+        frequent_phrases= require_minimum_occurence(all_phrases, minimum_occurence)        
+
+        #print('words_list',words_list)
+        #print('len_frequent_phrases',len(frequent_phrases))
+        #print('frequent_phrases',frequent_phrases)
         result = words_list
         result += frequent_phrases
+        result = list(set(result))
+        print('final_length',len(result))
+        print('result',result)
         
         return '\n'.join(result)
     
