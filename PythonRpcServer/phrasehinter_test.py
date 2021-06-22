@@ -135,6 +135,7 @@ def test_to_phrase_hints():
 	#print('test_to_phrase_hints:',result)
 
 	print("----------test_to_phrase_hints---STARTED----------")
+	
 	# Test 1: Testing With CS440 Lecture
 	_440_all_phrases, _440_words_counter = get_440_lecture_transcription()
 
@@ -145,6 +146,19 @@ def test_to_phrase_hints():
 	result = ph.to_phrase_hints(text)
 	duration = time.time()- start_time
 	print(f"{duration:.2} seconds.")
+	
+	'''
+	# Test 2: Testing Canon Map
+	all_phrases = [['Einstein', 'Einstein', 'Einstein'], ['einstein', 'einstein'], ['EINSTEIN']]
+
+	text2 = '\n'.join( [' '.join(words) for words in all_phrases] )
+	text2 = text2.replace('``','')
+	print(f"{len(text2)} characters")
+	start_time2 = time.time()
+	result2 = ph.to_phrase_hints(text2)
+	duration = time.time()- start_time2
+	print(f"{duration:.2} seconds.")
+	'''
 
 	print("----------test_to_phrase_hints---PASSED----------")
 

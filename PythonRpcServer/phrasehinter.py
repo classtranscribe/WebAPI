@@ -4,6 +4,7 @@ import operator
 from string import ascii_letters, digits
 from collections import Counter,defaultdict
 from nltk.corpus import brown,stopwords
+#from nltk.stem.wordnet import WordNetLemmatizer
 from prefixspan import PrefixSpan
 
 
@@ -164,17 +165,31 @@ def to_phrase_hints(raw_phrases):
         # Unwanted punctuation
         p = re.compile(r"(\.|\?|,|:|;|'" + '|")')
         for phrase in raw_phrases.split('\n'): # e.g. data from scene['phrases']:
-           words = p.sub(' ', phrase)
+            words = p.sub(' ', phrase)
            
-           words = [w for w in words.split(' ') if len(w) > 0 ]
+            words = [w for w in words.split(' ') if len(w) > 0 ]
+           
+            # construct canon_map, substitute inflection with its lowercase form during internal processing
+            for i in range(len(words)):
+                #word_origin = WordNetLemmatizer().lemmatize(words[i].lower(),'v')
+                word_origin = words[i].lower()
+                if word_origin != words[i]:
+                    if word_origin not in canon_map.keys():
+                       canon_map.update({word_origin : Counter()})
+                    canon_map[word_origin][words[i]] += 1 
+                    words[i] = word_origin
+                else:
+                    if word_origin in canon_map.keys():
+                        canon_map[word_origin][words[i]] += 1 
 
-           all_phrases.append(words)
-           all_words.extend(phrase.split(' '))
+            all_phrases.append(words)
+            all_words.extend(words)
 
         #print('all_phrases',all_phrases)
         #print('all_words',all_words)
 
         words_count = dict( Counter(all_words) ) 
+        print('canon_map',canon_map)
         
         delete_inplace_unwanted_characters(words_count)
 
@@ -192,9 +207,23 @@ def to_phrase_hints(raw_phrases):
         result = words_list
         result += frequent_phrases
         result = list(set(result))
+
+        # substitute word with its most common inflection when outputing the result
+        for i in range(len(result)):
+            splitted_phrase = result[i].split(' ')
+            for j in range(len(splitted_phrase)):
+                #word_origin = WordNetLemmatizer().lemmatize(splitted_phrase[j].lower(),'v')
+                word_origin = splitted_phrase[j].lower()
+                if word_origin in canon_map.keys():
+                    splitted_phrase[j] = canon_map[word_origin].most_common()[0][0]
+            result[i] = ' '.join(splitted_phrase)
+
+        # Remove all single character phrase
+        result = [phrase for phrase in result if len(phrase) > 1]
+        
         print('final_length',len(result))
         print('result',result)
-        
+
         return '\n'.join(result)
     
     except Exception as e:
