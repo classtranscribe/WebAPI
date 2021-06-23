@@ -4,11 +4,12 @@ import json
 import numpy as np
 from skimage.metrics import structural_similarity as ssim
 from datetime import datetime
+import pytesseract
 
-DATA_DIR = os.getenv('DATA_DIRECTORY')
+DATA_DIR = os.getcwd()
 
 
-def find_scenes(video_path, min_scene_length=1, abs_min=0.75, abs_max=0.98, find_subscenes=True, max_subscenes_per_minute=12):
+def find_scenes(video_path, min_scene_length=1, abs_min=0.87, abs_max=0.98, find_subscenes=True, max_subscenes_per_minute=12):
     """
     Detects scenes within a video. 
     
@@ -111,8 +112,10 @@ def find_scenes(video_path, min_scene_length=1, abs_min=0.75, abs_max=0.98, find
            
             #Make a list of lists e.g. [ ['The','cat'], ['A', 'dog']]
             # Filter out empty strings and empty phrases
-            not_empty = filter(('').__ne__
-            phrases = [ list(not_empty, phrase.split(' ')) for phrase in list(not_empty, str_text.split('\n'))) ]
+            
+            #not_empty = filter(('').__ne__)
+            #phrases = [ list(not_empty, phrase.split(' ')) for phrase in list(not_empty, str_text.split('\n')) ]
+            phrases = [phrase for phrase in str_text.split('\n') if len(phrase) > 0]
 
             # we dont want microsecond accuracy; the [:12] cuts off the last 3 unwanted digits
             scene['start'] = datetime.utcfromtimestamp(timestamps[scene['start']]).strftime("%H:%M:%S.%f")[:12]
@@ -120,7 +123,7 @@ def find_scenes(video_path, min_scene_length=1, abs_min=0.75, abs_max=0.98, find
             scene['img_file'] = img_file
             scene['raw_text'] = str_text
             scene['phrases'] = phrases
-            
+        
         return json.dumps(scenes)
     
     except Exception as e:

@@ -155,7 +155,6 @@ def require_minimum_occurence(transactions, min_support, abort_threshold=5000, m
 
     return selected_patterns
 
-
 def to_phrase_hints(raw_phrases):
     try:
         canon_map = {} # i -> I. TODO
