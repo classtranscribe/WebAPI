@@ -146,26 +146,25 @@ def test_to_phrase_hints():
 	result = ph.to_phrase_hints(text)
 	duration = time.time()- start_time
 	print(f"{duration:.2} seconds.")
+	assert(duration < 10)
 	
-	'''
+def test_canon_map():
+	print("----------test_canon_map---STARTED----------")
+	
 	# Test 2: Testing Canon Map
-	all_phrases = [['Einstein', 'Einstein', 'Einstein'], ['einstein', 'einstein'], ['EINSTEIN']]
+	all_phrases = [['einstein', 'Einstein'],['Einstein', 'einstein', 'Einstein'], ['einstein', 'Einstein'], ['EINSTEIN']]
 
-	text2 = '\n'.join( [' '.join(words) for words in all_phrases] )
-	text2 = text2.replace('``','')
-	print(f"{len(text2)} characters")
+	text = '\n'.join( [' '.join(words) for words in all_phrases] )
 	start_time2 = time.time()
-	result2 = ph.to_phrase_hints(text2)
-	duration = time.time()- start_time2
-	print(f"{duration:.2} seconds.")
-	'''
-
+	result = ph.to_phrase_hints(text)
+	assert('Einstein' in result)
+	
 	print("----------test_to_phrase_hints---PASSED----------")
 
 
 def test_corpus_long_input():
 	print("----------test_corpus_long_input---STARTED----------")
-	num_sentences = 100
+	num_sentences = 300
 	corpus = nltk.corpus.brown.sents()[:num_sentences] # List of List of words
 	
 	text = '\n'.join( [' '.join(words) for words in corpus] )
@@ -178,7 +177,8 @@ def test_corpus_long_input():
 
 	print("----------test_corpus_long_input---PASSED----------")
 
-def test_corpus_data():
+
+def test_corpus_cache_data():
 	print("----------test_corpus_data---STARTED----------")
 	stop_words = ph.get_stop_words_set()
 	assert('said' in stop_words)
@@ -198,13 +198,14 @@ def test_corpus_data():
 
 
 def run_phrasehinter_tests():
-	test_corpus_data()
+	test_corpus_cache_data()
 	test_delete_inplace_unwanted_characters()
 	test_filter_stop_words()
 	test_filter_common_corpus_words()
 	test_require_minimum_occurence()
 	test_to_phrase_hints()
 	test_corpus_long_input()
+	test_canon_map()
 
 if __name__ == '__main__': 
 	run_phrasehinter_tests();
