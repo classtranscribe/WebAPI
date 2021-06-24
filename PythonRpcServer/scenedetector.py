@@ -34,6 +34,9 @@ def find_scenes(video_path, min_scene_length=1, abs_min=0.87, abs_max=0.98, find
         with the key/item pairs being starting timestamp (start), image file name (img_file), ending 
         timestamp (end), and boolean indicating if it's a scene or subscene (is_subscene).
     """
+    # Extract frames s1,e1,s2,e2,....
+    # e1 != s2 but s1 is roughly equal to m1
+    #   s1 (m1) e1 s2 (m2) e2
     
     try:
         file_name = video_path[video_path.rfind('/')+1 : video_path.find('.')]
@@ -54,9 +57,13 @@ def find_scenes(video_path, min_scene_length=1, abs_min=0.87, abs_max=0.98, find
         similarities = np.zeros(num_frames)
         timestamps = np.zeros(num_frames)
         
-        for i in range(num_frames):
-            # Read the next frame, resizing and converting to grayscale
+        everyN = int( fps / 5)
 
+        # For this loop only we are not using real frame numbers; we are skipping frames to improve processing speed
+
+        for i in range(0,num_frames // everyN):
+            # Read the next frame, resizing and converting to grayscale
+            cap.set(cv2.CAP_PROP_POS_FRAMES, i * everyN)  
             ret, frame = cap.read()
 
             # Save the time stamp of each frame 
@@ -67,23 +74,26 @@ def find_scenes(video_path, min_scene_length=1, abs_min=0.87, abs_max=0.98, find
             # Calculate the SSIM between the current frame and last frame
 
             if i >= 1:
-                similarities[i] = ssim(last_frame, curr_frame)
+                sim = ssim(last_frame, curr_frame)
+                similarities[i] = sim
                 
             # Save the current frame for the next iteration
             last_frame = curr_frame
             
 
         # Find cuts by finding where SSIM < abs_min
-        cuts = np.argwhere(similarities < abs_min).flatten()
+        cuts = np.argwhere(similarities < abs_min).flatten()    
+
+        # Now turn back into real frame numbers
 
         # Get real scene cuts by filtering out those that happen within min_frames of the last cut
-        scene_cuts = [cuts[0]]
+        scene_cuts = [cuts[0] *everyN]
         for i in range(1, len(cuts)):
-            if cuts[i] >= cuts[i-1] + min_frames:
-                scene_cuts += [cuts[i]]
+            if cuts[i] *everyN >= cuts[i-1] *everyN + min_frames:
+                scene_cuts += [ cuts[i]  *everyN ]
         scene_cuts += [num_frames-1]
 
-        img_file = 'temp'
+        img_file = 'frame'
 
         # Initialize list of scenes
         scenes = []
@@ -103,9 +113,11 @@ def find_scenes(video_path, min_scene_length=1, abs_min=0.87, abs_max=0.98, find
 
         # Write the image file for each scene and convert start/end to timestamp
         for i, scene in enumerate(scenes):
-            cap.set(cv2.CAP_PROP_POS_FRAMES, (scene['start'] + scene['end']) // 2)
+            requested_frame_number = (scene['start'] + scene['end']) // 2
+            cap.set(cv2.CAP_PROP_POS_FRAMES, requested_frame_time)  
             res, frame = cap.read()
-            img_file = os.path.join(DATA_DIR, file_name, "%d.jpg"%i)
+            
+            img_file = os.path.join(DATA_DIR, file_name, "%d.jpg" % requested_frame_number)
             cv2.imwrite(img_file, frame)
 
             str_text = pytesseract.image_to_string(frame)
