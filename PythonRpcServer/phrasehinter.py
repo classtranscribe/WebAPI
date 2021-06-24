@@ -52,6 +52,7 @@ def get_brown_corpus_count():
     global _brown_corpus_count
     #Only calcuate this once
     if _brown_corpus_count is None:
+        print("Loading and processing Brown corpus")
         corpus = defaultdict(lambda:0)
         for sentence in brown.sents():
             for word in sentence:
@@ -63,14 +64,13 @@ _stop_words_set = None
 
 def get_stop_words_set():
     global _stop_words_set
-    #Only calcuate this once
+    #Only calcuate this once. Set global once it is fully constructed
     if _stop_words_set is None:
-        _stop_words_set = set(stopwords.words('english'))
-        _stop_words_set.add('would')
-        _stop_words_set.add('said')
-        _stop_words_set.add('could')
-        _stop_words_set.add('us')
-        _stop_words_set.add('ok')
+        s = set(stopwords.words('english'))
+        for word in 'would said could us ok'.split(' '):
+            s.add(word)
+
+        _stop_words_set = s
     return _stop_words_set
 
 

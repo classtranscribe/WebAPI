@@ -178,14 +178,33 @@ def test_corpus_long_input():
 
 	print("----------test_corpus_long_input---PASSED----------")
 
+def test_corpus_data():
+	print("----------test_corpus_data---STARTED----------")
+	stop_words = ph.get_stop_words_set()
+	assert('said' in stop_words)
+	t1 = time.time()
+	brown = ph.get_brown_corpus_count()
+	print(f"Brown corpus loading time {time.time() - t1:.2} seconds")
+	assert(brown.get('the') > 1000)
+	assert(brown.get('if') > brown.get('brother'))
+	assert('spacejamindex' not in brown)
+	t = time.time()
+	brown2 = ph.get_brown_corpus_count()
+	stop_words2 = ph.get_stop_words_set()
+	is_cached = (time.time() - t) < 0.25
+	assert(is_cached)
+	print("----------test_corpus_data---PASSED----------")
+
+
 
 def run_phrasehinter_tests():
+	test_corpus_data()
 	test_delete_inplace_unwanted_characters()
 	test_filter_stop_words()
 	test_filter_common_corpus_words()
 	test_require_minimum_occurence()
 	test_to_phrase_hints()
-	#test_corpus_long_input()
+	test_corpus_long_input()
 
 if __name__ == '__main__': 
 	run_phrasehinter_tests();
