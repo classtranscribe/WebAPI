@@ -55,7 +55,7 @@ def test_to_phrase_hints():
 	print('test_to_phrase_hints:',result)
 
 def test_corpus_long_input():
-	num_sentences = 100
+	num_sentences = 300
 	corpus = nltk.corpus.brown.sents()[:num_sentences] # List of List of words
 	
 	text = '\n'.join( [' '.join(words) for words in corpus] )
@@ -64,7 +64,7 @@ def test_corpus_long_input():
 	start_time = time.time()
 	result = ph.to_phrase_hints(text)
 	duration = time.time()- start_time
-	print(f"{duration:.2} seconds.")
+	print(f"{duration:.2f} seconds.")
 
 
 def run_phrasehinter_tests():
@@ -73,7 +73,7 @@ def run_phrasehinter_tests():
 	test_filter_common_corpus_words()
 	test_require_minimum_occurence()
 	#test_to_phrase_hints()
-	#test_corpus_long_input()
+	test_corpus_long_input()
 
 if __name__ == '__main__': 
 	run_phrasehinter_tests();

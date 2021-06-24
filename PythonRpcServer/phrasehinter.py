@@ -92,10 +92,14 @@ def require_minimum_occurence(transactions, min_support, abort_threshold=1000):
         return []
 
     ps = PrefixSpan(transactions)
+    
+    print('frequent')
     pattern_count = ps.frequent(min_support)
+    
+    print('at least one')
     all_patterns = [pattern[1] for pattern in pattern_count if len(pattern[1]) > 1] # [['A', 'B'], ['A', 'B', 'C'], ['B', 'C']]
    
-    # filter subset patterns out from all_patterns
+    print(f'filter subset patterns out from all_patterns {len(all_patterns)}')
     max_patterns = all_patterns.copy() # [['A', 'B', 'C']]
     for first_pattern in all_patterns:
         for second_pattern in all_patterns:
