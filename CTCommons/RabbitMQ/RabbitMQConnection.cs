@@ -209,6 +209,7 @@ namespace CTCommons
         /// </summary>
         public void DeleteAllQueues()
         {
+            _logger.LogInformation( "DeleteAllQueues");
             lock (_channel)
             {
                 foreach (CommonUtils.TaskType taskType in Enum.GetValues(typeof(CommonUtils.TaskType)))
@@ -229,6 +230,7 @@ namespace CTCommons
 
         public void PurgeQueue(String queueName)
         {
+            _logger.LogInformation( $"PurgeQueue {queueName}");
             lock (_channel)
             {
                 try
@@ -253,6 +255,7 @@ namespace CTCommons
 
         protected virtual void Dispose(bool disposing)
         {
+             _logger.LogInformation($"RabbitMQ ****** Dispose ******. _connectionRefCount = {_connectionRefCount}");
             if (_channel != null && !disposedValue)
             {
                 if (disposing)

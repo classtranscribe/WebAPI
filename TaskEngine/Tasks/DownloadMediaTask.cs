@@ -21,19 +21,19 @@ namespace TaskEngine.Tasks
     class DownloadMediaTask : RabbitMQTask<string>
     {
         private readonly RpcClient _rpcClient;
-        private readonly TranscriptionTask _transcriptionTask;
+        private readonly SceneDetectionTask _sceneDetectionTask;
         private readonly ProcessVideoTask _processVideoTask;
         private readonly BoxAPI _box;
         private readonly SlackLogger _slack;
 
         public DownloadMediaTask(RabbitMQConnection rabbitMQ, RpcClient rpcClient,
-            TranscriptionTask transcriptionTask, ProcessVideoTask processVideoTask, BoxAPI box,
+            SceneDetectionTask sceneDetectionTask, ProcessVideoTask processVideoTask, BoxAPI box,
             ILogger<DownloadMediaTask> logger, SlackLogger slack)
             : base(rabbitMQ, TaskType.DownloadMedia, logger)
         {
             _rpcClient = rpcClient;
-            _transcriptionTask = transcriptionTask;
             _processVideoTask = processVideoTask;
+            _sceneDetectionTask = sceneDetectionTask;
             _box = box;
             _slack = slack;
         }
@@ -81,8 +81,8 @@ namespace TaskEngine.Tasks
                         latestMedia.VideoId = video.Id;
                         await _context.SaveChangesAsync();
                         GetLogger().LogInformation("Downloaded:" + video);
-                        _transcriptionTask.Publish(video.Id);
-                        _processVideoTask.Publish(video.Id);
+                        _sceneDetectionTask.Publish(video.Id);
+                        //_processVideoTask.Publish(video.Id); //TODO - re- add this code
                     }
                     else
                     {
@@ -99,8 +99,9 @@ namespace TaskEngine.Tasks
                             latestMedia.VideoId = video.Id;
                             await _context.SaveChangesAsync();
                             GetLogger().LogInformation("Downloaded:" + video);
-                            _transcriptionTask.Publish(video.Id);
-                            _processVideoTask.Publish(video.Id);
+                            //_transcriptionTask.Publish(video.Id);
+                            _sceneDetectionTask.Publish(video.Id);
+                            //_processVideoTask.Publish(video.Id); //TODO - re- add this code
                         }
                         // If video and file both exist.
                         else

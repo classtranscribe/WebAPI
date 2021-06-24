@@ -126,6 +126,7 @@ namespace CTCommons.MSTranscription
                 bool verboseLogging = false;
                 TimeSpan lastSuccessfulTime = TimeSpan.Zero;
                 string errorCode = "";
+                var phrasesHintUsedCount = 0;
                 using (var recognizer = new TranslationRecognizer(speechConfig, audioInput))
                 {
                     //  PhraseList 
@@ -133,19 +134,22 @@ namespace CTCommons.MSTranscription
                         var grammar = PhraseListGrammar.FromRecognizer(recognizer);
 
                         var phrase_payload = 0;
-
+                       
                         foreach (var phrase in phraseHints.Split('\n')){
                             // conservative estimate byte requirements usng UTF-16, plus 16 bytes for list item overhead
                             phrase_payload += 2 * phrase.Length + 16; 
                             if(phrase_payload >= 1<<16) {
-                                _logger.LogInformation($"{logId}: phrase hints exceeded maximum phrase list byte limit");
+                                _logger.LogInformation($"{logId}: phrase hints exceeded estimaged maximum phrase list byte limit; ignoring remainder");
                                 break;
                             } 
                             if(phrase.Length > 0) {
                                 grammar.AddPhrase(phrase);
+                                phrasesHintUsedCount++;
                             }
                         }
                     }
+                    _logger.LogInformation($"{logId}:PhraseHintsUsed:=({phrasesHintUsedCount})");
+
                     recognizer.Recognized += (s, e) =>
                     {
                         if (e.Result.Reason == ResultReason.TranslatedSpeech)

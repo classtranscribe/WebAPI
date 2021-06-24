@@ -42,13 +42,16 @@ namespace TaskEngine.Tasks
                     });
                     JArray scenes = JArray.Parse(jsonString.Json);
                     GetLogger().LogInformation($"{videoId}: Scene count = {scenes.Count}.");
+                    video.SceneData = new JObject( new 
+                    {
+                        Scenes = scenes
+                    });
+                    
                     var allRawPhrases = scenes["phrases"].ToObject<string[]>();
 
                     var rawData = string.Join("\n", allRawPhrases );
                     
-                    GetLogger().LogInformation($"{videoId}: Raw Phrase Entry Count = {allRawPhrases.Length}. Total String Length = {rawData.Length}");
-                    
-                    
+                    GetLogger().LogInformation($"{videoId}: Raw Phrase Entry Count = {allRawPhrases.Length}. Total String Length = {rawData.Length}");  
 
                     var phraseResponse = await _rpcClient.PythonServerClient.ToPhraseHintsRPCAsync( new CTGrpc.PhraseHintRequest {
                         RawPhraseData = rawData
@@ -56,13 +59,7 @@ namespace TaskEngine.Tasks
                     var phraseHints = (string)phraseResponse.Result;
 
                     GetLogger().LogInformation($"{videoId}:phraseHints={phraseHints.Length} characters, {phraseHints.Split("\n").Length} phrases");
-                    video.SceneData = new JObject( new 
-                    {
-                        Scenes = scenes, 
-                        PhraseHints = phraseHints 
-
-                    });
-
+                    video.PhraseHints = phraseHints;
 
                     await _context.SaveChangesAsync();
                     _transcriptionTask.Publish(videoId);

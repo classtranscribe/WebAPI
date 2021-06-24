@@ -114,10 +114,8 @@ namespace TaskEngine.Tasks
                     GetLogger().LogInformation($"{videoId}:Skipping Transcribing of- already complete");
                     return;
                 }
-                var phraseHints = "";
-                try {
-                    phraseHints = (string) video.SceneData["phraseHints"];
-                    } catch(Exception ignored) {}
+                string phraseHints = video.PhraseHints ?? "";
+                
                 GetLogger().LogInformation($"{videoId}:Using Phrase Hints length = {phraseHints.Length}");
                 // GetKey can throw if the video.Id is currently being transcribed
                 // However registerTask should have already detected that
