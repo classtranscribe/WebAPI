@@ -14,6 +14,7 @@ from kaltura import KalturaProvider
 from mediaprovider import InvalidPlaylistInfoException
 import hasher 
 import ffmpeg
+import phrasehinter
 import os
 import traceback
 from time import perf_counter 
@@ -43,8 +44,8 @@ class PythonServerServicer(ct_pb2_grpc.PythonServerServicer):
         return ct_pb2.JsonString(json = res)
 
     def ToPhraseHintsRPC(self, request, context):
-        res = videophrases.to_phrase_hints(request.rawPhraseData)
-        return res
+        res = phrasehinter.to_phrase_hints(request.rawPhraseData)
+        return ct_pb2.PhraseHintResponse(result=res)
     
     def GetKalturaChannelEntriesRPC(self, request, context):
         kalturaprovider = KalturaProvider()

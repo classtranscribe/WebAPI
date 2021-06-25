@@ -1,4 +1,5 @@
-﻿using ClassTranscribeDatabase;
+﻿using System.Collections.Generic;
+using ClassTranscribeDatabase;
 using ClassTranscribeDatabase.Models;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
@@ -47,14 +48,14 @@ namespace TaskEngine.Tasks
                         { "Scenes", scenes }
                     };
                     
-                    var allRawPhrases = [];
+                    var allRawPhrases = new List<string>();
                     foreach (JObject scene in scenes) {
-                         allRawPhrases.append( scene.GetValue("phrases").ToString());
+                         allRawPhrases.Add( scene.GetValue("phrases").ToString());
                     }
 
                     var rawData = string.Join("\n", allRawPhrases );
                     
-                    GetLogger().LogInformation($"{videoId}: Raw Phrase Entry Count = {allRawPhrases.Length}. Total String Length = {rawData.Length}");  
+                    GetLogger().LogInformation($"{videoId}: Raw Phrase Entry Count = {allRawPhrases.Count}. Total String Length = {rawData.Length}");  
 
                     var phraseResponse = await _rpcClient.PythonServerClient.ToPhraseHintsRPCAsync( new CTGrpc.PhraseHintRequest {
                         RawPhraseData = rawData
