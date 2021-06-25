@@ -1,7 +1,7 @@
 FROM python:3.7-slim-stretch
 
 RUN apt-get update
-RUN apt-get install -y gcc g++ make libglib2.0-0 libsm6 libxext6 libxrender-dev ffmpeg
+RUN apt-get install -y gcc g++ make libglib2.0-0 libsm6 libxext6 libxrender-dev ffmpeg tesseract-ocr
 
 WORKDIR /PythonRpcServer
 

@@ -42,10 +42,10 @@ namespace TaskEngine.Tasks
                     });
                     JArray scenes = JArray.Parse(jsonString.Json);
                     GetLogger().LogInformation($"{videoId}: Scene count = {scenes.Count}.");
-                    video.SceneData = new JObject( new 
+                    video.SceneData = new JObject
                     {
-                        Scenes = scenes
-                    });
+                        { "Scenes", scenes }
+                    };
                     
                     var allRawPhrases = scenes["phrases"].ToObject<string[]>();
 

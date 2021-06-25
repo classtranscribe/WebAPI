@@ -1,4 +1,5 @@
 import os
+import math
 from cv2 import cv2
 import json
 import numpy as np
@@ -49,21 +50,27 @@ def find_scenes(video_path, min_scene_length=1, abs_min=0.87, abs_max=0.98, find
         num_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
         fps = int(cap.get(cv2.CAP_PROP_FPS))
 
+        targetFPS = 5
+        everyN = max(1, int(fps / targetFPS)) # Input FPS could be < targetFPS
+
+        num_samples = num_frames // everyN
+
         # Mininum number of frames per scene
-        min_frames = min_scene_length*fps
+        min_samples_between_cut = min_scene_length * targetFPS
+
         # Stores the last frame read
         last_frame = 0
         # List of similarities (SSIMs) between frames
-        similarities = np.zeros(num_frames)
-        timestamps = np.zeros(num_frames)
+        similarities = np.zeros(num_samples)
+        timestamps = np.zeros(num_samples)
         
-        everyN = int( fps / 5)
 
         # For this loop only we are not using real frame numbers; we are skipping frames to improve processing speed
+       
 
-        for i in range(0,num_frames // everyN):
+        for i in range(0,num_samples):
             # Read the next frame, resizing and converting to grayscale
-            cap.set(cv2.CAP_PROP_POS_FRAMES, i * everyN)  
+            cap.set(cv2.CAP_PROP_POS_FRAMES,i * everyN )  
             ret, frame = cap.read()
 
             # Save the time stamp of each frame 
@@ -82,16 +89,21 @@ def find_scenes(video_path, min_scene_length=1, abs_min=0.87, abs_max=0.98, find
             
 
         # Find cuts by finding where SSIM < abs_min
-        cuts = np.argwhere(similarities < abs_min).flatten()    
+        samples_similar = np.argwhere(similarities < abs_min).flatten()    
 
         # Now turn back into real frame numbers
 
         # Get real scene cuts by filtering out those that happen within min_frames of the last cut
-        scene_cuts = [cuts[0] *everyN]
-        for i in range(1, len(cuts)):
-            if cuts[i] *everyN >= cuts[i-1] *everyN + min_frames:
-                scene_cuts += [ cuts[i]  *everyN ]
-        scene_cuts += [num_frames-1]
+        sample_cuts = [cuts[0] ]
+        for i in range(1, len(samples_similar)):
+            if cuts[i]  >= samples_similar[i-1] + min_samples_between_cut:
+                sample_cuts += [ samples_similar[i]  ]
+
+        if num_samples >1:
+            sample_cuts += [num_samples-1]
+
+        # Now work in frames again
+        frame_cuts = [s * everyN for i in sample_cuts]
 
         img_file = 'frame'
 
@@ -99,13 +111,13 @@ def find_scenes(video_path, min_scene_length=1, abs_min=0.87, abs_max=0.98, find
         scenes = []
 
         # Iterate through the scene cuts
-        for i in range(1, len(scene_cuts)):
+        for i in range(1, len(frame_cuts)):
             if not find_subscenes:
                 continue
 
-            scenes += [{'start': scene_cuts[i-1], 
+            scenes += [{'start': frame_cuts[i-1] , 
                 'img_file': img_file, 
-                'end': scene_cuts[i], 
+                'end': frame_cuts[i], 
                 'is_subscene': False,
                 }]    
             
@@ -114,7 +126,7 @@ def find_scenes(video_path, min_scene_length=1, abs_min=0.87, abs_max=0.98, find
         # Write the image file for each scene and convert start/end to timestamp
         for i, scene in enumerate(scenes):
             requested_frame_number = (scene['start'] + scene['end']) // 2
-            cap.set(cv2.CAP_PROP_POS_FRAMES, requested_frame_time)  
+            cap.set(cv2.CAP_PROP_POS_FRAMES, requested_frame_number)  
             res, frame = cap.read()
             
             img_file = os.path.join(DATA_DIR, file_name, "%d.jpg" % requested_frame_number)
