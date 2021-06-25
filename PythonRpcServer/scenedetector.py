@@ -50,7 +50,7 @@ def find_scenes(video_path, min_scene_length=1, abs_min=0.87, abs_max=0.98, find
         num_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
         fps = int(cap.get(cv2.CAP_PROP_FPS))
 
-        targetFPS = 5
+        targetFPS = 2
         everyN = max(1, int(fps / targetFPS)) # Input FPS could be < targetFPS
 
         num_samples = num_frames // everyN
@@ -89,21 +89,23 @@ def find_scenes(video_path, min_scene_length=1, abs_min=0.87, abs_max=0.98, find
             
 
         # Find cuts by finding where SSIM < abs_min
-        samples_similar = np.argwhere(similarities < abs_min).flatten()    
-
-        # Now turn back into real frame numbers
-
+        samples_cut_candidates = np.argwhere(similarities < abs_min).flatten()    
+       
         # Get real scene cuts by filtering out those that happen within min_frames of the last cut
-        sample_cuts = [cuts[0] ]
-        for i in range(1, len(samples_similar)):
-            if cuts[i]  >= samples_similar[i-1] + min_samples_between_cut:
-                sample_cuts += [ samples_similar[i]  ]
+
+        # What would happen to the output using real data if 'samples_cut_candidates[i-1]' is replaced with 'sample_cuts[-1]' ?
+        # i.e. check the duration of the current scene being constructed, rather than the duration between the current dissimilar samples
+
+        sample_cuts = [samples_cut_candidates[0] ]
+        for i in range(1, len(samples_cut_candidates)):
+            if samples_cut_candidates[i]  >= samples_cut_candidates[i-1] + min_samples_between_cut:
+                sample_cuts += [ samples_cut_candidates[i]  ]
 
         if num_samples >1:
             sample_cuts += [num_samples-1]
 
-        # Now work in frames again
-        frame_cuts = [s * everyN for i in sample_cuts]
+        # Now work in frames again. Make sure we are using regular ints (not numpy ints) other json serialization will fail
+        frame_cuts = [int(s * everyN) for s in sample_cuts]
 
         img_file = 'frame'
 
@@ -112,41 +114,31 @@ def find_scenes(video_path, min_scene_length=1, abs_min=0.87, abs_max=0.98, find
 
         # Iterate through the scene cuts
         for i in range(1, len(frame_cuts)):
-            if not find_subscenes:
-                continue
-
-            scenes += [{'start': frame_cuts[i-1] , 
-                'img_file': img_file, 
-                'end': frame_cuts[i], 
+            scenes += [{'frame_start': frame_cuts[i-1] , 
+                'frame_end': frame_cuts[i], 
                 'is_subscene': False,
-                }]    
-            
-            
+                }]
+
 
         # Write the image file for each scene and convert start/end to timestamp
         for i, scene in enumerate(scenes):
-            requested_frame_number = (scene['start'] + scene['end']) // 2
+            requested_frame_number = (scene['frame_start'] + scene['frame_end']) // 2
             cap.set(cv2.CAP_PROP_POS_FRAMES, requested_frame_number)  
             res, frame = cap.read()
             
-            img_file = os.path.join(DATA_DIR, file_name, "%d.jpg" % requested_frame_number)
+            img_file = os.path.join(DATA_DIR, file_name, "frame-%d.jpg" % requested_frame_number)
             cv2.imwrite(img_file, frame)
 
             str_text = pytesseract.image_to_string(frame)
            
-            #Make a list of lists e.g. [ ['The','cat'], ['A', 'dog']]
-            # Filter out empty strings and empty phrases
-            
-            #not_empty = filter(('').__ne__)
-            #phrases = [ list(not_empty, phrase.split(' ')) for phrase in list(not_empty, str_text.split('\n')) ]
             phrases = [phrase for phrase in str_text.split('\n') if len(phrase) > 0]
-
+            
             # we dont want microsecond accuracy; the [:12] cuts off the last 3 unwanted digits
-            scene['start'] = datetime.utcfromtimestamp(timestamps[scene['start']]).strftime("%H:%M:%S.%f")[:12]
-            scene['end'] = datetime.utcfromtimestamp(timestamps[scene['end'] ]).strftime("%H:%M:%S.%f")[:12]            
+            scene['start'] = datetime.utcfromtimestamp(timestamps[scene['frame_start']// everyN]).strftime("%H:%M:%S.%f")[:12]
+            scene['end'] = datetime.utcfromtimestamp(timestamps[scene['frame_end'] // everyN ]).strftime("%H:%M:%S.%f")[:12]            
             scene['img_file'] = img_file
-            scene['raw_text'] = str_text
-            scene['phrases'] = phrases
+            scene['raw_text'] = str_text # Internal debug format; subject to change uses phrases instead
+            scene['phrases'] = phrases # list of strings
         
         return json.dumps(scenes)
     

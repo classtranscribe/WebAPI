@@ -47,7 +47,10 @@ namespace TaskEngine.Tasks
                         { "Scenes", scenes }
                     };
                     
-                    var allRawPhrases = scenes["phrases"].ToObject<string[]>();
+                    var allRawPhrases = [];
+                    foreach (JObject scene in scenes) {
+                         allRawPhrases.append( scene.GetValue("phrases").ToString());
+                    }
 
                     var rawData = string.Join("\n", allRawPhrases );
                     
