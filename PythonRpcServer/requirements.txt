@@ -27,7 +27,7 @@ scenedetect==0.5.2
 six==1.14.0
 tqdm==4.45.0
 traitlets==4.3.3
-urllib3==1.25.8
+urllib3==1.26.5
 wcwidth==0.1.9
 scikit-image==0.17.2
 nltk==3.6.2
