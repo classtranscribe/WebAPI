@@ -293,6 +293,7 @@ namespace ClassTranscribeDatabase.Models
         public virtual List<EPub> EPubs { get; set; }
         public JObject SceneData { get; set; }
         public JObject JsonMetadata { get; set; }
+        public string? PhraseHints { get; set; } // null if not yet processed
 
         // Reported duration extracted from MediaInfo. The actual video/audio/caption streams duration could be less
         // Returns null if unknown

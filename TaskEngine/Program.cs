@@ -63,7 +63,6 @@ namespace TaskEngine
                 .AddSingleton<BuildElasticIndexTask>()
                 .AddSingleton<ExampleTask>()
                 .AddSingleton<CleanUpElasticIndexTask>()
-                
                 .AddSingleton<BoxAPI>()
                 .AddScoped<Seeder>()
                 .AddScoped<SlackLogger>()

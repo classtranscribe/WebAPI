@@ -4,6 +4,7 @@ package CTGrpc;
 
 service PythonServer {
   rpc GetScenesRPC (File) returns (JsonString) {}
+  rpc ToPhraseHintsRPC(PhraseHintRequest) returns (PhraseHintResponse) {}
 
   rpc GetKalturaChannelEntriesRPC (PlaylistRequest) returns (JsonString) {}
   rpc DownloadKalturaVideoRPC (MediaRequest) returns (File) {}
@@ -39,6 +40,9 @@ message MediaRequest {
   string videoUrl = 1;
   string additionalInfo = 2;
 }
+message PhraseHintRequest {
+  string rawPhraseData = 1;
+}
 
 message File {
   string filePath = 1;
@@ -71,4 +75,8 @@ message FileHashRequest {
 
 message FileHashResponse {
   string result = 1;
+}
+
+message PhraseHintResponse {
+	string result = 1;
 }
