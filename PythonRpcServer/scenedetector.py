@@ -1,5 +1,6 @@
 import os
 import math
+from time import perf_counter 
 from cv2 import cv2
 import json
 import numpy as np
@@ -38,7 +39,8 @@ def find_scenes(video_path, min_scene_length=1, abs_min=0.87, abs_max=0.98, find
     # Extract frames s1,e1,s2,e2,....
     # e1 != s2 but s1 is roughly equal to m1
     #   s1 (m1) e1 s2 (m2) e2
-    
+    start_time = perf_counter()
+    print(f"find_scenes({video_path}) starting...")
     try:
         file_name = video_path[video_path.rfind('/')+1 : video_path.find('.')]
         directory = os.path.join(DATA_DIR, file_name)
@@ -48,10 +50,11 @@ def find_scenes(video_path, min_scene_length=1, abs_min=0.87, abs_max=0.98, find
         # Get the video capture and number of frames and fps
         cap = cv2.VideoCapture(video_path)
         num_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
-        fps = int(cap.get(cv2.CAP_PROP_FPS))
+        fps = float(cap.get(cv2.CAP_PROP_FPS))
 
         targetFPS = 2
         everyN = max(1, int(fps / targetFPS)) # Input FPS could be < targetFPS
+        print(f"{video_path}: frames={num_frames}. fps={fps}. Sampling every {everyN} frame")
 
         num_samples = num_frames // everyN
 
@@ -90,7 +93,12 @@ def find_scenes(video_path, min_scene_length=1, abs_min=0.87, abs_max=0.98, find
 
         # Find cuts by finding where SSIM < abs_min
         samples_cut_candidates = np.argwhere(similarities < abs_min).flatten()    
-       
+        
+        print(f"{video_path}: {len(samples_cut_candidates)} candidates identified")       
+        if len(samples_cut_candidates) == 0:
+            print(f"{video_path}:Returning early - no scene cuts found")
+            return json.dumps([])
+
         # Get real scene cuts by filtering out those that happen within min_frames of the last cut
 
         # What would happen to the output using real data if 'samples_cut_candidates[i-1]' is replaced with 'sample_cuts[-1]' ?
@@ -119,6 +127,8 @@ def find_scenes(video_path, min_scene_length=1, abs_min=0.87, abs_max=0.98, find
                 'is_subscene': False,
                 }]
 
+        cut_detect_time = perf_counter()
+        print(f"find_scenes('{video_path}',...) Scene Cut Phase Complete.  Time so far {int(cut_detect_time - start_time)} seconds. Starting Image extraction and OCR")
 
         # Write the image file for each scene and convert start/end to timestamp
         for i, scene in enumerate(scenes):
@@ -140,9 +150,11 @@ def find_scenes(video_path, min_scene_length=1, abs_min=0.87, abs_max=0.98, find
             scene['raw_text'] = str_text # Internal debug format; subject to change uses phrases instead
             scene['phrases'] = phrases # list of strings
         
+        end_time = perf_counter()
+        print(f"find_scenes('{video_path}',...) Complete. Total Duration {int(end_time - start_time)} seconds")
         return json.dumps(scenes)
     
     except Exception as e:
-        print("findScene() throwing Exception:" + str(e))
+        print(f"findScene(video_path) throwing Exception:" + str(e))
         raise e
 
