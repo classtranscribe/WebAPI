@@ -126,7 +126,7 @@ def find_scenes(video_path, min_scene_length=1, abs_min=0.87, abs_max=0.98, find
             cap.set(cv2.CAP_PROP_POS_FRAMES, requested_frame_number)  
             res, frame = cap.read()
             
-            img_file = os.path.join(DATA_DIR, file_name, "frame-%d.jpg" % requested_frame_number)
+            img_file = os.path.join(DATA_DIR, file_name, file_name + "_frame-%d.jpg" % requested_frame_number)
             cv2.imwrite(img_file, frame)
 
             str_text = pytesseract.image_to_string(frame)

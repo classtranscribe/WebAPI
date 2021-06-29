@@ -4,14 +4,18 @@ import json
 import os
 import urllib.request
 import shutil
+import cv2
+from skimage.metrics import structural_similarity as ssim
 
 DATA_DIR = os.getcwd()
 
 # General Testing Scheme For All Test Cases
 def test_scheme(folder_name, url, expected_phrases):
+    # General Testing Scheme
     print("----------" + folder_name + "---STARTED----------")
 
     video_name = folder_name + '.mp4'
+    
     video_path = DATA_DIR + '/' + video_name
     folder_path = DATA_DIR + '/' + folder_name
 
@@ -34,6 +38,24 @@ def test_scheme(folder_name, url, expected_phrases):
     for phrase in expected_phrases:
         assert(phrase in raw_phrases)
         print("Phrase " + phrase + " was the OCR output")
+    
+    # Check frame number
+    frame_list = os.listdir(folder_path)
+    for frame_name in frame_list:
+        frame_path = folder_path + '/' + frame_name
+        output_frame = cv2.imread(frame_path)
+        frame_number = frame_name[frame_name.rfind('-')+1 : frame_name.find('.')]
+        
+        cap = cv2.VideoCapture(video_path)
+        cap.set(cv2.CAP_PROP_POS_FRAMES, int(frame_number) )  
+        ret, frame = cap.read()
+        
+        rezied_frame = cv2.cvtColor(cv2.resize(frame, (320,240)), cv2.COLOR_BGR2GRAY)
+        resized_output_frame = cv2.cvtColor(cv2.resize(output_frame, (320,240)), cv2.COLOR_BGR2GRAY)
+        
+        sim = ssim(rezied_frame, resized_output_frame)
+        print('Frame ' + frame_number + " Simlarity: " + str(sim))
+        assert(sim > 0.99)
 
     # Delete files
     os.remove(video_path)
