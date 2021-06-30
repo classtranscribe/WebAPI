@@ -139,9 +139,25 @@ def find_scenes(video_path, min_scene_length=1, abs_min=0.87, abs_max=0.98, find
             img_file = os.path.join(DATA_DIR, file_name, file_name + "_frame-%d.jpg" % requested_frame_number)
             cv2.imwrite(img_file, frame)
 
-            str_text = pytesseract.image_to_string(frame)
-           
-            phrases = [phrase for phrase in str_text.split('\n') if len(phrase) > 0]
+            #str_text = pytesseract.image_to_string(frame)
+            #phrases = [phrase for phrase in str_text.split('\n') if len(phrase) > 0]
+            
+            str_text = pytesseract.image_to_data(frame, output_type='dict')
+
+            phrases = []
+            last_block = -1
+            phrase = []
+            for i in range(len(str_text['conf'])):
+                if int(str_text['conf'][i]) >= 80 and len(str_text['text'][i].strip()) > 0:
+                    curr_block = str_text['block_num'][i]
+                    if curr_block != last_block:
+                        if len(phrase) > 0:
+                            phrases.append(' '.join(phrase))       
+                        last_block = curr_block
+                        phrase = []
+                    phrase.append(str_text['text'][i])
+            if len(phrase) > 0:
+                phrases.append(' '.join(phrase))   
             
             # we dont want microsecond accuracy; the [:12] cuts off the last 3 unwanted digits
             scene['start'] = datetime.utcfromtimestamp(timestamps[scene['frame_start']// everyN]).strftime("%H:%M:%S.%f")[:12]

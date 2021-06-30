@@ -37,7 +37,7 @@ def test_scheme(folder_name, url, expected_phrases):
     # Check phrase occurance
     for phrase in expected_phrases:
         assert(phrase in raw_phrases)
-        print("Phrase " + phrase + " was the OCR output")
+        print("Phrase " + phrase + " was in the OCR output")
     
     # Check frame number
     frame_list = os.listdir(folder_path)
