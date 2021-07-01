@@ -64,17 +64,20 @@ def test_scheme(folder_name, url, expected_phrases):
     print("----------" + folder_name + "---Passed----------")
 
 def run_scenedetector_tests():
-    video_names = ['test_1_toy_lecture', 'test_2_241_thread']
+    video_names = ['test_1_toy_lecture', 'test_2_241_thread', 'test_3_adv582_w3']
     urls = [
         'https://app.box.com/index.php?rm=box_download_shared_file&shared_name=pec6m3vbjzu2l4d2m1gv9588npq9nw7o&file_id=f_827175578540',
-        'https://app.box.com/index.php?rm=box_download_shared_file&shared_name=xbs7aqcsnrjdglplc6neh3fxdhkqz2fi&file_id=f_827616401395'
+        'https://app.box.com/index.php?rm=box_download_shared_file&shared_name=xbs7aqcsnrjdglplc6neh3fxdhkqz2fi&file_id=f_827616401395',
+        'https://app.box.com/index.php?rm=box_download_shared_file&shared_name=t8lnoxyrmiff0g2xtvg9t5tlak0npnyl&file_id=f_828444986436'
     ]
     expected_phrases_list = [
         ['Slide One', 'float', 'int'],
-        ['pthread_create', 'Compile', 'stacks', 'printf', 'nothing happens']
+        ['pthread_create', 'Compile', 'stacks', 'printf', 'nothing happens'],
+        ['Merchants of Cool', 'Barak Goodman', 'New York Times']
     ]
     for i in range(len(video_names)):
         test_scheme(video_names[i], urls[i], expected_phrases_list[i])
+
 
 if __name__ == '__main__': 
 	run_scenedetector_tests();
