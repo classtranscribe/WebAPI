@@ -38,10 +38,18 @@ def find_scenes(video_path, min_scene_length=1, abs_min=0.87, abs_max=0.98, find
     """
     # Extract frames s1,e1,s2,e2,....
     # e1 != s2 but s1 is roughly equal to m1
-    #   s1 (m1) e1 s2 (m2) e2
+    # s1 (m1) e1 s2 (m2) e2
     start_time = perf_counter()
     print(f"find_scenes({video_path}) starting...")
     try:
+        # Check if the video file exsited
+        video_total_path = os.path.join(DATA_DIR, video_path)
+        if os.path.exists(video_total_path):
+            print(f"{video_path}: Found file!")
+        else:
+            print(f"{video_path}: File not found - no scene cuts found")
+            return json.dumps([])
+
         file_name = video_path[video_path.rfind('/')+1 : video_path.find('.')]
         directory = os.path.join(DATA_DIR, file_name)
         if not os.path.exists(directory):
