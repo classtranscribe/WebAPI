@@ -90,6 +90,14 @@ namespace ClassTranscribeServer
             msg.Add("DeleteExisting", deleteExisting);
             Wake(msg);
         }
+        public void SceneDetection(string videoMediaPlaylistId, bool deleteExisting)
+        {
+            JObject msg = new JObject();
+            msg.Add("Type", TaskType.SceneDetection.ToString());
+            msg.Add("videoMediaPlaylistId", videoMediaPlaylistId);
+            msg.Add("DeleteExisting", deleteExisting);
+            Wake(msg);
+        }
 
         private void Wake(JObject message, TaskParameters taskParameters = null)
         {

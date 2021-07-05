@@ -334,9 +334,41 @@ namespace TaskEngine.Tasks
                 //    var video = await _context.Videos.FindAsync(videoId);
                 //    _convertVideoToWavTask.Publish(video.Id);
                 //}
+                else if(type==TaskType.SceneDetection.ToString())
+                {
+                    var id = jObject["videoMediaPlaylistId"].ToString();
+                    bool deleteExisting = false;
+                    try
+                    {
+                        deleteExisting = jObject["DeleteExisting"].Value<bool>();
+                    }
+                    catch (Exception) { }
+                    GetLogger().LogInformation($"{type}:{id}");
+                    var videos = await _context.Videos.Where(v=>v.Id ==id).ToListAsync();
+                    if (videos.Count == 0)
+                    {
+                        videos = await _context.Medias.Where(m => (m.PlaylistId == id) || (m.Id == id)).Select(m => m.Video).ToListAsync();
+                    }
+                    foreach (var video in videos)
+                    {
+                        if (deleteExisting)
+                        {
+                            GetLogger().LogInformation($"{id}:Removing SceneDetection for video ({video.Id})");
+
+                            video.SceneData = null;
+                            
+                            await _context.SaveChangesAsync();
+                        }
+                        _sceneDetectionTask.Publish(video.Id);
+
+                    }
+
+                }
                 else if (type == TaskType.TranscribeVideo.ToString())
                 {
                     var id = jObject["videoOrMediaId"].ToString();
+                    
+
                     GetLogger().LogInformation($"{type}:{id}");
                     var video = await _context.Videos.FindAsync(id);
                     if(video == null)
