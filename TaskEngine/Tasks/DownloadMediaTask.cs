@@ -80,7 +80,7 @@ namespace TaskEngine.Tasks
                         await _context.SaveChangesAsync();
                         latestMedia.VideoId = video.Id;
                         await _context.SaveChangesAsync();
-                        GetLogger().LogInformation("Downloaded:" + video);
+                        GetLogger().LogInformation("Downloaded (new) video.Id=" + video.Id);
                         _sceneDetectionTask.Publish(video.Id);
                         //_processVideoTask.Publish(video.Id); //TODO - re- add this code
                     }
@@ -98,7 +98,7 @@ namespace TaskEngine.Tasks
                             await _context.SaveChangesAsync();
                             latestMedia.VideoId = video.Id;
                             await _context.SaveChangesAsync();
-                            GetLogger().LogInformation("Downloaded:" + video);
+                            GetLogger().LogInformation("Downloaded (file existed) video.Id=" + video.Id);
                             //_transcriptionTask.Publish(video.Id);
                             _sceneDetectionTask.Publish(video.Id);
                             //_processVideoTask.Publish(video.Id); //TODO - re- add this code
@@ -110,7 +110,7 @@ namespace TaskEngine.Tasks
                             var existingVideo = await _context.Videos.Where(v => v.Video1Id == file.First().Id).FirstAsync();
                             latestMedia.VideoId = existingVideo.Id;
                             await _context.SaveChangesAsync();
-                            GetLogger().LogInformation("Existing Video:" + existingVideo);
+                            GetLogger().LogInformation("Existing Video (Deleting) video.Id=" + existingVideo.Id);
 
                             // Deleting downloaded video as it's duplicate.
                             await video.DeleteVideoAsync(_context);
