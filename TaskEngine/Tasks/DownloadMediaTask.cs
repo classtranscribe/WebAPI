@@ -48,7 +48,7 @@ namespace TaskEngine.Tasks
                 media = await _context.Medias.Where(m => m.Id == mediaId)
                     .Include(m => m.Playlist).FirstAsync();
             }
-            GetLogger().LogInformation("Consuming" + media);
+            GetLogger().LogInformation($"Downloading media id=({media.Id}), UniqueMediaIdentifier={media.UniqueMediaIdentifier}");
             Video video = new Video();
             switch (media.SourceType)
             {
@@ -62,12 +62,14 @@ namespace TaskEngine.Tasks
             if (video == null || video.Video1 == null || !video.Video1.IsValidFile()
                 || (video.Video2 != null && !video.Video2.IsValidFile()))
             {
-                throw new Exception("DownloadMediaTask failed for mediaId " + media.Id);
+                throw new Exception($"DownloadMediaTask failed for mediaId ({media.Id})");
             }
 
             using (var _context = CTDbContext.CreateDbContext())
             {
                 var latestMedia = await _context.Medias.FindAsync(media.Id);
+                GetLogger().LogInformation($"Media ({media.Id}): latestMedia.Video == null is {latestMedia.Video == null}");
+
                 // Don't add video if there are already videos for the given media.
                 if (latestMedia.Video == null)
                 {
@@ -75,21 +77,25 @@ namespace TaskEngine.Tasks
                     var file = _context.FileRecords.Where(f => f.Hash == video.Video1.Hash).ToList();
                     if (!file.Any())
                     {
+                        GetLogger().LogInformation($"Media ({media.Id}): FileRecord with matching hash NOT found");
                         // Create new video Record
                         await _context.Videos.AddAsync(video);
                         await _context.SaveChangesAsync();
                         latestMedia.VideoId = video.Id;
                         await _context.SaveChangesAsync();
-                        GetLogger().LogInformation("Downloaded (new) video.Id=" + video.Id);
+                        GetLogger().LogInformation($"Downloaded (new) video.Id={video.Id}" );
                         _sceneDetectionTask.Publish(video.Id);
                         //_processVideoTask.Publish(video.Id); //TODO - re- add this code
                     }
                     else
                     {
+                        GetLogger().LogInformation($"Media ({media.Id}): FileRecord with matching hash found");
                         var existingVideos = await _context.Videos.Where(v => v.Video1Id == file.First().Id).ToListAsync();
                         // If file exists but video doesn't.
                         if (!existingVideos.Any())
                         {
+                            GetLogger().LogInformation($"Media ({media.Id}): FileRecord but no Video; deleting FileRecord. Creating Video entity");
+
                             // Delete existing file Record
                             await file.First().DeleteFileRecordAsync(_context);
 
@@ -98,7 +104,7 @@ namespace TaskEngine.Tasks
                             await _context.SaveChangesAsync();
                             latestMedia.VideoId = video.Id;
                             await _context.SaveChangesAsync();
-                            GetLogger().LogInformation("Downloaded (file existed) video.Id=" + video.Id);
+                            GetLogger().LogInformation($"Media ({media.Id}):Downloaded (file existed) new video.Id={video.Id}");
                             //_transcriptionTask.Publish(video.Id);
                             _sceneDetectionTask.Publish(video.Id);
                             //_processVideoTask.Publish(video.Id); //TODO - re- add this code
@@ -106,13 +112,14 @@ namespace TaskEngine.Tasks
                         // If video and file both exist.
                         else
                         {
+                            GetLogger().LogInformation($"Media ({media.Id}): FileRecord and existing Video found; deleting newly downloaded video");
 
                             var existingVideo = await _context.Videos.Where(v => v.Video1Id == file.First().Id).FirstAsync();
                             latestMedia.VideoId = existingVideo.Id;
                             await _context.SaveChangesAsync();
-                            GetLogger().LogInformation("Existing Video (Deleting) video.Id=" + existingVideo.Id);
+                            GetLogger().LogInformation($"Media ({media.Id}): Existing Video found. (Deleting New) video.Id=" + video.Id);
 
-                            // Deleting downloaded video as it's duplicate.
+                            // Deleting downloaded video as it's duplicate. Don't start scene detection
                             await video.DeleteVideoAsync(_context);
                         }
                     }

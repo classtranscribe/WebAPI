@@ -2,6 +2,8 @@ import requests
 from utils import encode, decode, getRandomString, download_file
 import os
 import json
+from time import perf_counter 
+
 from pytube import YouTube
 
 from mediaprovider import MediaProvider, InvalidPlaylistInfoException
@@ -15,7 +17,7 @@ YOUTUBE_CHANNELS_URL = 'https://www.googleapis.com/youtube/v3/channels'
 class YoutubeProvider(MediaProvider):
 
     def getPlaylistItems(self, request):
-        #print('getPlaylistItems'+str(request))
+        print(f'getPlaylistItems({request})')
         isChannel = False
         
         try:
@@ -32,7 +34,7 @@ class YoutubeProvider(MediaProvider):
         return self.download_youtube_video(request.videoUrl)
 
     def get_youtube_channel(self, identifier):
-        print('get_youtube_channel')
+        print(f'get_youtube_channel({identifier})')
         request1 = requests.get(YOUTUBE_CHANNELS_URL, params={
                                 'part': 'contentDetails', 'id': identifier, 'key': YOUTUBE_API_KEY})
         if request1.status_code == 404 or request1.status_code == 500:
@@ -43,10 +45,13 @@ class YoutubeProvider(MediaProvider):
         playlistId = request1.json(
         )['items'][0]['contentDetails']['relatedPlaylists']['uploads']
         #according to one StackOver and one test, channels-to-playlists can also be converted with string replace  UCXXXX to UUXXXX
+        print(f"channel {identifier}-> playlist {playlistId}")
         return self.get_youtube_playlist(playlistId)
 
     def get_youtube_playlist(self, identifier):
-        print('get_youtube_playlist' + str(identifier))
+        start_time = perf_counter()
+        print(f'get_youtube_playlist({identifier})')
+        
         # Documented API LIMITATION: Can download a maximum of 50 videos per playlist.
         # https://developers.google.com/youtube/v3/docs/playlistItems/list
         request1 = requests.get(YOUTUBE_PLAYLIST_URL,
@@ -85,7 +90,8 @@ class YoutubeProvider(MediaProvider):
                 "createdAt": publishedAt
             }
             medias.append(media)
-        
+        end_time = perf_counter()
+        print(f'Youtube playlist {identifier}: Returning {len(items)} items. Processing time {end_time - start_time :.2f} seconds')
         return medias        
 
     def download_youtube_video(self, youtubeUrl):
