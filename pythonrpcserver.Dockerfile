@@ -1,7 +1,18 @@
+
+
 FROM python:3.7-slim-stretch
 
 RUN apt-get update
-RUN apt-get install -y gcc g++ make libglib2.0-0 libsm6 libxext6 libxrender-dev ffmpeg tesseract-ocr
+RUN apt-get install -y curl gcc g++ make libglib2.0-0 libsm6 libxext6 libxrender-dev ffmpeg
+
+# Build stuff for tesseract
+# Based on https://medium.com/quantrium-tech/installing-tesseract-4-on-ubuntu-18-04-b6fcd0cbd78f
+RUN apt-get install -y automake pkg-config libsdl-pango-dev libicu-dev libcairo2-dev bc libleptonica-dev
+RUN  curl -L  https://github.com/tesseract-ocr/tesseract/archive/refs/tags/4.1.1.tar.gz  | tar xvz
+
+WORKDIR /tesseract-4.1.1
+RUN ./autogen.sh && ./configure && make && make install && ldconfig 
+RUN make training && make training-install
 
 WORKDIR /PythonRpcServer
 
