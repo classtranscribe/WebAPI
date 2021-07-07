@@ -8,7 +8,7 @@ from skimage.metrics import structural_similarity as ssim
 from datetime import datetime
 import pytesseract
 
-DATA_DIR = os.getcwd()
+DATA_DIR = os.getenv('DATA_DIRECTORY')
 
 
 def find_scenes(video_path, min_scene_length=1, abs_min=0.87, abs_max=0.98, find_subscenes=True, max_subscenes_per_minute=12):
@@ -36,9 +36,12 @@ def find_scenes(video_path, min_scene_length=1, abs_min=0.87, abs_max=0.98, find
         with the key/item pairs being starting timestamp (start), image file name (img_file), ending 
         timestamp (end), and boolean indicating if it's a scene or subscene (is_subscene).
     """
+    assert(os.path.exists(DATA_DIR))
+    
     # Extract frames s1,e1,s2,e2,....
     # e1 != s2 but s1 is roughly equal to m1
     # s1 (m1) e1 s2 (m2) e2
+
     start_time = perf_counter()
     print(f"find_scenes({video_path}) starting...")
     try:
@@ -47,13 +50,12 @@ def find_scenes(video_path, min_scene_length=1, abs_min=0.87, abs_max=0.98, find
         if os.path.exists(video_total_path):
             print(f"{video_path}: Found file!")
         else:
-            print(f"{video_path}: File not found - no scene cuts found")
+            print(f"{video_path}: File not found -returning empty scene cuts ")
             return json.dumps([])
 
-        file_name = video_path[video_path.rfind('/')+1 : video_path.find('.')]
-        directory = os.path.join(DATA_DIR, file_name)
-        if not os.path.exists(directory):
-            os.mkdir(directory)
+        short_file_name = video_path[video_path.rfind('/')+1 : video_path.find('.')] # short filename without extension
+        directory = os.path.join(DATA_DIR, short_file_name)
+        
             
         # Get the video capture and number of frames and fps
         cap = cv2.VideoCapture(video_path)
@@ -123,8 +125,6 @@ def find_scenes(video_path, min_scene_length=1, abs_min=0.87, abs_max=0.98, find
         # Now work in frames again. Make sure we are using regular ints (not numpy ints) other json serialization will fail
         frame_cuts = [int(s * everyN) for s in sample_cuts]
 
-        img_file = 'frame'
-
         # Initialize list of scenes
         scenes = []
 
@@ -139,12 +139,16 @@ def find_scenes(video_path, min_scene_length=1, abs_min=0.87, abs_max=0.98, find
         print(f"find_scenes('{video_path}',...) Scene Cut Phase Complete.  Time so far {int(cut_detect_time - start_time)} seconds. Starting Image extraction and OCR")
 
         # Write the image file for each scene and convert start/end to timestamp
+        
+
+        os.makedirs(directory, exist_ok=True)
+
         for i, scene in enumerate(scenes):
             requested_frame_number = (scene['frame_start'] + scene['frame_end']) // 2
             cap.set(cv2.CAP_PROP_POS_FRAMES, requested_frame_number)  
             res, frame = cap.read()
             
-            img_file = os.path.join(DATA_DIR, file_name, file_name + "_frame-%d.jpg" % requested_frame_number)
+            img_file = os.path.join(directory, f"{short_file_name}_frame-{requested_frame_number}.jpg" )
             cv2.imwrite(img_file, frame)
 
             #str_text = pytesseract.image_to_string(frame)
