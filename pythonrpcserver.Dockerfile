@@ -1,5 +1,5 @@
 
-
+# Total laptop build 626 seconds
 FROM python:3.7-slim-stretch
 
 RUN apt-get update
@@ -12,7 +12,13 @@ RUN  curl -L  https://github.com/tesseract-ocr/tesseract/archive/refs/tags/4.1.1
 
 WORKDIR /tesseract-4.1.1
 RUN ./autogen.sh && ./configure && make && make install && ldconfig 
+# Slow! The above line takes 435 seconds on my laptop
 RUN make training && make training-install
+# The above line takes 59 seconds on my laptop 
+
+RUN curl -L -o tessdata/eng.traineddata https://github.com/tesseract-ocr/tessdata/blob/master/eng.traineddata
+RUN curl -L -o tessdata/osd.traineddata https://github.com/tesseract-ocr/tessdata/blob/master/osd.traineddata
+ENV TESSDATA_PREFIX=/tesseract-4.1.1/tessdata
 
 WORKDIR /PythonRpcServer
 
