@@ -103,7 +103,8 @@ namespace ClassTranscribeServer.Controllers
                     Name = m.Name,
                     JsonMetadata = m.JsonMetadata,
                     CreatedAt = m.CreatedAt,
-                    Ready = m.Video.Transcriptions.Any(),
+                    SceneDetectReady = m.Video == null ? false : m.Video.SceneData != null,
+                    Ready = m.Video == null ? false : m.Video.Transcriptions.Any(),
                     SourceType = m.SourceType,
                     Duration = m.Video?.Duration,
                     Video = new VideoDTO
@@ -168,6 +169,7 @@ namespace ClassTranscribeServer.Controllers
                     JsonMetadata = m.JsonMetadata,
                     SourceType = m.SourceType,
                     Duration = m.Video?.Duration,
+                    SceneDetectReady = m.Video == null ? false : m.Video.SceneData != null,
                     Ready = m.Video == null ? false : m.Video.Transcriptions.Any(),
                     Video = m.Video == null ? null : new VideoDTO
                     {
@@ -404,6 +406,9 @@ namespace ClassTranscribeServer.Controllers
         public JObject JsonMetadata { get; set; }
         public SourceType SourceType { get; set; }
         public bool Ready { get; set; }
+
+        public bool SceneDetectReady { get; set; }
+
         public VideoDTO Video { get; set; }
         public List<TranscriptionDTO> Transcriptions { get; set; }
         public string Name { get; set; }

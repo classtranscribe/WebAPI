@@ -56,6 +56,7 @@ namespace TaskEngine.Tasks
                     case SourceType.Box: medias = await GetBoxPlaylist(playlist, _context); break;
                 }
                 // TASK DEPENDENCY (REFACTOR)
+                GetLogger().LogInformation($"Playlist {playlistId}: {medias.Count} media listed. Publishing downloadMediaTasks...");
                 medias.ForEach(m => _downloadMediaTask.Publish(m.Id));
             }
         }
@@ -79,11 +80,13 @@ namespace TaskEngine.Tasks
                     {
                         // Notification to Instructor.
                     }
-                    GetLogger().LogError(e.Message);
+                    GetLogger().LogError($"playlist=({playlist.Id}):{e.Message}");
                 }
                 return newMedia;
             }
             JArray jArray = JArray.Parse(jsonString.Json);
+
+            var skipped = 0;
 
             foreach (JObject jObject in jArray)
             {
@@ -102,9 +105,14 @@ namespace TaskEngine.Tasks
                         CreatedAt = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)
                             .AddSeconds(jObject["createdAt"].ToObject<int>())
                     });
+                } else
+                {
+                    skipped ++;
                 }
             }
             newMedia.ForEach(m => m.Name = GetMediaName(m));
+            GetLogger().LogInformation($"Kaltura playlist=({playlist.Id}): {skipped} skipped existing. Adding {newMedia.Count} new media items");
+
             await _context.Medias.AddRangeAsync(newMedia);
             await _context.SaveChangesAsync();
             return newMedia;

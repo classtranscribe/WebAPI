@@ -5,6 +5,8 @@ from urllib.parse import urlparse
 import hashlib
 import json
 import os
+from time import perf_counter 
+
 
 from utils import download_file
 from mediaprovider import MediaProvider, InvalidPlaylistInfoException
@@ -216,6 +218,7 @@ class KalturaProvider(MediaProvider):
         # Ignore Url param if the original URL provided (if known) looks like a Kaltura playlist URL
         # We try a playlist first
         print('getPlaylistItems' + str(request))
+        start_time = perf_counter()
         try:
             res = []
             servername, isPlaylist, id = self.extractKalturalChannelPlaylistResource(
@@ -235,13 +238,20 @@ class KalturaProvider(MediaProvider):
             print("Exception:" + str(e))
             raise InvalidPlaylistInfoException(
                 "Error during Channel/Playlist processing " + str(e))
+        end_time = perf_counter()
+        print(f"getPlaylistItems({request}) returning '{result}'. Processing ({end_time-start_time:.2f}) seconds.")
         return result
 
     # Main entry point - overrides stub in MediaProvider super class
     def getMedia(self, request):
         try:
-            print(f"getMedia({request})")
-            return self.downloadLecture(request.videoUrl)
+            start_time = perf_counter()
+            print(f"getMedia({request}) starting")
+            result =  self.downloadLecture(request.videoUrl)
+            end_time = perf_counter()
+            print(f"getMedia({request}) returning '{result}'. Processing ({end_time-start_time:.2f}) seconds.")
+
+            return result
         except Exception as e:
             print("Exception:" + str(e))
             raise e
