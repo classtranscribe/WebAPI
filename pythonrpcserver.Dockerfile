@@ -11,7 +11,7 @@ RUN apt-get install -y automake pkg-config libsdl-pango-dev libicu-dev libcairo2
 RUN  curl -L  https://github.com/tesseract-ocr/tesseract/archive/refs/tags/4.1.1.tar.gz  | tar xvz
 
 WORKDIR /tesseract-4.1.1
-RUN ./autogen.sh && ./configure && make && make install && ldconfig 
+RUN ./autogen.sh && ./configure && make -j && make install && ldconfig 
 # Slow! The above line takes 435 seconds on my laptop
 RUN make training && make training-install
 # The above line takes 59 seconds on my laptop 
@@ -19,6 +19,8 @@ RUN make training && make training-install
 RUN curl -L -o tessdata/eng.traineddata https://github.com/tesseract-ocr/tessdata/raw/master/eng.traineddata
 RUN curl -L -o tessdata/osd.traineddata https://github.com/tesseract-ocr/tessdata/raw/master/osd.traineddata
 ENV TESSDATA_PREFIX=/tesseract-4.1.1/tessdata
+#Disable multi-threading
+ENV OMP_THREAD_LIMIT=1
 
 WORKDIR /PythonRpcServer
 
