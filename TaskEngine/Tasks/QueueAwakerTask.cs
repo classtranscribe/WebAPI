@@ -311,12 +311,7 @@ namespace TaskEngine.Tasks
                     var transcription = await _context.Transcriptions.FindAsync(transcriptionId);
                     _generateVTTFileTask.Publish(transcription.Id);
                 }
-                else if (type == TaskType.SceneDetection.ToString())
-                {
-                    var mediaId = jObject["mediaId"].ToString();
-                    var media = _context.Medias.Find(mediaId);
-                    _sceneDetectionTask.Publish(media.Video.Id);
-                }
+                
                 else if (type == TaskType.CreateBoxToken.ToString())
                 {
                     var authCode = jObject["authCode"].ToString();
