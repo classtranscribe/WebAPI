@@ -23,7 +23,7 @@ namespace TaskEngine.Tasks
         private readonly TranscriptionTask _transcriptionTask;
         private readonly GenerateVTTFileTask _generateVTTFileTask;
         private readonly ProcessVideoTask _processVideoTask;
-        private readonly SceneDetectionTask _scenedDetectionTask;
+        private readonly SceneDetectionTask _sceneDetectionTask;
         private readonly CreateBoxTokenTask _createBoxTokenTask;
         private readonly UpdateBoxTokenTask _updateBoxTokenTask;
         private readonly BuildElasticIndexTask _buildElasticIndexTask;
@@ -36,7 +36,7 @@ namespace TaskEngine.Tasks
         public QueueAwakerTask(RabbitMQConnection rabbitMQ, DownloadPlaylistInfoTask downloadPlaylistInfoTask,
             DownloadMediaTask downloadMediaTask,
             TranscriptionTask transcriptionTask, ProcessVideoTask processVideoTask,
-            GenerateVTTFileTask generateVTTFileTask, SceneDetectionTask scenedDetectionTask,
+            GenerateVTTFileTask generateVTTFileTask, SceneDetectionTask sceneDetectionTask,
             CreateBoxTokenTask createBoxTokenTask, UpdateBoxTokenTask updateBoxTokenTask,
             BuildElasticIndexTask buildElasticIndexTask, CleanUpElasticIndexTask cleanUpElasticIndexTask,
             ExampleTask exampleTask,
@@ -49,7 +49,7 @@ namespace TaskEngine.Tasks
             _transcriptionTask = transcriptionTask;
             _generateVTTFileTask = generateVTTFileTask;
             _processVideoTask = processVideoTask;
-            _scenedDetectionTask = scenedDetectionTask;
+            _sceneDetectionTask = sceneDetectionTask;
             _createBoxTokenTask = createBoxTokenTask;
             _updateBoxTokenTask = updateBoxTokenTask;
             _buildElasticIndexTask = buildElasticIndexTask;
@@ -143,6 +143,7 @@ namespace TaskEngine.Tasks
             List<String> todoProcessVideos;
             List<String> todoTranscriptions;
             List<String> todoDownloads;
+            List<String> todoSceneDetection;
             using (var context = CTDbContext.CreateDbContext())
             {
                 // Most tasks are created directly from within a task when it normally completed. 
@@ -186,8 +187,15 @@ namespace TaskEngine.Tasks
                     t => t.Captions.Count > 0 && t.File == null && t.CreatedAt < tooRecentCutoff
                     ).OrderByDescending(t => t.CreatedAt).Select(e => e.Id).ToListAsync();
 
-                todoTranscriptions = await context.Videos.AsNoTracking().Where(
-                    v => v.TranscribingAttempts < 1 && v.TranscriptionStatus != "NoError" && v.Medias.Any() && v.CreatedAt < tooRecentCutoff
+                todoSceneDetection = await context.Videos.AsNoTracking().Where( 
+                        v=> v.PhraseHints == null &&
+                        v.Medias.Any() && v.CreatedAt < tooRecentCutoff
+                    ).OrderByDescending(t => t.CreatedAt).Select(e => e.Id).ToListAsync();
+
+                todoTranscriptions = await context.Videos.AsNoTracking().Where( 
+                        v=> v.PhraseHints != null &&
+                        v.TranscribingAttempts < 41 && v.TranscriptionStatus != "NoError" && 
+                        v.Medias.Any() && v.CreatedAt < tooRecentCutoff
                     ).OrderByDescending(t => t.CreatedAt).Select(e => e.Id).ToListAsync();
 
                 // Medias for which no videos have downloaded
@@ -207,6 +215,10 @@ namespace TaskEngine.Tasks
             ClientActiveTasks currentVTTs = _generateVTTFileTask.GetCurrentTasks();
             todoVTTs.RemoveAll(e => currentVTTs.Contains(e));
 
+            
+            ClientActiveTasks currentSceneDetection = _sceneDetectionTask.GetCurrentTasks();
+            todoSceneDetection.RemoveAll(e => currentSceneDetection.Contains(e));
+
             ClientActiveTasks currentTranscription = _transcriptionTask.GetCurrentTasks();
             todoTranscriptions.RemoveAll(e => currentTranscription.Contains(e));
 
@@ -221,6 +233,11 @@ namespace TaskEngine.Tasks
             GetLogger().LogInformation($"Publishing processingVideos ({String.Join(",", todoProcessVideos)})");
 
             todoProcessVideos.ForEach(t => _processVideoTask.Publish(t));
+
+
+            
+            GetLogger().LogInformation($"Publishing SceneDetects ({String.Join(",", todoSceneDetection)})");
+            todoSceneDetection.ForEach(t => _sceneDetectionTask.Publish(t));
 
             GetLogger().LogInformation($"Publishing todoVTTs ({String.Join(",", todoVTTs)})");
 
@@ -270,10 +287,9 @@ namespace TaskEngine.Tasks
                 {
                     await _slackLogger.PostMessageAsync("Periodic Check.");
                     registerTask(cleanup, "PeriodicCheck");
-                    _updateBoxTokenTask.Publish("");
                     _buildElasticIndexTask.Publish("");
                     _cleanUpElasticIndexTask.Publish("");
-                    _exampleTask.Publish("");
+                    //_exampleTask.Publish("");
 
                     await DownloadAllPlaylists();
                     await PendingJobs();
@@ -295,12 +311,7 @@ namespace TaskEngine.Tasks
                     var transcription = await _context.Transcriptions.FindAsync(transcriptionId);
                     _generateVTTFileTask.Publish(transcription.Id);
                 }
-                else if (type == TaskType.SceneDetection.ToString())
-                {
-                    var mediaId = jObject["mediaId"].ToString();
-                    var media = _context.Medias.Find(mediaId);
-                    _scenedDetectionTask.Publish(media.Video.Id);
-                }
+                
                 else if (type == TaskType.CreateBoxToken.ToString())
                 {
                     var authCode = jObject["authCode"].ToString();
@@ -318,9 +329,41 @@ namespace TaskEngine.Tasks
                 //    var video = await _context.Videos.FindAsync(videoId);
                 //    _convertVideoToWavTask.Publish(video.Id);
                 //}
+                else if(type==TaskType.SceneDetection.ToString())
+                {
+                    var id = jObject["videoMediaPlaylistId"].ToString();
+                    bool deleteExisting = false;
+                    try
+                    {
+                        deleteExisting = jObject["DeleteExisting"].Value<bool>();
+                    }
+                    catch (Exception) { }
+                    GetLogger().LogInformation($"{type}:{id}");
+                    var videos = await _context.Videos.Where(v=>v.Id ==id).ToListAsync();
+                    if (videos.Count == 0)
+                    {
+                        videos = await _context.Medias.Where(m => (m.PlaylistId == id) || (m.Id == id)).Select(m => m.Video).ToListAsync();
+                    }
+                    foreach (var video in videos)
+                    {
+                        if (deleteExisting)
+                        {
+                            GetLogger().LogInformation($"{id}:Removing SceneDetection for video ({video.Id})");
+
+                            video.SceneData = null;
+                            
+                            await _context.SaveChangesAsync();
+                        }
+                        _sceneDetectionTask.Publish(video.Id);
+
+                    }
+
+                }
                 else if (type == TaskType.TranscribeVideo.ToString())
                 {
                     var id = jObject["videoOrMediaId"].ToString();
+                    
+
                     GetLogger().LogInformation($"{type}:{id}");
                     var video = await _context.Videos.FindAsync(id);
                     if(video == null)

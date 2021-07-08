@@ -52,11 +52,12 @@ namespace TaskEngine
                 {
                     taskParameters = new TaskParameters();
                 }
+                _logger.LogInformation($"Publish Task ({_queueName}). data=({data})");
                 _rabbitMQ.PublishTask(_queueName, data, taskParameters);
             }
             catch (Exception e)
             {
-                _logger.LogError(e, "Error Publishing Task!");
+                _logger.LogError(e, $"Error Publishing Task to {_queueName} !");
             }
         }
 

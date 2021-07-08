@@ -187,6 +187,13 @@ namespace ClassTranscribeServer.Controllers
             return Ok();
         }
 
+        [HttpPost("SceneDetectVideo")]
+        public ActionResult SceneDetectVideo(string videoMediaPlaylistId, bool deleteExisting)
+        {
+            _wakeDownloader.SceneDetection(videoMediaPlaylistId, deleteExisting);
+            return Ok();
+        }
+
         [HttpPost("PeriodicCheck")]
         [Authorize(Roles = Globals.ROLE_ADMIN)]
         public ActionResult PeriodicCheck()
