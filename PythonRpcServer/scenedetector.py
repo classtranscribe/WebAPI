@@ -7,8 +7,43 @@ import numpy as np
 from skimage.metrics import structural_similarity as ssim
 from datetime import datetime
 import pytesseract
+from collections import Counter
 
 DATA_DIR = os.getenv('DATA_DIRECTORY')
+
+def sim_ocr(word_dict_a, word_dict_b):
+    """
+    Calculate the Sim_OCR between two frames.
+
+    Parameters: 
+    word_dict_a (dict): Key is the words that appeared in the OCR output for frame A
+                        Value is the sum of confidence of each word
+    word_dict_b (dict): Key is the words that appeared in the OCR output for frame B
+                        Value is the sum of confidence of each word
+    
+    Returns:
+    float: Relative OCR similarty between the two frames
+    """
+
+    total_amount = 0
+    for k in word_dict_a.keys():
+        total_amount += word_dict_a[k]
+    for k in word_dict_b.keys():
+        total_amount += word_dict_b[k]
+    
+    if total_amount == 0:
+        return 1.0
+    
+    score = 0
+    for key_a in word_dict_a.keys():
+        if key_a in word_dict_b.keys():
+            score += (word_dict_a[key_a] + word_dict_b[key_a])
+    
+    for key_b in list(set(word_dict_b.keys()) - set(word_dict_a.keys())):
+        if key_b in word_dict_a.keys():
+            score += (word_dict_a[key_b] + word_dict_b[key_b])
+    
+    return score / total_amount
 
 
 def find_scenes(video_path, min_scene_length=1, abs_min=0.87, abs_max=0.98, find_subscenes=True, max_subscenes_per_minute=12):
@@ -73,8 +108,17 @@ def find_scenes(video_path, min_scene_length=1, abs_min=0.87, abs_max=0.98, find
 
         # Stores the last frame read
         last_frame = 0
+
+        # Stores the OCR output of last frame read
+        last_ocr = dict()
+
         # List of similarities (SSIMs) between frames
         similarities = np.zeros(num_samples)
+
+        # List of OCR outputs and OCR similarities
+        ocrs = []
+        ocr_similarities = np.zeros(num_samples)
+
         timestamps = np.zeros(num_samples)
         
 
@@ -96,13 +140,35 @@ def find_scenes(video_path, min_scene_length=1, abs_min=0.87, abs_max=0.98, find
             if i >= 1:
                 sim = ssim(last_frame, curr_frame)
                 similarities[i] = sim
+            
+            # Calculate the OCR difference between the current frame and last frame
+            
+            str_text = pytesseract.image_to_data(curr_frame, output_type='dict')
+
+            phrases = Counter()
+            for j in range(len(str_text['conf'])):
+                if int(str_text['conf'][j]) >= 60 and len(str_text['text'][j].strip()) > 0:
+                    phrases[str_text['text'][j]] += (float(str_text['conf'][j]) / 100)
+
+            curr_ocr = dict(phrases)
+
+            if i >= 1:
+                ocr_sim = sim_ocr(last_ocr, curr_ocr)
+                ocr_similarities[i] = ocr_sim
+                
+            ocrs.append(phrases)
                 
             # Save the current frame for the next iteration
             last_frame = curr_frame
-            
 
-        # Find cuts by finding where SSIM < abs_min
-        samples_cut_candidates = np.argwhere(similarities < abs_min).flatten()    
+            # Save the current OCR output for the next iteration
+            last_ocr = curr_ocr
+        
+        # Calculate the combined similarities by averaging SimPixel and Sim_OCR
+        combined_similarities = (ocr_similarities + similarities) / 2
+
+        # Find cuts by finding where combined similarities < abs_min
+        samples_cut_candidates = np.argwhere(combined_similarities < abs_min).flatten()    
         
         print(f"{video_path}: {len(samples_cut_candidates)} candidates identified")       
         if len(samples_cut_candidates) == 0:
