@@ -11,9 +11,9 @@ from collections import Counter
 
 DATA_DIR = os.getenv('DATA_DIRECTORY')
 
-def sim_ocr(word_dict_a, word_dict_b):
+def compare_ocr_difference(word_dict_a, word_dict_b):
     """
-    Calculate the Sim_OCR between two frames.
+    Calculate the sim_OCR between two frames.
 
     Parameters: 
     word_dict_a (dict): Key is the words that appeared in the OCR output for frame A
@@ -45,21 +45,32 @@ def sim_ocr(word_dict_a, word_dict_b):
     
     return score / total_amount
 
+def calculate_score(sim_structural, sim_ocr):
+    """
+    Calculate the final similarties score between two frames.
 
-def find_scenes(video_path, min_scene_length=1, abs_min=0.87, abs_max=0.98, find_subscenes=True, max_subscenes_per_minute=12):
+    Parameters: 
+    sim_structural (list of float): List of similarities (SSIMs) between frames
+    sim_ocr (list of float): List of OCR similarities
+
+    Returns:
+    list of float: List of combined_similarities between frames
+    """
+    return 0.5 * sim_structural + 0.5 * sim_ocr
+
+
+def find_scenes(video_path, min_scene_length=1, abs_min=0.87, ocr_confidence=55, find_subscenes=True, max_subscenes_per_minute=12):
     """
     Detects scenes within a video. 
     
-    Calculates the structual similarity index measure (SSIM) between each subsequent frame then uses
-    the list of SSIMs to identify where scene changes are. 
+    Calculates the similarity between each subsequent frame then identify where scene changes are. 
     
     Parameters:
     video_path (string): Path of the video to be used.
     min_scene_length (int): Minimum scene length in seconds. Default 1s
-    abs_min (float): Minimum SSIM value for non-scene changes, i.e. any frame with SSIM < abs_min 
+    abs_min (float): Minimum combined_similarities value for non-scene changes, i.e. any frame with combined_similarities < abs_min 
         is defined as a scene change. Default 0.7
-    abs_max (float): Maximum SSIM value for scene_changes, i.e. any frame with SSIM > abs_max
-        is defined as NOT a scene change. Default 0.98
+    ocr_confidence (int): OCR confidnece used to generate sim_ocr. Default 55
     find_subscenes (boolean): Find subscenes or not. Default True
     max_subscenes_per_minute (int): Maximum number of subscenes per minute within a scene. If number
         of subscenes found exceeds max_subscenes_per_minute, then none of those subscenes are returned.
@@ -113,11 +124,11 @@ def find_scenes(video_path, min_scene_length=1, abs_min=0.87, abs_max=0.98, find
         last_ocr = dict()
 
         # List of similarities (SSIMs) between frames
-        similarities = np.zeros(num_samples)
+        sim_structural = np.zeros(num_samples)
 
         # List of OCR outputs and OCR similarities
-        ocrs = []
-        ocr_similarities = np.zeros(num_samples)
+        ocr_output = []
+        sim_ocr = np.zeros(num_samples)
 
         timestamps = np.zeros(num_samples)
         
@@ -136,27 +147,24 @@ def find_scenes(video_path, min_scene_length=1, abs_min=0.87, abs_max=0.98, find
             curr_frame = cv2.cvtColor(cv2.resize(frame, (320,240)), cv2.COLOR_BGR2GRAY)
 
             # Calculate the SSIM between the current frame and last frame
-
             if i >= 1:
-                sim = ssim(last_frame, curr_frame)
-                similarities[i] = sim
+                sim_structural[i] = ssim(last_frame, curr_frame)
             
             # Calculate the OCR difference between the current frame and last frame
-            
-            str_text = pytesseract.image_to_data(curr_frame, output_type='dict')
+            ocr_frame = cv2.cvtColor(cv2.resize(frame, (480,360)), cv2.COLOR_BGR2GRAY)
+            str_text = pytesseract.image_to_data(ocr_frame, output_type='dict')
 
             phrases = Counter()
             for j in range(len(str_text['conf'])):
-                if int(str_text['conf'][j]) >= 60 and len(str_text['text'][j].strip()) > 0:
+                if int(str_text['conf'][j]) >= ocr_confidence and len(str_text['text'][j].strip()) > 0:
                     phrases[str_text['text'][j]] += (float(str_text['conf'][j]) / 100)
 
             curr_ocr = dict(phrases)
 
             if i >= 1:
-                ocr_sim = sim_ocr(last_ocr, curr_ocr)
-                ocr_similarities[i] = ocr_sim
+                sim_ocr[i] = compare_ocr_difference(last_ocr, curr_ocr)
                 
-            ocrs.append(phrases)
+            ocr_output.append(phrases)
                 
             # Save the current frame for the next iteration
             last_frame = curr_frame
@@ -164,8 +172,8 @@ def find_scenes(video_path, min_scene_length=1, abs_min=0.87, abs_max=0.98, find
             # Save the current OCR output for the next iteration
             last_ocr = curr_ocr
         
-        # Calculate the combined similarities by averaging SimPixel and Sim_OCR
-        combined_similarities = (ocr_similarities + similarities) / 2
+        # Calculate the combined similarities score
+        combined_similarities = calculate_score(sim_structural, sim_ocr)
 
         # Find cuts by finding where combined similarities < abs_min
         samples_cut_candidates = np.argwhere(combined_similarities < abs_min).flatten()    
