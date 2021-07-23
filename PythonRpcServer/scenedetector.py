@@ -1,12 +1,13 @@
 import os
 import math
-from time import perf_counter 
-from cv2 import cv2
 import json
 import numpy as np
+import pytesseract
+import titledetector as td
+from time import perf_counter 
+from cv2 import cv2
 from skimage.metrics import structural_similarity as ssim
 from datetime import datetime
-import pytesseract
 from collections import Counter
 
 DATA_DIR = os.getenv('DATA_DIRECTORY')
@@ -59,7 +60,7 @@ def calculate_score(sim_structural, sim_ocr):
     return 0.5 * sim_structural + 0.5 * sim_ocr
 
 
-def find_scenes(video_path, min_scene_length=1, abs_min=0.87, ocr_confidence=55, find_subscenes=True, max_subscenes_per_minute=12):
+def find_scenes(video_path, min_scene_length=1, abs_min=0.7, ocr_confidence=55, find_subscenes=True, max_subscenes_per_minute=12):
     """
     Detects scenes within a video. 
     
@@ -225,9 +226,7 @@ def find_scenes(video_path, min_scene_length=1, abs_min=0.87, ocr_confidence=55,
             img_file = os.path.join(directory, f"{short_file_name}_frame-{requested_frame_number}.jpg" )
             cv2.imwrite(img_file, frame)
 
-            #str_text = pytesseract.image_to_string(frame)
-            #phrases = [phrase for phrase in str_text.split('\n') if len(phrase) > 0]
-            
+            # OCR generation
             str_text = pytesseract.image_to_data(frame, output_type='dict')
 
             phrases = []
@@ -245,12 +244,16 @@ def find_scenes(video_path, min_scene_length=1, abs_min=0.87, ocr_confidence=55,
             if len(phrase) > 0:
                 phrases.append(' '.join(phrase))   
             
+            # Title generation
+            title = td.title_detection(frame)
+            
             # we dont want microsecond accuracy; the [:12] cuts off the last 3 unwanted digits
             scene['start'] = datetime.utcfromtimestamp(timestamps[scene['frame_start']// everyN]).strftime("%H:%M:%S.%f")[:12]
             scene['end'] = datetime.utcfromtimestamp(timestamps[scene['frame_end'] // everyN ]).strftime("%H:%M:%S.%f")[:12]            
             scene['img_file'] = img_file
             scene['raw_text'] = str_text # Internal debug format; subject to change uses phrases instead
             scene['phrases'] = phrases # list of strings
+            scene['title'] = title # string
         
         end_time = perf_counter()
         print(f"find_scenes('{video_path}',...) Complete. Total Duration {int(end_time - start_time)} seconds")
