@@ -245,7 +245,8 @@ def find_scenes(video_path, min_scene_length=1, abs_min=0.7, ocr_confidence=55, 
                 phrases.append(' '.join(phrase))   
             
             # Title generation
-            title = td.title_detection(frame)
+            frame_height, frame_width, frame_channels = frame.shape
+            title = td.title_detection(str_text, frame_height, frame_width)
             
             # we dont want microsecond accuracy; the [:12] cuts off the last 3 unwanted digits
             scene['start'] = datetime.utcfromtimestamp(timestamps[scene['frame_start']// everyN]).strftime("%H:%M:%S.%f")[:12]
