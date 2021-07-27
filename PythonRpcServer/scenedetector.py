@@ -60,29 +60,36 @@ def calculate_score(sim_structural, sim_ocr):
     return 0.5 * sim_structural + 0.5 * sim_ocr
 
 
-def find_scenes(video_path, min_scene_length=1, abs_min=0.7, ocr_confidence=55, find_subscenes=True, max_subscenes_per_minute=12):
+def find_scenes(video_path):
     """
     Detects scenes within a video. 
     
-    Calculates the similarity between each subsequent frame then identify where scene changes are. 
+    Calculates the similarity between each subsequent frame to identify where scene changes are. Report key features
+        about each scene change.
     
     Parameters:
     video_path (string): Path of the video to be used.
-    min_scene_length (int): Minimum scene length in seconds. Default 1s
-    abs_min (float): Minimum combined_similarities value for non-scene changes, i.e. any frame with combined_similarities < abs_min 
-        is defined as a scene change. Default 0.7
-    ocr_confidence (int): OCR confidnece used to generate sim_ocr. Default 55
-    find_subscenes (boolean): Find subscenes or not. Default True
-    max_subscenes_per_minute (int): Maximum number of subscenes per minute within a scene. If number
-        of subscenes found exceeds max_subscenes_per_minute, then none of those subscenes are returned.
-        Rational is that too many detected subscenes is more likely a result of a video clip or other
-        noisy media and not actual scene changes. 
     
     Returns:
     string: List of dictionaries dumped to a JSON string. Each dict corresponds to a scene/subscene,
-        with the key/item pairs being starting timestamp (start), image file name (img_file), ending 
-        timestamp (end), and boolean indicating if it's a scene or subscene (is_subscene).
+        with the key/item pairs being: 
+        frame_start (int): Numbering of the frame where the scene starts
+        frame_end (int): Numbering of the frame where the scene ends
+        is_subscene (boolean): Indicating if it's a scene or subscene
+        start (string): Starting timestamp of the scene
+        end (string): Ending timestamp of the scene
+        img_file (string): File name of the detected scene image 
+        raw_text (dict): Raw pytesseract result as a dict
+        phrases (list of strings): Cleaned pytesseract result as a list of strings
+        title (string): Detected title of the current scene
     """
+
+    # CONSTANTS
+    ABS_MIN = 0.7 # Minimum combined_similarities value for non-scene changes, i.e. any frame with combined_similarities < ABS_MIN is defined as a scene change
+    OCR_CONFIDENCE = 80 # OCR confidnece used to extract text in detected scenes. Higher confidence to extract insightful information
+    SIM_OCR_CONFIDENCE = 55 # OCR confidnece used to generate sim_ocr
+    MIN_SCENE_LENGTH = 1 # Minimum scene length in seconds
+
     assert(os.path.exists(DATA_DIR))
     
     # Extract frames s1,e1,s2,e2,....
@@ -102,7 +109,6 @@ def find_scenes(video_path, min_scene_length=1, abs_min=0.7, ocr_confidence=55, 
 
         short_file_name = video_path[video_path.rfind('/')+1 : video_path.find('.')] # short filename without extension
         directory = os.path.join(DATA_DIR, short_file_name)
-        
             
         # Get the video capture and number of frames and fps
         cap = cv2.VideoCapture(video_path)
@@ -116,7 +122,7 @@ def find_scenes(video_path, min_scene_length=1, abs_min=0.7, ocr_confidence=55, 
         num_samples = num_frames // everyN
 
         # Mininum number of frames per scene
-        min_samples_between_cut = min_scene_length * targetFPS
+        min_samples_between_cut = MIN_SCENE_LENGTH * targetFPS
 
         # Stores the last frame read
         last_frame = 0
@@ -157,7 +163,7 @@ def find_scenes(video_path, min_scene_length=1, abs_min=0.7, ocr_confidence=55, 
 
             phrases = Counter()
             for j in range(len(str_text['conf'])):
-                if int(str_text['conf'][j]) >= ocr_confidence and len(str_text['text'][j].strip()) > 0:
+                if int(str_text['conf'][j]) >= SIM_OCR_CONFIDENCE and len(str_text['text'][j].strip()) > 0:
                     phrases[str_text['text'][j]] += (float(str_text['conf'][j]) / 100)
 
             curr_ocr = dict(phrases)
@@ -176,8 +182,8 @@ def find_scenes(video_path, min_scene_length=1, abs_min=0.7, ocr_confidence=55, 
         # Calculate the combined similarities score
         combined_similarities = calculate_score(sim_structural, sim_ocr)
 
-        # Find cuts by finding where combined similarities < abs_min
-        samples_cut_candidates = np.argwhere(combined_similarities < abs_min).flatten()    
+        # Find cuts by finding where combined similarities < ABS_MIN
+        samples_cut_candidates = np.argwhere(combined_similarities < ABS_MIN).flatten()    
         
         print(f"{video_path}: {len(samples_cut_candidates)} candidates identified")       
         if len(samples_cut_candidates) == 0:
@@ -205,10 +211,7 @@ def find_scenes(video_path, min_scene_length=1, abs_min=0.7, ocr_confidence=55, 
 
         # Iterate through the scene cuts
         for i in range(1, len(frame_cuts)):
-            scenes += [{'frame_start': frame_cuts[i-1] , 
-                'frame_end': frame_cuts[i], 
-                'is_subscene': False,
-                }]
+            scenes += [{'frame_start': frame_cuts[i-1], 'frame_end': frame_cuts[i]}]
 
         cut_detect_time = perf_counter()
         print(f"find_scenes('{video_path}',...) Scene Cut Phase Complete.  Time so far {int(cut_detect_time - start_time)} seconds. Starting Image extraction and OCR")
@@ -233,7 +236,7 @@ def find_scenes(video_path, min_scene_length=1, abs_min=0.7, ocr_confidence=55, 
             last_block = -1
             phrase = []
             for i in range(len(str_text['conf'])):
-                if int(str_text['conf'][i]) >= 80 and len(str_text['text'][i].strip()) > 0:
+                if int(str_text['conf'][i]) >= OCR_CONFIDENCE and len(str_text['text'][i].strip()) > 0:
                     curr_block = str_text['block_num'][i]
                     if curr_block != last_block:
                         if len(phrase) > 0:
@@ -254,7 +257,7 @@ def find_scenes(video_path, min_scene_length=1, abs_min=0.7, ocr_confidence=55, 
             scene['img_file'] = img_file
             scene['raw_text'] = str_text # Internal debug format; subject to change uses phrases instead
             scene['phrases'] = phrases # list of strings
-            scene['title'] = title # string
+            scene['title'] = title # detected title as string
         
         end_time = perf_counter()
         print(f"find_scenes('{video_path}',...) Complete. Total Duration {int(end_time - start_time)} seconds")

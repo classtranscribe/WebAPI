@@ -1,6 +1,5 @@
 import cv2
 import numpy as np
-import pytesseract
 
 def min_max_normalize(data, inverse=False):
     '''
@@ -22,33 +21,34 @@ def min_max_normalize(data, inverse=False):
     else:
         return list( 1 - (np.array(data) - np.min(data)) / (np.max(data) - np.min(data)) )
 
-def scale_by_text_height(text, original_height, scale_factor=1.10):
+def scale_by_text_height(text, original_height):
     """
     Scale the height of a string based on its height 
     
     Parameters:
     text (string): Text based on which to scale the height
     original_height (float): Original height
-    scale_factor (float): Scale factor
     
     Returns:
     float: Scaled height, which should not be larger than original height
     """
+
+    SCALE_FACTOR = 1.10 # Negative (decreasing) scaling multiplier
     
     upper_factor = ['b', 'd', 'f', 'h', 'i', 'j', 'k', 'l', 't', '?', '!']
     lower_factor = ['g', 'j', 'p', 'q', 'y']
     scaled_height = original_height
     if text.lower() != text:
-        scaled_height /= scale_factor
+        scaled_height /= SCALE_FACTOR
     else:
         for c in upper_factor:
             if c in text:
-                scaled_height /= scale_factor
+                scaled_height /= SCALE_FACTOR
                 break
                 
     for c in lower_factor:
             if c in text:
-                scaled_height /= scale_factor
+                scaled_height /= SCALE_FACTOR
                 break 
                 
     return scaled_height
@@ -82,23 +82,25 @@ def find_canadiate_in_range(words, xs, ys, heights, x_low, x_high, h_low, h_high
     
     return [word[0] for word in sequence]
 
-def generate_boundary(canadiate_x, canadiate_h, searching_range):
+def generate_boundary(canadiate_x, canadiate_h):
     '''
     Generate horizontal searching boundries based on the candidate and range factor
     
     Parameters:
     canadiate_x (float): X position of the canadiate
     canadiate_h (float): Scaled height of the canadiate
-    searching_range (float): Parameter which specifies how far to search
     
     Returns:
     list of float: Searching boundries
     '''
+
+    # CONSTANTS
+    SEARCH_RANGE = 0.6 # Search range multiplier for title candidates on other rows 
     
     output = np.array([-5., -3., -1., 1., 3., 5.])
-    return canadiate_x + output * searching_range * canadiate_h
+    return canadiate_x + output * SEARCH_RANGE * canadiate_h
 
-def title_detection(text_data, height, width, ocr_confidence = 70, searching_range = 0.6, same_line_factor = 0.42):
+def title_detection(text_data, height, width):
     '''
     Given the height, width, abd pytesseract dict output of an image, find the most possible title
     
@@ -106,13 +108,16 @@ def title_detection(text_data, height, width, ocr_confidence = 70, searching_ran
     text_data (dict): Pytesseract output
     height (int): Image height
     width (int): Image width
-    ocr_confidence (int): Minimum OCR confidence for a word to become a title candidate, default is 70
-    searching_range (float): Maximum range to search for title candidates on other rows, default is 60% 
-    same_line_factor (float): Maximum variation of height for words acorss the same row, default is 42%
     
     Returns:
     string: Most possible title for the slide
     '''
+
+    # CONSTANTS
+    MAXIMUM_NUM_WORDS = 20 # Maximum number of words in a title
+    SAME_LINE_FACTOR = 0.42 # Maximum variation of height for words acorss the same row
+    OCR_CONFIDENCE = 70 # Minimum OCR confidence for a word to become a title candidate
+    
     
     # Basic information about the frame
     hortizonal_boundary = width / 2.0
@@ -126,7 +131,7 @@ def title_detection(text_data, height, width, ocr_confidence = 70, searching_ran
     
     # Extract OCR outputs
     for i in range(len(text_data['conf'])):
-        if int(text_data['conf'][i]) >= ocr_confidence and len(text_data['text'][i].strip()) > 0:
+        if int(text_data['conf'][i]) >= OCR_CONFIDENCE and len(text_data['text'][i].strip()) > 0:
             scaled_height = scale_by_text_height(text=text_data['text'][i], original_height=text_data['height'][i])
             
             words.append(text_data['text'][i])
@@ -150,16 +155,15 @@ def title_detection(text_data, height, width, ocr_confidence = 70, searching_ran
     
     # Find the index, height and X position of the candidate
     candidate_idx = np.argmax(np.array(candidate_score))
-    candidate = words[candidate_idx]
     canadiate_h = height[candidate_idx]
     canadiate_x = x_position[candidate_idx]
 
     # Boundaries for checking height variation of words in the same line
-    min_height = canadiate_h * (1 - same_line_factor)
-    max_height = canadiate_h * (1 + same_line_factor)
+    min_height = canadiate_h * (1 - SAME_LINE_FACTOR)
+    max_height = canadiate_h * (1 + SAME_LINE_FACTOR)
     
     # Generate searching boundaries along X axis (5 searching areas are generated)
-    boundaries = generate_boundary(canadiate_x, canadiate_h, searching_range)
+    boundaries = generate_boundary(canadiate_x, canadiate_h)
     area_available = np.zeros(len(boundaries))
     
     # Searching for potential title words in the middle 3 searching areas
@@ -170,12 +174,12 @@ def title_detection(text_data, height, width, ocr_confidence = 70, searching_ran
             title_list += line_list
             area_available[i] = 1.
     
-    # If found nothing in the top line, search the bottom further
-    if area_available[1] == 1. and area_available[3] == 0.:
+    # If found nothing in the top line, search the bottom further (only when less than 20 title words were detected)
+    if area_available[1] == 1. and area_available[3] == 0. and len(title_list) < MAXIMUM_NUM_WORDS:
         title_list = find_canadiate_in_range(words, x_position, y_position, height, boundaries[0], boundaries[1], min_height, max_height) + title_list
     
-    # If found nothing in the bottom line, search the top further
-    if area_available[3] == 1. and area_available[1] == 0.:
+    # If found nothing in the bottom line, search the top further (only when less than 20 title words were detected)
+    if area_available[3] == 1. and area_available[1] == 0. and len(title_list) < MAXIMUM_NUM_WORDS:
         title_list += find_canadiate_in_range(words, x_position, y_position, height, boundaries[4], boundaries[5], min_height, max_height)
     
     # Convert the word list into a string
