@@ -230,7 +230,8 @@ def find_scenes(video_path):
             cv2.imwrite(img_file, frame)
 
             # OCR generation
-            str_text = pytesseract.image_to_data(frame, output_type='dict')
+            gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+            str_text = pytesseract.image_to_data(gray_frame, output_type='dict')
 
             phrases = []
             last_block = -1
