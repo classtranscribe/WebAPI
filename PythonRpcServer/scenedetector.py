@@ -14,6 +14,90 @@ from mtcnn import MTCNN
 DATA_DIR = os.getenv('DATA_DIRECTORY')
 detector = MTCNN()
 
+def require_face_result(curr_frame):
+    """
+    Find all the bounding boxes of face & upper body appeared in a given frame.
+
+    Parameters:
+    curr_frame (image): Frame image
+
+    Returns:
+    tuple: 
+        First element: a boolean indicating if there is any face & upper body found inside the frame
+        Second element: a list of bounding boxes of face & upper body
+    """
+
+    # Convert the input image to gray scale    
+    gray_frame = cv2.cvtColor(cv2.resize(curr_frame, (320, 240)), cv2.COLOR_BGR2RGB)
+
+    # Run the face detection
+    faces = detector.detect_faces(gray_frame)
+    
+    curr_frame_boxes = []  # [x1, x2, y1, y2]
+    has_body = False
+
+    # Iterate through all the bounding boxes for one frame
+    for face in faces:
+        bounding_box = face['box']
+        x, y, width, height = bounding_box
+        curr_frame_boxes.append([x, x + width, y, y + height])
+
+        # Move x to the center of the face bounding box
+        x = x + width / 2
+
+        # Check if the face is at the center
+        if x > 0.2 * curr_frame.shape[1] and x < 0.8 * curr_frame.shape[1]:
+
+            # Check if the face is large enough
+            if width / curr_frame.shape[1] > 0.1 or height / curr_frame.shape[0] > 0.1:
+                has_body = True
+                body_x = int(x - 2 * width)
+                if body_x < 0:
+                    body_x = 0
+
+                body_y = y + height
+                body_width = width * 4
+                body_height = height * 3
+
+                curr_frame_boxes.append([body_x, body_x + body_width, body_y, body_y + body_height])
+    
+    return (has_body, curr_frame_boxes)
+
+def require_ssim_with_face_detection(curr_frame, curr_result, last_frame, last_result):
+    """
+    Given two frames with their face & upper body bounding boxes, 
+        find SSIM between them after removing face & upper body
+
+    Parameters:
+    curr_frame (image): Image of the first frame
+    curr_result (tuple): Face & upper body detection result of the first frame
+    last_frame (image): Image of the second frame
+    last_result (tuple): Face & upper body detection result of the second frame
+
+    Returns:
+    float: SSIM after removing face & upper body
+    """
+
+    curr_frame_with_face_removed = curr_frame.copy()
+    last_frame_with_face_removed = last_frame.copy()
+
+    if curr_result[0]:
+        curr_boxes = curr_result[1]
+        for j in range(len(curr_boxes)):
+            x1, x2, y1, y2 = curr_boxes[j]
+            curr_frame_with_face_removed[x1:x2, y1:y2] = 0
+            last_frame_with_face_removed[x1:x2, y1:y2] = 0
+
+    if last_result[0]:
+        last_boxes = last_result[1]
+        for j in range(len(last_boxes)):
+            x1, x2, y1, y2 = last_boxes[j]
+            curr_frame_with_face_removed[x1:x2, y1:y2] = 0
+            last_frame_with_face_removed[x1:x2, y1:y2] = 0
+    
+    return ssim(last_frame_with_face_removed, curr_frame_with_face_removed)
+
+
 
 def compare_ocr_difference(word_dict_a, word_dict_b):
     """
@@ -130,8 +214,12 @@ def find_scenes(video_path):
         # Mininum number of frames per scene
         min_samples_between_cut = MIN_SCENE_LENGTH * targetFPS
 
+
         # Stores the last frame read
         last_frame = 0
+
+        # Stores the last face detetion result
+        last_face_detection_result = 0
 
         # Stores the OCR output of last frame read
         last_ocr = dict()
@@ -145,8 +233,6 @@ def find_scenes(video_path):
 
         # List of similarities (SSIMs) between frames when face is removed
         sim_structural_no_face = np.zeros(num_samples)
-        all_boxes = []  # bounding boxes for the each candidate scene. Last element indicating if there's a body
-        candidate_frames = []  # resized opencv frame for each candidate scene
 
         timestamps = np.zeros(num_samples)
 
@@ -157,64 +243,6 @@ def find_scenes(video_path):
             cap.set(cv2.CAP_PROP_POS_FRAMES, i * everyN)
             ret, frame = cap.read()
 
-            # UPPER BODY TEST BEGIN HERE -----------------------------------------------------------------------------
-            candidate_frames.append(cv2.cvtColor(cv2.resize(frame, (320, 240)), cv2.COLOR_BGR2GRAY))
-            curr_frame = cv2.cvtColor(cv2.resize(frame, (320, 240)), cv2.COLOR_BGR2GRAY)
-            gray_frame = cv2.cvtColor(cv2.resize(frame, (320, 240)), cv2.COLOR_BGR2RGB)
-            faces = detector.detect_faces(gray_frame)
-            curr_frame_boxes = []  # [x1, x2, y1, y2]
-            has_body = False
-
-            # Iterating through all the face bounding boxes for one frame
-            for face in faces:
-                bounding_box = face['box']
-                x, y, width, height = bounding_box
-                curr_frame_boxes.append([x, x + width, y, y + height])
-
-                # move x to the center of the face bounding box
-                x = x + width / 2
-
-                # check if the head is at the center
-                if x > 0.2 * curr_frame.shape[1] and x < 0.8 * curr_frame.shape[1]:
-
-                    # check if the head is large enough
-                    if width / curr_frame.shape[1] > 0.1 or height / curr_frame.shape[0] > 0.1:
-                        has_body = True
-                        body_x = int(x - 2 * width)
-                        if body_x < 0:
-                            body_x = 0
-
-                        body_y = y + height
-                        body_width = width * 4
-                        body_height = height * 3
-
-                        curr_frame_boxes.append([body_x, body_x + body_width, body_y, body_y + body_height])
-            curr_frame_boxes.append(has_body)
-            all_boxes.append(curr_frame_boxes)
-
-            # crop out upper body from both frames
-            if i >= 1:
-                last_frame = candidate_frames[len(candidate_frames) - 2].copy()
-                curr_boxes = all_boxes[len(all_boxes) - 1]
-                last_boses = all_boxes[len(all_boxes) - 2]
-
-                if curr_boxes[len(curr_boxes) - 1]:
-                    for j in range(len(curr_boxes) - 1):
-                        x1, x2, y1, y2 = curr_boxes[j]
-                        curr_frame[x1:x2, y1:y2] = 0
-                        last_frame[x1:x2, y1:y2] = 0
-
-                if last_boses[len(last_boses) - 1]:
-                    for j in range(len(last_boses) - 1):
-                        x1, x2, y1, y2 = last_boses[j]
-                        curr_frame[x1:x2, y1:y2] = 0
-                        last_frame[x1:x2, y1:y2] = 0
-
-            # calculate structural similarities when face is removed.
-            if i >= 1:
-                sim_structural_no_face[i] = ssim(last_frame, curr_frame)
-            # UPPER BODY TEST END HERE -------------------------------------------------------------------------------
-
             # Save the time stamp of each frame
             timestamps[i] = cap.get(cv2.CAP_PROP_POS_MSEC) / 1000
 
@@ -224,6 +252,13 @@ def find_scenes(video_path):
             if i >= 1:
                 sim_structural[i] = ssim(last_frame, curr_frame)
 
+            # Run Face Detection upon the current frame
+            curr_face_detection_result = require_face_result(curr_frame)
+
+            # Calculate the SSIM between the current frame and last frame when face & upper body are removed
+            if i >= 1:
+                sim_structural_no_face[i] = require_ssim_with_face_detection(curr_frame, curr_face_detection_result, last_frame, last_face_detection_result)
+            
             # Calculate the OCR difference between the current frame and last frame
             ocr_frame = cv2.cvtColor(cv2.resize(frame, (480, 360)), cv2.COLOR_BGR2GRAY)
             str_text = pytesseract.image_to_data(ocr_frame, output_type='dict')
@@ -243,10 +278,13 @@ def find_scenes(video_path):
             # Save the current frame for the next iteration
             last_frame = curr_frame
 
+            # Save the current face detection result for the next iteration
+            last_face_detection_result = curr_face_detection_result
+
             # Save the current OCR output for the next iteration
             last_ocr = curr_ocr
 
-        # for i in range(len(candidate_frames)):
+        #for i in range(len(sim_structural)):
         #    print(i, round(sim_structural[i], 3), round(sim_structural_no_face[i], 3), round(sim_ocr[i], 3))
 
         # Calculate the combined similarities score
