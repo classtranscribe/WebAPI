@@ -36,3 +36,4 @@ prefixspan==0.5.2
 mtcnn==0.1.1
 h5py==3.3.0
 PyYAML==5.4.1
+tensorflow==2.5.0
