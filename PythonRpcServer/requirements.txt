@@ -11,7 +11,7 @@ ipython==7.13.0
 ipython-genutils==0.2.0
 jedi==0.17.0
 KalturaApiClient==15.20.0
-numpy==1.21.1
+numpy==1.19.2
 opencv-python==4.5.3.56
 parso==0.7.0
 pexpect==4.8.0
@@ -36,7 +36,7 @@ prefixspan==0.5.2
 mtcnn==0.1.1
 keras==2.4.3
 scipy==1.7.1
-h5py==3.3.0
+h5py==3.1.0
 pyyaml==5.4.1
 tensorflow==2.5.0
 keras-preprocessing==1.1.2
@@ -50,7 +50,7 @@ termcolor==1.1.0
 tensorboard==2.5.0
 google-pasta==0.2.0
 absl-py==0.13.0
-keras-nightly==2.5.0
+keras-nightly==2.5.0.dev2021032900
 wheel==0.35
 tensorflow-estimator==2.5.0
 werkzeug==2.0.1
