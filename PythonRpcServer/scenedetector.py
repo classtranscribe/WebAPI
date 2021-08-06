@@ -4,15 +4,15 @@ import json
 import numpy as np
 import pytesseract
 import titledetector as td
+import cv2
 from time import perf_counter
-from cv2 import cv2
 from skimage.metrics import structural_similarity as ssim
 from datetime import datetime
 from collections import Counter
-from mtcnn import MTCNN
 
 DATA_DIR = os.getenv('DATA_DIRECTORY')
-detector = MTCNN()
+
+face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
 
 def require_face_result(curr_frame):
     """
@@ -31,25 +31,24 @@ def require_face_result(curr_frame):
     gray_frame = cv2.cvtColor(cv2.resize(curr_frame, (320, 240)), cv2.COLOR_BGR2RGB)
 
     # Run the face detection
-    faces = detector.detect_faces(gray_frame)
+    faces = face_cascade.detectMultiScale(gray_frame, 1.1, 4)
     
     curr_frame_boxes = []  # [x1, x2, y1, y2]
     has_body = False
 
     # Iterate through all the bounding boxes for one frame
     for face in faces:
-        bounding_box = face['box']
-        x, y, width, height = bounding_box
+        x, y, width, height = face
         curr_frame_boxes.append([x, x + width, y, y + height])
 
         # Move x to the center of the face bounding box
         x = x + width / 2
 
         # Check if the face is at the center
-        if x > 0.2 * curr_frame.shape[1] and x < 0.8 * curr_frame.shape[1]:
+        if x > 0.2 * gray_frame.shape[1] and x < 0.8 * gray_frame.shape[1]:
 
             # Check if the face is large enough
-            if width / curr_frame.shape[1] > 0.1 or height / curr_frame.shape[0] > 0.1:
+            if width / gray_frame.shape[1] > 0.1 or height / gray_frame.shape[0] > 0.1:
                 has_body = True
                 body_x = int(x - 2 * width)
                 if body_x < 0:
@@ -174,7 +173,7 @@ def find_scenes(video_path):
     """
 
     # CONSTANTS
-    ABS_MIN = 0.7  # Minimum combined_similarities value for non-scene changes, i.e. any frame with combined_similarities < ABS_MIN is defined as a scene change
+    ABS_MIN = 0.8  # Minimum combined_similarities value for non-scene changes, i.e. any frame with combined_similarities < ABS_MIN is defined as a scene change
     OCR_CONFIDENCE = 80  # OCR confidnece used to extract text in detected scenes. Higher confidence to extract insightful information
     SIM_OCR_CONFIDENCE = 55  # OCR confidnece used to generate sim_ocr
     MIN_SCENE_LENGTH = 1  # Minimum scene length in seconds
