@@ -9,10 +9,10 @@ from time import perf_counter
 from skimage.metrics import structural_similarity as ssim
 from datetime import datetime
 from collections import Counter
+from mtcnn_cv2 import MTCNN 
 
 DATA_DIR = os.getenv('DATA_DIRECTORY')
-
-face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
+detector = MTCNN()
 
 def require_face_result(curr_frame):
     """
@@ -31,14 +31,14 @@ def require_face_result(curr_frame):
     gray_frame = cv2.cvtColor(cv2.resize(curr_frame, (320, 240)), cv2.COLOR_BGR2RGB)
 
     # Run the face detection
-    faces = face_cascade.detectMultiScale(gray_frame, 1.1, 4)
+    faces = detector.detect_faces(gray_frame)
     
     curr_frame_boxes = []  # [x1, x2, y1, y2]
     has_body = False
 
     # Iterate through all the bounding boxes for one frame
     for face in faces:
-        x, y, width, height = face
+        x, y, width, height = face['box']
         curr_frame_boxes.append([x, x + width, y, y + height])
 
         # Move x to the center of the face bounding box
@@ -173,7 +173,7 @@ def find_scenes(video_path):
     """
 
     # CONSTANTS
-    ABS_MIN = 0.8  # Minimum combined_similarities value for non-scene changes, i.e. any frame with combined_similarities < ABS_MIN is defined as a scene change
+    ABS_MIN = 0.7  # Minimum combined_similarities value for non-scene changes, i.e. any frame with combined_similarities < ABS_MIN is defined as a scene change
     OCR_CONFIDENCE = 80  # OCR confidnece used to extract text in detected scenes. Higher confidence to extract insightful information
     SIM_OCR_CONFIDENCE = 55  # OCR confidnece used to generate sim_ocr
     MIN_SCENE_LENGTH = 1  # Minimum scene length in seconds
