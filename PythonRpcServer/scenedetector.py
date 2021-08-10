@@ -189,7 +189,7 @@ def find_scenes(video_path):
     try:
         # Check if the video file exsited
         video_total_path = os.path.join(DATA_DIR, video_path)
-        if os.path.exists(video_total_path):
+        if os.path.exists(video_path):
             print(f"{video_path}: Found file!")
         else:
             print(f"{video_path}: File not found -returning empty scene cuts ")
