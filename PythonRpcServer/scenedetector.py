@@ -20,7 +20,7 @@ def require_face_result(curr_frame):
     Find all the bounding boxes of face & upper body appeared in a given frame.
 
     Parameters:
-    curr_frame (image): Frame image
+    curr_frame (image): Gray scale image 
 
     Returns:
     tuple: 
@@ -29,7 +29,7 @@ def require_face_result(curr_frame):
     """
 
     # Convert the input image to gray scale    
-    gray_frame = cv2.cvtColor(cv2.resize(curr_frame, (320, 240)), cv2.COLOR_BGR2RGB)
+    gray_frame = cv2.cvtColor(curr_frame, cv2.COLOR_BGR2RGB)
 
     # Run the face detection
     faces = detector.detect_faces(gray_frame)
@@ -174,7 +174,7 @@ def find_scenes(video_path):
     """
 
     # CONSTANTS
-    ABS_MIN = 0.7  # Minimum combined_similarities value for non-scene changes, i.e. any frame with combined_similarities < ABS_MIN is defined as a scene change
+    ABS_MIN = 0.75  # Minimum combined_similarities value for non-scene changes, i.e. any frame with combined_similarities < ABS_MIN is defined as a scene change
     OCR_CONFIDENCE = 80  # OCR confidnece used to extract text in detected scenes. Higher confidence to extract insightful information
     SIM_OCR_CONFIDENCE = 55  # OCR confidnece used to generate sim_ocr
     MIN_SCENE_LENGTH = 1  # Minimum scene length in seconds
@@ -189,7 +189,6 @@ def find_scenes(video_path):
     print(f"find_scenes({video_path}) starting...")
     try:
         # Check if the video file exsited
-        video_total_path = os.path.join(DATA_DIR, video_path)
         if os.path.exists(video_path):
             print(f"{video_path}: Found file!")
         else:
@@ -236,25 +235,19 @@ def find_scenes(video_path):
 
         timestamps = np.zeros(num_samples)
 
-        # Video Reader
-        vr_full = decord.VideoReader(video_path, ctx=decord.cpu(0))
+        # Video Reader for scene selection
+        vr_resized = decord.VideoReader(video_path, width=480, height=360, ctx=decord.cpu(0))
 
         # For this loop only we are not using real frame numbers; we are skipping frames to improve processing speed
         for i in range(0, num_samples):
-            # Read the next frame, resizing and converting to grayscale
-            
-            #cap.set(cv2.CAP_PROP_POS_FRAMES, i * everyN)
-            #ret, frame = cap.read()
-
             # Read a frame through decord
-            frame_vr = vr_full[i * everyN]
+            frame_vr = vr_resized[i * everyN]
             frame_numpy = frame_vr.asnumpy()
             frame = cv2.cvtColor(frame_numpy , cv2.COLOR_RGB2BGR)
+            curr_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
             # Save the time stamp of each frame
             timestamps[i] = cap.get(cv2.CAP_PROP_POS_MSEC) / 1000
-
-            curr_frame = cv2.cvtColor(cv2.resize(frame, (320, 240)), cv2.COLOR_BGR2GRAY)
 
             # Calculate the SSIM between the current frame and last frame
             if i >= 1:
@@ -268,8 +261,7 @@ def find_scenes(video_path):
                 sim_structural_no_face[i] = require_ssim_with_face_detection(curr_frame, curr_face_detection_result, last_frame, last_face_detection_result)
             
             # Calculate the OCR difference between the current frame and last frame
-            ocr_frame = cv2.cvtColor(cv2.resize(frame, (480, 360)), cv2.COLOR_BGR2GRAY)
-            str_text = pytesseract.image_to_data(ocr_frame, output_type='dict')
+            str_text = pytesseract.image_to_data(curr_frame, output_type='dict')
 
             phrases = Counter()
             for j in range(len(str_text['conf'])):
@@ -336,6 +328,9 @@ def find_scenes(video_path):
         # Write the image file for each scene and convert start/end to timestamp
 
         os.makedirs(directory, exist_ok=True)
+
+        # Video Reader for disk storing
+        vr_full = decord.VideoReader(video_path, ctx=decord.cpu(0))
 
         for i, scene in enumerate(scenes):
             requested_frame_number = (scene['frame_start'] + scene['frame_end']) // 2
