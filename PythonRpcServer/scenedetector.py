@@ -20,7 +20,7 @@ def require_face_result(curr_frame):
     Find all the bounding boxes of face & upper body appeared in a given frame.
 
     Parameters:
-    curr_frame (image): Gray scale image 
+    curr_frame (image): Frame image 
 
     Returns:
     tuple: 
