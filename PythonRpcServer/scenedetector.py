@@ -5,6 +5,7 @@ import numpy as np
 import pytesseract
 import titledetector as td
 import cv2
+import decord
 from time import perf_counter
 from skimage.metrics import structural_similarity as ssim
 from datetime import datetime
@@ -235,12 +236,20 @@ def find_scenes(video_path):
 
         timestamps = np.zeros(num_samples)
 
-        # For this loop only we are not using real frame numbers; we are skipping frames to improve processing speed
+        # Video Reader
+        vr_full = decord.VideoReader(video_path, ctx=decord.cpu(0))
 
+        # For this loop only we are not using real frame numbers; we are skipping frames to improve processing speed
         for i in range(0, num_samples):
             # Read the next frame, resizing and converting to grayscale
-            cap.set(cv2.CAP_PROP_POS_FRAMES, i * everyN)
-            ret, frame = cap.read()
+            
+            #cap.set(cv2.CAP_PROP_POS_FRAMES, i * everyN)
+            #ret, frame = cap.read()
+
+            # Read a frame through decord
+            frame_vr = vr_full[i * everyN]
+            frame_numpy = frame_vr.asnumpy()
+            frame = cv2.cvtColor(frame_numpy , cv2.COLOR_RGB2BGR)
 
             # Save the time stamp of each frame
             timestamps[i] = cap.get(cv2.CAP_PROP_POS_MSEC) / 1000
@@ -330,8 +339,14 @@ def find_scenes(video_path):
 
         for i, scene in enumerate(scenes):
             requested_frame_number = (scene['frame_start'] + scene['frame_end']) // 2
-            cap.set(cv2.CAP_PROP_POS_FRAMES, requested_frame_number)
-            res, frame = cap.read()
+
+            #cap.set(cv2.CAP_PROP_POS_FRAMES, requested_frame_number)
+            #res, frame = cap.read()
+
+            # Read a frame through decord
+            frame_vr = vr_full[requested_frame_number]
+            frame_numpy = frame_vr.asnumpy()
+            frame = cv2.cvtColor(frame_numpy , cv2.COLOR_RGB2BGR)
 
             img_file = os.path.join(directory, f"{short_file_name}_frame-{requested_frame_number}.jpg")
             cv2.imwrite(img_file, frame)
