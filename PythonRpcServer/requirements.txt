@@ -33,3 +33,6 @@ scikit-image==0.17.2
 nltk==3.6.2
 pytesseract==0.3.7
 prefixspan==0.5.2
+opencv-contrib-python==4.5.3.56
+mtcnn-opencv==1.0.2
+decord==0.6.0

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.IO;
 using ClassTranscribeDatabase;
 using ClassTranscribeDatabase.Models;
 using Microsoft.Extensions.Logging;
@@ -30,19 +31,34 @@ namespace TaskEngine.Tasks
         protected async override Task OnConsume(string videoId, TaskParameters taskParameters, ClientActiveTasks cleanup)
         {
             registerTask(cleanup, videoId); // may throw AlreadyInProgress exception
-            GetLogger().LogInformation("SceneDetection Consuming" + videoId);
+            GetLogger().LogInformation($"SceneDetection({videoId}): Consuming Task");
+            var filepath = "";
+
             using (var _context = CTDbContext.CreateDbContext())
             {
                 Video video = await _context.Videos.FindAsync(videoId);
-
+                
                 if (video.SceneData == null || taskParameters.Force)
                 {
-                    var jsonString = await _rpcClient.PythonServerClient.GetScenesRPCAsync(new CTGrpc.File
-                    {
-                        FilePath = video.Video1.VMPath
-                    });
-                    JArray scenes = JArray.Parse(jsonString.Json);
-                    GetLogger().LogInformation($"{videoId}: Scene count = {scenes.Count}.");
+                    filepath =  video.Video1.VMPath;
+                }
+            }
+            if(filepath.Length == 0 || ! File.Exists(filepath)) {
+                GetLogger().LogInformation($"SceneDetection({videoId}): has no file to process (filepath={filepath})");
+                return;
+            }
+            GetLogger().LogInformation($"SceneDetection({videoId}): GetScenesRPCAsync filepath={filepath})");
+            var jsonString = await _rpcClient.PythonServerClient.GetScenesRPCAsync(new CTGrpc.File
+            {
+                FilePath = filepath
+            });
+            // 1 hour later... refind the video object
+            using (var _context = CTDbContext.CreateDbContext())
+            {
+                Video video = await _context.Videos.FindAsync(videoId);
+            
+                JArray scenes = JArray.Parse(jsonString.Json);
+                    GetLogger().LogInformation($"SceneDetection({videoId}): Scene count = {scenes.Count}.");
                     video.SceneData = new JObject
                     {
                         { "Scenes", scenes }
@@ -55,20 +71,21 @@ namespace TaskEngine.Tasks
 
                     var rawData = string.Join("\n", allRawPhrases );
                     
-                    GetLogger().LogInformation($"{videoId}: Raw Phrase Entry Count = {allRawPhrases.Count}. Total String Length = {rawData.Length}");  
+                    GetLogger().LogInformation($"SceneDetection({videoId}): Raw Phrase Entry Count = {allRawPhrases.Count}. Total String Length = {rawData.Length}");  
 
                     var phraseResponse = await _rpcClient.PythonServerClient.ToPhraseHintsRPCAsync( new CTGrpc.PhraseHintRequest {
                         RawPhraseData = rawData
                     });
                     var phraseHints = (string)phraseResponse.Result;
 
-                    GetLogger().LogInformation($"{videoId}:phraseHints={phraseHints.Length} characters, {phraseHints.Split("\n").Length} phrases");
+                    GetLogger().LogInformation($"SceneDetection({videoId}): phraseHints={phraseHints.Length} characters, {phraseHints.Split("\n").Length} phrases");
                     video.PhraseHints = phraseHints;
 
                     await _context.SaveChangesAsync();
-                    _transcriptionTask.Publish(videoId);
-                }
             }
+                GetLogger().LogInformation($"SceneDetection({videoId}): Changes saved. Publishing transcription task request...");
+                _transcriptionTask.Publish(videoId);
+            
         }
     }
 }
