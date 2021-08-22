@@ -189,16 +189,18 @@ def find_scenes(video_path):
     print(f"find_scenes({video_path}) starting...")
     try:
         # Check if the video file exsited
-        video_total_path = os.path.join(DATA_DIR, video_path)
+       
         if os.path.exists(video_path):
             print(f"{video_path}: Found file!")
         else:
             print(f"{video_path}: File not found -returning empty scene cuts ")
             return json.dumps([])
 
+        # we don't want the '.mp4' extension (if it exists)
         short_file_name = video_path[
-                          video_path.rfind('/') + 1: video_path.find('.')]  # short filename without extension
-        directory = os.path.join(DATA_DIR, short_file_name)
+                          video_path.rfind('/') + 1: video_path.find('.')] 
+                          
+        out_directory = os.path.join(DATA_DIR, 'frames', short_file_name  )
 
         # Get the video capture and number of frames and fps
         cap = cv2.VideoCapture(video_path)
