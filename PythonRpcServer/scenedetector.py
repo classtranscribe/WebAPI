@@ -391,7 +391,7 @@ def find_scenes(video_path):
         return json.dumps(scenes)
 
     except Exception as e:
-        print(f"findScene(video_path) throwing Exception:" + str(e))
+        print(f"find_scenes({video_path}) throwing Exception:" + str(e))
         raise e
 
 
