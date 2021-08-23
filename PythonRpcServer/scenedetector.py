@@ -13,7 +13,7 @@ from collections import Counter
 from mtcnn_cv2 import MTCNN
 
 DATA_DIR = os.getenv('DATA_DIRECTORY')
-TARGET_FPS = float(os.getenv('SCENE_SAMPLE_FPS', 0.5))
+TARGET_FPS = float(os.getenv('SCENE_DETECT_FPS', 0.5))
 SCENE_DETECT_USE_FACE = os.getenv('SCENE_DETECT_USE_FACE', 'true') == 'true'
 SCENE_DETECT_USE_OCR = os.getenv('SCENE_DETECT_USE_OCR', 'true') == 'true'
 
