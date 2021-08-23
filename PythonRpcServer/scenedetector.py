@@ -288,6 +288,9 @@ def find_scenes(video_path):
                 if i >= 1:
                     sim_structural_no_face[i] = require_ssim_with_face_detection(
                         curr_frame, curr_face_detection_result, last_frame, last_face_detection_result)
+
+                    # Save the current face detection result for the next iteration
+                    last_face_detection_result = curr_face_detection_result
             else:
                 sim_structural_no_face[i] = sim_structural[i]
 
@@ -311,16 +314,15 @@ def find_scenes(video_path):
 
                 ocr_output.append(phrases)
 
-                # Save the current frame for the next iteration
-                last_frame = curr_frame
-
-                # Save the current face detection result for the next iteration
-                last_face_detection_result = curr_face_detection_result
-
                 # Save the current OCR output for the next iteration
                 last_ocr = curr_ocr
             else:
                 sim_ocr[i] = 1 if i >= 1 else 0
+
+            # Save the current frame for the next iteration
+            last_frame = curr_frame
+
+
         t = perf_counter()
         print(
             f"find_scenes('{video_path}',...) Scene Analysis Complete.  Time so far {int(t - start_time)} seconds. Defining Scene Cut points next")
@@ -388,9 +390,9 @@ def find_scenes(video_path):
             #res, frame = cap.read()
 
             # Read a frame through decord
-            frame_numpy = vr_full[requested_frame_number].asnumpy()
+            frame_vr = vr_full[requested_frame_number]
 
-            frame = cv2.cvtColor(frame_numpy, cv2.COLOR_RGB2BGR)
+            frame = cv2.cvtColor(frame_vr.asnumpy(), cv2.COLOR_RGB2BGR)
 
             img_file = os.path.join(
                 out_directory, f"{short_file_name}_frame-{requested_frame_number}.jpg")
