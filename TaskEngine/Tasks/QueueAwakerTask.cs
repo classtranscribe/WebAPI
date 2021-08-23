@@ -179,24 +179,28 @@ namespace TaskEngine.Tasks
 
 
                 // Todo Could also check for secondary video too
+                var maxProcessVideos = 40;
                 todoProcessVideos = await context.Videos.AsNoTracking().Where(
                    v=>(v.Duration == null && ! String.IsNullOrEmpty(v.Video1Id))
-                   ).OrderByDescending(t => t.CreatedAt).Select(e => e.Id).ToListAsync();
+                   ).OrderByDescending(t => t.CreatedAt).Take(maxProcessVideos).Select(e => e.Id).ToListAsync();
 
+                var maxVTTs = 100;
                 todoVTTs = await context.Transcriptions.AsNoTracking().Where(
                     t => t.Captions.Count > 0 && t.File == null && t.CreatedAt < tooRecentCutoff
-                    ).OrderByDescending(t => t.CreatedAt).Select(e => e.Id).ToListAsync();
+                    ).OrderByDescending(t => t.CreatedAt).Take(maxVTTs).Select(e => e.Id).ToListAsync();
 
+                var maxSceneDetection = 20;
                 todoSceneDetection = await context.Videos.AsNoTracking().Where( 
                         v=> v.PhraseHints == null &&
                         v.Medias.Any() && v.CreatedAt < tooRecentCutoff
-                    ).OrderByDescending(t => t.CreatedAt).Select(e => e.Id).ToListAsync();
+                    ).OrderByDescending(t => t.CreatedAt).Take(maxSceneDetection).Select(e => e.Id).ToListAsync();
 
+                var maxTranscriptions = 40;
                 todoTranscriptions = await context.Videos.AsNoTracking().Where( 
                         v=> v.PhraseHints != null &&
                         v.TranscribingAttempts < 41 && v.TranscriptionStatus != "NoError" && 
                         v.Medias.Any() && v.CreatedAt < tooRecentCutoff
-                    ).OrderByDescending(t => t.CreatedAt).Select(e => e.Id).ToListAsync();
+                    ).OrderByDescending(t => t.CreatedAt).Take(maxTranscriptions).Select(e => e.Id).ToListAsync();
 
                 // Medias for which no videos have downloaded
                 todoDownloads = await context.Medias.AsNoTracking().Where(
