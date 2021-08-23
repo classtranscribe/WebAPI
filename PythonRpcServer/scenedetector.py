@@ -289,8 +289,8 @@ def find_scenes(video_path):
                     sim_structural_no_face[i] = require_ssim_with_face_detection(
                         curr_frame, curr_face_detection_result, last_frame, last_face_detection_result)
 
-                    # Save the current face detection result for the next iteration
-                    last_face_detection_result = curr_face_detection_result
+                # Save the current face detection result for the next iteration
+                last_face_detection_result = curr_face_detection_result
             else:
                 sim_structural_no_face[i] = sim_structural[i]
 
