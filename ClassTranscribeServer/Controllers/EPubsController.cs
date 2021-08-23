@@ -124,7 +124,7 @@ namespace ClassTranscribeServer.Controllers
         // GET: api/EPubs/ByOwner/{userid}
         [HttpGet("ByOwner/{UserId}")]
         [Authorize]
-        public async Task<ActionResult<IEnumerable<EPub>>> GetEPubsBySource(string sourceType, string sourceId)
+        public async Task<ActionResult<IEnumerable<EPub>>> GetEPubs(string? userId)
         {
             try
             {
