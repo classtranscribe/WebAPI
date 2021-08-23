@@ -121,6 +121,34 @@ namespace ClassTranscribeServer.Controllers
             return ePub;
         }
 
+        // GET: api/EPubs/ByOwner/{userid}
+        [HttpGet("ByOwner/{UserId}")]
+        [Authorize]
+        public async Task<ActionResult<IEnumerable<EPub>>> GetEPubs(string? userId)
+        {
+            try
+            {
+               
+                var ePubs = await _context.EPubs.ToListAsync();
+
+                if (!ePubs.Any())
+                {
+                    return NotFound();
+                }
+
+                ePubs.ForEach(ePub =>
+                {
+                    ePub.Chapters = null;
+                });
+
+                return ePubs;
+            }
+            catch (ArgumentException)
+            {
+                return BadRequest($"Invalid request");
+            }
+        }
+
         // GET: api/EPubs/BySource/{sourceType}/{sourceId}
         [HttpGet("BySource/{sourceType}/{sourceId}")]
         [Authorize]
