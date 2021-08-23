@@ -189,7 +189,7 @@ namespace TaskEngine.Tasks
                     t => t.Captions.Count > 0 && t.File == null && t.CreatedAt < tooRecentCutoff
                     ).OrderByDescending(t => t.CreatedAt).Take(maxVTTs).Select(e => e.Id).ToListAsync();
 
-                var maxSceneDetection = 20;
+                var maxSceneDetection = 200;
                 todoSceneDetection = await context.Videos.AsNoTracking().Where( 
                         v=> v.PhraseHints == null &&
                         v.Medias.Any() && v.CreatedAt < tooRecentCutoff
