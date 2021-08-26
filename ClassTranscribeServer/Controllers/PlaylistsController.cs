@@ -104,7 +104,7 @@ namespace ClassTranscribeServer.Controllers
                     JsonMetadata = m.JsonMetadata,
                     CreatedAt = m.CreatedAt,
                     SceneDetectReady = m.Video == null ? false : m.Video.SceneData != null,
-                    Ready = m.Video == null ? false : m.Video.Transcriptions.Any(),
+                    Ready = m.Video == null ? false : "NoError" == m.Video.TranscriptionStatus ,
                     SourceType = m.SourceType,
                     Duration = m.Video?.Duration,
                     Video = new VideoDTO
