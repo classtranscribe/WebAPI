@@ -32,12 +32,11 @@ RUN python -m grpc_tools.protoc -I . --python_out=./ --grpc_python_out=./ ct.pro
 
 COPY ./PythonRpcServer .
 
-# Downloaded zip of repo from https://github.com/nficano/pytube and renamed to include version
-# version 11 now available as pip install; so pytube is added to requirements.txt
-# xx RUN python -m pip install --no-cache-dir pytube-master-10.4.1.zip
+# Downloaded tgz from https://github.com/nficano/pytube and renamed to include version
+RUN pip install --no-cache-dir pytube-v11.0.0.tar.gz
 
-RUN python -m nltk.downloader stopwords
-RUN python -m nltk.downloader brown
+python -m nltk.downloader stopwords brown
+
 
 # Nice:Very low priority but not lowest priority (18 out of 19)
 #ionice: Best effort class but second lowest priory (6 out of 7)
