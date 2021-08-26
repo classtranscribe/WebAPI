@@ -35,7 +35,7 @@ COPY ./PythonRpcServer .
 # Downloaded tgz from https://github.com/nficano/pytube and renamed to include version
 RUN pip install --no-cache-dir pytube-v11.0.0.tar.gz
 
-python -m nltk.downloader stopwords brown
+RUN python -m nltk.downloader stopwords brown
 
 
 # Nice:Very low priority but not lowest priority (18 out of 19)
