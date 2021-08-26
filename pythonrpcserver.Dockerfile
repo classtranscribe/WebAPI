@@ -31,8 +31,11 @@ COPY ct.proto ct.proto
 RUN python -m grpc_tools.protoc -I . --python_out=./ --grpc_python_out=./ ct.proto
 
 COPY ./PythonRpcServer .
+
 # Downloaded zip of repo from https://github.com/nficano/pytube and renamed to include version
-RUN python -m pip install --no-cache-dir pytube-master-10.4.1.zip
+# version 11 now available as pip install; so pytube is added to requirements.txt
+# xx RUN python -m pip install --no-cache-dir pytube-master-10.4.1.zip
+
 RUN python -m nltk.downloader stopwords
 RUN python -m nltk.downloader brown
 

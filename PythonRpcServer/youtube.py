@@ -1,18 +1,23 @@
+from pytube.extract import playlist_id
 import requests
 from utils import encode, decode, getRandomString, download_file
 import os
 import json
 from time import perf_counter 
 
-from pytube import YouTube
+#from pytube import YouTube
+import pytube
 
 from mediaprovider import MediaProvider, InvalidPlaylistInfoException
 
 DATA_DIRECTORY = os.getenv('DATA_DIRECTORY')
-YOUTUBE_API_KEY = os.getenv('YOUTUBE_API_KEY')
-YOUTUBE_PLAYLIST_URL = 'https://www.googleapis.com/youtube/v3/playlistItems'
-YOUTUBE_CHANNELS_URL = 'https://www.googleapis.com/youtube/v3/channels'
+assert( DATA_DIRECTORY )
 
+#YOUTUBE_API_KEY = os.getenv('YOUTUBE_API_KEY')
+#YOUTUBE_PLAYLIST_URL = 'https://www.googleapis.com/youtube/v3/playlistItems'
+#YOUTUBE_CHANNELS_URL = 'https://www.googleapis.com/youtube/v3/channels'
+YOUTUBE_PLAYLIST_BASE_URL='https://www.youtube.com/playlist?list='
+YOUTUBE_CHANNEL_BASE_URL='https://www.youtube.com/channel/'
 
 class YoutubeProvider(MediaProvider):
 
@@ -35,67 +40,56 @@ class YoutubeProvider(MediaProvider):
 
     def get_youtube_channel(self, identifier):
         print(f'get_youtube_channel({identifier})')
-        request1 = requests.get(YOUTUBE_CHANNELS_URL, params={
-                                'part': 'contentDetails', 'id': identifier, 'key': YOUTUBE_API_KEY})
-        if request1.status_code == 404 or request1.status_code == 500:
-            raise InvalidPlaylistInfoException
-        else:
-            request1.raise_for_status()
 
-        playlistId = request1.json(
-        )['items'][0]['contentDetails']['relatedPlaylists']['uploads']
+        url = YOUTUBE_CHANNEL_BASE_URL+ identifier
+        channel = pytube.Channel(url)
+
+        playlist_id = channel.playlist_id
         #according to one StackOver and one test, channels-to-playlists can also be converted with string replace  UCXXXX to UUXXXX
-        print(f"channel {identifier}-> playlist {playlistId}")
-        return self.get_youtube_playlist(playlistId)
+        print(f"channel {identifier}-> playlist {playlist_id}")
+        return self.get_youtube_playlist(playlist_id)
 
     def get_youtube_playlist(self, identifier):
-        start_time = perf_counter()
-        print(f'get_youtube_playlist({identifier})')
-        
-        # Documented API LIMITATION: Can download a maximum of 50 videos per playlist.
-        # https://developers.google.com/youtube/v3/docs/playlistItems/list
-        request1 = requests.get(YOUTUBE_PLAYLIST_URL,
-            params={
-            'part': 'snippet',
-            'playlistId': identifier,
-            'key': YOUTUBE_API_KEY,
-            'maxResults': 50
-            })
+        try:
+            start_time = perf_counter()
+            
+            url= YOUTUBE_PLAYLIST_BASE_URL+ identifier
+            print(f"get_youtube_playlist(identifier): {url}")
+            playlist = pytube.Playlist(url)
 
-        if request1.status_code == 404 or request1.status_code == 500:
-            raise InvalidPlaylistInfoException
-        else:
-            request1.raise_for_status()
-
-        medias = []
-        items = request1.json()['items']
-        for item in items:
-            publishedAt = item['snippet']['publishedAt']
-            channelId = item['snippet']['channelId']
-            title = item['snippet']['title']
-            description = item['snippet']['description']
-            channelTitle = item['snippet']['channelTitle']
-            playlistId = item['snippet']['playlistId']
-            videoId = item['snippet']['resourceId']['videoId']
-            videoUrl = 'http://www.youtube.com/watch?v=' + videoId
-            media = {
-                "channelTitle": channelTitle,
-                "channelId": channelId,
-                "playlistId": playlistId,
-                "title": title,
-                "description": description,
-                "publishedAt": publishedAt,
-                "videoUrl": videoUrl,
-                "videoId": videoId,
-                "createdAt": publishedAt
-            }
-            medias.append(media)
-        end_time = perf_counter()
-        print(f'Youtube playlist {identifier}: Returning {len(items)} items. Processing time {end_time - start_time :.2f} seconds')
-        return medias        
+            medias = []
+            for v in playlist.videos:
+                        
+                published_at = v.publish_date.strftime('%Y/%m/%d')
+                media = {
+                    #"channelTitle": channelTitle,
+                    "channelId": v.channel_id,
+                    "playlistId": identifier,
+                    "title": v.title,
+                    "description": v.description,
+                    "publishedAt": published_at,
+                    "videoUrl": v.watch_url,
+                    "videoId": v.video_id,
+                    "createdAt": published_at
+                }
+                medias.append(media)
+            end_time = perf_counter()
+            print(f'Youtube playlist {identifier}: Returning {len(medias)} items. Processing time {end_time - start_time :.2f} seconds')
+            return medias
+        except Exception as e:
+            print("get_youtube_playlist({request}) Exception:" + str(e))
+            raise e        
 
     def download_youtube_video(self, youtubeUrl):
-        extension = '.mp4'
-        filename = getRandomString(8)
-        filepath = YouTube(youtubeUrl).streams.filter(subtype='mp4').get_highest_resolution().download(output_path = DATA_DIRECTORY, filename = filename)
-        return filepath, extension
+        try:
+            print(f"download_youtube_video({youtubeUrl}): Starting")
+            start_time = perf_counter()
+            extension = '.mp4'
+            filename = getRandomString(8)
+            filepath = pytube.YouTube(youtubeUrl).streams.filter(subtype='mp4').get_highest_resolution().download(output_path = DATA_DIRECTORY, filename = filename)
+            end_time = perf_counter()
+            print(f"download_youtube_video({youtubeUrl}): Done. Downloaded in {end_time - start_time :.2f} seconds")
+            return filepath, extension
+        except Exception as e:
+            print("download_youtube_video({request}) Exception:" + str(e))
+            raise e
