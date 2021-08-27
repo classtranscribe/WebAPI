@@ -12,11 +12,10 @@ from datetime import datetime
 from collections import Counter
 from mtcnn_cv2 import MTCNN
 
-DATA_DIR = os.getcwd()
-TARGET_FPS = 0.5
-SCENE_DETECT_USE_FACE = True
-SCENE_DETECT_USE_OCR = True
-pytesseract.pytesseract.tesseract_cmd = r'/opt/homebrew/Cellar/tesseract/4.1.1/bin/tesseract'
+DATA_DIR = os.getenv('DATA_DIRECTORY')
+TARGET_FPS = float(os.getenv('SCENE_DETECT_FPS', 0.5))
+SCENE_DETECT_USE_FACE = os.getenv('SCENE_DETECT_USE_FACE', 'true') == 'true'
+SCENE_DETECT_USE_OCR = os.getenv('SCENE_DETECT_USE_OCR', 'true') == 'true'
 
 detector = MTCNN()
 
@@ -262,6 +261,16 @@ def generate_frame_similarity(video_path, num_samples, everyN, start_time):
 
         # Save the current frame for the next iteration
         last_frame = curr_frame
+
+        # Delete local variables
+        del frame_vr
+        del frame
+        del curr_frame
+
+        del curr_face_detection_result
+        del str_text
+        del phrases
+        del curr_ocr
     
     return timestamps, sim_structural, sim_structural_no_face, sim_ocr
 
