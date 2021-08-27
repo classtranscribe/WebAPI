@@ -262,6 +262,16 @@ def generate_frame_similarity(video_path, num_samples, everyN, start_time):
         # Save the current frame for the next iteration
         last_frame = curr_frame
     
+        # Delete local variables
+        del frame_vr
+        del frame
+        del curr_frame
+
+        del curr_face_detection_result
+        del str_text
+        del phrases
+        del curr_ocr
+    
     return timestamps, sim_structural, sim_structural_no_face, sim_ocr
 
 def extract_scene_information(video_path, timestamps, frame_cuts, everyN, start_time):
