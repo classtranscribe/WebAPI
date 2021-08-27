@@ -371,6 +371,15 @@ def extract_scene_information(video_path, timestamps, frame_cuts, everyN, start_
         scene['phrases'] = phrases  # list of strings
         scene['title'] = title  # detected title as string
 
+        # Delete local variables
+        del frame_vr
+        del frame
+        del gray_frame
+        
+        del str_text
+        del phrases
+        del title
+
     return scenes
 
 def find_scenes(video_path):
