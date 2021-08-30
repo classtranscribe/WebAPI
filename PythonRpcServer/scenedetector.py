@@ -233,6 +233,7 @@ def generate_frame_similarity(video_path, num_samples, everyN, start_time):
             last_face_detection_result = curr_face_detection_result
         else:
             sim_structural_no_face[i] = sim_structural[i]
+            curr_face_detection_result = None # Keep the del happy
 
         if SCENE_DETECT_USE_OCR:
             # Calculate the OCR difference between the current frame and last frame
@@ -258,6 +259,10 @@ def generate_frame_similarity(video_path, num_samples, everyN, start_time):
             last_ocr = curr_ocr
         else:
             sim_ocr[i] = 1 if i >= 1 else 0
+            str_text = None # Keep del happy
+            ocr_frame = None # Keep del happy
+
+        del last_frame # May prevent a memory leak
 
         # Save the current frame for the next iteration
         last_frame = curr_frame
