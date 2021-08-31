@@ -80,5 +80,7 @@ def run_scenedetector_tests():
 
 
 if __name__ == '__main__': 
-	run_scenedetector_tests();
-	print('done');
+    if 'DATA_DIRECTORY' not in os.environ.keys():
+        os.environ['DATA_DIRECTORY'] = str(os.getcwd())	
+    run_scenedetector_tests()
+    print('done')

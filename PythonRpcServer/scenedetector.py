@@ -198,6 +198,16 @@ def generate_frame_similarity(video_path, num_samples, everyN, start_time):
     vr_full = decord.VideoReader(video_path, ctx=decord.cpu(0))
     last_log_time = 0
     # For this loop only we are not using real frame numbers; we are skipping frames to improve processing speed
+
+    # Avoid memory leak by using del
+    curr_face_detection_result = None
+    last_face_detection_result = None
+    frame_vr = None
+    frame = None
+    last_frame = None
+    ocr_frame = None
+    str_text = None
+
     for i in range(0, num_samples):
 
         t = perf_counter()
@@ -230,10 +240,11 @@ def generate_frame_similarity(video_path, num_samples, everyN, start_time):
                     curr_frame, curr_face_detection_result, last_frame, last_face_detection_result)
 
             # Save the current face detection result for the next iteration
+            del last_face_detection_result
             last_face_detection_result = curr_face_detection_result
         else:
             sim_structural_no_face[i] = sim_structural[i]
-            curr_face_detection_result = None # Keep the del happy
+            
 
         if SCENE_DETECT_USE_OCR:
             # Calculate the OCR difference between the current frame and last frame
@@ -248,6 +259,7 @@ def generate_frame_similarity(video_path, num_samples, everyN, start_time):
                     phrases[str_text['text'][j]
                             ] += (float(str_text['conf'][j]) / 100)
 
+            del str_text
             curr_ocr = dict(phrases)
 
             if i >= 1:
@@ -256,25 +268,27 @@ def generate_frame_similarity(video_path, num_samples, everyN, start_time):
             ocr_output.append(phrases)
 
             # Save the current OCR output for the next iteration
+            if last_ocr:
+                del last_ocr
             last_ocr = curr_ocr
         else:
             sim_ocr[i] = 1 if i >= 1 else 0
-            str_text = None # Keep del happy
-            ocr_frame = None # Keep del happy
-
-        del last_frame # May prevent a memory leak
 
         # Save the current frame for the next iteration
+        if last_frame is not None:
+            del last_frame
         last_frame = curr_frame
-    
-        # One or more these prevents a memory leak. (16GB over 10,000 samples)
-        del frame_vr
-        del frame
-        del curr_frame
 
+        # One or more these prevents a memory leak. (16GB over 10,000 samples)
+    if SCENE_DETECT_USE_OCR:
         del curr_face_detection_result
-        del curr_ocr
-        del str_text
+        del last_ocr
+
+    del last_frame # May prevent a memory leak
+    del frame_vr
+    del frame
+    del curr_frame
+    
     
     return timestamps, sim_structural, sim_structural_no_face, sim_ocr
 
