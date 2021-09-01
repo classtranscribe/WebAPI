@@ -41,7 +41,8 @@ namespace UnitTests.ControllerTests
             {
                 Id = "offering",
                 SectionName = "A",
-                TermId = termId
+                TermId = termId,
+                PublishStatus = PublishStatus.NotPublished
             };
 
             var offeringDTO = new NewOfferingDTO
@@ -62,7 +63,7 @@ namespace UnitTests.ControllerTests
             AssertOfferingDTO(getResult.Value, offering, courseId, departmentId);
 
             var newOffering = _context.Offerings.Find(offering.Id);
-            Assert.Equal(PublishStatus.Published, newOffering.PublishStatus);
+            Assert.Equal(PublishStatus.NotPublished, newOffering.PublishStatus);
             Assert.Equal(Visibility.Visible, newOffering.Visibility);
         }
 

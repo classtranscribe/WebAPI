@@ -27,6 +27,7 @@ namespace UnitTests.ControllerTests
                 Filename = "filename_example",
                 Author = "author_example",
                 Publisher = "publisher_example",
+                PublishStatus = PublishStatus.NotPublished,
                 SourceId = "mediaId_example",
                 SourceType = ResourceType.Media
             };
@@ -44,7 +45,7 @@ namespace UnitTests.ControllerTests
 
             getResult = await _controller.GetEPub(ePub.Id);
             Assert.Equal(ePub, getResult.Value);
-            Assert.Equal(PublishStatus.Published, getResult.Value.PublishStatus);
+            Assert.Equal(PublishStatus.NotPublished, getResult.Value.PublishStatus);
             Assert.Equal(Visibility.Visible, getResult.Value.Visibility);
         }
 

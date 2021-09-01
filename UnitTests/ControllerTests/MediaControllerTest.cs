@@ -35,7 +35,7 @@ namespace UnitTests.ControllerTests
             var offering = new Offering { Id = "10" };
             var playlist = new Playlist { OfferingId = offering.Id, Id = "11" };
             var video = new Video { Duration = TimeSpan.FromSeconds(101), Id = "234" };
-            var media = new Media { VideoId = video.Id, PlaylistId = playlist.Id };
+            var media = new Media { VideoId = video.Id, PlaylistId = playlist.Id, PublishStatus = PublishStatus.NotPublished };
             var transcription = new Transcription { Language = "en", VideoId = video.Id };
 
             _context.Videos.Add(video);
@@ -53,6 +53,7 @@ namespace UnitTests.ControllerTests
             Assert.Single(mediaDTO.Transcriptions);
             Assert.Equal(transcription.Id, mediaDTO.Transcriptions[0].Id);
             Assert.Equal(transcription.Language, mediaDTO.Transcriptions[0].Language);
+            Assert.Equal(PublishStatus.NotPublished, mediaDTO.PublishStatus);
 
             // Check DTO Duration field
             Assert.IsType<TimeSpan>(mediaDTO.Duration);
