@@ -20,14 +20,11 @@ RUN make training && make training-install
 RUN curl -L -o tessdata/eng.traineddata https://github.com/tesseract-ocr/tessdata/raw/master/eng.traineddata \
     && curl -L -o tessdata/osd.traineddata https://github.com/tesseract-ocr/tessdata/raw/master/osd.traineddata
 
-COPY thirdparty/ /thirdparty/
-
 FROM python_package_compile as python_publish_base
 
 WORKDIR /PythonRpcServer
 COPY requirements.txt requirements.txt
 # Downloaded zip of repo from https://github.com/nficano/pytube and renamed to include version
-RUN python -m pip install --no-cache-dir /thirdparty/pytube-master-11.0.1.tar.gz && \
-    python -m pip install --no-cache-dir -r requirements.txt && \
+RUN python -m pip install --no-cache-dir -r requirements.txt && \
     python -m nltk.downloader stopwords brown
 
