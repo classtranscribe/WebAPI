@@ -72,6 +72,7 @@ namespace ClassTranscribeServer.Controllers
                         CreatedAt = w.Media.CreatedAt,
                         JsonMetadata = w.Media.JsonMetadata,
                         SourceType = w.Media.SourceType,
+                        PublishStatus = w.Media.PublishStatus,
                         Duration = w.Media.Video != null ? w.Media.Video.Duration : null,
                         WatchHistory = w
                     })

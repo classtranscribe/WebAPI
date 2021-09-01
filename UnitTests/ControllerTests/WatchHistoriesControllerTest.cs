@@ -76,6 +76,7 @@ namespace UnitTests.ControllerTests
                     PlaylistId = "none",
                     JsonMetadata = new JObject(new JProperty("foo", "bar")),
                     SourceType = SourceType.Kaltura,
+                    PublishStatus = PublishStatus.Published,
                     Video = new Video { Duration = TimeSpan.FromSeconds(13) }
                 },
                 new Media
@@ -84,7 +85,8 @@ namespace UnitTests.ControllerTests
                     Name = "exampleMedia2",
                     PlaylistId = "none2",
                     JsonMetadata = new JObject(new JProperty("foo", "baz")),
-                    SourceType = SourceType.Box
+                    SourceType = SourceType.Box,
+                    PublishStatus = PublishStatus.NotPublished
                 }
             };
 
@@ -133,6 +135,7 @@ namespace UnitTests.ControllerTests
             Assert.Equal(medias[1].PlaylistId, result.Value.ElementAt(0).PlaylistId);
             Assert.Equal(medias[1].JsonMetadata, result.Value.ElementAt(0).JsonMetadata);
             Assert.Equal(medias[1].SourceType, result.Value.ElementAt(0).SourceType);
+            Assert.Equal(medias[1].PublishStatus, result.Value.ElementAt(0).PublishStatus);
             Assert.Equal(wh2, result.Value.ElementAt(0).WatchHistory);
 
             Assert.Equal(medias[0].Name, result.Value.ElementAt(1).Name);
@@ -140,6 +143,7 @@ namespace UnitTests.ControllerTests
             Assert.Equal(medias[0].JsonMetadata, result.Value.ElementAt(1).JsonMetadata);
             Assert.Equal(medias[0].SourceType, result.Value.ElementAt(1).SourceType);
             Assert.Equal(medias[0].Video.Duration, result.Value.ElementAt(1).Duration);
+            Assert.Equal(medias[0].PublishStatus, result.Value.ElementAt(1).PublishStatus);
             Assert.Equal(wh1, result.Value.ElementAt(1).WatchHistory);
         }
 
