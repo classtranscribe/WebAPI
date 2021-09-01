@@ -37,7 +37,7 @@ namespace ClassTranscribeServer.Controllers
             // Store the results
             List<Offering> offerings = await _context.Offerings.ToListAsync();
 
-            // Include offerings that have existing media items and are published
+            // Only include offerings that have existing media items and are published
             return offerings
                 .FindAll(o => o.Playlists != null && o.Playlists.SelectMany(m => m.Medias).Any() && o.PublishStatus == PublishStatus.Published)
                 .OrderBy(o => o.Term.StartDate)
