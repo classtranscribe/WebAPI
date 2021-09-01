@@ -61,7 +61,8 @@ namespace ClassTranscribeServer.Controllers
                 OfferingId = p.OfferingId,
                 Name = p.Name,
                 Index = p.Index,
-                PlaylistIdentifier = p.PlaylistIdentifier
+                PlaylistIdentifier = p.PlaylistIdentifier,
+                PublishStatus = p.PublishStatus
             }).ToList();
             return playlists;
         }
@@ -96,6 +97,7 @@ namespace ClassTranscribeServer.Controllers
                 Name = p.Name,
                 Index = p.Index,
                 PlaylistIdentifier = p.PlaylistIdentifier,
+                PublishStatus = p.PublishStatus,
                 Medias = p.Medias.Where(m => m.Video != null).Select(m => new MediaDTO
                 {
                     Id = m.Id,
@@ -107,6 +109,7 @@ namespace ClassTranscribeServer.Controllers
                     Ready = m.Video == null ? false : "NoError" == m.Video.TranscriptionStatus ,
                     SourceType = m.SourceType,
                     Duration = m.Video?.Duration,
+                    PublishStatus = m.PublishStatus,
                     Video = new VideoDTO
                     {
                         Id = m.Video.Id,
@@ -130,7 +133,14 @@ namespace ClassTranscribeServer.Controllers
         {
             var mediaSearches = await _context.Medias.Where(m => m.Playlist.OfferingId == offeringId &&
             EF.Functions.ToTsVector("english", m.Name).Matches(query))
-                .Select(m => new MediaSearchDTO { Name = m.Name, MediaId = m.Id, PlaylistName = m.Playlist.Name, PlaylistId = m.PlaylistId })
+                .Select(m => new MediaSearchDTO
+                {
+                    Name = m.Name,
+                    MediaId = m.Id,
+                    PlaylistName = m.Playlist.Name,
+                    PlaylistId = m.PlaylistId,
+                    PublishStatus = m.PublishStatus
+                })
                 .Take(50)
                 .ToListAsync();
 
@@ -169,6 +179,7 @@ namespace ClassTranscribeServer.Controllers
                     JsonMetadata = m.JsonMetadata,
                     SourceType = m.SourceType,
                     Duration = m.Video?.Duration,
+                    PublishStatus = m.PublishStatus,
                     SceneDetectReady = m.Video == null ? false : m.Video.SceneData != null,
                     Ready = m.Video == null ? false : m.Video.Transcriptions.Any(),
                     Video = m.Video == null ? null : new VideoDTO
@@ -196,7 +207,8 @@ namespace ClassTranscribeServer.Controllers
                 Name = p.Name,
                 Medias = medias,
                 JsonMetadata = p.JsonMetadata,
-                PlaylistIdentifier = p.PlaylistIdentifier
+                PlaylistIdentifier = p.PlaylistIdentifier,
+                PublishStatus = p.PublishStatus
             };
         }
 
@@ -396,6 +408,7 @@ namespace ClassTranscribeServer.Controllers
         public string PlaylistIdentifier { get; set; }
         public List<MediaDTO> Medias { get; set; }
         public JObject JsonMetadata { get; set; }
+        public PublishStatus PublishStatus { get; set; }
     }
 
     public class MediaDTO
@@ -406,6 +419,7 @@ namespace ClassTranscribeServer.Controllers
         public JObject JsonMetadata { get; set; }
         public SourceType SourceType { get; set; }
         public bool Ready { get; set; }
+        public PublishStatus PublishStatus { get; set; }
 
         public bool SceneDetectReady { get; set; }
 
@@ -424,5 +438,6 @@ namespace ClassTranscribeServer.Controllers
         public string MediaId { get; set; }
         public string PlaylistName { get; set; }
         public string PlaylistId { get; set; }
+        public PublishStatus PublishStatus { get; set; }
     }
 }

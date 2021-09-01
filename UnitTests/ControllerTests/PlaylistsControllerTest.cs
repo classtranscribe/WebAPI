@@ -36,20 +36,23 @@ namespace UnitTests.ControllerTests
                     OfferingId = offeringId,
                     SourceType = SourceType.Local,
                     Name = "foo",
-                    Index = 0
+                    Index = 0,
+                    PublishStatus = PublishStatus.Published
                 },
                 new Playlist
                 {
                     OfferingId = "none",
                     SourceType = SourceType.Local,
-                    Name = "bar"
+                    Name = "bar",
+                    PublishStatus = PublishStatus.Published
                 },
                 new Playlist
                 {
                     OfferingId = offeringId,
                     SourceType = SourceType.Echo360,
                     Name = "baz",
-                    Index = 1
+                    Index = 1,
+                    PublishStatus = PublishStatus.NotPublished
                 }
             };
 
@@ -64,11 +67,13 @@ namespace UnitTests.ControllerTests
             Assert.Equal(playlists[0].SourceType, result.Value.ElementAt(0).SourceType);
             Assert.Equal(playlists[0].Name, result.Value.ElementAt(0).Name);
             Assert.Equal(playlists[0].Index, result.Value.ElementAt(0).Index);
+            Assert.Equal(playlists[0].PublishStatus, result.Value.ElementAt(0).PublishStatus);
 
             Assert.Equal(playlists[2].Id, result.Value.ElementAt(1).Id);
             Assert.Equal(playlists[2].SourceType, result.Value.ElementAt(1).SourceType);
             Assert.Equal(playlists[2].Name, result.Value.ElementAt(1).Name);
             Assert.Equal(playlists[2].Index, result.Value.ElementAt(1).Index);
+            Assert.Equal(playlists[2].PublishStatus, result.Value.ElementAt(1).PublishStatus);
         }
 
         [Fact]
@@ -93,12 +98,14 @@ namespace UnitTests.ControllerTests
                     SourceType = SourceType.Local,
                     Name = "foo",
                     Index = 0,
+                    PublishStatus = PublishStatus.Published,
                     Medias = new List<Media>()
                     {
                         new Media()
                         {
                             Id = "media_foo",
                             SourceType = SourceType.Local,
+                            PublishStatus = PublishStatus.NotPublished,
                             Video = new Video()
                             {
                                 Transcriptions = new List<Transcription>(),
@@ -111,7 +118,8 @@ namespace UnitTests.ControllerTests
                 {
                     OfferingId = "none",
                     SourceType = SourceType.Local,
-                    Name = "bar"
+                    Name = "bar",
+                    PublishStatus = PublishStatus.NotPublished,
                 },
                 new Playlist
                 {
@@ -119,12 +127,14 @@ namespace UnitTests.ControllerTests
                     SourceType = SourceType.Echo360,
                     Name = "baz",
                     Index = 1,
+                    PublishStatus = PublishStatus.NotPublished,
                     Medias = new List<Media>()
                     {
                         new Media()
                         {
                             Id = "media_baz",
                             SourceType = SourceType.Echo360,
+                            PublishStatus = PublishStatus.NotPublished,
                             Video = new Video()
                             {
                                 Transcriptions = new List<Transcription>(),
@@ -146,17 +156,21 @@ namespace UnitTests.ControllerTests
             Assert.Equal(playlists[0].SourceType, result.Value.ElementAt(0).SourceType);
             Assert.Equal(playlists[0].Name, result.Value.ElementAt(0).Name);
             Assert.Equal(playlists[0].Index, result.Value.ElementAt(0).Index);
+            Assert.Equal(playlists[0].PublishStatus, result.Value.ElementAt(0).PublishStatus);
             Assert.Equal(playlists[0].Medias[0].Id, result.Value.ElementAt(0).Medias[0].Id);
             Assert.Equal(playlists[0].Medias[0].SourceType, result.Value.ElementAt(0).Medias[0].SourceType);
             Assert.Equal(playlists[0].Medias[0].Video.Duration, result.Value.ElementAt(0).Medias[0].Duration);
+            Assert.Equal(playlists[0].Medias[0].PublishStatus, result.Value.ElementAt(0).Medias[0].PublishStatus);
 
             Assert.Equal(playlists[2].Id, result.Value.ElementAt(1).Id);
             Assert.Equal(playlists[2].SourceType, result.Value.ElementAt(1).SourceType);
             Assert.Equal(playlists[2].Name, result.Value.ElementAt(1).Name);
             Assert.Equal(playlists[2].Index, result.Value.ElementAt(1).Index);
+            Assert.Equal(playlists[2].PublishStatus, result.Value.ElementAt(1).PublishStatus);
             Assert.Equal(playlists[2].Medias[0].Id, result.Value.ElementAt(1).Medias[0].Id);
             Assert.Equal(playlists[2].Medias[0].SourceType, result.Value.ElementAt(1).Medias[0].SourceType);
             Assert.Equal(playlists[2].Medias[0].Video.Duration, result.Value.ElementAt(1).Medias[0].Duration);
+            Assert.Equal(playlists[2].Medias[0].PublishStatus, result.Value.ElementAt(1).Medias[0].PublishStatus);
         }
 
         [Fact]
@@ -193,11 +207,13 @@ namespace UnitTests.ControllerTests
                 Id = "playlist",
                 SourceType = SourceType.Box,
                 Name = "foo",
+                PublishStatus = PublishStatus.NotPublished,
                 Medias = new List<Media>()
                 {
                     new Media {
                         Id = "media_foo",
                         SourceType = SourceType.Local,
+                        PublishStatus = PublishStatus.NotPublished,
                         Video = new Video {
                             Duration = TimeSpan.FromSeconds(13),
                             Transcriptions = new List<Transcription>(),
@@ -213,9 +229,11 @@ namespace UnitTests.ControllerTests
             Assert.Equal(playlist.Id, result.Value.Id);
             Assert.Equal(playlist.SourceType, result.Value.SourceType);
             Assert.Equal(playlist.Name, result.Value.Name);
+            Assert.Equal(playlist.PublishStatus, result.Value.PublishStatus);
             Assert.Equal(playlist.Medias[0].Id, result.Value.Medias[0].Id);
             Assert.Equal(playlist.Medias[0].SourceType, result.Value.Medias[0].SourceType);
             Assert.Equal(playlist.Medias[0].Video.Duration, result.Value.Medias[0].Duration);
+            Assert.Equal(playlist.Medias[0].PublishStatus, result.Value.Medias[0].PublishStatus);
         }
 
         [Fact]
