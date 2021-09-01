@@ -1,0 +1,54 @@
+name: pyclowder
+
+# This will check to see if there is a new version of pytube and
+# automatically create a pull request.
+on:
+  push:
+    branches:
+      - master
+      - staging
+      - expt
+
+  schedule:
+    - cron: '0 0 * * *'
+
+jobs:
+  pyclowder:
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        branch:
+          - master
+          - staging
+          - expt
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: ${{ matrix.branch }}
+
+      # calculate some variables that are used later
+      - name: pytube upgrade
+        run: |
+          pytube=$(curl --silent "https://api.github.com/repos/pytube/pytube/releases/latest" | jq -r .tag_name)
+          echo "PYTUBE=${pytube}" >> $GITHUB_ENV
+
+          if [ "$(grep 'pytube' PythonRpcServer/requirements.txt | sed 's#.*/\(.*\).zip#\1#')" != "${pytube}" ]; then
+            echo "Updating pytube to ${pytube}"
+
+            # update pytube
+            mv PythonRpcServer/requirements.txt PythonRpcServer/requirements.bak
+            grep -v 'pytube' PythonRpcServer/requirements.txt PythonRpcServer/requirements.bak > PythonRpcServer/requirements.txt
+            echo "https://github.com/pytube/pytube/archive/refs/tags/${pytube}.zip" >> PythonRpcServer/requirements.txt
+            rm PythonRpcServer/requirements.bak
+          fi
+
+      # this will create a PR if needed
+      - name: create PR if needed
+        uses: peter-evans/create-pull-request@v3
+        with:
+          commit-message: "Updated pytube to ${{ env.PYTUBE }}"
+          title: "Updated pytube to ${{ env.PYTUBE }}"
+          assignees: angrave

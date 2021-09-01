@@ -1,0 +1,30 @@
+# Python build split into 3 parts:
+# i) C++ compilation of packages we cant just apt install (specifically Tesseract 4) (slow)
+# ii) python pip install from requirements.txt and 3rd party python packages
+# iii) build of source code (including gprc)
+FROM python:3.7-slim-stretch  as python_package_compile
+
+RUN apt-get update && apt-get install -y curl gcc g++ make libglib2.0-0 libsm6 libxext6 libxrender-dev ffmpeg
+
+# Build stuff for tesseract
+# Based on https://medium.com/quantrium-tech/installing-tesseract-4-on-ubuntu-18-04-b6fcd0cbd78f
+RUN apt-get install -y automake pkg-config libsdl-pango-dev libicu-dev libcairo2-dev bc libleptonica-dev
+RUN  curl -L  https://github.com/tesseract-ocr/tesseract/archive/refs/tags/4.1.1.tar.gz  | tar xvz
+
+WORKDIR /tesseract-4.1.1
+RUN ./autogen.sh && ./configure && make -j && make install && ldconfig 
+# Slow! The above line takes 435 seconds on my laptop
+RUN make training && make training-install
+# The above line takes 59 seconds on my laptop 
+
+RUN curl -L -o tessdata/eng.traineddata https://github.com/tesseract-ocr/tessdata/raw/master/eng.traineddata \
+    && curl -L -o tessdata/osd.traineddata https://github.com/tesseract-ocr/tessdata/raw/master/osd.traineddata
+
+FROM python_package_compile as python_publish_base
+
+WORKDIR /PythonRpcServer
+COPY requirements.txt requirements.txt
+# Downloaded zip of repo from https://github.com/nficano/pytube and renamed to include version
+RUN python -m pip install --no-cache-dir -r requirements.txt && \
+    python -m nltk.downloader stopwords brown
+
