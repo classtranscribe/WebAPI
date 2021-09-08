@@ -291,8 +291,6 @@ namespace ClassTranscribeDatabase.Models
         public virtual List<Transcription> Transcriptions { get; set; }
 
         public virtual List<EPub> EPubs { get; set; }
-        public JObject SceneData { get; set; }
-        public JObject JsonMetadata { get; set; }
         public string? PhraseHints { get; set; } // null if not yet processed
 
         // Reported duration extracted from MediaInfo. The actual video/audio/caption streams duration could be less
@@ -300,10 +298,11 @@ namespace ClassTranscribeDatabase.Models
         // TimeSpan.Zero means a video that is actually zero seconds
         // See UpdateMediaProperties
         public virtual TimeSpan? Duration { get; set; }
-        
 
+        public JObject SceneData { get; set; } = new JObject();
+        public JObject JsonMetadata { get; set; } = new JObject();
         // MediaInfo extracted from the video file
-        public virtual JObject FileMediaInfo { get; set; }
+        public virtual JObject FileMediaInfo { get; set; } = new JObject();
 
 
         public virtual void UpdateMediaProperties()
