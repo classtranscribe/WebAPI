@@ -14,9 +14,9 @@ namespace UnitTests.OtherTests
             Assert.NotNull(video.SceneData);
             Assert.NotNull(video.FileMediaInfo);
 
-            Assert.Equal("{}", video.JsonMetadata.ToString());
-            Assert.Equal("{}", video.SceneData.ToString());
-            Assert.Equal("{}", video.FileMediaInfo.ToString());
+            Assert.Empty(video.JsonMetadata);
+            Assert.Empty(video.SceneData);
+            Assert.Empty(video.FileMediaInfo);
         }
     }
 }
