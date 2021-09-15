@@ -83,7 +83,8 @@ namespace ClassTranscribeDatabase.Models
         public string UniversityId { get; set; }
         public virtual University University { get; set; }
         public Status Status { get; set; }
-        public JObject Metadata { get; set; }
+        [Required]
+        public JObject Metadata { get; set; } = new JObject();
     }
 
     /// <summary>
@@ -201,7 +202,8 @@ namespace ClassTranscribeDatabase.Models
         public bool LogEventsFlag { get; set; }
         public string CourseName { get; set; }
         public string Description { get; set; }
-        public JObject JsonMetadata { get; set; }
+        [Required]
+        public JObject JsonMetadata { get; set; } = new JObject();
         public Visibility Visibility { get; set; }
         public PublishStatus PublishStatus { get; set; }
     }
@@ -216,7 +218,8 @@ namespace ClassTranscribeDatabase.Models
         [SwaggerIgnore]
         [IgnoreDataMember]
         public virtual Offering Offering { get; set; }
-        public JObject JsonMetadata { get; set; }
+        [Required]
+        public JObject JsonMetadata { get; set; } = new JObject();
         public int Index { get; set; }
         public Visibility Visibility { get; set; }
         public PublishStatus PublishStatus { get; set; }
@@ -226,7 +229,8 @@ namespace ClassTranscribeDatabase.Models
     {
         public SourceType SourceType { get; set; }
         public string UniqueMediaIdentifier { get; set; }
-        public JObject JsonMetadata { get; set; }
+        [Required]
+        public JObject JsonMetadata { get; set; } = new JObject();
         public string VideoId { get; set; }
         [SwaggerIgnore]
         [IgnoreDataMember]
@@ -391,7 +395,8 @@ namespace ClassTranscribeDatabase.Models
         public string OfferingId { get; set; }
         public string MediaId { get; set; }
         public string EventType { get; set; }
-        public JObject Json { get; set; }
+        [Required]
+        public JObject Json { get; set; } = new JObject();
     }
 
     public class EPub : Entity
@@ -405,7 +410,8 @@ namespace ClassTranscribeDatabase.Models
         public string Publisher { get; set; }
         public Visibility Visibility { get; set; }
         public PublishStatus PublishStatus { get; set; }
-        public JObject Cover { get; set; }
+        [Required]
+        public JObject Cover { get; set; } = new JObject();
         public List<JObject> Chapters { get; set; }
     }
 
@@ -419,7 +425,8 @@ namespace ClassTranscribeDatabase.Models
         [SwaggerIgnore]
         [IgnoreDataMember]
         public virtual ApplicationUser ApplicationUser { get; set; }
-        public JObject Json { get; set; }
+        [Required]
+        public JObject Json { get; set; } = new JObject();
     }
 
     public class Dictionary : Entity
@@ -459,7 +466,8 @@ namespace ClassTranscribeDatabase.Models
     {
         public virtual ApplicationUser ApplicationUser { get; set; }
         public string ApplicationUserId { get; set; }
-        public JObject Payload { get; set; }
+        [Required]
+        public JObject Payload { get; set; } = new JObject();
         public LogLevel LogLevel { get; set; }
         public Ack Ack { get; set; }
     }
