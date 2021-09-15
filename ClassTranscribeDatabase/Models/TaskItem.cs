@@ -1,26 +1,20 @@
-﻿using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.Logging;
-using Newtonsoft.Json.Linq;
+﻿using Newtonsoft.Json.Linq;
 using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.Runtime.Serialization;
-using System.Threading.Tasks;
 using static ClassTranscribeDatabase.CommonUtils;
 
 namespace ClassTranscribeDatabase.Models
 {
 
-    /// <summary>
-    /// A representation of a background job to aid debugging information and provide status information to instructors
-    /// </summary>
-    /// <remarks>
-    /// We dont add a collection of TaskItems to Videos, Playlists etc because the entity framework will then always load these rows
-    /// See https://stackoverflow.com/questions/32273760/can-you-exclude-reverse-navigation-properties-in-ef-when-eager-loading
-    /// 
-    /// </remarks>
+  /// <summary>
+  /// A representation of a background job to aid debugging information and provide status information to instructors
+  /// </summary>
+  /// <remarks>
+  /// We dont add a collection of TaskItems to Videos, Playlists etc because the entity framework will then always load these rows
+  /// See https://stackoverflow.com/questions/32273760/can-you-exclude-reverse-navigation-properties-in-ef-when-eager-loading
+  /// 
+  /// </remarks>
 
-    public class TaskItem : Entity
+  public class TaskItem : Entity
     {
         // e.g. RefreshPlaylist/playlist-id
         // e.g. GenerateCaptions/playlist-uuid

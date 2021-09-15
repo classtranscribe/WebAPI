@@ -2,7 +2,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using System;
 using CTCommons.MSTranscription;
 using CTCommons;
 using Microsoft.Extensions.Options;
@@ -11,7 +10,7 @@ using CTCommons.Grpc;
 
 namespace DevExperiments
 {
-    class Program
+  class Program
     {
         static void Main(string[] args)
         {

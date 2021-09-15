@@ -1,22 +1,13 @@
 ﻿using ClassTranscribeDatabase;
-using ClassTranscribeDatabase.Models;
 using Newtonsoft.Json.Linq;
 using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using CTCommons.Grpc;
-using static ClassTranscribeDatabase.CommonUtils;
 using CTCommons.MSTranscription;
-using System.Text.Json;
-using System.Text;
-using Microsoft.EntityFrameworkCore;
 
 namespace CTCommons
 {
-    class TempCode
+  class TempCode
     {
         // Deletes all Videos which don't have a file or have an invalid file (size under 1000 bytes)
 

@@ -3,7 +3,6 @@ using ClassTranscribeDatabase.Models;
 using ClassTranscribeServer.Authorization;
 using ClassTranscribeServer.Utils;
 using CTCommons;
-using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
@@ -29,7 +28,7 @@ using System.Text;
 
 namespace ClassTranscribeServer
 {
-    public class Startup
+  public class Startup
     {
         public Startup(IOptions<AppSettings> appSettings)
         {

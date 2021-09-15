@@ -1,22 +1,16 @@
 ﻿using ClassTranscribeDatabase;
-using ClassTranscribeDatabase.Models;
 using CTCommons;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Configuration;
 using System.Threading.Tasks;
 using static ClassTranscribeDatabase.CommonUtils;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-
 using Nest;
-using Elasticsearch.Net;
 using System;
-using System.Collections.Generic;
 
 namespace TaskEngine.Tasks
 {
-    class CleanUpElasticIndexTask : RabbitMQTask<string>
+  class CleanUpElasticIndexTask : RabbitMQTask<string>
     {
         private readonly ElasticClient _client;
         private readonly int _time_to_live;

@@ -1,24 +1,16 @@
 ﻿using ClassTranscribeDatabase;
-using ClassTranscribeDatabase.Models;
 using ClassTranscribeServer.Utils;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Security.Claims;
-using System.Threading.Tasks;
 
 
 namespace ClassTranscribeServer.Controllers
 {
-    [Route("/data/")]
+  [Route("/data/")]
     [ApiController]
     public class StaticFileController : BaseController
     {

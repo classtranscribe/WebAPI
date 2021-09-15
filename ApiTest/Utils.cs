@@ -1,15 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using JsonDiffPatchDotNet;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Globalization;
 
 namespace Tests
 {
 
-    class Utils
+  class Utils
     {
 
         public static string toTitleCase(string str)

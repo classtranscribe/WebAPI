@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Net.Http;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Net.Http;
 
 namespace ClientSdk.Client
 {
-    public class ClientFactory
+  public class ClientFactory
     {
         public static MyClient CreateTestClient(string baseUrl, HttpClient http, string _token)
         {

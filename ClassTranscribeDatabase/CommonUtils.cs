@@ -1,14 +1,11 @@
-﻿using Microsoft.AspNetCore.Http;
-using Newtonsoft.Json;
-using RabbitMQ.Client.Content;
+﻿using Newtonsoft.Json;
 using System;
 using System.IO;
-using System.Linq;
 using System.Text;
 
 namespace ClassTranscribeDatabase
 {
-    public class CommonUtils
+  public class CommonUtils
     {
         // Explicitly number entries because these will exist in the database
         // and we dont want the meaning of existing entries to change due to future modifications of this list

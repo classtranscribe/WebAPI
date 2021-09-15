@@ -5,15 +5,13 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using CTCommons.Grpc;
 using TaskEngine.Tasks;
-using static ClassTranscribeDatabase.CommonUtils;
 
 namespace TaskEngine
 {
-    class TempCode
+  class TempCode
     {
         // Deletes all Videos which don't have a file or have an invalid file (size under 1000 bytes)
 

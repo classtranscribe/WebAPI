@@ -1,5 +1,4 @@
 ﻿using ClassTranscribeDatabase;
-using ClassTranscribeDatabase.Models;
 using CTCommons;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -10,7 +9,7 @@ using System.Linq;
 
 namespace TaskEngine.Tasks
 {
-    [SuppressMessage("Microsoft.Performance", "CA1812:MarkMembersAsStatic")] // This class is never directly instantiated
+  [SuppressMessage("Microsoft.Performance", "CA1812:MarkMembersAsStatic")] // This class is never directly instantiated
     class ExampleTask : RabbitMQTask<string>
     {
         public ExampleTask(RabbitMQConnection rabbitMQ,

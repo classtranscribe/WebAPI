@@ -1,12 +1,9 @@
-using System;
-using Xunit;
 using System.Collections.Generic;
-using System.Linq;
 using System.Collections;
 
 namespace Tests
 {
-    public class Tests
+  public class Tests
     {
         // Inputs: token, api, method, inputs, expected outputs
         public class TestData : IEnumerable<object[]>

@@ -6,12 +6,11 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Linq;
-using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace ClassTranscribeServer.Authorization
 {
-    public class ReadOfferingRequirement : IAuthorizationRequirement { }
+  public class ReadOfferingRequirement : IAuthorizationRequirement { }
     public class UpdateOfferingRequirement : IAuthorizationRequirement { }
     public class UpdateOfferingAuthorizationHandler :
     AuthorizationHandler<UpdateOfferingRequirement, Offering>

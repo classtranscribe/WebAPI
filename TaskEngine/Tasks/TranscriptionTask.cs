@@ -4,7 +4,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using CTCommons.MSTranscription;
@@ -12,14 +11,13 @@ using static ClassTranscribeDatabase.CommonUtils;
 using CTCommons;
 using Newtonsoft.Json.Linq;
 using System.Diagnostics.CodeAnalysis;
-using Google.Protobuf.WellKnownTypes;
 
 namespace TaskEngine.Tasks
 {
-    /// <summary>
-    /// This task produces the transcriptions for a Video item.
-    /// </summary>
-    [SuppressMessage("Microsoft.Performance", "CA1812:MarkMembersAsStatic")] // This class is never directly instantiated
+  /// <summary>
+  /// This task produces the transcriptions for a Video item.
+  /// </summary>
+  [SuppressMessage("Microsoft.Performance", "CA1812:MarkMembersAsStatic")] // This class is never directly instantiated
     class TranscriptionTask : RabbitMQTask<string>
     {
        

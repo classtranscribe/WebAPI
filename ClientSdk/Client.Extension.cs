@@ -1,8 +1,5 @@
 ﻿using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
-using System;
-using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Reflection;
@@ -10,7 +7,7 @@ using System.Reflection;
 
 namespace ClientSdk.Client
 {
-    public partial class MyClient
+  public partial class MyClient
     {
         partial void ProcessResponse(HttpClient request, HttpResponseMessage response)
         {
