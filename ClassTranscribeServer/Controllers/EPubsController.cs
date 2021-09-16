@@ -81,7 +81,7 @@ namespace ClassTranscribeServer.Controllers
             var media = _context.Medias.Find(mediaId);
             Video video = await _context.Videos.FindAsync(media.VideoId);
 
-            if (video.SceneData == null)
+            if (!video.SceneData.HasValues)
             {
                 return NotFound();
             }

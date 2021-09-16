@@ -105,7 +105,7 @@ namespace ClassTranscribeServer.Controllers
                     Name = m.Name,
                     JsonMetadata = m.JsonMetadata,
                     CreatedAt = m.CreatedAt,
-                    SceneDetectReady = m.Video == null ? false : m.Video.SceneData != null,
+                    SceneDetectReady = m.Video == null ? false : m.Video.SceneData.HasValues,
                     Ready = m.Video == null ? false : "NoError" == m.Video.TranscriptionStatus ,
                     SourceType = m.SourceType,
                     Duration = m.Video?.Duration,
@@ -180,7 +180,7 @@ namespace ClassTranscribeServer.Controllers
                     SourceType = m.SourceType,
                     Duration = m.Video?.Duration,
                     PublishStatus = m.PublishStatus,
-                    SceneDetectReady = m.Video == null ? false : m.Video.SceneData != null,
+                    SceneDetectReady = m.Video == null ? false : m.Video.SceneData.HasValues,
                     Ready = m.Video == null ? false : m.Video.Transcriptions.Any(),
                     Video = m.Video == null ? null : new VideoDTO
                     {

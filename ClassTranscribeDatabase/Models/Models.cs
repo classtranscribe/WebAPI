@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
@@ -303,8 +304,11 @@ namespace ClassTranscribeDatabase.Models
         // See UpdateMediaProperties
         public virtual TimeSpan? Duration { get; set; }
 
+        [Required]
         public JObject SceneData { get; set; } = new JObject();
+        [Required]
         public JObject JsonMetadata { get; set; } = new JObject();
+        [Required]
         // MediaInfo extracted from the video file
         public virtual JObject FileMediaInfo { get; set; } = new JObject();
 

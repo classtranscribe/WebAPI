@@ -175,11 +175,6 @@ namespace TaskEngine.Tasks
 
                     var result = await _msTranscriptionService.RecognitionWithVideoStreamAsync(videoId, video.Video1, key, captionsMap, sourceLanguage, phraseHints, startAfterMap);
 
-                    if (video.JsonMetadata == null)
-                    {
-                        video.JsonMetadata = new JObject();
-                    }
-
                     TaskEngineGlobals.KeyProvider.ReleaseKey(key, video.Id);
 
                     foreach (var captionsInLanguage in result.Captions)
