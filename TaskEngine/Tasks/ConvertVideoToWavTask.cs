@@ -40,7 +40,7 @@ namespace TaskEngine.Tasks
         /// <param name="videoId"></param>
         /// <param name="taskParameters"></param>
         /// <returns></returns>
-        private async Task OldOnConsumeNotUsed(string videoId, TaskParameters taskParameters) 
+        private async Task OldOnConsumeNotUsed(string videoId) 
         { 
             using (var _context = CTDbContext.CreateDbContext())
             {

@@ -124,7 +124,7 @@ namespace ClassTranscribeServer.Controllers
         // GET: api/EPubs/ByOwner/{userid}
         [HttpGet("ByOwner/{UserId}")]
         [Authorize]
-        public async Task<ActionResult<IEnumerable<EPub>>> GetEPubs(string? userId)
+        public async Task<ActionResult<IEnumerable<EPub>>> GetEPubs(string userId = "")
         {
             try
             {
@@ -145,7 +145,7 @@ namespace ClassTranscribeServer.Controllers
             }
             catch (ArgumentException)
             {
-                return BadRequest($"Invalid request");
+                return BadRequest($"Invalid request to /api/EPubs/ByOwner/{userId}");
             }
         }
 
