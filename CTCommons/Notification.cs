@@ -64,7 +64,7 @@ namespace CTCommons.Notification
             {
                 LogLevel = logLevel,
                 ApplicationUserId = uId,
-                Payload = payload
+                Payload = payload ?? new JObject()
             }).ToList();
 
             await _context.Messages.AddRangeAsync(messages);
