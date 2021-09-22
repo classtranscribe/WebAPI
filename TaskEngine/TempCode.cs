@@ -3,6 +3,7 @@ using ClassTranscribeDatabase.Models;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -11,6 +12,7 @@ using TaskEngine.Tasks;
 
 namespace TaskEngine
 {
+    [SuppressMessage("Microsoft.Performance", "CA1812:MarkMembersAsStatic")] // This class is never directly instantiated
     class TempCode
     {
         // Deletes all Videos which don't have a file or have an invalid file (size under 1000 bytes)

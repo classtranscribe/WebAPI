@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -144,17 +145,21 @@ namespace ClassTranscribeServer.Controllers
         // Language codes from 
         // http://www.lingoes.net/en/translator/langcode.htm
 
-        private static Dictionary<string, string> pgLanguageMap;
-        static CaptionsController()
+        private static Dictionary<string, string> pgLanguageMap = InitializePgLanguageMap();
+
+        static Dictionary<string, string> InitializePgLanguageMap()
         {
-            pgLanguageMap = new Dictionary<string, string>();
+            var languageMap = new Dictionary<string, string>();
             var supportedLanguages = "da:danish,nl:dutch,en:english,fi:finnish,fr:french,de:german,hu:hungarian,it:italian,nb:norwegian," +
                 "pt:portuguese,ro:romanian,ru:russian,es:spanish,sv:swedish,tr:turkish";
+
             foreach (var keyvalue in supportedLanguages.Split(","))
             {
                 var pair = keyvalue.Split(":");
-                pgLanguageMap.Add(pair[0], pair[1]);
+                languageMap.Add(pair[0], pair[1]);
             }
+
+            return languageMap;
         }
 
         /// <summary>
@@ -163,9 +168,10 @@ namespace ClassTranscribeServer.Controllers
         /// </summary>
         /// <param name="code"></param>
         /// <returns></returns>
+        [SuppressMessage("Globalization", "CA1308:Normalize strings to uppercase", Justification = "Lowercase strings used for ISO Language Codes")]
         public static string toPGLanguage(string code)
         {
-            return code.Length >= 2 ? pgLanguageMap.GetValueOrDefault(code.Substring(0, 2).ToLowerInvariant(), "simple") : "simple";
+            return code != null && code.Length >= 2 ? pgLanguageMap.GetValueOrDefault(code.Substring(0, 2).ToLowerInvariant(), "simple") : "simple";
         }
 
         // POST: api/Captions
@@ -191,7 +197,7 @@ namespace ClassTranscribeServer.Controllers
             // e.g. toPGLanguage( c.Transcription.Language) - but Entity Framework cant inline toPGLanguage and assemble it into SQL
             // So when all languages are included, the current implementation below is biased towards English.
             // A more comprehensive solution might iterate through all languages
-            var pgLanguage = toPGLanguage(filterLanguage.Length == 0 ? "en" : filterLanguage);
+            var pgLanguage = toPGLanguage(filterLanguage == null || filterLanguage.Length == 0 ? "en" : filterLanguage);
 
             var matchingCaptions = _context.Database.IsNpgsql() ?
                     allOfferingCaptions.Where(c => EF.Functions.ToTsVector(pgLanguage, c.Text).Matches(query))
@@ -215,7 +221,7 @@ namespace ClassTranscribeServer.Controllers
                 c.PlaylistName = v.PlaylistName;
             });
 
-            if(result.Count ==0 && filterLanguage.Length>0)
+            if(result.Count == 0 && filterLanguage != null && filterLanguage.Length > 0)
             {
                 // repeat but with no language restriction
                 return await SearchInOffering(offeringId, query,"");

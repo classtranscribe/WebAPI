@@ -62,6 +62,10 @@ namespace TaskEngine
         protected abstract Task OnConsume(T data, TaskParameters taskParameters, ClientActiveTasks cleanup);
         protected int PostConsumeCleanup(ClientActiveTasks cleanup)
         {
+            if (cleanup == null)
+            {
+                return 0;
+            }
 
             lock (_inProgress)
             {

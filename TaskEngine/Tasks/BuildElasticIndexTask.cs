@@ -9,10 +9,11 @@ using System.Linq;
 using Nest;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
 namespace TaskEngine.Tasks
 {
-    //[SuppressMessage("Microsoft.Performance", "CA1812:MarkMembersAsStatic")] // This class is never directly instantiated
+    [SuppressMessage("Microsoft.Performance", "CA1812:MarkMembersAsStatic")] // This class is never directly instantiated
     class BuildElasticIndexTask : RabbitMQTask<string>
     {
         private readonly ElasticClient _client;
