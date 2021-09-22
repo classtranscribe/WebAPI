@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json.Linq;
 using System;
+using System.ComponentModel.DataAnnotations;
 using static ClassTranscribeDatabase.CommonUtils;
 
 namespace ClassTranscribeDatabase.Models
@@ -33,7 +34,8 @@ namespace ClassTranscribeDatabase.Models
         public TaskType TaskType { get; set; }
 
         //public int Attempts { get; set; }
-        public JObject TaskParameters { get; set; }
+        [Required]
+        public JObject TaskParameters { get; set; } = new JObject();
         //public bool Result { get; set; }
         //public bool Retry { get; set; }
 
@@ -90,11 +92,13 @@ namespace ClassTranscribeDatabase.Models
         public String DebugMessage { get; set; }
 
         // Results (including exception details) of local C# processing
-        public JObject ResultData { get; set; } // Json {"Exception":{ "Type":"","Message":"","StackTrack":""}, result:""}
-                                                // Results from remote processing (including exception details)
+        [Required]
+        public JObject ResultData { get; set; } = new JObject(); // Json {"Exception":{ "Type":"","Message":"","StackTrack":""}, result:""}
+                                                                 // Results from remote processing (including exception details)
 
         // Many Tasks use some remote procedure call first. Log the details of that phase
-        public JObject RemoteResultData { get; set; } // Json {"Exception":{ "Type":"","Message":"","StackTrack":""}, result:""}
+        [Required]
+        public JObject RemoteResultData { get; set; } = new JObject(); // Json {"Exception":{ "Type":"","Message":"","StackTrack":""}, result:""}
 
         // -- RabbitMQ Specific information
 

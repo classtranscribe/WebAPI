@@ -145,11 +145,6 @@ namespace TaskEngine.Tasks
             JObject res = JObject.Parse(jsonString.Json);
 
             // Add DownloadHeader to playlist, required for downloading media.
-            if (playlist.JsonMetadata == null)
-            {
-                playlist.JsonMetadata = new JObject();
-            }
-
             if (playlist.JsonMetadata.ContainsKey("downloadHeader"))
             {
                 playlist.JsonMetadata["downloadHeader"] = res["downloadHeader"].ToString();
@@ -192,7 +187,7 @@ namespace TaskEngine.Tasks
             CTGrpc.JsonString jsonString = null;
             CTGrpc.JsonString metadata = new CTGrpc.JsonString
             {
-                Json = playlist.JsonMetadata != null ? playlist.JsonMetadata.ToString() : ""
+                Json = playlist.JsonMetadata.HasValues ? playlist.JsonMetadata.ToString() : ""
             };
             try
             {

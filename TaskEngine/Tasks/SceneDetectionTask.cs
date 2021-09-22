@@ -37,7 +37,7 @@ namespace TaskEngine.Tasks
             {
                 Video video = await _context.Videos.FindAsync(videoId);
                 
-                if (video.SceneData == null || taskParameters.Force)
+                if (!video.SceneData.HasValues || taskParameters.Force)
                 {
                     filepath =  video.Video1.VMPath;
                 }

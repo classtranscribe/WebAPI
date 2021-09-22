@@ -166,7 +166,7 @@ namespace ClassTranscribeServer.Controllers
             var user = await _userUtils.GetUser(User);
             if (user != null)
             {
-                user.Metadata = metadata;
+                user.Metadata = metadata ?? new JObject();
                 await _context.SaveChangesAsync();
                 return Ok();
             }

@@ -146,7 +146,7 @@ namespace ClassTranscribeServer.Controllers
 
                 return new ChallengeResult();
             }
-            offering.JsonMetadata = jsonMetadata;
+            offering.JsonMetadata = jsonMetadata ?? new JObject();
             _context.Entry(offering).State = EntityState.Modified;
 
             try

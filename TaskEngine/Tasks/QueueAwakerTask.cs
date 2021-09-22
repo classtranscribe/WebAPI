@@ -349,7 +349,7 @@ namespace TaskEngine.Tasks
                         {
                             GetLogger().LogInformation($"{id}:Removing SceneDetection for video ({video.Id})");
 
-                            video.SceneData = null;
+                            video.SceneData.RemoveAll();
                             
                             await _context.SaveChangesAsync();
                         }

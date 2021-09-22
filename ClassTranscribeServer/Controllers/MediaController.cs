@@ -130,7 +130,7 @@ namespace ClassTranscribeServer.Controllers
             }
 
             Media media = await _context.Medias.FindAsync(id);
-            media.JsonMetadata = jsonMetaData;
+            media.JsonMetadata = jsonMetaData ?? new JObject();
             _context.Entry(media).State = EntityState.Modified;
 
             try
@@ -166,8 +166,7 @@ namespace ClassTranscribeServer.Controllers
             Media media = new Media
             {
                 PlaylistId = playlistId,
-                SourceType = SourceType.Local,
-                JsonMetadata = new JObject()
+                SourceType = SourceType.Local
             };
             // full path to file in temp location
             if (video1.Length > 0)
