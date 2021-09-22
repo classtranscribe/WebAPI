@@ -11,7 +11,7 @@ using TaskEngine.Tasks;
 
 namespace TaskEngine
 {
-  class TempCode
+    class TempCode
     {
         // Deletes all Videos which don't have a file or have an invalid file (size under 1000 bytes)
 

@@ -21,7 +21,7 @@ using System.IO;
 namespace CTCommons.MSTranscription
 {
 
-  public class MSTranscriptionService
+    public class MSTranscriptionService
     {
 
         // Theses were generated manually on 2020/10/1 using curl and some regex replacements in vi

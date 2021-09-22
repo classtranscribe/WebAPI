@@ -5,10 +5,10 @@ using System.Linq;
 
 namespace CTCommons.MSTranscription
 {
-  /// <summary>
-  /// Each object of this class represents an azure subscription key.
-  /// </summary>
-  public class Key
+    /// <summary>
+    /// Each object of this class represents an azure subscription key.
+    /// </summary>
+    public class Key
     {
         public string ApiKey { get; set; }
         public string Region { get; set; }

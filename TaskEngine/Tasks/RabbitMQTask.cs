@@ -8,7 +8,7 @@ using System.Collections.Generic;
 
 namespace TaskEngine
 {
-  [SuppressMessage("Microsoft.Performance", "CA1812:MarkMembersAsStatic")] // This class is never directly instantiated
+    [SuppressMessage("Microsoft.Performance", "CA1812:MarkMembersAsStatic")] // This class is never directly instantiated
     public abstract class RabbitMQTask<T>
     {
         private RabbitMQConnection _rabbitMQ { get; set; }

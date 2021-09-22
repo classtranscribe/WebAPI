@@ -7,7 +7,7 @@ using System.Globalization;
 namespace Tests
 {
 
-  class Utils
+    class Utils
     {
 
         public static string toTitleCase(string str)

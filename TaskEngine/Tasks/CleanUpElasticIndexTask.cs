@@ -10,7 +10,7 @@ using System;
 
 namespace TaskEngine.Tasks
 {
-  class CleanUpElasticIndexTask : RabbitMQTask<string>
+    class CleanUpElasticIndexTask : RabbitMQTask<string>
     {
         private readonly ElasticClient _client;
         private readonly int _time_to_live;

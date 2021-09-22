@@ -28,7 +28,7 @@ using System.Text;
 
 namespace ClassTranscribeServer
 {
-  public class Startup
+    public class Startup
     {
         public Startup(IOptions<AppSettings> appSettings)
         {

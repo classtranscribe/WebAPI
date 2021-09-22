@@ -2,7 +2,7 @@
 
 namespace ClientSdk.Client
 {
-  public class ClientFactory
+    public class ClientFactory
     {
         public static MyClient CreateTestClient(string baseUrl, HttpClient http, string _token)
         {

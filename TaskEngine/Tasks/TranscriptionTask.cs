@@ -14,10 +14,10 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace TaskEngine.Tasks
 {
-  /// <summary>
-  /// This task produces the transcriptions for a Video item.
-  /// </summary>
-  [SuppressMessage("Microsoft.Performance", "CA1812:MarkMembersAsStatic")] // This class is never directly instantiated
+    /// <summary>
+    /// This task produces the transcriptions for a Video item.
+    /// </summary>
+    [SuppressMessage("Microsoft.Performance", "CA1812:MarkMembersAsStatic")] // This class is never directly instantiated
     class TranscriptionTask : RabbitMQTask<string>
     {
        

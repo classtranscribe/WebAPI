@@ -1,9 +1,9 @@
 ﻿namespace ClassTranscribeDatabase
 {
-  /// <summary>
-  /// All the configuration setttins that are supplied either by vs_appsettings.json or by environment variables.
-  /// </summary>
-  public class AppSettings
+    /// <summary>
+    /// All the configuration setttins that are supplied either by vs_appsettings.json or by environment variables.
+    /// </summary>
+    public class AppSettings
     {
         public string JWT_EXPIRE_DAYS { get; set; }
         public string HOST_NAME { get; set; }

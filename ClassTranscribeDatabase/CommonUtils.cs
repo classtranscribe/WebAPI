@@ -5,7 +5,7 @@ using System.Text;
 
 namespace ClassTranscribeDatabase
 {
-  public class CommonUtils
+    public class CommonUtils
     {
         // Explicitly number entries because these will exist in the database
         // and we dont want the meaning of existing entries to change due to future modifications of this list

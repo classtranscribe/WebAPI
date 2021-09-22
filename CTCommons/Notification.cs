@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace CTCommons.Notification
 {
-  public class SubscriptionManager
+    public class SubscriptionManager
     {
         private readonly CTDbContext _context;
 

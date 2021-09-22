@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace ClassTranscribeServer.Controllers
 {
-  [Route("api/[controller]")]
+    [Route("api/[controller]")]
     [ApiController]
     public class CaptionsSearchController : BaseController
     {

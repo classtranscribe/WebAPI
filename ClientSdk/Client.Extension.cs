@@ -7,7 +7,7 @@ using System.Reflection;
 
 namespace ClientSdk.Client
 {
-  public partial class MyClient
+    public partial class MyClient
     {
         partial void ProcessResponse(HttpClient request, HttpResponseMessage response)
         {

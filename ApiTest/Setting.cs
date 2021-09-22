@@ -6,7 +6,7 @@ using System.Reflection;
 namespace Tests
 {
 
-  class Setting
+    class Setting
     {
         public static JsonSerializerSettings jsonSetting =  new JsonSerializerSettings
         {

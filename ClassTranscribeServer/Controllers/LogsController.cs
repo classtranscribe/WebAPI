@@ -16,7 +16,7 @@ using System.Threading; // CancellationToken
 
 namespace ClassTranscribeServer.Controllers
 {
-  [Route("api/[controller]")]
+    [Route("api/[controller]")]
     [ApiController]
     public class LogsController : BaseController
     {

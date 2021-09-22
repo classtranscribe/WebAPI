@@ -12,8 +12,8 @@ using System.Collections.Generic;
 
 namespace TaskEngine.Tasks
 {
-  //[SuppressMessage("Microsoft.Performance", "CA1812:MarkMembersAsStatic")] // This class is never directly instantiated
-  class BuildElasticIndexTask : RabbitMQTask<string>
+    //[SuppressMessage("Microsoft.Performance", "CA1812:MarkMembersAsStatic")] // This class is never directly instantiated
+    class BuildElasticIndexTask : RabbitMQTask<string>
     {
         private readonly ElasticClient _client;
 

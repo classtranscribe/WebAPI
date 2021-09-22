@@ -10,7 +10,7 @@ using CTCommons.Grpc;
 
 namespace DevExperiments
 {
-  class Program
+    class Program
     {
         static void Main(string[] args)
         {

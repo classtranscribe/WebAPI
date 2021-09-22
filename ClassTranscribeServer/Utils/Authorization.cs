@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace ClassTranscribeServer.Authorization
 {
-  public class ReadOfferingRequirement : IAuthorizationRequirement { }
+    public class ReadOfferingRequirement : IAuthorizationRequirement { }
     public class UpdateOfferingRequirement : IAuthorizationRequirement { }
     public class UpdateOfferingAuthorizationHandler :
     AuthorizationHandler<UpdateOfferingRequirement, Offering>

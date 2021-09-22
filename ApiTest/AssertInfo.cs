@@ -6,7 +6,7 @@ using System.Collections.Generic;
 
 namespace Tests
 {
-  public class AssertInfo
+    public class AssertInfo
     {
         public string assert;
         public string expect;
