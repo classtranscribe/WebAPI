@@ -1,7 +1,7 @@
 ﻿using ClassTranscribeDatabase.Models;
 using Xunit;
 
-namespace UnitTests.OtherTests
+namespace UnitTests.ClassTranscribeDatabase
 {
     public class ModelsTests
     {

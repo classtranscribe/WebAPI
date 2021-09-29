@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 using Xunit;
 using static ClassTranscribeServer.Controllers.UserOfferingsController;
 
-namespace UnitTests.ControllerTests
+namespace UnitTests.ClassTranscribeServer.ControllerTests
 {
     public class UserOfferingsControllerTest : BaseControllerTest
     {

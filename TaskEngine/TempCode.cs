@@ -96,7 +96,7 @@ namespace TaskEngine
             medias = context.Medias.ToList();
             foreach (Media media in medias)
             {
-                media.Name = DownloadPlaylistInfoTask.GetMediaName(media);
+                media.Name = CommonUtils.GetMediaName(media);
                 Console.WriteLine(media.Name);
             }
             context.SaveChanges();

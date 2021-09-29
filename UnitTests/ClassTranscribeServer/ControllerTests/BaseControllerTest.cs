@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using Xunit;
 
-namespace UnitTests.ControllerTests
+namespace UnitTests.ClassTranscribeServer.ControllerTests
 {
     [Collection("Global")]
     public class BaseControllerTest

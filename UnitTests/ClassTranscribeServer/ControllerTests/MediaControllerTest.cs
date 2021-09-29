@@ -1,4 +1,5 @@
-﻿using ClassTranscribeDatabase.Models;
+﻿using ClassTranscribeDatabase;
+using ClassTranscribeDatabase.Models;
 using ClassTranscribeServer;
 using ClassTranscribeServer.Controllers;
 using Microsoft.AspNetCore.Http;
@@ -12,7 +13,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
 
-namespace UnitTests.ControllerTests
+namespace UnitTests.ClassTranscribeServer.ControllerTests
 {
     public class MediaControllerTest : BaseControllerTest
     {
@@ -148,6 +149,109 @@ namespace UnitTests.ControllerTests
             Assert.Equal(JsonConvert.SerializeObject(videoFile), media.JsonMetadata["video1"]);
             Assert.Equal(PublishStatus.Published, media.PublishStatus);
             Assert.Equal(Visibility.Visible, media.Visibility);
+            Assert.Equal("test", media.Name);
+            Assert.NotNull(media.VideoId);
+
+            // This was a new video, so it should correspond to the only Video and FileRecord objects
+            var videos = _context.Videos.ToList();
+            Assert.Single(videos);
+
+            var video = videos.First();
+            Assert.Equal(media.VideoId, video.Id);
+            Assert.Equal(media.Id, video.Medias.First().Id);
+
+            var fileRecords = _context.FileRecords.ToList();
+            Assert.Single(fileRecords);
+            Assert.Equal(video.Video1Id, fileRecords.First().Id);
+        }
+
+        // When posting a duplicate video that has corresponding FileRecord and Video objects
+        // that already exist in the DB, the new file should be ignored
+        // and the new media should be linked to the existing video object
+        [Fact]
+        public async Task Post_Existing_File_With_Existing_Video_Object()
+        {
+            using var stream = File.OpenRead("Assets/test.mp4");
+            var videoFile = new FormFile(stream, 0, stream.Length, null, Path.GetFileName(stream.Name))
+            {
+                Headers = new HeaderDictionary(),
+                ContentType = "video/mp4"
+            };
+
+            var postResult = await _controller.PostMedia(videoFile, null, string.Empty);
+            Assert.IsType<CreatedAtActionResult>(postResult.Result);
+
+            var createdResult = postResult.Result as CreatedAtActionResult;
+            var createdMedia = createdResult.Value as Media;
+            var media = _context.Medias.Find(createdMedia.Id);
+
+            var postResult2 = await _controller.PostMedia(videoFile, null, string.Empty);
+            Assert.IsType<CreatedAtActionResult>(postResult.Result);
+
+            var createdResult2 = postResult2.Result as CreatedAtActionResult;
+            var createdMedia2 = createdResult2.Value as Media;
+            var media2 = _context.Medias.Find(createdMedia2.Id);
+
+            // There should be one Video and one FileRecord, which both medias should point to
+            var videos = _context.Videos.ToList();
+            Assert.Single(videos);
+            
+            var video = videos.First();
+            Assert.Equal(media.VideoId, video.Id);
+            Assert.Equal(media2.VideoId, video.Id);
+            Assert.Equal(2, video.Medias.Count());
+            Assert.Equal(media.Id, video.Medias.First().Id);
+            Assert.Equal(media2.Id, video.Medias.Last().Id);
+
+            var fileRecords = _context.FileRecords.ToList();
+            Assert.Single(fileRecords);
+            Assert.Equal(video.Video1Id, fileRecords.First().Id);
+        }
+
+        // When posting a duplicate video that has a corresponding FileRecord
+        // and but not a corresponding Video object, the old file should
+        // be deleted and the new media should be linked with the new file
+        [Fact]
+        public async Task Post_Existing_File_Without_Existing_Video_Object()
+        {
+            using var stream = File.OpenRead("Assets/test.mp4");
+            var videoFile = new FormFile(stream, 0, stream.Length, null, Path.GetFileName(stream.Name))
+            {
+                Headers = new HeaderDictionary(),
+                ContentType = "video/mp4"
+            };
+
+            var filePath = CommonUtils.GetTmpFile();
+            using (var stream2 = new FileStream(filePath, FileMode.Create))
+            {
+                await videoFile.CopyToAsync(stream2);
+            }
+
+            // This FileRecord will get deleted in the call to PostMedia below
+            var firstFileRecord = await FileRecord.GetNewFileRecordAsync(filePath, Path.GetExtension(filePath));
+            _context.FileRecords.Add(firstFileRecord);
+            _context.SaveChanges();
+
+            var postResult = await _controller.PostMedia(videoFile, null, string.Empty);
+            Assert.IsType<CreatedAtActionResult>(postResult.Result);
+
+            var createdResult = postResult.Result as CreatedAtActionResult;
+            var createdMedia = createdResult.Value as Media;
+            var media = _context.Medias.Find(createdMedia.Id);
+
+            // There should be one  Video and one FileRecord, and the first FileRecord should have been deleted
+            Assert.Equal(Status.Deleted, firstFileRecord.IsDeletedStatus);
+
+            var videos = _context.Videos.ToList();
+            Assert.Single(videos);
+
+            var video = videos.First();
+            Assert.Equal(media.VideoId, video.Id);
+            Assert.Equal(media.Id, video.Medias.First().Id);
+
+            var fileRecords = _context.FileRecords.ToList();
+            Assert.Single(fileRecords);
+            Assert.Equal(video.Video1Id, fileRecords.First().Id);
         }
 
         [Fact]
