@@ -399,7 +399,15 @@ namespace UnitTests.ClassTranscribeServer.ControllerTests
             var expandedSpanishResults = await _controller.SearchInOffering(offering.Id, "Oui", "es");
             // will drop language filter if no results are found and research against all languages
             Assert.Single(expandedSpanishResults.Value);
+        }
 
+        [Fact]
+        public void To_PG_Language_Success()
+        {
+            Assert.Equal("english", CaptionsController.toPGLanguage("en-US"));
+            Assert.Equal("romanian", CaptionsController.toPGLanguage("ro"));
+            Assert.Equal("simple", CaptionsController.toPGLanguage("non-exist"));
+            Assert.Equal("simple", CaptionsController.toPGLanguage(null));
         }
     }
 }

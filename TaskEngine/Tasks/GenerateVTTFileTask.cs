@@ -33,7 +33,9 @@ namespace TaskEngine.Tasks
 
                 var vttfile = await FileRecord.GetNewFileRecordAsync(Caption.GenerateWebVTTFile(captions, transcription.Language), ".vtt");
 
+#nullable enable
                 FileRecord? existingVtt = await _context.FileRecords.FindAsync(transcription.FileId);
+#nullable disable
 
                 if (existingVtt is null)
                 {
@@ -51,7 +53,10 @@ namespace TaskEngine.Tasks
 
                 var srtfile = await FileRecord.GetNewFileRecordAsync(Caption.GenerateSrtFile(captions), ".srt");
 
+#nullable enable
                 FileRecord? existingSrt = await _context.FileRecords.FindAsync(transcription.SrtFileId);
+#nullable disable
+
                 if (existingSrt is null)
                 {
                     GetLogger().LogInformation($"{transcriptionId}: Creating new srt file {srtfile.FileName}"); 

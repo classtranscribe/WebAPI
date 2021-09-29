@@ -6,7 +6,6 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
 using System.Threading.Tasks;
 using CTCommons.Grpc;
-using Grpc.Core;
 using static ClassTranscribeDatabase.CommonUtils;
 using CTCommons;
 using System.Diagnostics.CodeAnalysis;

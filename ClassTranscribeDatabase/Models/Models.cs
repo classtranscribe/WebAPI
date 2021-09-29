@@ -116,7 +116,9 @@ namespace ClassTranscribeDatabase.Models
         public DateTime? DeletedAt { get; set; }
         [SwaggerIgnore]
         [IgnoreDataMember]
+#nullable enable
         public string? DeletedBy { get; set; }
+#nullable disable
 
         public ResourceType GetResourceType()
         {
@@ -296,7 +298,9 @@ namespace ClassTranscribeDatabase.Models
         public virtual List<Transcription> Transcriptions { get; set; }
 
         public virtual List<EPub> EPubs { get; set; }
+#nullable enable
         public string? PhraseHints { get; set; } // null if not yet processed
+#nullable disable
 
         // Reported duration extracted from MediaInfo. The actual video/audio/caption streams duration could be less
         // Returns null if unknown
