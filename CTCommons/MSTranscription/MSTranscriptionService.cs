@@ -1,5 +1,4 @@
-﻿using ClassTranscribeDatabase;
-using ClassTranscribeDatabase.Models;
+﻿using ClassTranscribeDatabase.Models;
 using Microsoft.CognitiveServices.Speech;
 using Microsoft.CognitiveServices.Speech.Translation;
 using Microsoft.Extensions.Logging;
@@ -8,7 +7,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using static ClassTranscribeDatabase.CommonUtils;
 using CTCommons.Grpc;
 using System.IO;
 

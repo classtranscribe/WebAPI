@@ -1,9 +1,6 @@
-﻿using Microsoft.AspNetCore.Http;
-using Newtonsoft.Json;
-using RabbitMQ.Client.Content;
+﻿using Newtonsoft.Json;
 using System;
 using System.IO;
-using System.Linq;
 using System.Text;
 
 namespace ClassTranscribeDatabase

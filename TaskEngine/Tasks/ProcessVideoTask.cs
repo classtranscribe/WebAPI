@@ -8,7 +8,6 @@ using CTCommons.Grpc;
 using static ClassTranscribeDatabase.CommonUtils;
 using CTCommons;
 using System.Diagnostics.CodeAnalysis;
-using System.Collections.Generic;
 using Newtonsoft.Json.Linq;
 
 namespace TaskEngine.Tasks

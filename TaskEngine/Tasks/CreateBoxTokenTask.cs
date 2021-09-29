@@ -1,5 +1,4 @@
-﻿using ClassTranscribeDatabase;
-using CTCommons;
+﻿using CTCommons;
 using Microsoft.Extensions.Logging;
 using System.Threading.Tasks;
 using static ClassTranscribeDatabase.CommonUtils;

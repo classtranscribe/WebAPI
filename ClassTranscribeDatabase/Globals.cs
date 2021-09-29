@@ -1,8 +1,4 @@
-﻿
-using Microsoft.Extensions.Logging;
-using System.Collections.Generic;
-
-namespace ClassTranscribeDatabase
+﻿namespace ClassTranscribeDatabase
 {
     /// <summary>
     /// All the configuration setttins that are supplied either by vs_appsettings.json or by environment variables.
