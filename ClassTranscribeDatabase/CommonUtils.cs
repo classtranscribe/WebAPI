@@ -1,5 +1,8 @@
-﻿using Newtonsoft.Json;
+﻿﻿using ClassTranscribeDatabase.Models;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
+using System.Globalization;
 using System.IO;
 using System.Text;
 
@@ -100,12 +103,68 @@ namespace ClassTranscribeDatabase
         public static string GetTmpFile()
         {
             // Align with python code.
-            const int filenaNmeLength = 12; // was 8
+            const int filenameLength = 12; // was 8
             while (true)
             {
-                string candidate = Path.Combine(Globals.appSettings.DATA_DIRECTORY, RandomString(filenaNmeLength));
+                string candidate = Path.Combine(Globals.appSettings.DATA_DIRECTORY, RandomString(filenameLength));
                 if (!File.Exists(candidate)) return candidate;
             }
+        }
+
+        public static string GetMediaName(Media media)
+        {
+            string name;
+
+            switch (media.SourceType)
+            {
+                case SourceType.Echo360:
+                    name = media.JsonMetadata["title"]?.ToString();
+
+                    if (string.IsNullOrEmpty(name))
+                    {
+                        string lessonName = media.JsonMetadata["lessonName"]?.ToString() ?? "Untitled";
+                        DateTime createdAt = Convert.ToDateTime(
+                            media.JsonMetadata["createdAt"]?.ToString() ?? "01/01/1970",
+                            CultureInfo.InvariantCulture);
+
+                        name = $"{lessonName} {createdAt.ToString("MMMM dd, yyyy", CultureInfo.InvariantCulture)}";
+                    }
+
+                    break;
+
+                case SourceType.Youtube:
+                    var title = media.JsonMetadata["title"]?.ToString();
+                    name = string.IsNullOrEmpty(title) ? "Untitled" : title;
+                    break;
+
+                case SourceType.Local:
+                    var fileName = media.JsonMetadata["filename"]?.ToString();
+
+                    if (string.IsNullOrEmpty(fileName) && media.JsonMetadata.ContainsKey("video1")) {
+                        fileName = JObject.Parse(media.JsonMetadata["video1"].ToString())?["FileName"]?.ToString();
+                    }
+
+                    fileName ??= "Untitled";
+                    name = fileName.Replace(".mp4", "");
+                    break;
+
+                case SourceType.Kaltura:
+                    var videoName = media.JsonMetadata["name"]?.ToString() ?? "Untitled";
+                    var videoDate = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+                        .AddSeconds(media.JsonMetadata["createdAt"]?.ToObject<int>() ?? 0);
+                    name = $"{videoName} {videoDate.ToString("MMMM dd, yyyy", CultureInfo.InvariantCulture)}";
+                    break;
+
+                case SourceType.Box:
+                    name = media.JsonMetadata["name"]?.ToString() ?? "Untitled";
+                    break;
+
+                default:
+                    name = "Untitled";
+                    break;
+            }
+
+            return name;
         }
     }
 }

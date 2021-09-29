@@ -8,7 +8,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
 
-namespace UnitTests.ControllerTests
+namespace UnitTests.ClassTranscribeServer.ControllerTests
 {
     public class WatchHistoriesControllerTest : BaseControllerTest
     {

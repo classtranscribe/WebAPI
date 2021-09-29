@@ -159,68 +159,94 @@ namespace ClassTranscribeServer.Controllers
         [Consumes("multipart/form-data")]
         public async Task<ActionResult<Media>> PostMedia(IFormFile video1, IFormFile video2, [FromForm] string playlistId)
         {
-            if (video1 == null)
+            if (video1 == null || video1.Length == 0)
             {
                 return BadRequest("video1 is compulsory");
             }
+
+            if (Path.GetExtension(video1.FileName) != ".mp4")
+            {
+                return BadRequest("File format not permitted");
+            }
+
+            Video video = new Video();
             Media media = new Media
             {
                 PlaylistId = playlistId,
                 SourceType = SourceType.Local
             };
-            // full path to file in temp location
-            if (video1.Length > 0)
-            {
-                if (Path.GetExtension(video1.FileName) != ".mp4")
-                {
-                    return BadRequest("File Format not permitted");
-                }
-                var filePath = CommonUtils.GetTmpFile();
-                using (var stream = new FileStream(filePath, FileMode.Create))
-                {
-                    await video1.CopyToAsync(stream);
-                }
-                // Only do this for the first (primary) video
-                media.UniqueMediaIdentifier = await FileRecord.ComputeSha256HashForFileAsync(filePath);
 
-                media.JsonMetadata.Add("video1", JsonConvert.SerializeObject(video1));
-                media.JsonMetadata.Add("video1Path", filePath);
-               
+            var filePath = CommonUtils.GetTmpFile();
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await video1.CopyToAsync(stream);
             }
+
+            // Only do this for the first (primary) video
+            media.UniqueMediaIdentifier = await FileRecord.ComputeSha256HashForFileAsync(filePath);
+
+            media.JsonMetadata.Add("video1", JsonConvert.SerializeObject(video1));
+            media.JsonMetadata.Add("video1Path", filePath);
+            video.Video1 = await FileRecord.GetNewFileRecordAsync(filePath, Path.GetExtension(filePath));
+
             // Copy second File
             if (video2 != null && video2.Length > 0)
             {
                 if (Path.GetExtension(video2.FileName) != ".mp4")
                 {
-                    return BadRequest("File Format not permitted");
+                    return BadRequest("File format not permitted");
                 }
-                var filePath = CommonUtils.GetTmpFile();
-                using (var stream = new FileStream(filePath, FileMode.Create))
+
+                var filePath2 = CommonUtils.GetTmpFile();
+                using (var stream = new FileStream(filePath2, FileMode.Create))
                 {
                     await video2.CopyToAsync(stream);
                 }
+
                 media.JsonMetadata.Add("video2", JsonConvert.SerializeObject(video2));
-                media.JsonMetadata.Add("video2Path", filePath);
+                media.JsonMetadata.Add("video2Path", filePath2);
+                video.Video2 = await FileRecord.GetNewFileRecordAsync(filePath2, Path.GetExtension(filePath2));
+            }
+
+            // The following is essentially a replication of the logic in DownloadMediaTask.OnConsume, but there is enough
+            // of a difference between the environments such that it doesn't make sense to refactor this code into a shared project
+            // (such as logging, instantiating scene detection, handling exceptions vs returning a BadRequest, etc).
+
+            if (video.Video1 == null || !video.Video1.IsValidFile()
+                || (video.Video2 != null && !video.Video2.IsValidFile()))
+            {
+                return BadRequest("Invalid video files");
+            }
+
+            media.Name = CommonUtils.GetMediaName(media);
+
+            // Check if video file record already exists to prevent duplicates
+            var existingFile = await _context.FileRecords.Where(f => f.Hash == video.Video1.Hash).FirstOrDefaultAsync();
+
+            if (existingFile == null)
+            {
+                await AddNewVideoToMedia(video, media);
+            }
+            else
+            {
+                var existingVideo = await _context.Videos.Where(v => v.Video1Id == existingFile.Id).FirstOrDefaultAsync();
+
+                // If the file record exists but the video doesn't, delete the old file record and create new video record
+                if (existingVideo == null)
+                {
+                    await existingFile.DeleteFileRecordAsync(_context);
+                    await AddNewVideoToMedia(video, media);
+                }
+                // If file and video records both already exist, delete the new duplicate video (no scene detection needed)
+                else
+                {
+                    media.VideoId = existingVideo.Id;
+                    await video.DeleteVideoAsync(_context);
+                }
             }
 
             _context.Medias.Add(media);
-            
             await _context.SaveChangesAsync();
-
-
-            // The following async update of the playlists (and then the media/vido entity tasks) is the probable cause of
-            // https://github.com/classtranscribe/WebAPI/issues/92
-
-            // TODO/TOREVIEW Do we kick off multiple updaters during multiple uploads?
-            _wakeDownloader.UpdatePlaylist(playlistId);
-            //TODO/TOREVIEW: Do we need a way to wait for the playlist to be updated?
-            // FrontEnd should see the playlist after the media has been processed
-            // WE need to run the DownloadPlaylist task and the Media task to fix up the Video links
-            // Calling GetName in DownloadPlayListInfoTask is likley NOT sufficient because 
-            // UpdatePlaylist alsofires off an additional task
-            // So this is an awful short term hack bandaid until we refactor the code and can do te database housekeeping here instead
-            // ie. we want to think about how to fix the *design*, not just the symptons.
-            await Task.Delay(5000); // milliseconds
 
             return CreatedAtAction("GetMedia", new { id = media.Id }, media);
         }
@@ -284,6 +310,18 @@ namespace ClassTranscribeServer.Controllers
         private bool MediaExists(string id)
         {
             return _context.Medias.Any(e => e.Id == id);
+        }
+
+        private async Task AddNewVideoToMedia(Video video, Media media)
+        {
+            await _context.Videos.AddAsync(video);
+            await _context.SaveChangesAsync();
+            media.VideoId = video.Id;
+            await _context.SaveChangesAsync();
+
+            _wakeDownloader.SceneDetection(video.Id, false);
+            //TODO - re-add this code, but will need to use WakeDownloader instead of directly publishing it
+            //_processVideoTask.Publish(video.Id);
         }
     }
 }

@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using Xunit;
 using static ClassTranscribeServer.Controllers.AccountController;
 
-namespace UnitTests.ControllerTests
+namespace UnitTests.ClassTranscribeServer.ControllerTests
 {
     public class AccountControllerTest : BaseControllerTest
     {

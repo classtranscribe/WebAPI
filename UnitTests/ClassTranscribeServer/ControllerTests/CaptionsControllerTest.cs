@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 using Xunit;
 using static ClassTranscribeServer.Controllers.CaptionsController;
 
-namespace UnitTests.ControllerTests
+namespace UnitTests.ClassTranscribeServer.ControllerTests
 {
     public class CaptionsControllerTest : BaseControllerTest
     {
