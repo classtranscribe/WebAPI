@@ -2,9 +2,11 @@ using ClassTranscribeDatabase;
 using ClassTranscribeDatabase.Models;
 using ClassTranscribeServer;
 using ClassTranscribeServer.Controllers;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
@@ -408,6 +410,89 @@ namespace UnitTests.ClassTranscribeServer.ControllerTests
             Assert.Equal("romanian", CaptionsController.toPGLanguage("ro"));
             Assert.Equal("simple", CaptionsController.toPGLanguage("non-exist"));
             Assert.Equal("simple", CaptionsController.toPGLanguage(null));
+        }
+
+        [Fact]
+        public async Task Post_Caption_File_Fail()
+        {
+            var postResult = await _controller.PostCaptionFile(null, null, null);
+            Assert.IsType<BadRequestObjectResult>(postResult.Result);
+
+            var videoId = "123";
+            _context.Videos.Add(new Video { Id = "123" });
+            _context.SaveChanges();
+
+            postResult = await _controller.PostCaptionFile(null, videoId, CommonUtils.Languages.ENGLISH_AMERICAN);
+            Assert.IsType<BadRequestObjectResult>(postResult.Result);
+
+            // Set to empty file
+            using var stream = File.OpenRead("Assets/example.srt");
+            var captionFile = new FormFile(stream, 0, 0, null, Path.GetFileName(stream.Name));
+
+            postResult = await _controller.PostCaptionFile(captionFile, videoId, CommonUtils.Languages.ENGLISH_AMERICAN);
+            Assert.IsType<BadRequestObjectResult>(postResult.Result);
+
+            // Set to file with invalid format
+            using var stream2 = File.OpenRead("Assets/subtitles.xml");
+            captionFile = new FormFile(stream2, 0, stream2.Length, null, Path.GetFileName(stream2.Name));
+
+            postResult = await _controller.PostCaptionFile(captionFile, videoId, CommonUtils.Languages.ENGLISH_AMERICAN);
+            Assert.IsType<BadRequestObjectResult>(postResult.Result);
+
+            // Set to file with no captions
+            using var stream3 = File.OpenRead("Assets/no-captions.vtt");
+            captionFile = new FormFile(stream3, 0, stream3.Length, null, Path.GetFileName(stream3.Name));
+
+            postResult = await _controller.PostCaptionFile(captionFile, videoId, CommonUtils.Languages.ENGLISH_AMERICAN);
+            Assert.IsType<BadRequestObjectResult>(postResult.Result);
+
+            // Set to full valid file
+            captionFile = new FormFile(stream, 0, stream.Length, null, Path.GetFileName(stream.Name));
+
+            postResult = await _controller.PostCaptionFile(captionFile, null, CommonUtils.Languages.ENGLISH_AMERICAN);
+            Assert.IsType<BadRequestObjectResult>(postResult.Result);
+
+            postResult = await _controller.PostCaptionFile(captionFile, "non-existing", CommonUtils.Languages.ENGLISH_AMERICAN);
+            Assert.IsType<NotFoundObjectResult>(postResult.Result);
+
+            postResult = await _controller.PostCaptionFile(captionFile, videoId, null);
+            Assert.IsType<BadRequestObjectResult>(postResult.Result);
+
+            postResult = await _controller.PostCaptionFile(captionFile, videoId, "badlang");
+            Assert.IsType<BadRequestObjectResult>(postResult.Result);
+        }
+
+        [Fact]
+        public async Task Post_Caption_File_Success()
+        {
+            using var stream = File.OpenRead("Assets/example.srt");
+            var captionFile = new FormFile(stream, 0, stream.Length, null, Path.GetFileName(stream.Name));
+
+            var videoId = "123";
+            _context.Videos.Add(new Video { Id = videoId });
+            _context.SaveChanges();
+
+            var postResult = await _controller.PostCaptionFile(captionFile, videoId, CommonUtils.Languages.ENGLISH_AMERICAN);
+            var captions = postResult.Value.ToList();
+
+            Assert.Equal(23, captions.Count());
+
+            foreach (var caption in captions)
+            {
+                Assert.NotEmpty(caption.Text);
+                Assert.True(caption.End > caption.Begin);
+                Assert.True(caption.Index > 0 && caption.Index <= 2000);
+            }
+
+            var transcription = _context.Transcriptions.Find(captions[0].TranscriptionId);
+            Assert.NotNull(transcription);
+            Assert.Equal(CommonUtils.Languages.ENGLISH_AMERICAN, transcription.Language);
+            Assert.Equal(videoId, transcription.VideoId);
+            Assert.Equal(captions.Count(), transcription.Captions.Count());
+
+            var video = _context.Videos.Find(videoId);
+            Assert.Single(video.Transcriptions);
+            Assert.Equal(transcription.Id, video.Transcriptions[0].Id);
         }
     }
 }
