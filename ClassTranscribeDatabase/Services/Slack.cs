@@ -1,5 +1,4 @@
-﻿using ClassTranscribeDatabase;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -9,7 +8,7 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace CTCommons
+namespace ClassTranscribeDatabase.Services
 {
     public class SlackLogger
     {

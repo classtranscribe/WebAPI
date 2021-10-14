@@ -1,11 +1,10 @@
-﻿using ClassTranscribeDatabase;
-using ClassTranscribeDatabase.Models;
+﻿using ClassTranscribeDatabase.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace CTCommons.MSTranscription
+namespace ClassTranscribeDatabase.Services.MSTranscription
 {
 
     public class MSTWord

@@ -1,12 +1,11 @@
 ﻿using ClassTranscribeDatabase;
+using ClassTranscribeDatabase.Services;
+using ClassTranscribeDatabase.Services.MSTranscription;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using CTCommons.MSTranscription;
-using CTCommons;
-using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Logging;
-using CTCommons.Grpc;
+using Microsoft.Extensions.Options;
 
 namespace DevExperiments
 {

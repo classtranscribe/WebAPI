@@ -1,9 +1,8 @@
-﻿using ClassTranscribeDatabase;
-using CTGrpc;
+﻿using CTGrpc;
 using Grpc.Core;
 using System;
 
-namespace CTCommons.Grpc
+namespace ClassTranscribeDatabase.Services
 {
     public class RpcClient
     {

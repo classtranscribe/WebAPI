@@ -1,13 +1,13 @@
 ﻿using ClassTranscribeDatabase;
-using CTCommons;
-using Microsoft.Extensions.Logging;
+using ClassTranscribeDatabase.Services;
 using Microsoft.Extensions.Configuration;
-using System.Threading.Tasks;
-using static ClassTranscribeDatabase.CommonUtils;
-using System.Linq;
+using Microsoft.Extensions.Logging;
 using Nest;
 using System;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
+using System.Threading.Tasks;
+using static ClassTranscribeDatabase.CommonUtils;
 
 namespace TaskEngine.Tasks
 {

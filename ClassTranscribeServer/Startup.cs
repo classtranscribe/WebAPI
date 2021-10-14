@@ -1,8 +1,8 @@
 ﻿using ClassTranscribeDatabase;
 using ClassTranscribeDatabase.Models;
+using ClassTranscribeDatabase.Services;
 using ClassTranscribeServer.Authorization;
 using ClassTranscribeServer.Utils;
-using CTCommons;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;

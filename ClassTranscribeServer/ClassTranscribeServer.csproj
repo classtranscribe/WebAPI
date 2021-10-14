@@ -78,7 +78,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ClassTranscribeDatabase\ClassTranscribeDatabase.csproj" />
-    <ProjectReference Include="..\CTCommons\CTCommons.csproj" />
   </ItemGroup>
 
   <ItemGroup>
