@@ -1,5 +1,4 @@
-﻿using ClassTranscribeDatabase;
-using ClassTranscribeDatabase.Models;
+﻿using ClassTranscribeDatabase.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
@@ -7,7 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace CTCommons.Notification
+namespace ClassTranscribeDatabase.Services
 {
     public class SubscriptionManager
     {

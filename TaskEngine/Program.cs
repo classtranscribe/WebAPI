@@ -1,14 +1,13 @@
 ﻿using ClassTranscribeDatabase;
+using ClassTranscribeDatabase.Services;
+using ClassTranscribeDatabase.Services.MSTranscription;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
-using CTCommons.Grpc;
-using CTCommons.MSTranscription;
 using TaskEngine.Tasks;
-using CTCommons;
 using System.Threading;
 using Newtonsoft.Json.Linq;
 using static ClassTranscribeDatabase.CommonUtils;

@@ -5,7 +5,7 @@ VisualStudioVersion = 16.0.28902.138
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClassTranscribeServer", "ClassTranscribeServer\ClassTranscribeServer.csproj", "{E4C52518-A6B4-42B0-8A02-DC1BFBE9CD89}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ClassTranscribeDatabase", "ClassTranscribeDatabase\ClassTranscribeDatabase.csproj", "{C628B570-E8F8-4CEC-B75B-E2F9C3D0CE42}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClassTranscribeDatabase", "ClassTranscribeDatabase\ClassTranscribeDatabase.csproj", "{C628B570-E8F8-4CEC-B75B-E2F9C3D0CE42}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TaskEngine", "TaskEngine\TaskEngine.csproj", "{F41D8DB4-4E5F-4F94-A909-A3978D85657A}"
 EndProject
@@ -17,8 +17,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		vs_appsettings.json = vs_appsettings.json
 		world_universities_and_domains.json = world_universities_and_domains.json
 	EndProjectSection
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CTCommons", "CTCommons\CTCommons.csproj", "{2C7C4426-E317-47A3-8B38-934A74094214}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DevExperiments", "DevExperiments\DevExperiments.csproj", "{7D7B3A3B-FFFD-400F-9121-9AC3EF4EE421}"
 EndProject
@@ -42,10 +40,6 @@ Global
 		{F41D8DB4-4E5F-4F94-A909-A3978D85657A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F41D8DB4-4E5F-4F94-A909-A3978D85657A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F41D8DB4-4E5F-4F94-A909-A3978D85657A}.Release|Any CPU.Build.0 = Release|Any CPU
-		{2C7C4426-E317-47A3-8B38-934A74094214}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{2C7C4426-E317-47A3-8B38-934A74094214}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{2C7C4426-E317-47A3-8B38-934A74094214}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{2C7C4426-E317-47A3-8B38-934A74094214}.Release|Any CPU.Build.0 = Release|Any CPU
 		{7D7B3A3B-FFFD-400F-9121-9AC3EF4EE421}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{7D7B3A3B-FFFD-400F-9121-9AC3EF4EE421}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7D7B3A3B-FFFD-400F-9121-9AC3EF4EE421}.Release|Any CPU.ActiveCfg = Release|Any CPU

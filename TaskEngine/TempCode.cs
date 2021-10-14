@@ -1,5 +1,6 @@
 ﻿using ClassTranscribeDatabase;
 using ClassTranscribeDatabase.Models;
+using ClassTranscribeDatabase.Services;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -7,7 +8,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using CTCommons.Grpc;
 using TaskEngine.Tasks;
 
 namespace TaskEngine

@@ -1,5 +1,5 @@
 ﻿using ClassTranscribeDatabase;
-using CTCommons;
+using ClassTranscribeDatabase.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
