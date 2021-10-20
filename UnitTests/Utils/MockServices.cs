@@ -39,6 +39,32 @@ namespace UnitTests
         {
             return Task.FromResult((IList<string>) new List<string>());
         }
+
+        public override Task<IdentityResult> RemoveFromRoleAsync(ApplicationUser user, string role)
+        {
+            return Task.FromResult(new IdentityResult());
+        }
+
+        public override Task<bool> IsInRoleAsync(ApplicationUser user, string role)
+        {
+            return Task.FromResult(true);
+        }
+    }
+
+    public class MockRoleManager : RoleManager<IdentityRole>
+    {
+        public MockRoleManager()
+            : base(new Mock<IRoleStore<IdentityRole>>().Object,
+                   new IRoleValidator<IdentityRole>[0],
+                   new Mock<ILookupNormalizer>().Object,
+                   new Mock<IdentityErrorDescriber>().Object,
+                   new Mock<ILogger<RoleManager<IdentityRole>>>().Object)
+        { }
+
+        public override Task<bool> RoleExistsAsync(string roleName)
+        {
+            return Task.FromResult(true);
+        }
     }
 
     public class MockSignInManager : SignInManager<ApplicationUser>
