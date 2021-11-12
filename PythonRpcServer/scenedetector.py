@@ -233,11 +233,11 @@ def generate_frame_similarity(video_path, num_samples, everyN, start_time):
             sim_structural[i] = ssim(last_frame, curr_frame)
         
         # Check the sim_structural score to ignore Face Detection and OCR
-        dropping_signal = (i >= 1 and sim_structural[i] >= DROP_THRESHOLD and SCENE_DETECT_USE_EARLY_DROP)
+        is_early_drop = (i >= 1 and sim_structural[i] >= DROP_THRESHOLD and SCENE_DETECT_USE_EARLY_DROP)
 
         # Drop Face Detection and OCR
-        if dropping_signal == True:
-            sim_structural[i] = 1
+        if is_early_drop:
+            sim_structural[i] = 1 # By setting all of these to 1 we declare that there is no change in frame here.
             sim_structural_no_face[i] = 1
             sim_ocr[i] = 1
         
