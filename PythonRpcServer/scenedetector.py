@@ -16,6 +16,7 @@ DATA_DIR = os.getenv('DATA_DIRECTORY')
 TARGET_FPS = float(os.getenv('SCENE_DETECT_FPS', 0.5))
 SCENE_DETECT_USE_FACE = os.getenv('SCENE_DETECT_USE_FACE', 'true') == 'true'
 SCENE_DETECT_USE_OCR = os.getenv('SCENE_DETECT_USE_OCR', 'true') == 'true'
+SCENE_DETECT_USE_EARLY_DROP = os.getenv('SCENE_DETECT_USE_EARLY_DROP', 'true') == 'true'
 
 detector = MTCNN()
 
@@ -172,6 +173,7 @@ def generate_frame_similarity(video_path, num_samples, everyN, start_time):
     """
 
     SIM_OCR_CONFIDENCE = 55  # OCR confidnece used to generate sim_ocr
+    DROP_THRESHOLD = 0.95  # Minimum sim_structural confidnece to conclude no scene changes
 
     # Stores the last frame read
     last_frame = 0
@@ -229,50 +231,61 @@ def generate_frame_similarity(video_path, num_samples, everyN, start_time):
         # Calculate the SSIM between the current frame and last frame
         if i >= 1:
             sim_structural[i] = ssim(last_frame, curr_frame)
+        
+        # Check the sim_structural score to ignore Face Detection and OCR
+        dropping_signal = (i >= 1 and sim_structural[i] >= DROP_THRESHOLD and SCENE_DETECT_USE_EARLY_DROP)
 
-        if SCENE_DETECT_USE_FACE:
-            # Run Face Detection upon the current frame
-            curr_face_detection_result = require_face_result(curr_frame)
-
-            # Calculate the SSIM between the current frame and last frame when face & upper body are removed
-            if i >= 1:
-                sim_structural_no_face[i] = require_ssim_with_face_detection(
-                    curr_frame, curr_face_detection_result, last_frame, last_face_detection_result)
-
-            # Save the current face detection result for the next iteration
-            del last_face_detection_result
-            last_face_detection_result = curr_face_detection_result
+        # Drop Face Detection and OCR
+        if dropping_signal == True:
+            sim_structural[i] = 1
+            sim_structural_no_face[i] = 1
+            sim_ocr[i] = 1
+        
+        # Continue Face Detection and OCR
         else:
-            sim_structural_no_face[i] = sim_structural[i]
-            
+            if SCENE_DETECT_USE_FACE:
+                # Run Face Detection upon the current frame
+                curr_face_detection_result = require_face_result(curr_frame)
 
-        if SCENE_DETECT_USE_OCR:
-            # Calculate the OCR difference between the current frame and last frame
-            ocr_frame = cv2.cvtColor(cv2.resize(
-                frame, (480, 360)), cv2.COLOR_BGR2GRAY)
-            str_text = pytesseract.image_to_data(
-                ocr_frame, output_type='dict')
+                # Calculate the SSIM between the current frame and last frame when face & upper body are removed
+                if i >= 1:
+                    sim_structural_no_face[i] = require_ssim_with_face_detection(
+                        curr_frame, curr_face_detection_result, last_frame, last_face_detection_result)
 
-            phrases = Counter()
-            for j in range(len(str_text['conf'])):
-                if int(str_text['conf'][j]) >= SIM_OCR_CONFIDENCE and len(str_text['text'][j].strip()) > 0:
-                    phrases[str_text['text'][j]
-                            ] += (float(str_text['conf'][j]) / 100)
+                # Save the current face detection result for the next iteration
+                del last_face_detection_result
+                last_face_detection_result = curr_face_detection_result
+            else:
+                sim_structural_no_face[i] = sim_structural[i]
+                
 
-            del str_text
-            curr_ocr = dict(phrases)
+            if SCENE_DETECT_USE_OCR:
+                # Calculate the OCR difference between the current frame and last frame
+                ocr_frame = cv2.cvtColor(cv2.resize(
+                    frame, (480, 360)), cv2.COLOR_BGR2GRAY)
+                str_text = pytesseract.image_to_data(
+                    ocr_frame, output_type='dict')
 
-            if i >= 1:
-                sim_ocr[i] = compare_ocr_difference(last_ocr, curr_ocr)
+                phrases = Counter()
+                for j in range(len(str_text['conf'])):
+                    if int(str_text['conf'][j]) >= SIM_OCR_CONFIDENCE and len(str_text['text'][j].strip()) > 0:
+                        phrases[str_text['text'][j]
+                                ] += (float(str_text['conf'][j]) / 100)
 
-            ocr_output.append(phrases)
+                del str_text
+                curr_ocr = dict(phrases)
 
-            # Save the current OCR output for the next iteration
-            if last_ocr:
-                del last_ocr
-            last_ocr = curr_ocr
-        else:
-            sim_ocr[i] = 1 if i >= 1 else 0
+                if i >= 1:
+                    sim_ocr[i] = compare_ocr_difference(last_ocr, curr_ocr)
+
+                ocr_output.append(phrases)
+
+                # Save the current OCR output for the next iteration
+                if last_ocr:
+                    del last_ocr
+                last_ocr = curr_ocr
+            else:
+                sim_ocr[i] = 1 if i >= 1 else 0
 
         # Save the current frame for the next iteration
         if last_frame is not None:
