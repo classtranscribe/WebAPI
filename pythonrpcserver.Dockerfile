@@ -16,8 +16,9 @@ RUN ./autogen.sh && ./configure && make -j && make install && ldconfig
 RUN make training && make training-install
 # The above line takes 59 seconds on my laptop 
 
-RUN curl -L -o tessdata/eng.traineddata https://github.com/tesseract-ocr/tessdata/raw/master/eng.traineddata
-RUN curl -L -o tessdata/osd.traineddata https://github.com/tesseract-ocr/tessdata/raw/master/osd.traineddata
+RUN curl -L -o tessdata/eng.traineddata https://github.com/tesseract-ocr/tessdata/raw/main/eng.traineddata
+RUN curl -L -o tessdata/osd.traineddata https://github.com/tesseract-ocr/tessdata/raw/main/osd.traineddata
+
 ENV TESSDATA_PREFIX=/tesseract-4.1.1/tessdata
 #Disable multi-threading
 ENV OMP_THREAD_LIMIT=1
