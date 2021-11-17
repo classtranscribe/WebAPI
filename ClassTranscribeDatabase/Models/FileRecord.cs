@@ -1,4 +1,6 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+using System;
+using System.ComponentModel.DataAnnotations.Schema;
+using System.Diagnostics.Contracts;
 using System.IO;
 using System.Runtime.Serialization;
 using System.Security.Cryptography;
@@ -40,6 +42,35 @@ namespace ClassTranscribeDatabase.Models
             fileRecord.Hash = await ComputeSha256HashForFileAsync(fileRecord.Path);
             fileRecord.Id = uuid;
             return fileRecord;
+        }
+
+        public static async Task SetFilePath(CTDbContext context, Entity entity)
+        {
+            // If the entity's CreatedAt field is set to the default DateTime (Jan 1, 0001) this means that
+            // it is a new Entity that hasn't yet been added to the DB so we can just use the current date
+            var createdAt = entity.CreatedAt != default ? entity.CreatedAt : DateTime.Now;
+            var filePath = $"{createdAt:yyMM}-{CommonUtils.RandomString(4)}";
+            var newDirectory = Globals.appSettings.DATA_DIRECTORY + System.IO.Path.DirectorySeparatorChar;
+
+            switch (entity)
+            {
+                case Course course:
+                    course.FilePath = filePath;
+                    newDirectory += course.FilePath;
+                    break;
+                case CourseOffering courseOffering:
+                    var linkedCourse = await context.Courses.FindAsync(courseOffering.CourseId);
+                    Contract.Requires(linkedCourse != null);
+
+                    courseOffering.FilePath = System.IO.Path.Combine(linkedCourse.FilePath, filePath);
+                    newDirectory += courseOffering.FilePath;
+                    break;
+                default:
+                    throw new InvalidOperationException("Invalid entity passed: " + entity.GetType());
+            }
+
+            Directory.CreateDirectory(newDirectory);
+            await context.SaveChangesAsync();
         }
 
         /// <summary>

@@ -4,7 +4,9 @@ using ClassTranscribeServer.Controllers;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json.Linq;
+using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
@@ -65,6 +67,14 @@ namespace UnitTests.ClassTranscribeServer.ControllerTests
             var newOffering = _context.Offerings.Find(offering.Id);
             Assert.Equal(PublishStatus.NotPublished, newOffering.PublishStatus);
             Assert.Equal(Visibility.Visible, newOffering.Visibility);
+
+            var newCourseOffering = newOffering.CourseOfferings[0];
+            Assert.Equal(19, newCourseOffering.FilePath.Length);
+            Assert.Equal(TestGlobals.MOCK_FILE_PATH, newCourseOffering.FilePath.Substring(0, 9));
+            Assert.Equal(Path.DirectorySeparatorChar, newCourseOffering.FilePath.ToCharArray()[9]);
+            Assert.Equal(DateTime.Now.ToString("yyMM") + "-", newCourseOffering.FilePath.Substring(10, 5));
+            Assert.True(Directory.Exists(Path.Combine(Globals.appSettings.DATA_DIRECTORY, newCourseOffering.FilePath.Substring(0, 9))));
+            Assert.True(Directory.Exists(Path.Combine(Globals.appSettings.DATA_DIRECTORY, newCourseOffering.FilePath)));
         }
 
         [Fact]
@@ -427,6 +437,7 @@ namespace UnitTests.ClassTranscribeServer.ControllerTests
                 Id = courseId,
                 CourseNumber = courseId,
                 DepartmentId = departmentId,
+                FilePath = TestGlobals.MOCK_FILE_PATH
             });
 
             _context.Roles.Add(new IdentityRole

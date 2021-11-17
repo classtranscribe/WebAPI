@@ -3,7 +3,9 @@ using ClassTranscribeDatabase.Models;
 using ClassTranscribeServer.Controllers;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
@@ -24,17 +26,23 @@ namespace UnitTests.ClassTranscribeServer.ControllerTests
         {
             var offeringId = "1111";
             var userId = "13";
-            var courseIds = new List<string>();
+            var courseIds = new List<string> { "0001" };
             SetupEntities(offeringId, userId, courseIds);
 
             var courseOffering = new CourseOffering
             {
-                CourseId = "0001",
+                CourseId = courseIds[0],
                 OfferingId = offeringId
             };
 
             var postResult = await _controller.PostCourseOffering(courseOffering);
             Assert.IsType<OkResult>(postResult.Result);
+            Assert.Equal(19, courseOffering.FilePath.Length);
+            Assert.Equal(TestGlobals.MOCK_FILE_PATH, courseOffering.FilePath.Substring(0, 9));
+            Assert.Equal(Path.DirectorySeparatorChar, courseOffering.FilePath.ToCharArray()[9]);
+            Assert.Equal(DateTime.Now.ToString("yyMM") + "-", courseOffering.FilePath.Substring(10, 5));
+            Assert.True(Directory.Exists(Path.Combine(Globals.appSettings.DATA_DIRECTORY, courseOffering.FilePath.Substring(0, 9))));
+            Assert.True(Directory.Exists(Path.Combine(Globals.appSettings.DATA_DIRECTORY, courseOffering.FilePath)));
 
             var deleteResult = await _controller.DeleteCourseOffering(courseOffering.CourseId, courseOffering.OfferingId);
             Assert.Single(deleteResult.Value);
@@ -58,7 +66,7 @@ namespace UnitTests.ClassTranscribeServer.ControllerTests
                 },
                 new CourseOffering
                 {
-                    CourseId = "not_existing",
+                    CourseId = courseIds[0],
                     OfferingId = "not_existing"
                 },
                 new CourseOffering
@@ -169,7 +177,8 @@ namespace UnitTests.ClassTranscribeServer.ControllerTests
             {
                 Id = courseId,
                 CourseNumber = courseId,
-                DepartmentId = "0000"
+                DepartmentId = "0000",
+                FilePath = TestGlobals.MOCK_FILE_PATH
             }));
         }
     }
