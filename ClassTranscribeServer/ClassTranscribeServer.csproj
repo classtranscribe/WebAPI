@@ -73,11 +73,11 @@
     <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" Version="5.0.0" />
     <PackageReference Include="NEST" Version="7.10.0" />
     <PackageReference Include="Elasticsearch.Net" Version="7.10.0" />
+    <PackageReference Include="SubtitlesParser" Version="1.5.0" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\ClassTranscribeDatabase\ClassTranscribeDatabase.csproj" />
-    <ProjectReference Include="..\CTCommons\CTCommons.csproj" />
   </ItemGroup>
 
   <ItemGroup>

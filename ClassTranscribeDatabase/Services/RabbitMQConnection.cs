@@ -1,5 +1,4 @@
-﻿using ClassTranscribeDatabase;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
@@ -16,7 +15,7 @@ using System.Threading.Tasks;
 /// 
 /// </remarks>
 /// 
-namespace CTCommons
+namespace ClassTranscribeDatabase.Services
 {
     // Used to keep track of all active running tasks
     // And current tasks per message being consumed

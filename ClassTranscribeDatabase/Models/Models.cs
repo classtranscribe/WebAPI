@@ -69,6 +69,20 @@ namespace ClassTranscribeDatabase.Models
         NotPublished = 1
     }
 
+    public enum Editable
+    {
+        None = 0,
+        Limited = 1,
+        Suggest = 2,
+        CrowdSource = 3
+    }
+
+    public enum TranscriptionType
+    {
+        Caption = 0,
+        TextDescription = 1
+    }
+
     /// <summary>
     /// This class represents a User of ClassTranscribe.
     /// </summary>
@@ -267,6 +281,13 @@ namespace ClassTranscribeDatabase.Models
         [SwaggerIgnore]
         [IgnoreDataMember]
         public virtual List<Caption> Captions { get; set; }
+
+        public PublishStatus PublishStatus { get; set; }
+        public string SourceLabel { get; set; }
+        public string SourceInternalRef { get; set; }
+        public string Label { get; set; }
+        public Editable Editable { get; set; }
+        public TranscriptionType TranscriptionType { get; set; }
     }
 
     public class Video : Entity

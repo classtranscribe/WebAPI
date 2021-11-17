@@ -1,9 +1,8 @@
-﻿using ClassTranscribeDatabase;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace CTCommons.MSTranscription
+namespace ClassTranscribeDatabase.Services.MSTranscription
 {
     /// <summary>
     /// Each object of this class represents an azure subscription key.

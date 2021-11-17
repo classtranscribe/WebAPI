@@ -2,7 +2,7 @@
 using System.Diagnostics;
 using System.IO;
 
-namespace CTCommons.MSTranscription
+namespace ClassTranscribeDatabase.Services.MSTranscription
 {
     /// <summary>
     /// Helper methods to open wav files.

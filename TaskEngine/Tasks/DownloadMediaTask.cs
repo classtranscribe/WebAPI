@@ -1,15 +1,14 @@
 ﻿using ClassTranscribeDatabase;
 using ClassTranscribeDatabase.Models;
+using ClassTranscribeDatabase.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using CTCommons.Grpc;
 using static ClassTranscribeDatabase.CommonUtils;
-using CTCommons;
-using System.Diagnostics.CodeAnalysis;
 
 
 namespace TaskEngine.Tasks

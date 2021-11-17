@@ -7,7 +7,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using CTCommons.Grpc;
 using System.IO;
 
 
@@ -18,7 +17,7 @@ using System.IO;
 // https://api.cognitive.microsofttranslator.com/languages?api-version=3.0
 // Speech recognition list is here - 
 // https://docs.microsoft.com/en-us/azure/cognitive-services/speech-service/language-support#speech-translation
-namespace CTCommons.MSTranscription
+namespace ClassTranscribeDatabase.Services.MSTranscription
 {
 
     public class MSTranscriptionService

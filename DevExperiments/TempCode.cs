@@ -1,11 +1,11 @@
 ﻿using ClassTranscribeDatabase;
+using ClassTranscribeDatabase.Services;
+using ClassTranscribeDatabase.Services.MSTranscription;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Threading.Tasks;
-using CTCommons.Grpc;
-using CTCommons.MSTranscription;
 
-namespace CTCommons
+namespace DevExperiments
 {
     class TempCode
     {
