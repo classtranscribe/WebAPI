@@ -1,18 +1,18 @@
 ﻿using ClassTranscribeDatabase;
 using ClassTranscribeDatabase.Models;
+using ClassTranscribeDatabase.Services;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
-using CTCommons.Grpc;
 using TaskEngine.Tasks;
-using static ClassTranscribeDatabase.CommonUtils;
 
 namespace TaskEngine
 {
+    [SuppressMessage("Microsoft.Performance", "CA1812:MarkMembersAsStatic")] // This class is never directly instantiated
     class TempCode
     {
         // Deletes all Videos which don't have a file or have an invalid file (size under 1000 bytes)
@@ -96,7 +96,7 @@ namespace TaskEngine
             medias = context.Medias.ToList();
             foreach (Media media in medias)
             {
-                media.Name = DownloadPlaylistInfoTask.GetMediaName(media);
+                media.Name = CommonUtils.GetMediaName(media);
                 Console.WriteLine(media.Name);
             }
             context.SaveChanges();

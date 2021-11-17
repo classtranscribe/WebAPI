@@ -1,13 +1,12 @@
 ﻿using ClassTranscribeDatabase;
 using ClassTranscribeDatabase.Models;
+using ClassTranscribeDatabase.Services;
 using Microsoft.Extensions.Logging;
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading.Tasks;
-using CTCommons.Grpc;
 using static ClassTranscribeDatabase.CommonUtils;
-using CTCommons;
-using System.Diagnostics.CodeAnalysis;
 
 namespace TaskEngine.Tasks
 {
@@ -40,7 +39,7 @@ namespace TaskEngine.Tasks
         /// <param name="videoId"></param>
         /// <param name="taskParameters"></param>
         /// <returns></returns>
-        private async Task OldOnConsumeNotUsed(string videoId, TaskParameters taskParameters) 
+        private async Task OldOnConsumeNotUsed(string videoId) 
         { 
             using (var _context = CTDbContext.CreateDbContext())
             {

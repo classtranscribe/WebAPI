@@ -51,6 +51,7 @@ namespace ClassTranscribeDatabase.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Metadata")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("NormalizedEmail")
@@ -332,6 +333,7 @@ namespace ClassTranscribeDatabase.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("Cover")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<DateTime>("CreatedAt")
@@ -498,6 +500,7 @@ namespace ClassTranscribeDatabase.Migrations
                         .HasColumnType("integer");
 
                     b.Property<string>("Json")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<DateTime>("LastUpdatedAt")
@@ -545,6 +548,7 @@ namespace ClassTranscribeDatabase.Migrations
                         .HasColumnType("integer");
 
                     b.Property<string>("JsonMetadata")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<DateTime>("LastUpdatedAt")
@@ -620,6 +624,7 @@ namespace ClassTranscribeDatabase.Migrations
                         .HasColumnType("integer");
 
                     b.Property<string>("Payload")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.HasKey("Id");
@@ -660,6 +665,7 @@ namespace ClassTranscribeDatabase.Migrations
                         .HasColumnType("integer");
 
                     b.Property<string>("JsonMetadata")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<DateTime>("LastUpdatedAt")
@@ -715,6 +721,7 @@ namespace ClassTranscribeDatabase.Migrations
                         .HasColumnType("integer");
 
                     b.Property<string>("JsonMetadata")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<DateTime>("LastUpdatedAt")
@@ -866,9 +873,11 @@ namespace ClassTranscribeDatabase.Migrations
                         .HasColumnType("timestamp without time zone");
 
                     b.Property<string>("RemoteResultData")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("ResultData")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("Rule")
@@ -879,6 +888,7 @@ namespace ClassTranscribeDatabase.Migrations
                         .HasColumnType("timestamp without time zone");
 
                     b.Property<string>("TaskParameters")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<int>("TaskStatusCode")
@@ -987,11 +997,17 @@ namespace ClassTranscribeDatabase.Migrations
                     b.Property<string>("Description")
                         .HasColumnType("text");
 
+                    b.Property<int>("Editable")
+                        .HasColumnType("integer");
+
                     b.Property<string>("FileId")
                         .HasColumnType("text");
 
                     b.Property<int>("IsDeletedStatus")
                         .HasColumnType("integer");
+
+                    b.Property<string>("Label")
+                        .HasColumnType("text");
 
                     b.Property<string>("Language")
                         .HasColumnType("text");
@@ -1002,8 +1018,20 @@ namespace ClassTranscribeDatabase.Migrations
                     b.Property<string>("LastUpdatedBy")
                         .HasColumnType("text");
 
+                    b.Property<int>("PublishStatus")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("SourceInternalRef")
+                        .HasColumnType("text");
+
+                    b.Property<string>("SourceLabel")
+                        .HasColumnType("text");
+
                     b.Property<string>("SrtFileId")
                         .HasColumnType("text");
+
+                    b.Property<int>("TranscriptionType")
+                        .HasColumnType("integer");
 
                     b.Property<string>("VideoId")
                         .HasColumnType("text");
@@ -1130,12 +1158,14 @@ namespace ClassTranscribeDatabase.Migrations
                         .HasColumnType("interval");
 
                     b.Property<string>("FileMediaInfo")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<int>("IsDeletedStatus")
                         .HasColumnType("integer");
 
                     b.Property<string>("JsonMetadata")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<DateTime>("LastUpdatedAt")
@@ -1154,6 +1184,7 @@ namespace ClassTranscribeDatabase.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("SceneData")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<int>("TranscribingAttempts")
@@ -1208,6 +1239,7 @@ namespace ClassTranscribeDatabase.Migrations
                         .HasColumnType("integer");
 
                     b.Property<string>("Json")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<DateTime>("LastUpdatedAt")

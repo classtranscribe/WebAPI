@@ -232,61 +232,6 @@ namespace ClassTranscribeDatabase.Models
             return content.ToString();
        }
 
-
-
-        /// <summary>
-        /// Parse a WebVTT file into a list of captions. (apparently unused)
-        /// </summary>
-        /// <returns>A list of the caption representing the vtt file or null if unsuccessful</returns>
-        public static List<Caption> WebVTTFileToCaption(string file)
-        {
-            string text = File.ReadAllText(file);
-            return WebVTTContentsToCaption(text);
-        }
-            
-        public static List<Caption> WebVTTContentsToCaption(string text)
-        {
-            List<Caption> captions = new List<Caption>();
-            string[] cues = text.Split("\n\n");
-            int idx = 0;
-
-            for (int i = 0; i < cues.Length; i++)
-            {
-                var cue = cues[i];
-                if (i == 0 && cue.Substring(0, 6) != "WEBVTT") return null;
-
-                if (cue.Contains("-->"))
-                {
-                    string[] lines = cue.Split("\n");
-                    Caption caption = new Caption
-                    {
-                        Text = "",
-                        Index = idx
-                    };
-                    idx++;
-
-                    for (int j = 0; j < lines.Length; j++)
-                    {
-                        var line = lines[j];
-                        if (line.Contains("-->"))
-                        {
-                            // Try parse vtt timestamp into TimeSpan
-                            string[] timestamps = line.Split("-->");
-                            caption.Begin = TimeSpan.Parse(timestamps[0].Trim());
-                            caption.End = TimeSpan.Parse(timestamps[1].Trim());
-                        }
-                        else
-                        {
-                            // Otherwise is cue payload
-                            caption.Text += line;
-                        }
-                    }
-                    captions.Add(caption);
-                }
-            }
-            return captions;
-        }
-
         /// <summary>
         /// Write text to a file.
         /// </summary>

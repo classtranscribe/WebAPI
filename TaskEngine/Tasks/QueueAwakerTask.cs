@@ -1,5 +1,5 @@
 ﻿using ClassTranscribeDatabase;
-using CTCommons;
+using ClassTranscribeDatabase.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
@@ -336,12 +336,7 @@ namespace TaskEngine.Tasks
                 else if(type==TaskType.SceneDetection.ToString())
                 {
                     var id = jObject["videoMediaPlaylistId"].ToString();
-                    bool deleteExisting = false;
-                    try
-                    {
-                        deleteExisting = jObject["DeleteExisting"].Value<bool>();
-                    }
-                    catch (Exception) { }
+                    bool deleteExisting = jObject["DeleteExisting"]?.Value<bool>() ?? false;
                     GetLogger().LogInformation($"{type}:{id}");
                     var videos = await _context.Videos.Where(v=>v.Id ==id).ToListAsync();
                     if (videos.Count == 0)
@@ -354,7 +349,7 @@ namespace TaskEngine.Tasks
                         {
                             GetLogger().LogInformation($"{id}:Removing SceneDetection for video ({video.Id})");
 
-                            video.SceneData = null;
+                            video.SceneData.RemoveAll();
                             
                             await _context.SaveChangesAsync();
                         }
@@ -386,12 +381,7 @@ namespace TaskEngine.Tasks
 
                      }
                     //TODO: These properties should not be literal strings
-                    bool deleteExisting = false;
-                    try
-                    {
-                        deleteExisting = jObject["DeleteExisting"].Value<bool>();
-                    }
-                    catch (Exception) { }
+                    bool deleteExisting = jObject["DeleteExisting"]?.Value<bool>() ?? false;
                     if (deleteExisting)
                     {
                         GetLogger().LogInformation($"{id}:Removing Transcriptions for video ({video.Id})");

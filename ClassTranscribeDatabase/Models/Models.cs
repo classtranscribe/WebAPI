@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
@@ -68,6 +69,20 @@ namespace ClassTranscribeDatabase.Models
         NotPublished = 1
     }
 
+    public enum Editable
+    {
+        None = 0,
+        Limited = 1,
+        Suggest = 2,
+        CrowdSource = 3
+    }
+
+    public enum TranscriptionType
+    {
+        Caption = 0,
+        TextDescription = 1
+    }
+
     /// <summary>
     /// This class represents a User of ClassTranscribe.
     /// </summary>
@@ -83,7 +98,8 @@ namespace ClassTranscribeDatabase.Models
         public string UniversityId { get; set; }
         public virtual University University { get; set; }
         public Status Status { get; set; }
-        public JObject Metadata { get; set; }
+        [Required]
+        public JObject Metadata { get; set; } = new JObject();
     }
 
     /// <summary>
@@ -114,7 +130,9 @@ namespace ClassTranscribeDatabase.Models
         public DateTime? DeletedAt { get; set; }
         [SwaggerIgnore]
         [IgnoreDataMember]
+#nullable enable
         public string? DeletedBy { get; set; }
+#nullable disable
 
         public ResourceType GetResourceType()
         {
@@ -201,7 +219,8 @@ namespace ClassTranscribeDatabase.Models
         public bool LogEventsFlag { get; set; }
         public string CourseName { get; set; }
         public string Description { get; set; }
-        public JObject JsonMetadata { get; set; }
+        [Required]
+        public JObject JsonMetadata { get; set; } = new JObject();
         public Visibility Visibility { get; set; }
         public PublishStatus PublishStatus { get; set; }
     }
@@ -216,7 +235,8 @@ namespace ClassTranscribeDatabase.Models
         [SwaggerIgnore]
         [IgnoreDataMember]
         public virtual Offering Offering { get; set; }
-        public JObject JsonMetadata { get; set; }
+        [Required]
+        public JObject JsonMetadata { get; set; } = new JObject();
         public int Index { get; set; }
         public Visibility Visibility { get; set; }
         public PublishStatus PublishStatus { get; set; }
@@ -226,7 +246,8 @@ namespace ClassTranscribeDatabase.Models
     {
         public SourceType SourceType { get; set; }
         public string UniqueMediaIdentifier { get; set; }
-        public JObject JsonMetadata { get; set; }
+        [Required]
+        public JObject JsonMetadata { get; set; } = new JObject();
         public string VideoId { get; set; }
         [SwaggerIgnore]
         [IgnoreDataMember]
@@ -259,6 +280,13 @@ namespace ClassTranscribeDatabase.Models
         [SwaggerIgnore]
         [IgnoreDataMember]
         public virtual List<Caption> Captions { get; set; }
+
+        public PublishStatus PublishStatus { get; set; }
+        public string SourceLabel { get; set; }
+        public string SourceInternalRef { get; set; }
+        public string Label { get; set; }
+        public Editable Editable { get; set; }
+        public TranscriptionType TranscriptionType { get; set; }
     }
 
     public class Video : Entity
@@ -291,19 +319,23 @@ namespace ClassTranscribeDatabase.Models
         public virtual List<Transcription> Transcriptions { get; set; }
 
         public virtual List<EPub> EPubs { get; set; }
-        public JObject SceneData { get; set; }
-        public JObject JsonMetadata { get; set; }
+#nullable enable
         public string? PhraseHints { get; set; } // null if not yet processed
+#nullable disable
 
         // Reported duration extracted from MediaInfo. The actual video/audio/caption streams duration could be less
         // Returns null if unknown
         // TimeSpan.Zero means a video that is actually zero seconds
         // See UpdateMediaProperties
         public virtual TimeSpan? Duration { get; set; }
-        
 
+        [Required]
+        public JObject SceneData { get; set; } = new JObject();
+        [Required]
+        public JObject JsonMetadata { get; set; } = new JObject();
+        [Required]
         // MediaInfo extracted from the video file
-        public virtual JObject FileMediaInfo { get; set; }
+        public virtual JObject FileMediaInfo { get; set; } = new JObject();
 
 
         public virtual void UpdateMediaProperties()
@@ -392,7 +424,8 @@ namespace ClassTranscribeDatabase.Models
         public string OfferingId { get; set; }
         public string MediaId { get; set; }
         public string EventType { get; set; }
-        public JObject Json { get; set; }
+        [Required]
+        public JObject Json { get; set; } = new JObject();
     }
 
     public class EPub : Entity
@@ -406,7 +439,8 @@ namespace ClassTranscribeDatabase.Models
         public string Publisher { get; set; }
         public Visibility Visibility { get; set; }
         public PublishStatus PublishStatus { get; set; }
-        public JObject Cover { get; set; }
+        [Required]
+        public JObject Cover { get; set; } = new JObject();
         public List<JObject> Chapters { get; set; }
     }
 
@@ -420,7 +454,8 @@ namespace ClassTranscribeDatabase.Models
         [SwaggerIgnore]
         [IgnoreDataMember]
         public virtual ApplicationUser ApplicationUser { get; set; }
-        public JObject Json { get; set; }
+        [Required]
+        public JObject Json { get; set; } = new JObject();
     }
 
     public class Dictionary : Entity
@@ -460,7 +495,8 @@ namespace ClassTranscribeDatabase.Models
     {
         public virtual ApplicationUser ApplicationUser { get; set; }
         public string ApplicationUserId { get; set; }
-        public JObject Payload { get; set; }
+        [Required]
+        public JObject Payload { get; set; } = new JObject();
         public LogLevel LogLevel { get; set; }
         public Ack Ack { get; set; }
     }

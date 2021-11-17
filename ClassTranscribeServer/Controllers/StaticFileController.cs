@@ -1,19 +1,11 @@
 ﻿using ClassTranscribeDatabase;
-using ClassTranscribeDatabase.Models;
 using ClassTranscribeServer.Utils;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Security.Claims;
-using System.Threading.Tasks;
 
 
 namespace ClassTranscribeServer.Controllers
@@ -30,43 +22,41 @@ namespace ClassTranscribeServer.Controllers
         public StaticFileController(IAuthorizationService authorizationService, 
             CTDbContext context,
             UserUtils userUtils,
+            PhysicalFileProvider provider,
             ILogger<StaticFileController> logger) : base(context, logger)
         {
             _authorizationService = authorizationService;
             _userUtils = userUtils;
-            _provider = new PhysicalFileProvider(Globals.appSettings.DATA_DIRECTORY);
+            _provider = provider;
         }
 
-        //[HttpGet("{relpath}")]
-        /* We have files in subdirectories too. Though I experimented with route matching in Startup.cs, the following route definition is required. */
-        //[Route("/data/{*id}")]
-
-        [HttpGet("{*relpath}")]   
+        // Using double asterix to preserve forward slashes: https://docs.microsoft.com/en-us/aspnet/core/fundamentals/routing?view=aspnetcore-5.0#rtr
+        // Add "required" attribute to prevent null values: https://docs.microsoft.com/en-us/aspnet/core/fundamentals/routing?view=aspnetcore-5.0#route-constraint-reference
+        [HttpGet("{**relpath:required}")]   
         // Will be Task<ActionResult> when we need to do async access checks     
-        public ActionResult GetFile(string? relpath)
+        public ActionResult GetFile(string relpath)
         {
-        
-            string urlpath =  HttpContext.Request.Path;
-           
-            string urlsubpath = urlpath.Split("/data/",2)[1]; // drop /data/
+            var fileInfo = _provider.GetFileInfo(relpath);
 
-            var fileInfo = _provider.GetFileInfo(urlsubpath);
-            if( ! fileInfo.Exists)
+            if (!fileInfo.Exists)
             {
                 return NotFound();
             }
+
             // Require Authenticated user
-            if( ! checkFileAccess(urlsubpath, User ) ) {
+            if (!checkFileAccess(relpath, User))
+            {
                 return Forbid();
             }
+
             var readStream = fileInfo.CreateReadStream();
             var mimeType = "application/octet-stream"; // arbitrary data
            
-            return File(readStream, mimeType, enableRangeProcessing:true);
+            return File(readStream, mimeType, enableRangeProcessing: true);
         }
 
         private bool checkFileAccess(string path, ClaimsPrincipal User) {
-            if(User.Identity.IsAuthenticated) {
+            if (User.Identity.IsAuthenticated && path != null) {
                 // Will be set if a valid Bearer token is presented
                 // Future implementation can verify User access for a specific resource
             //var standinMedia = await _context.Medias.FirstAsync();
@@ -76,10 +66,13 @@ namespace ClassTranscribeServer.Controllers
             //}urlsubpath.EndsWith(".txt") && 
                 return true;
             }
+
             // Referer checks are deprecated and will be removed in the future
+#nullable enable
             string? referer = HttpContext.Request.Headers["Referer"];
-               
-            if(string.IsNullOrEmpty(referer)) {
+#nullable disable
+            
+            if (string.IsNullOrEmpty(referer)) {
                 return false;
             }
             if (referer.Contains( HttpContext.Request.Host.Host,System.StringComparison.InvariantCultureIgnoreCase)) {
