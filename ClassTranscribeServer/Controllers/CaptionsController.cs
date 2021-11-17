@@ -1,11 +1,17 @@
 ﻿using ClassTranscribeDatabase;
 using ClassTranscribeDatabase.Models;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using SubtitlesParser.Classes.Parsers;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace ClassTranscribeServer.Controllers
@@ -16,6 +22,7 @@ namespace ClassTranscribeServer.Controllers
     {
         private readonly WakeDownloader _wakeDownloader;
         private readonly CaptionQueries _captionQueries;
+        private readonly SubParser parser = new SubParser();
 
         public CaptionsController(WakeDownloader wakeDownloader,
             CTDbContext context,
@@ -26,7 +33,7 @@ namespace ClassTranscribeServer.Controllers
             _wakeDownloader = wakeDownloader;
         }
 
-        // GET: api/Captions/5
+        // GET: api/Captions/ByTranscription/5
         [HttpGet("ByTranscription/{TranscriptionId}")]
         public async Task<ActionResult<IEnumerable<Caption>>> GetCaptions(string TranscriptionId)
         {
@@ -76,7 +83,7 @@ namespace ClassTranscribeServer.Controllers
             return newCaption;
         }
 
-        // POST: api/Captions
+        // POST: api/Captions/UpVote
         [HttpPost("UpVote")]
         public async Task<ActionResult<Caption>> UpVote(string id)
         {
@@ -92,7 +99,7 @@ namespace ClassTranscribeServer.Controllers
             return caption;
         }
 
-        // POST: api/Captions
+        // POST: api/Captions/DownVote
         [HttpPost("DownVote")]
         public async Task<ActionResult<Caption>> DownVote(string id)
         {
@@ -108,7 +115,7 @@ namespace ClassTranscribeServer.Controllers
             return caption;
         }
 
-        // POST: api/Captions
+        // POST: api/Captions/CancelUpVote
         [HttpPost("CancelUpVote")]
         public async Task<ActionResult<Caption>> CancelUpVote(string id)
         {
@@ -124,7 +131,7 @@ namespace ClassTranscribeServer.Controllers
             return caption;
         }
 
-        // POST: api/Captions
+        // POST: api/Captions/CancelDownVote
         [HttpPost("CancelDownVote")]
         public async Task<ActionResult<Caption>> CancelDownVote(string id)
         {
@@ -174,7 +181,7 @@ namespace ClassTranscribeServer.Controllers
             return code != null && code.Length >= 2 ? pgLanguageMap.GetValueOrDefault(code.Substring(0, 2).ToLowerInvariant(), "simple") : "simple";
         }
 
-        // POST: api/Captions
+        // GET: api/Captions/SearchInOffering
         [HttpGet("SearchInOffering")]
         public async Task<ActionResult<IEnumerable<SearchedCaptionDTO>>> SearchInOffering(string offeringId, string query, string filterLanguage = "en-US")
         {
@@ -230,6 +237,82 @@ namespace ClassTranscribeServer.Controllers
             return result;
         }
 
+        // POST: api/Captions
+        [DisableRequestSizeLimit]
+        [Authorize(Roles = Globals.ROLE_ADMIN + "," + Globals.ROLE_TEACHING_ASSISTANT + "," + Globals.ROLE_INSTRUCTOR)]
+        [HttpPost]
+        [Consumes("multipart/form-data")]
+        public async Task<ActionResult<IEnumerable<Caption>>> PostCaptionFile(IFormFile captionFile, [FromForm] string videoId, [FromForm] string language)
+        {
+            if (videoId == null || language == null || captionFile == null || captionFile.Length <= 0)
+            {
+                return BadRequest("All of the following parameters are required: 'captionFile', 'videoId', 'language'");
+            }
+
+            var allowedLangs = new string[]
+            {
+                CommonUtils.Languages.ENGLISH_AMERICAN,
+                CommonUtils.Languages.SIMPLIFIED_CHINESE,
+                CommonUtils.Languages.KOREAN,
+                CommonUtils.Languages.SPANISH,
+                CommonUtils.Languages.FRENCH
+            };
+
+            if (!allowedLangs.Contains(language))
+            {
+                return BadRequest($"Language not permitted, only the following language codes are accepted: {string.Join(", ", allowedLangs)}");
+            }
+
+            var ext = Path.GetExtension(captionFile.FileName).ToLower(System.Globalization.CultureInfo.CurrentCulture);
+            var allowedExtensions = new string[] { ".vtt",  ".srt", ".sub", ".ssa", ".ttml" };
+
+            if (!allowedExtensions.Contains(ext))
+            {
+                return BadRequest($"File format not permitted, only the following formats are accepted: {string.Join(", ", allowedExtensions)}");
+            }
+
+            var video = await _context.Videos.FindAsync(videoId);
+
+            if (video == null)
+            {
+                return NotFound($"Video with ID {videoId} not found");
+            }
+
+            using var fileStream = captionFile.OpenReadStream();
+            var mostLikelyFormat = parser.GetMostLikelyFormat(captionFile.FileName);
+            var items = parser.ParseStream(fileStream, Encoding.UTF8, mostLikelyFormat);
+
+            if (!items.Any())
+            {
+                return BadRequest("No captions found in the file");
+            }
+
+            var captions = items.Select((item, idx) => new Caption
+            {
+                Begin = new TimeSpan(item.StartTime * TimeSpan.TicksPerMillisecond),
+                End = new TimeSpan(item.EndTime * TimeSpan.TicksPerMillisecond),
+                Text = string.Join("\n", item.Lines),
+                Index = idx + 1,
+            }).ToList();
+
+            var transcription = new Transcription
+            {
+                VideoId = videoId,
+                Captions = captions,
+                Language = language,
+                Label = language,
+                SourceInternalRef = "ClassTranscribe/upload"
+            };
+
+            await _context.Transcriptions.AddAsync(transcription);
+            await _context.Captions.AddRangeAsync(captions);
+            await _context.SaveChangesAsync();
+
+            _wakeDownloader.UpdateVTTFile(transcription.Id);
+
+            return captions;
+        }
+
         public class SearchedCaptionDTO
         {
             public Caption Caption { get; set; }
@@ -239,11 +322,6 @@ namespace ClassTranscribeServer.Controllers
             public string MediaName { get; set; }
             public string PlaylistName { get; set; }
             public string Language { get; set; }
-        }
-
-        private bool CaptionExists(string id)
-        {
-            return _context.Captions.Any(e => e.Id == id);
         }
     }
 }
