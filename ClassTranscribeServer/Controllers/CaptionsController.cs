@@ -300,6 +300,8 @@ namespace ClassTranscribeServer.Controllers
                 VideoId = videoId,
                 Captions = captions,
                 Language = language,
+                Label = language,
+                SourceInternalRef = "ClassTranscribe/upload"
             };
 
             await _context.Transcriptions.AddAsync(transcription);

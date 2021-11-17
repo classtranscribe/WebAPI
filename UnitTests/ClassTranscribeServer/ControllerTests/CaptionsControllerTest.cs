@@ -487,6 +487,8 @@ namespace UnitTests.ClassTranscribeServer.ControllerTests
             var transcription = _context.Transcriptions.Find(captions[0].TranscriptionId);
             Assert.NotNull(transcription);
             Assert.Equal(CommonUtils.Languages.ENGLISH_AMERICAN, transcription.Language);
+            Assert.Equal(CommonUtils.Languages.ENGLISH_AMERICAN, transcription.Label);
+            Assert.Equal("ClassTranscribe/upload", transcription.SourceInternalRef);
             Assert.Equal(videoId, transcription.VideoId);
             Assert.Equal(captions.Count(), transcription.Captions.Count());
 

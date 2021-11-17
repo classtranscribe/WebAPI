@@ -191,7 +191,9 @@ namespace TaskEngine.Tasks
                                 {
                                     Captions = theCaptions,
                                     Language = theLanguage,
-                                    VideoId = video.Id
+                                    VideoId = video.Id,
+                                    Label = $"{theLanguage} (ClassTranscribe)",
+                                    SourceInternalRef = "ClassTranscribe/Azure"
                                 };
                                 _context.Add(t);
                             }
