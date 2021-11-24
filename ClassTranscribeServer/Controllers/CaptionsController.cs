@@ -237,10 +237,10 @@ namespace ClassTranscribeServer.Controllers
             return result;
         }
 
-        // POST: api/Captions
+        // POST: api/Captions/Upload
         [DisableRequestSizeLimit]
         [Authorize(Roles = Globals.ROLE_ADMIN + "," + Globals.ROLE_TEACHING_ASSISTANT + "," + Globals.ROLE_INSTRUCTOR)]
-        [HttpPost]
+        [HttpPost("Upload")]
         [Consumes("multipart/form-data")]
         public async Task<ActionResult<IEnumerable<Caption>>> PostCaptionFile(IFormFile captionFile, [FromForm] string videoId, [FromForm] string language)
         {
