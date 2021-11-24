@@ -1,6 +1,5 @@
 using System;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Diagnostics.Contracts;
 using System.IO;
 using System.Runtime.Serialization;
 using System.Security.Cryptography;
@@ -50,26 +49,43 @@ namespace ClassTranscribeDatabase.Models
             // it is a new Entity that hasn't yet been added to the DB so we can just use the current date
             var createdAt = entity.CreatedAt != default ? entity.CreatedAt : DateTime.Now;
             var filePath = $"{createdAt:yyMM}-{CommonUtils.RandomString(4)}";
-            var newDirectory = Globals.appSettings.DATA_DIRECTORY + System.IO.Path.DirectorySeparatorChar;
 
             switch (entity)
             {
                 case Course course:
+                    if (!string.IsNullOrEmpty(course.FilePath))
+                    {
+                        throw new InvalidOperationException("FilePath already exists.");
+                    }
+
                     course.FilePath = filePath;
-                    newDirectory += course.FilePath;
+                    Directory.CreateDirectory(
+                        System.IO.Path.Combine(Globals.appSettings.DATA_DIRECTORY, course.FilePath)
+                    );
                     break;
+
                 case CourseOffering courseOffering:
+                    if (!string.IsNullOrEmpty(courseOffering.FilePath))
+                    {
+                        throw new InvalidOperationException("FilePath already exists.");
+                    }
+
                     var linkedCourse = await context.Courses.FindAsync(courseOffering.CourseId);
-                    Contract.Requires(linkedCourse != null);
+                    if (string.IsNullOrEmpty(linkedCourse?.FilePath))
+                    {
+                        throw new InvalidOperationException("The CourseOffering must be linked to a valid course that has a FilePath.");
+                    }
 
                     courseOffering.FilePath = System.IO.Path.Combine(linkedCourse.FilePath, filePath);
-                    newDirectory += courseOffering.FilePath;
+                    Directory.CreateDirectory(
+                        System.IO.Path.Combine(Globals.appSettings.DATA_DIRECTORY, courseOffering.FilePath)
+                    );
                     break;
+
                 default:
                     throw new InvalidOperationException("Invalid entity passed: " + entity.GetType());
             }
 
-            Directory.CreateDirectory(newDirectory);
             await context.SaveChangesAsync();
         }
 

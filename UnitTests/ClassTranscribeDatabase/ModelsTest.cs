@@ -3,7 +3,7 @@ using Xunit;
 
 namespace UnitTests.ClassTranscribeDatabase
 {
-    public class ModelsTests
+    public class ModelsTest
     {
         [Fact]
         public void Model_JObjects_Not_Null()

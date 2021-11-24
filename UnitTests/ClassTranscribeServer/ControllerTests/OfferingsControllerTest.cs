@@ -4,11 +4,10 @@ using ClassTranscribeServer.Controllers;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json.Linq;
-using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using UnitTests.Utils;
 using Xunit;
 using static ClassTranscribeServer.Controllers.OfferingsController;
 
@@ -69,12 +68,7 @@ namespace UnitTests.ClassTranscribeServer.ControllerTests
             Assert.Equal(Visibility.Visible, newOffering.Visibility);
 
             var newCourseOffering = newOffering.CourseOfferings[0];
-            Assert.Equal(19, newCourseOffering.FilePath.Length);
-            Assert.Equal(TestGlobals.MOCK_FILE_PATH, newCourseOffering.FilePath.Substring(0, 9));
-            Assert.Equal(Path.DirectorySeparatorChar, newCourseOffering.FilePath.ToCharArray()[9]);
-            Assert.Equal(DateTime.Now.ToString("yyMM") + "-", newCourseOffering.FilePath.Substring(10, 5));
-            Assert.True(Directory.Exists(Path.Combine(Globals.appSettings.DATA_DIRECTORY, newCourseOffering.FilePath.Substring(0, 9))));
-            Assert.True(Directory.Exists(Path.Combine(Globals.appSettings.DATA_DIRECTORY, newCourseOffering.FilePath)));
+            Assert.True(Common.IsValidFilePath(newCourseOffering));
         }
 
         [Fact]

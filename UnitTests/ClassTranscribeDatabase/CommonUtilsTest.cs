@@ -5,7 +5,7 @@ using Xunit;
 
 namespace UnitTests.ClassTranscribeDatabase
 {
-    public class CommonUtilsTests
+    public class CommonUtilsTest
     {
         [Fact]
         public void Get_Media_Name_Echo_360()

@@ -2,10 +2,12 @@
 using ClassTranscribeDatabase.Models;
 using ClassTranscribeServer.Controllers;
 using Microsoft.AspNetCore.Mvc;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using UnitTests.Utils;
 using Xunit;
 
 namespace UnitTests.ClassTranscribeServer.ControllerTests
@@ -41,9 +43,7 @@ namespace UnitTests.ClassTranscribeServer.ControllerTests
 
             getResult = await _controller.GetCourse(course.Id);
             Assert.Equal(course, getResult.Value);
-            Assert.Equal(9, course.FilePath.Length);
-            Assert.Equal(System.DateTime.Now.ToString("yyMM") + "-", course.FilePath.Substring(0, 5));
-            Assert.True(Directory.Exists(Path.Combine(Globals.appSettings.DATA_DIRECTORY, course.FilePath)));
+            Assert.True(Common.IsValidFilePath(course));
         }
 
         [Fact]

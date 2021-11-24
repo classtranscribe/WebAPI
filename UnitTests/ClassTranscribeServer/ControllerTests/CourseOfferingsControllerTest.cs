@@ -3,11 +3,10 @@ using ClassTranscribeDatabase.Models;
 using ClassTranscribeServer.Controllers;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using UnitTests.Utils;
 using Xunit;
 
 namespace UnitTests.ClassTranscribeServer.ControllerTests
@@ -37,12 +36,7 @@ namespace UnitTests.ClassTranscribeServer.ControllerTests
 
             var postResult = await _controller.PostCourseOffering(courseOffering);
             Assert.IsType<OkResult>(postResult.Result);
-            Assert.Equal(19, courseOffering.FilePath.Length);
-            Assert.Equal(TestGlobals.MOCK_FILE_PATH, courseOffering.FilePath.Substring(0, 9));
-            Assert.Equal(Path.DirectorySeparatorChar, courseOffering.FilePath.ToCharArray()[9]);
-            Assert.Equal(DateTime.Now.ToString("yyMM") + "-", courseOffering.FilePath.Substring(10, 5));
-            Assert.True(Directory.Exists(Path.Combine(Globals.appSettings.DATA_DIRECTORY, courseOffering.FilePath.Substring(0, 9))));
-            Assert.True(Directory.Exists(Path.Combine(Globals.appSettings.DATA_DIRECTORY, courseOffering.FilePath)));
+            Assert.True(Common.IsValidFilePath(courseOffering));
 
             var deleteResult = await _controller.DeleteCourseOffering(courseOffering.CourseId, courseOffering.OfferingId);
             Assert.Single(deleteResult.Value);
