@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using UnitTests.Utils;
 using Xunit;
 
 namespace UnitTests.ClassTranscribeServer.ControllerTests
@@ -29,7 +30,9 @@ namespace UnitTests.ClassTranscribeServer.ControllerTests
             using var stream = File.OpenRead("Assets/test.png");
             var imageFile = new FormFile(stream, 0, stream.Length, null, Path.GetFileName(stream.Name));
 
-            var postResult = await _controller.PostImage(imageFile, "Media", "example_id");
+            var co = await Common.GetCourseOfferingForFileRecord(_context);
+
+            var postResult = await _controller.PostImage(imageFile, "Course", co.CourseId);
             Assert.IsType<CreatedAtActionResult>(postResult.Result);
 
             var createdResult = postResult.Result as CreatedAtActionResult;
@@ -53,11 +56,13 @@ namespace UnitTests.ClassTranscribeServer.ControllerTests
             using var stream = File.OpenRead("Assets/test.png");
             var imageFile = new FormFile(stream, 0, stream.Length, null, Path.GetFileName(stream.Name));
 
+            var co = await Common.GetCourseOfferingForFileRecord(_context);
+
             var imageInfos = new List<(ResourceType sourceType, string sourceId)>
                 {
-                    (ResourceType.EPub, "ePub_id"),
-                    (ResourceType.Course, "course_id"),
-                    (ResourceType.EPub, "ePub_id")
+                    (ResourceType.Offering, co.OfferingId),
+                    (ResourceType.Course, co.CourseId),
+                    (ResourceType.Offering, co.OfferingId)
                 };
 
             foreach (var imageInfo in imageInfos)
@@ -71,14 +76,14 @@ namespace UnitTests.ClassTranscribeServer.ControllerTests
                 Assert.IsType<CreatedAtActionResult>(postResult.Result);
             }
 
-            var getResult = await _controller.GetImagesBySource(ResourceType.EPub.ToString(), imageInfos[0].sourceId);
+            var getResult = await _controller.GetImagesBySource(ResourceType.Offering.ToString(), co.OfferingId);
             List<Image> imagesBySource = getResult.Value.ToList();
 
             Assert.Equal(2, imagesBySource.Count);
-            Assert.Equal(imageInfos[0].sourceType, imagesBySource[0].SourceType);
-            Assert.Equal(imageInfos[0].sourceId, imagesBySource[0].SourceId);
-            Assert.Equal(imageInfos[2].sourceType, imagesBySource[1].SourceType);
-            Assert.Equal(imageInfos[2].sourceId, imagesBySource[1].SourceId);
+            Assert.Equal(ResourceType.Offering, imagesBySource[0].SourceType);
+            Assert.Equal(ResourceType.Offering, imagesBySource[1].SourceType);
+            Assert.Equal(co.OfferingId, imagesBySource[0].SourceId);
+            Assert.Equal(co.OfferingId, imagesBySource[1].SourceId);
         }
 
         [Fact]

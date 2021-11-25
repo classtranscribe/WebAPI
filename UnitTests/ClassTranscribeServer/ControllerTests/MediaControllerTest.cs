@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using UnitTests.Utils;
 using Xunit;
 
 namespace UnitTests.ClassTranscribeServer.ControllerTests
@@ -137,14 +138,17 @@ namespace UnitTests.ClassTranscribeServer.ControllerTests
                 ContentType = "video/mp4"
             };
 
-            var postResult = await _controller.PostMedia(videoFile, null, string.Empty);
+            var co = await Common.GetCourseOfferingForFileRecord(_context);
+            var playlistId = co.Offering.Playlists[0].Id;
+
+            var postResult = await _controller.PostMedia(videoFile, null, playlistId);
             Assert.IsType<CreatedAtActionResult>(postResult.Result);
 
             var createdResult = postResult.Result as CreatedAtActionResult;
             var createdMedia = createdResult.Value as Media;
 
             var media = _context.Medias.Find(createdMedia.Id);
-            Assert.Equal(string.Empty, media.PlaylistId);
+            Assert.Equal(playlistId, media.PlaylistId);
             Assert.Equal(SourceType.Local, media.SourceType);
             Assert.Equal(JsonConvert.SerializeObject(videoFile), media.JsonMetadata["video1"]);
             Assert.Equal(PublishStatus.Published, media.PublishStatus);
@@ -178,14 +182,17 @@ namespace UnitTests.ClassTranscribeServer.ControllerTests
                 ContentType = "video/mp4"
             };
 
-            var postResult = await _controller.PostMedia(videoFile, null, string.Empty);
+            var co = await Common.GetCourseOfferingForFileRecord(_context);
+            var playlistId = co.Offering.Playlists[0].Id;
+
+            var postResult = await _controller.PostMedia(videoFile, null, playlistId);
             Assert.IsType<CreatedAtActionResult>(postResult.Result);
 
             var createdResult = postResult.Result as CreatedAtActionResult;
             var createdMedia = createdResult.Value as Media;
             var media = _context.Medias.Find(createdMedia.Id);
 
-            var postResult2 = await _controller.PostMedia(videoFile, null, string.Empty);
+            var postResult2 = await _controller.PostMedia(videoFile, null, playlistId);
             Assert.IsType<CreatedAtActionResult>(postResult.Result);
 
             var createdResult2 = postResult2.Result as CreatedAtActionResult;
@@ -227,12 +234,15 @@ namespace UnitTests.ClassTranscribeServer.ControllerTests
                 await videoFile.CopyToAsync(stream2);
             }
 
+            var co = await Common.GetCourseOfferingForFileRecord(_context);
+            var playlistId = co.Offering.Playlists[0].Id;
+
             // This FileRecord will get deleted in the call to PostMedia below
-            var firstFileRecord = await FileRecord.GetNewFileRecordAsync(filePath, Path.GetExtension(filePath));
+            var firstFileRecord = await FileRecord.GetNewFileRecordAsync(filePath, Path.GetExtension(filePath), co);
             _context.FileRecords.Add(firstFileRecord);
             _context.SaveChanges();
 
-            var postResult = await _controller.PostMedia(videoFile, null, string.Empty);
+            var postResult = await _controller.PostMedia(videoFile, null, playlistId);
             Assert.IsType<CreatedAtActionResult>(postResult.Result);
 
             var createdResult = postResult.Result as CreatedAtActionResult;
@@ -264,7 +274,10 @@ namespace UnitTests.ClassTranscribeServer.ControllerTests
                 ContentType = "video/mp4"
             };
 
-            var postResult = await _controller.PostMedia(videoFile, null, string.Empty);
+            var co = await Common.GetCourseOfferingForFileRecord(_context);
+            var playlistId = co.Offering.Playlists[0].Id;
+
+            var postResult = await _controller.PostMedia(videoFile, null, playlistId);
             Assert.IsType<BadRequestObjectResult>(postResult.Result);
 
             using (var stream2 = File.OpenRead("Assets/test.mp4"))
@@ -275,11 +288,11 @@ namespace UnitTests.ClassTranscribeServer.ControllerTests
                     ContentType = "video/mp4"
                 };
 
-                postResult = await _controller.PostMedia(videoFile2, videoFile, string.Empty);
+                postResult = await _controller.PostMedia(videoFile2, videoFile, playlistId);
                 Assert.IsType<BadRequestObjectResult>(postResult.Result);
             }
 
-            postResult = await _controller.PostMedia(null, null, string.Empty);
+            postResult = await _controller.PostMedia(null, null, playlistId);
             Assert.IsType<BadRequestObjectResult>(postResult.Result);
         }
 

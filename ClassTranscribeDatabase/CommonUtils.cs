@@ -4,6 +4,7 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Text;
 
 namespace ClassTranscribeDatabase
@@ -156,6 +157,39 @@ namespace ClassTranscribeDatabase
             }
 
             return name;
+        }
+
+        public static CourseOffering GetRelatedCourseOffering(Entity entity)
+        {
+            switch (entity)
+            {
+                case Course c:
+                    return c.CourseOfferings?
+                        .Where(co => co.IsDeletedStatus == Status.Active && !string.IsNullOrEmpty(co.FilePath))
+                        .FirstOrDefault();
+
+                case Media m:
+                    return GetRelatedCourseOffering(m.Playlist);
+
+                case Offering o:
+                    return o.CourseOfferings?
+                        .Where(co => co.IsDeletedStatus == Status.Active && !string.IsNullOrEmpty(co.FilePath))
+                        .FirstOrDefault();
+
+                case Playlist p:
+                    return GetRelatedCourseOffering(p.Offering);
+
+                case Transcription t:
+                    return GetRelatedCourseOffering(t.Video);
+
+                case Video v:
+                    return GetRelatedCourseOffering(v.Medias?
+                        .Where(m => m.IsDeletedStatus == Status.Active)
+                        .FirstOrDefault());
+
+                default:
+                    return null;
+            }
         }
     }
 }

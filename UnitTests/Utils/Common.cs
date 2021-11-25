@@ -1,8 +1,8 @@
 ﻿using ClassTranscribeDatabase;
 using ClassTranscribeDatabase.Models;
-using System;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace UnitTests.Utils
 {
@@ -29,6 +29,26 @@ namespace UnitTests.Utils
                 default:
                     return false;
             }
+        }
+
+        public static async Task<CourseOffering> GetCourseOfferingForFileRecord(CTDbContext context)
+        {
+            var c = new Course { Id = "c_filerecord" };
+            var o = new Offering { Id = "o_filerecord" };
+            var co = new CourseOffering { CourseId = c.Id, OfferingId = o.Id };
+            var p = new Playlist { OfferingId = o.Id };
+
+            context.Courses.Add(c);
+            context.CourseOfferings.Add(co);
+            context.Offerings.Add(o);
+            context.Playlists.Add(p);
+
+            await FileRecord.SetFilePath(context, c);
+            await FileRecord.SetFilePath(context, co);
+
+            context.SaveChanges();
+
+            return co;
         }
     }
 }

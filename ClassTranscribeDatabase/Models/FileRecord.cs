@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.IO;
 using System.Runtime.Serialization;
@@ -27,14 +27,22 @@ namespace ClassTranscribeDatabase.Models
         /// </summary>
         /// <param name="filepath">Path of the file</param>
         /// <param name="ext">Extension of the file</param>
-        public static async Task<FileRecord> GetNewFileRecordAsync(string filepath, string ext)
+        public static async Task<FileRecord> GetNewFileRecordAsync(string filepath, string ext, CourseOffering courseOffering)
         {
-            
-            // Rename file.
+            if (courseOffering == null ||
+                courseOffering.IsDeletedStatus == Status.Deleted ||
+                string.IsNullOrEmpty(courseOffering.FilePath))
+            {
+                throw new InvalidOperationException("Invalid CourseOffering entity");
+            }
+
+            // Move file to the CourseOffering's FilePath
             var tmpFile = new FileRecord(filepath);
-            var uuid = System.Guid.NewGuid().ToString();
-            var newFilePath = System.IO.Path.Combine(Globals.appSettings.DATA_DIRECTORY, uuid + ext);
+            var uuid = Guid.NewGuid().ToString();
+            var newDirectory = System.IO.Path.Combine(Globals.appSettings.DATA_DIRECTORY, courseOffering.FilePath);
+            var newFilePath = System.IO.Path.Combine(newDirectory, uuid + ext);
             File.Move(tmpFile.Path, newFilePath);
+
             var fileRecord = new FileRecord(newFilePath);
             // TODO: Add .ConfigureAwait(false) here? or not?
             // See https://devblogs.microsoft.com/dotnet/configureawait-faq/

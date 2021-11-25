@@ -56,7 +56,8 @@ namespace TaskEngine.Tasks
                 // Check if a valid file was returned.
                 if (FileRecord.IsValidFile(file.FilePath))
                 {
-                    var fileRecord = await FileRecord.GetNewFileRecordAsync(file.FilePath, file.Ext);
+                    var co = GetRelatedCourseOffering(video);
+                    var fileRecord = await FileRecord.GetNewFileRecordAsync(file.FilePath, file.Ext, co);
                     // Get the latest video object, in case it has changed
                     var videoLatest = await _context.Videos.FindAsync(video.Id);
 
