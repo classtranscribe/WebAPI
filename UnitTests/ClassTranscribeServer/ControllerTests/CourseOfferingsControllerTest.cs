@@ -172,7 +172,7 @@ namespace UnitTests.ClassTranscribeServer.ControllerTests
                 Id = courseId,
                 CourseNumber = courseId,
                 DepartmentId = "0000",
-                FilePath = TestGlobals.MOCK_FILE_PATH
+                FilePath = "0101-path"
             }));
         }
     }

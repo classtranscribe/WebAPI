@@ -431,7 +431,7 @@ namespace UnitTests.ClassTranscribeServer.ControllerTests
                 Id = courseId,
                 CourseNumber = courseId,
                 DepartmentId = departmentId,
-                FilePath = TestGlobals.MOCK_FILE_PATH
+                FilePath = "0101-path"
             });
 
             _context.Roles.Add(new IdentityRole
