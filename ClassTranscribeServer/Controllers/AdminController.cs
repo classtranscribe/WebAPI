@@ -249,7 +249,6 @@ namespace ClassTranscribeServer.Controllers
                     numGenerated++;
                 }
                 catch (InvalidOperationException) { }
-                
             };
 
             var courseOfferings = await _context.CourseOfferings
