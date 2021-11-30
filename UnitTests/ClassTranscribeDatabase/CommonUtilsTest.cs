@@ -1,6 +1,8 @@
 ﻿using ClassTranscribeDatabase;
 using ClassTranscribeDatabase.Models;
 using Newtonsoft.Json.Linq;
+using System;
+using System.Collections.Generic;
 using Xunit;
 
 namespace UnitTests.ClassTranscribeDatabase
@@ -76,6 +78,27 @@ namespace UnitTests.ClassTranscribeDatabase
 
             media.JsonMetadata["name"] = "foo bar";
             Assert.Equal("foo bar", CommonUtils.GetMediaName(media));
+        }
+
+        [Fact]
+        public void Get_Related_Course_Offering()
+        {
+            var co = new CourseOffering { FilePath = "example" };
+            var c = new Course { CourseOfferings = new List<CourseOffering> { co } };
+            var o = new Offering { CourseOfferings = new List<CourseOffering> { co } };
+            var p = new Playlist { Offering = o };
+            var m = new Media { Playlist = p };
+            var v = new Video { Medias = new List<Media> { m } };
+            var t = new Transcription { Video = v };
+
+            Assert.Equal(co, CommonUtils.GetRelatedCourseOffering(c));
+            Assert.Equal(co, CommonUtils.GetRelatedCourseOffering(o));
+            Assert.Equal(co, CommonUtils.GetRelatedCourseOffering(p));
+            Assert.Equal(co, CommonUtils.GetRelatedCourseOffering(m));
+            Assert.Equal(co, CommonUtils.GetRelatedCourseOffering(v));
+            Assert.Equal(co, CommonUtils.GetRelatedCourseOffering(t));
+
+            Assert.Throws<InvalidOperationException>(() => CommonUtils.GetRelatedCourseOffering(new Message()));
         }
     }
 }

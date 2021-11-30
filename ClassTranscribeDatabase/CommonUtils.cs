@@ -164,17 +164,13 @@ namespace ClassTranscribeDatabase
             switch (entity)
             {
                 case Course c:
-                    return c.CourseOfferings?
-                        .Where(co => co.IsDeletedStatus == Status.Active && !string.IsNullOrEmpty(co.FilePath))
-                        .FirstOrDefault();
+                    return c.CourseOfferings?.Where(co => !string.IsNullOrEmpty(co.FilePath)).FirstOrDefault();
 
                 case Media m:
                     return GetRelatedCourseOffering(m.Playlist);
 
                 case Offering o:
-                    return o.CourseOfferings?
-                        .Where(co => co.IsDeletedStatus == Status.Active && !string.IsNullOrEmpty(co.FilePath))
-                        .FirstOrDefault();
+                    return o.CourseOfferings?.Where(co => !string.IsNullOrEmpty(co.FilePath)).FirstOrDefault();
 
                 case Playlist p:
                     return GetRelatedCourseOffering(p.Offering);
@@ -183,12 +179,10 @@ namespace ClassTranscribeDatabase
                     return GetRelatedCourseOffering(t.Video);
 
                 case Video v:
-                    return GetRelatedCourseOffering(v.Medias?
-                        .Where(m => m.IsDeletedStatus == Status.Active)
-                        .FirstOrDefault());
+                    return GetRelatedCourseOffering(v.Medias?.FirstOrDefault());
 
                 default:
-                    return null;
+                    throw new InvalidOperationException($"GetRelatedCourseOffering not implemented for type {entity.GetType()} (Object ID: {entity.Id})");
             }
         }
     }

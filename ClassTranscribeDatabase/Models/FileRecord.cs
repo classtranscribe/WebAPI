@@ -66,10 +66,15 @@ namespace ClassTranscribeDatabase.Models
                         throw new InvalidOperationException("FilePath already exists.");
                     }
 
+                    var newDirectory = System.IO.Path.Combine(Globals.appSettings.DATA_DIRECTORY, filePath);
+
+                    if (Directory.Exists(newDirectory))
+                    {
+                        throw new InvalidOperationException("Directory already exists.");
+                    }
+
                     course.FilePath = filePath;
-                    Directory.CreateDirectory(
-                        System.IO.Path.Combine(Globals.appSettings.DATA_DIRECTORY, course.FilePath)
-                    );
+                    Directory.CreateDirectory(newDirectory);
                     break;
 
                 case CourseOffering courseOffering:
@@ -84,10 +89,16 @@ namespace ClassTranscribeDatabase.Models
                         throw new InvalidOperationException("The CourseOffering must be linked to a valid course that has a FilePath.");
                     }
 
+                    newDirectory = System.IO.Path.Combine(Globals.appSettings.DATA_DIRECTORY, linkedCourse.FilePath, filePath);
+
+                    if (Directory.Exists(newDirectory))
+                    {
+                        throw new InvalidOperationException("Directory already exists.");
+                    }
+
                     courseOffering.FilePath = System.IO.Path.Combine(linkedCourse.FilePath, filePath);
-                    Directory.CreateDirectory(
-                        System.IO.Path.Combine(Globals.appSettings.DATA_DIRECTORY, courseOffering.FilePath)
-                    );
+
+                    Directory.CreateDirectory(newDirectory);
                     break;
 
                 default:
