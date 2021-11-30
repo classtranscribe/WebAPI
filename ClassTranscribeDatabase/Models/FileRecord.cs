@@ -68,9 +68,10 @@ namespace ClassTranscribeDatabase.Models
 
                     var newDirectory = System.IO.Path.Combine(Globals.appSettings.DATA_DIRECTORY, filePath);
 
-                    if (Directory.Exists(newDirectory))
+                    while (Directory.Exists(newDirectory))
                     {
-                        throw new InvalidOperationException("Directory already exists.");
+                        filePath = $"{createdAt:yyMM}-{CommonUtils.RandomString(4)}";
+                        newDirectory = System.IO.Path.Combine(Globals.appSettings.DATA_DIRECTORY, filePath);
                     }
 
                     course.FilePath = filePath;
@@ -91,13 +92,13 @@ namespace ClassTranscribeDatabase.Models
 
                     newDirectory = System.IO.Path.Combine(Globals.appSettings.DATA_DIRECTORY, linkedCourse.FilePath, filePath);
 
-                    if (Directory.Exists(newDirectory))
+                    while (Directory.Exists(newDirectory))
                     {
-                        throw new InvalidOperationException("Directory already exists.");
+                        filePath = $"{createdAt:yyMM}-{CommonUtils.RandomString(4)}";
+                        newDirectory = System.IO.Path.Combine(Globals.appSettings.DATA_DIRECTORY, linkedCourse.FilePath, filePath);
                     }
 
                     courseOffering.FilePath = System.IO.Path.Combine(linkedCourse.FilePath, filePath);
-
                     Directory.CreateDirectory(newDirectory);
                     break;
 
