@@ -50,6 +50,13 @@ namespace ClassTranscribeServer.Controllers
                 return BadRequest();
             }
 
+            // The CourseOffering must be linked to a Course in order for the FilePath field to be set correctly
+            var linkedCourse = await _context.Courses.FindAsync(courseOffering.CourseId);
+            if (linkedCourse == null)
+            {
+                return BadRequest("CourseOfferings must be linked to a Course");
+            }
+
             var existingCourseOffering = await _context.CourseOfferings
                 .Where(c => c.CourseId == courseOffering.CourseId && c.OfferingId == courseOffering.OfferingId)
                 .FirstOrDefaultAsync();
@@ -61,6 +68,7 @@ namespace ClassTranscribeServer.Controllers
 
             _context.CourseOfferings.Add(courseOffering);
             await _context.SaveChangesAsync();
+            await FileRecord.SetFilePath(_context, courseOffering);
 
             return Ok();
         }

@@ -94,6 +94,7 @@ namespace ClassTranscribeServer.Controllers
 
             _context.Courses.Add(course);
             await _context.SaveChangesAsync();
+            await FileRecord.SetFilePath(_context, course);
 
             return CreatedAtAction("GetCourse", new { id = course.Id }, course);
         }

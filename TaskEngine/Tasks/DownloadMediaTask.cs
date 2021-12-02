@@ -136,9 +136,10 @@ namespace TaskEngine.Tasks
             Video video;
             if (FileRecord.IsValidFile(mediaResponse.FilePath))
             {
+                var co = GetRelatedCourseOffering(media);
                 video = new Video
                 {
-                    Video1 = await FileRecord.GetNewFileRecordAsync(mediaResponse.FilePath, mediaResponse.Ext)
+                    Video1 = await FileRecord.GetNewFileRecordAsync(mediaResponse.FilePath, mediaResponse.Ext, co)
                 };
             }
             else
@@ -163,7 +164,8 @@ namespace TaskEngine.Tasks
             video1Success = FileRecord.IsValidFile(mediaResponse.FilePath);
             if (video1Success)
             {
-                video.Video1 = await FileRecord.GetNewFileRecordAsync(mediaResponse.FilePath, mediaResponse.Ext);
+                var co = GetRelatedCourseOffering(media);
+                video.Video1 = await FileRecord.GetNewFileRecordAsync(mediaResponse.FilePath, mediaResponse.Ext, co);
             }
 
 
@@ -178,7 +180,8 @@ namespace TaskEngine.Tasks
                 video2Success = FileRecord.IsValidFile(mediaResponse2.FilePath);
                 if (video2Success)
                 {
-                    video.Video2 = await  FileRecord.GetNewFileRecordAsync(mediaResponse2.FilePath, mediaResponse.Ext);
+                    var co = GetRelatedCourseOffering(media);
+                    video.Video2 = await  FileRecord.GetNewFileRecordAsync(mediaResponse2.FilePath, mediaResponse.Ext, co);
                 }
             }
             else
@@ -216,9 +219,10 @@ namespace TaskEngine.Tasks
 
             if (FileRecord.IsValidFile(mediaResponse.FilePath))
             {
+                var co = GetRelatedCourseOffering(media);
                 Video video = new Video
                 {
-                    Video1 = await FileRecord.GetNewFileRecordAsync(mediaResponse.FilePath, mediaResponse.Ext)
+                    Video1 = await FileRecord.GetNewFileRecordAsync(mediaResponse.FilePath, mediaResponse.Ext, co)
                 };
                 return video;
             }
@@ -244,12 +248,14 @@ namespace TaskEngine.Tasks
                 if (media.JsonMetadata.ContainsKey("video1Path"))
                 {
                     var video1Path = media.JsonMetadata["video1Path"].ToString();
-                    video.Video1 = await FileRecord.GetNewFileRecordAsync(video1Path, Path.GetExtension(video1Path));
+                    var co = GetRelatedCourseOffering(media);
+                    video.Video1 = await FileRecord.GetNewFileRecordAsync(video1Path, Path.GetExtension(video1Path), co);
                 }
                 if (media.JsonMetadata.ContainsKey("video2Path"))
                 {
                     var video2Path = media.JsonMetadata["video2Path"].ToString();
-                    video.Video2 = await  FileRecord.GetNewFileRecordAsync(video2Path, Path.GetExtension(video2Path));
+                    var co = GetRelatedCourseOffering(media);
+                    video.Video2 = await  FileRecord.GetNewFileRecordAsync(video2Path, Path.GetExtension(video2Path), co);
                 }
 
                 return video;
@@ -280,9 +286,10 @@ namespace TaskEngine.Tasks
                 }
                 if (FileRecord.IsValidFile(newPath))
                 {
+                    var co = GetRelatedCourseOffering(media);
                     Video video = new Video
                     {
-                        Video1 = await FileRecord.GetNewFileRecordAsync(newPath, Path.GetExtension(newPath))
+                        Video1 = await FileRecord.GetNewFileRecordAsync(newPath, Path.GetExtension(newPath), co)
                     };
                     return video;
                 }

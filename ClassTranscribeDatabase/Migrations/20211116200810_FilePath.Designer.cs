@@ -3,15 +3,17 @@ using System;
 using ClassTranscribeDatabase;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace ClassTranscribeDatabase.Migrations
 {
     [DbContext(typeof(CTDbContext))]
-    partial class CTDbContextModelSnapshot : ModelSnapshot
+    [Migration("20211116200810_FilePath")]
+    partial class FilePath
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1003,17 +1005,11 @@ namespace ClassTranscribeDatabase.Migrations
                     b.Property<string>("Description")
                         .HasColumnType("text");
 
-                    b.Property<int>("Editable")
-                        .HasColumnType("integer");
-
                     b.Property<string>("FileId")
                         .HasColumnType("text");
 
                     b.Property<int>("IsDeletedStatus")
                         .HasColumnType("integer");
-
-                    b.Property<string>("Label")
-                        .HasColumnType("text");
 
                     b.Property<string>("Language")
                         .HasColumnType("text");
@@ -1024,20 +1020,8 @@ namespace ClassTranscribeDatabase.Migrations
                     b.Property<string>("LastUpdatedBy")
                         .HasColumnType("text");
 
-                    b.Property<int>("PublishStatus")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("SourceInternalRef")
-                        .HasColumnType("text");
-
-                    b.Property<string>("SourceLabel")
-                        .HasColumnType("text");
-
                     b.Property<string>("SrtFileId")
                         .HasColumnType("text");
-
-                    b.Property<int>("TranscriptionType")
-                        .HasColumnType("integer");
 
                     b.Property<string>("VideoId")
                         .HasColumnType("text");

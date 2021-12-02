@@ -7,6 +7,7 @@ using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using UnitTests.Utils;
 using Xunit;
 using static ClassTranscribeServer.Controllers.OfferingsController;
 
@@ -65,6 +66,9 @@ namespace UnitTests.ClassTranscribeServer.ControllerTests
             var newOffering = _context.Offerings.Find(offering.Id);
             Assert.Equal(PublishStatus.NotPublished, newOffering.PublishStatus);
             Assert.Equal(Visibility.Visible, newOffering.Visibility);
+
+            var newCourseOffering = newOffering.CourseOfferings[0];
+            Assert.True(Common.IsValidFilePath(newCourseOffering));
         }
 
         [Fact]
@@ -427,6 +431,7 @@ namespace UnitTests.ClassTranscribeServer.ControllerTests
                 Id = courseId,
                 CourseNumber = courseId,
                 DepartmentId = departmentId,
+                FilePath = "0101-path"
             });
 
             _context.Roles.Add(new IdentityRole

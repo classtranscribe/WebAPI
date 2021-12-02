@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+﻿using System;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.IO;
 using System.Runtime.Serialization;
 using System.Security.Cryptography;
@@ -26,20 +27,86 @@ namespace ClassTranscribeDatabase.Models
         /// </summary>
         /// <param name="filepath">Path of the file</param>
         /// <param name="ext">Extension of the file</param>
-        public static async Task<FileRecord> GetNewFileRecordAsync(string filepath, string ext)
+        public static async Task<FileRecord> GetNewFileRecordAsync(string filepath, string ext, CourseOffering courseOffering)
         {
-            
-            // Rename file.
+            if (courseOffering == null ||
+                courseOffering.IsDeletedStatus == Status.Deleted ||
+                string.IsNullOrEmpty(courseOffering.FilePath))
+            {
+                throw new InvalidOperationException("Invalid CourseOffering entity");
+            }
+
+            // Move file to the CourseOffering's FilePath
             var tmpFile = new FileRecord(filepath);
-            var uuid = System.Guid.NewGuid().ToString();
-            var newFilePath = System.IO.Path.Combine(Globals.appSettings.DATA_DIRECTORY, uuid + ext);
+            var uuid = Guid.NewGuid().ToString();
+            var newDirectory = System.IO.Path.Combine(Globals.appSettings.DATA_DIRECTORY, courseOffering.FilePath);
+            var newFilePath = System.IO.Path.Combine(newDirectory, uuid + ext);
             File.Move(tmpFile.Path, newFilePath);
+
             var fileRecord = new FileRecord(newFilePath);
             // TODO: Add .ConfigureAwait(false) here? or not?
             // See https://devblogs.microsoft.com/dotnet/configureawait-faq/
             fileRecord.Hash = await ComputeSha256HashForFileAsync(fileRecord.Path);
             fileRecord.Id = uuid;
             return fileRecord;
+        }
+
+        public static async Task SetFilePath(CTDbContext context, Entity entity)
+        {
+            // If the entity's CreatedAt field is set to the default DateTime (Jan 1, 0001) this means that
+            // it is a new Entity that hasn't yet been added to the DB so we can just use the current date
+            var createdAt = entity.CreatedAt != default ? entity.CreatedAt : DateTime.Now;
+            var filePath = $"{createdAt:yyMM}-{CommonUtils.RandomString(4)}";
+
+            switch (entity)
+            {
+                case Course course:
+                    if (!string.IsNullOrEmpty(course.FilePath))
+                    {
+                        throw new InvalidOperationException("FilePath already exists.");
+                    }
+
+                    var newDirectory = System.IO.Path.Combine(Globals.appSettings.DATA_DIRECTORY, filePath);
+
+                    while (Directory.Exists(newDirectory))
+                    {
+                        filePath = $"{createdAt:yyMM}-{CommonUtils.RandomString(4)}";
+                        newDirectory = System.IO.Path.Combine(Globals.appSettings.DATA_DIRECTORY, filePath);
+                    }
+
+                    course.FilePath = filePath;
+                    Directory.CreateDirectory(newDirectory);
+                    break;
+
+                case CourseOffering courseOffering:
+                    if (!string.IsNullOrEmpty(courseOffering.FilePath))
+                    {
+                        throw new InvalidOperationException("FilePath already exists.");
+                    }
+
+                    var linkedCourse = await context.Courses.FindAsync(courseOffering.CourseId);
+                    if (string.IsNullOrEmpty(linkedCourse?.FilePath))
+                    {
+                        throw new InvalidOperationException("The CourseOffering must be linked to a valid course that has a FilePath.");
+                    }
+
+                    newDirectory = System.IO.Path.Combine(Globals.appSettings.DATA_DIRECTORY, linkedCourse.FilePath, filePath);
+
+                    while (Directory.Exists(newDirectory))
+                    {
+                        filePath = $"{createdAt:yyMM}-{CommonUtils.RandomString(4)}";
+                        newDirectory = System.IO.Path.Combine(Globals.appSettings.DATA_DIRECTORY, linkedCourse.FilePath, filePath);
+                    }
+
+                    courseOffering.FilePath = System.IO.Path.Combine(linkedCourse.FilePath, filePath);
+                    Directory.CreateDirectory(newDirectory);
+                    break;
+
+                default:
+                    throw new InvalidOperationException("Invalid entity passed: " + entity.GetType());
+            }
+
+            await context.SaveChangesAsync();
         }
 
         /// <summary>

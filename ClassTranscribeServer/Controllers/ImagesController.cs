@@ -100,7 +100,9 @@ namespace ClassTranscribeServer.Controllers
                     await imageFile.CopyToAsync(stream);
                 }
 
-                image.ImageFile = await FileRecord.GetNewFileRecordAsync(filePath, extension);
+                var sourceEntity = await GetSourceEntity(type, sourceId);
+                var co = CommonUtils.GetRelatedCourseOffering(sourceEntity);
+                image.ImageFile = await FileRecord.GetNewFileRecordAsync(filePath, extension, co);
 
                 _context.Images.Add(image);
                 await _context.SaveChangesAsync();
@@ -130,6 +132,31 @@ namespace ClassTranscribeServer.Controllers
             await _context.SaveChangesAsync();
 
             return image;
+        }
+
+        private async Task<Entity> GetSourceEntity(ResourceType sourceType, string sourceId)
+        {
+            switch (sourceType)
+            {
+                case ResourceType.Course:
+                    return await _context.Courses.FindAsync(sourceId);
+
+                case ResourceType.Media:
+                    return await _context.Medias.FindAsync(sourceId);
+
+                case ResourceType.Offering:
+                    return await _context.Offerings.FindAsync(sourceId);
+
+                case ResourceType.Playlist:
+                    return await _context.Playlists.FindAsync(sourceId);
+
+                case ResourceType.EPub:
+                    var ePub = await _context.EPubs.FindAsync(sourceId);
+                    return ePub != null ? await GetSourceEntity(ePub.SourceType, ePub.SourceId) : null;
+
+                default:
+                    return null;
+            }
         }
     }
 }

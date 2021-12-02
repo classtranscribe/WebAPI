@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading;
 
@@ -182,7 +183,8 @@ namespace ClassTranscribeDatabase
             {
                 Id = "test_course",
                 CourseNumber = "000",
-                DepartmentId = department1.Id
+                DepartmentId = department1.Id,
+                FilePath = "0101-MOCK"
             };
 
             Offering offering2 = new Offering
@@ -198,8 +200,11 @@ namespace ClassTranscribeDatabase
             {
                 Id = "9002",
                 CourseId = test_course.Id,
-                OfferingId = offering2.Id
+                OfferingId = offering2.Id,
+                FilePath = Path.Combine(test_course.FilePath, "0102-ABCD")
             };
+
+            Directory.CreateDirectory(Path.Combine(Globals.appSettings.DATA_DIRECTORY, course_offering2.FilePath));
 
             List<Term> terms = new List<Term> { term1 };
             List<Department> departments = new List<Department> { department1, department2 };

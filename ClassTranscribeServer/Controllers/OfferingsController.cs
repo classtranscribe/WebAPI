@@ -207,6 +207,7 @@ namespace ClassTranscribeServer.Controllers
 
                     await _context.Courses.AddAsync(course);
                     await _context.SaveChangesAsync();
+                    await FileRecord.SetFilePath(_context, course);
                 }
 
                 newOfferingDTO.CourseId = course.Id;
@@ -215,11 +216,15 @@ namespace ClassTranscribeServer.Controllers
             _context.Offerings.Add(newOfferingDTO.Offering);
             await _context.SaveChangesAsync();
 
-            _context.CourseOfferings.Add(new CourseOffering
+            var courseOffering = new CourseOffering
             {
                 CourseId = newOfferingDTO.CourseId,
                 OfferingId = newOfferingDTO.Offering.Id
-            });
+            };
+
+            _context.CourseOfferings.Add(courseOffering);
+            await _context.SaveChangesAsync();
+            await FileRecord.SetFilePath(_context, courseOffering);
 
             var user = await _userUtils.GetUser(User);
 

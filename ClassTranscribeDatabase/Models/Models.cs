@@ -184,6 +184,7 @@ namespace ClassTranscribeDatabase.Models
         [SwaggerIgnore]
         [IgnoreDataMember]
         public virtual List<CourseOffering> CourseOfferings { get; set; }
+        public string FilePath { get; set; }
     }
 
     public class Term : Entity
@@ -399,7 +400,7 @@ namespace ClassTranscribeDatabase.Models
         [SwaggerIgnore]
         [IgnoreDataMember]
         public virtual Offering Offering { get; set; }
-
+        public string FilePath { get; set; }
     }
 
     public class UserOffering : Entity
