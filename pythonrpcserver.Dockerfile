@@ -32,10 +32,14 @@ RUN python -m grpc_tools.protoc -I . --python_out=./ --grpc_python_out=./ ct.pro
 
 COPY ./PythonRpcServer .
 # Downloaded zip of repo from https://github.com/nficano/pytube and renamed to include version
-RUN python -m pip install --no-cache-dir pytube-master-10.4.1.zip
+RUN python -m pip install --no-cache-dir pytube-pytube-v11.0.2.tar.gz
+#Nope RUN bash -c 'echo "172.217.0.46    www.youtube.com"  >> /etc/hosts'
+
+#pytube-master-10.4.1.zip
 RUN python -m nltk.downloader stopwords
 RUN python -m nltk.downloader brown
 
 # Nice:Very low priority but not lowest priority (18 out of 19)
 #ionice: Best effort class but second lowest priory (6 out of 7)
-CMD [ "nice","-n","18", "ionice","-c","2","-n","6", "python3", "-u", "/PythonRpcServer/server.py" ]
+CMD [ "bash", "./dockerentry.sh"]
+#"nice","-n","18", "ionice","-c","2","-n","6", "python3", "-u", "/PythonRpcServer/server.py" ]
