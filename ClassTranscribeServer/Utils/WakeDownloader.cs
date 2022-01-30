@@ -1,4 +1,4 @@
-﻿using CTCommons;
+﻿using ClassTranscribeDatabase.Services;
 using Newtonsoft.Json.Linq;
 using static ClassTranscribeDatabase.CommonUtils;
 
@@ -90,7 +90,7 @@ namespace ClassTranscribeServer
             msg.Add("DeleteExisting", deleteExisting);
             Wake(msg);
         }
-        public void SceneDetection(string videoMediaPlaylistId, bool deleteExisting)
+        public virtual void SceneDetection(string videoMediaPlaylistId, bool deleteExisting)
         {
             JObject msg = new JObject();
             msg.Add("Type", TaskType.SceneDetection.ToString());

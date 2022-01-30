@@ -1,9 +1,8 @@
 ﻿using ClassTranscribeDatabase;
 using ClassTranscribeDatabase.Models;
+using ClassTranscribeDatabase.Services;
 using ClassTranscribeServer.Authorization;
 using ClassTranscribeServer.Utils;
-using CTCommons;
-using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
@@ -152,6 +151,7 @@ namespace ClassTranscribeServer
             services.AddScoped<Seeder>();
             services.AddScoped<UserUtils>();
             services.AddScoped<CaptionQueries>();
+            services.AddSingleton(_ => new PhysicalFileProvider(Globals.appSettings.DATA_DIRECTORY));
 
             // Configure ElasticSearch client
             if (!string.IsNullOrEmpty(Globals.appSettings.ES_CONNECTION_ADDR))
@@ -202,17 +202,17 @@ namespace ClassTranscribeServer
                  * compress images, audio and video content - which is 99.9% of our served content
                  * See https://gunnarpeipman.com/aspnet-core-compress-gzip-brotli-content-encoding/ 
                 */
-            if(false) {
-                //notused 
-                app.UseStaticFiles(new StaticFileOptions
-                {
-                    ServeUnknownFileTypes = true,
-                    FileProvider = new PhysicalFileProvider(Globals.appSettings.DATA_DIRECTORY),
-                    RequestPath = "/data",
-                    HttpsCompression = HttpsCompressionMode.DoNotCompress
-                    // OnPrepareResponse= prepareStaticFileResponse
-                });
-            }
+            //if(false) {
+            //    //notused 
+            //    app.UseStaticFiles(new StaticFileOptions
+            //    {
+            //        ServeUnknownFileTypes = true,
+            //        FileProvider = new PhysicalFileProvider(Globals.appSettings.DATA_DIRECTORY),
+            //        RequestPath = "/data",
+            //        HttpsCompression = HttpsCompressionMode.DoNotCompress
+            //        // OnPrepareResponse= prepareStaticFileResponse
+            //    });
+            //}
 
             app.UseEndpoints(endpoints =>
             {

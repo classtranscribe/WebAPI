@@ -3,7 +3,6 @@ using ClassTranscribeDatabase.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Nest;
-using System;
 using Elasticsearch.Net;
 using System.Collections.Generic;
 using System.Threading.Tasks;

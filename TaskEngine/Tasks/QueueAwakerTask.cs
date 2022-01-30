@@ -1,5 +1,5 @@
 ﻿using ClassTranscribeDatabase;
-using CTCommons;
+using ClassTranscribeDatabase.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
@@ -179,24 +179,28 @@ namespace TaskEngine.Tasks
 
 
                 // Todo Could also check for secondary video too
+                var maxProcessVideos = 400;
                 todoProcessVideos = await context.Videos.AsNoTracking().Where(
                    v=>(v.Duration == null && ! String.IsNullOrEmpty(v.Video1Id))
-                   ).OrderByDescending(t => t.CreatedAt).Select(e => e.Id).ToListAsync();
+                   ).OrderByDescending(t => t.CreatedAt).Take(maxProcessVideos).Select(e => e.Id).ToListAsync();
 
+                var maxVTTs = 400;
                 todoVTTs = await context.Transcriptions.AsNoTracking().Where(
                     t => t.Captions.Count > 0 && t.File == null && t.CreatedAt < tooRecentCutoff
-                    ).OrderByDescending(t => t.CreatedAt).Select(e => e.Id).ToListAsync();
+                    ).OrderByDescending(t => t.CreatedAt).Take(maxVTTs).Select(e => e.Id).ToListAsync();
 
+                var maxSceneDetection = 400;
                 todoSceneDetection = await context.Videos.AsNoTracking().Where( 
                         v=> v.PhraseHints == null &&
                         v.Medias.Any() && v.CreatedAt < tooRecentCutoff
-                    ).OrderByDescending(t => t.CreatedAt).Select(e => e.Id).ToListAsync();
+                    ).OrderByDescending(t => t.CreatedAt).Take(maxSceneDetection).Select(e => e.Id).ToListAsync();
 
+                var maxTranscriptions = 40;
                 todoTranscriptions = await context.Videos.AsNoTracking().Where( 
                         v=> v.PhraseHints != null &&
                         v.TranscribingAttempts < 41 && v.TranscriptionStatus != "NoError" && 
                         v.Medias.Any() && v.CreatedAt < tooRecentCutoff
-                    ).OrderByDescending(t => t.CreatedAt).Select(e => e.Id).ToListAsync();
+                    ).OrderByDescending(t => t.CreatedAt).Take(maxTranscriptions).Select(e => e.Id).ToListAsync();
 
                 // Medias for which no videos have downloaded
                 todoDownloads = await context.Medias.AsNoTracking().Where(
@@ -332,12 +336,7 @@ namespace TaskEngine.Tasks
                 else if(type==TaskType.SceneDetection.ToString())
                 {
                     var id = jObject["videoMediaPlaylistId"].ToString();
-                    bool deleteExisting = false;
-                    try
-                    {
-                        deleteExisting = jObject["DeleteExisting"].Value<bool>();
-                    }
-                    catch (Exception) { }
+                    bool deleteExisting = jObject["DeleteExisting"]?.Value<bool>() ?? false;
                     GetLogger().LogInformation($"{type}:{id}");
                     var videos = await _context.Videos.Where(v=>v.Id ==id).ToListAsync();
                     if (videos.Count == 0)
@@ -350,7 +349,7 @@ namespace TaskEngine.Tasks
                         {
                             GetLogger().LogInformation($"{id}:Removing SceneDetection for video ({video.Id})");
 
-                            video.SceneData = null;
+                            video.SceneData.RemoveAll();
                             
                             await _context.SaveChangesAsync();
                         }
@@ -382,12 +381,7 @@ namespace TaskEngine.Tasks
 
                      }
                     //TODO: These properties should not be literal strings
-                    bool deleteExisting = false;
-                    try
-                    {
-                        deleteExisting = jObject["DeleteExisting"].Value<bool>();
-                    }
-                    catch (Exception) { }
+                    bool deleteExisting = jObject["DeleteExisting"]?.Value<bool>() ?? false;
                     if (deleteExisting)
                     {
                         GetLogger().LogInformation($"{id}:Removing Transcriptions for video ({video.Id})");

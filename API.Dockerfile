@@ -7,9 +7,6 @@ WORKDIR /src
 COPY ./ClassTranscribeDatabase/ClassTranscribeDatabase.csproj ./ClassTranscribeDatabase/ClassTranscribeDatabase.csproj
 RUN dotnet restore ./ClassTranscribeDatabase/ClassTranscribeDatabase.csproj
 
-COPY ./CTCommons/CTCommons.csproj ./CTCommons/CTCommons.csproj
-RUN dotnet restore ./CTCommons/CTCommons.csproj
-
 COPY ./ClassTranscribeServer/ClassTranscribeServer.csproj ./ClassTranscribeServer/ClassTranscribeServer.csproj
 RUN dotnet restore ./ClassTranscribeServer/ClassTranscribeServer.csproj
 
@@ -17,7 +14,6 @@ COPY ./world_universities_and_domains.json ./world_universities_and_domains.json
 COPY ./ct.proto ./ct.proto
 COPY ./ClassTranscribeServer ./ClassTranscribeServer
 COPY ./ClassTranscribeDatabase ./ClassTranscribeDatabase
-COPY ./CTCommons ./CTCommons
 WORKDIR /src/ClassTranscribeServer
 RUN dotnet publish ClassTranscribeServer.csproj -c Release -o /app --no-restore
 

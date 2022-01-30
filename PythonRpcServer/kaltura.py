@@ -232,10 +232,10 @@ class KalturaProvider(MediaProvider):
             print(f'Found {len(res)} items')
             result = json.dumps(res)
         except InvalidPlaylistInfoException as e:
-            print("Exception:" + str(e))
+            print(f"getPlaylistItems({request}) Exception:{e}")
             raise e
         except Exception as e:
-            print("Exception:" + str(e))
+            print(f"getPlaylistItems({request}) Exception:{e}")
             raise InvalidPlaylistInfoException(
                 "Error during Channel/Playlist processing " + str(e))
         end_time = perf_counter()
@@ -253,5 +253,5 @@ class KalturaProvider(MediaProvider):
 
             return result
         except Exception as e:
-            print("Exception:" + str(e))
+            print(f"getMedia({request}) Exception:{e}" )
             raise e

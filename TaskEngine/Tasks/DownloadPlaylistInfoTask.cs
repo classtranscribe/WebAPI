@@ -1,19 +1,18 @@
 ﻿using Box.V2.Models;
 using ClassTranscribeDatabase;
 using ClassTranscribeDatabase.Models;
+using ClassTranscribeDatabase.Services;
 using Grpc.Core;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
-using CTCommons.Grpc;
-using CTCommons;
 using static ClassTranscribeDatabase.CommonUtils;
-using System.Diagnostics.CodeAnalysis;
 
 
 namespace TaskEngine.Tasks
@@ -145,11 +144,6 @@ namespace TaskEngine.Tasks
             JObject res = JObject.Parse(jsonString.Json);
 
             // Add DownloadHeader to playlist, required for downloading media.
-            if (playlist.JsonMetadata == null)
-            {
-                playlist.JsonMetadata = new JObject();
-            }
-
             if (playlist.JsonMetadata.ContainsKey("downloadHeader"))
             {
                 playlist.JsonMetadata["downloadHeader"] = res["downloadHeader"].ToString();
@@ -192,7 +186,7 @@ namespace TaskEngine.Tasks
             CTGrpc.JsonString jsonString = null;
             CTGrpc.JsonString metadata = new CTGrpc.JsonString
             {
-                Json = playlist.JsonMetadata != null ? playlist.JsonMetadata.ToString() : ""
+                Json = playlist.JsonMetadata.HasValues ? playlist.JsonMetadata.ToString() : ""
             };
             try
             {
@@ -298,123 +292,6 @@ namespace TaskEngine.Tasks
                 await _slack.PostErrorAsync(e, "Box Token Failure.");
                 throw;
             }
-        }
-
-        public static string GetMediaName(Media media)
-        {
-            string name;
-            switch (media.SourceType)
-            {
-                case SourceType.Echo360:
-                    string lessonName;
-                    if (media.JsonMetadata.ContainsKey("lessonName"))
-                    {
-                        lessonName = media.JsonMetadata["lessonName"].ToString();
-                    }
-                    else
-                    {
-                        lessonName = "Untitled";
-                    }
-
-                    string title;
-                    if (media.JsonMetadata.ContainsKey("title"))
-                    {
-                        title = media.JsonMetadata["title"].ToString();
-                    }
-                    else
-                    {
-                        title = null;
-                    }
-
-                    DateTime createdAt;
-                    if (media.JsonMetadata.ContainsKey("createdAt"))
-                    {
-                        createdAt = Convert.ToDateTime(media.JsonMetadata["createdAt"].ToString(), CultureInfo.InvariantCulture);
-                    }
-                    else
-                    {
-                        createdAt = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-                    }
-
-                    if (title != null)
-                    {
-                        name = title;
-                    }
-                    else
-                    {
-                        name = $"{lessonName} {createdAt.ToString("MMMM dd, yyyy", CultureInfo.InvariantCulture)}";
-                    }
-                    break;
-                case SourceType.Youtube:
-                    if (media.JsonMetadata.ContainsKey("title") && media.JsonMetadata["title"].ToString().Length > 0)
-                    {
-                        name = media.JsonMetadata["title"].ToString();
-                    }
-                    else
-                    {
-                        name = "Untitled";
-                    }
-                    break;
-                case SourceType.Local:
-                    string fileName;
-                    if (media.JsonMetadata.ContainsKey("filename"))
-                    {
-                        fileName = media.JsonMetadata["filename"].ToString();
-                    }
-                    else
-                    {
-
-                        JObject tempObj = JObject.Parse(media.JsonMetadata["video1"].ToString());
-                        if (tempObj.ContainsKey("FileName"))
-                        {
-                            fileName = tempObj["FileName"].ToString();
-                        }
-                        else
-                        {
-                            fileName = "Untitled";
-                        }
-
-                    }
-                    name = fileName.Replace(".mp4", "");
-                    break;
-                case SourceType.Kaltura:
-                    string temp;
-                    if (media.JsonMetadata.ContainsKey("name"))
-                    {
-                        temp = media.JsonMetadata["name"].ToString();
-                    }
-                    else
-                    {
-                        temp = "Untitled";
-                    }
-
-                    if (media.JsonMetadata.ContainsKey("createdAt"))
-                    {
-
-                        createdAt = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)
-                            .AddSeconds(media.JsonMetadata["createdAt"].ToObject<int>());
-                    }
-                    else
-                    {
-                        createdAt = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-                    }
-                    name = $"{temp} {createdAt.ToString("MMMM dd, yyyy", CultureInfo.InvariantCulture)}";
-                    break;
-                case SourceType.Box:
-                    if (media.JsonMetadata.ContainsKey("name"))
-                    {
-                        name = media.JsonMetadata["name"].ToString();
-                    }
-                    else
-                    {
-                        name = "Untitled";
-                    }
-                    break;
-                default:
-                    name = "Untitled";
-                    break;
-            }
-            return name;
         }
     }
 }

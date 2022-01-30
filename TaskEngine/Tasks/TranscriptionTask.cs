@@ -1,18 +1,15 @@
 ﻿using ClassTranscribeDatabase;
 using ClassTranscribeDatabase.Models;
+using ClassTranscribeDatabase.Services;
+using ClassTranscribeDatabase.Services.MSTranscription;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
-using System.IO;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading.Tasks;
-using CTCommons.MSTranscription;
 using static ClassTranscribeDatabase.CommonUtils;
-using CTCommons;
-using Newtonsoft.Json.Linq;
-using System.Diagnostics.CodeAnalysis;
-using Google.Protobuf.WellKnownTypes;
 
 namespace TaskEngine.Tasks
 {
@@ -175,11 +172,6 @@ namespace TaskEngine.Tasks
 
                     var result = await _msTranscriptionService.RecognitionWithVideoStreamAsync(videoId, video.Video1, key, captionsMap, sourceLanguage, phraseHints, startAfterMap);
 
-                    if (video.JsonMetadata == null)
-                    {
-                        video.JsonMetadata = new JObject();
-                    }
-
                     TaskEngineGlobals.KeyProvider.ReleaseKey(key, video.Id);
 
                     foreach (var captionsInLanguage in result.Captions)
@@ -198,7 +190,9 @@ namespace TaskEngine.Tasks
                                 {
                                     Captions = theCaptions,
                                     Language = theLanguage,
-                                    VideoId = video.Id
+                                    VideoId = video.Id,
+                                    Label = $"{theLanguage} (ClassTranscribe)",
+                                    SourceInternalRef = "ClassTranscribe/Azure"
                                 };
                                 _context.Add(t);
                             }

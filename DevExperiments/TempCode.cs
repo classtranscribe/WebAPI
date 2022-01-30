@@ -1,20 +1,11 @@
 ﻿using ClassTranscribeDatabase;
-using ClassTranscribeDatabase.Models;
+using ClassTranscribeDatabase.Services;
+using ClassTranscribeDatabase.Services.MSTranscription;
 using Newtonsoft.Json.Linq;
 using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
-using CTCommons.Grpc;
-using static ClassTranscribeDatabase.CommonUtils;
-using CTCommons.MSTranscription;
-using System.Text.Json;
-using System.Text;
-using Microsoft.EntityFrameworkCore;
 
-namespace CTCommons
+namespace DevExperiments
 {
     class TempCode
     {

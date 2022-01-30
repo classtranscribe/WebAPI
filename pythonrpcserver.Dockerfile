@@ -16,8 +16,9 @@ RUN ./autogen.sh && ./configure && make -j && make install && ldconfig
 RUN make training && make training-install
 # The above line takes 59 seconds on my laptop 
 
-RUN curl -L -o tessdata/eng.traineddata https://github.com/tesseract-ocr/tessdata/raw/master/eng.traineddata
-RUN curl -L -o tessdata/osd.traineddata https://github.com/tesseract-ocr/tessdata/raw/master/osd.traineddata
+RUN curl -L -o tessdata/eng.traineddata https://github.com/tesseract-ocr/tessdata/raw/main/eng.traineddata
+RUN curl -L -o tessdata/osd.traineddata https://github.com/tesseract-ocr/tessdata/raw/main/osd.traineddata
+
 ENV TESSDATA_PREFIX=/tesseract-4.1.1/tessdata
 #Disable multi-threading
 ENV OMP_THREAD_LIMIT=1
@@ -31,15 +32,11 @@ COPY ct.proto ct.proto
 RUN python -m grpc_tools.protoc -I . --python_out=./ --grpc_python_out=./ ct.proto
 
 COPY ./PythonRpcServer .
-# Downloaded zip of repo from https://github.com/nficano/pytube and renamed to include version
-RUN python -m pip install --no-cache-dir pytube-pytube-v11.0.2.tar.gz
-#Nope RUN bash -c 'echo "172.217.0.46    www.youtube.com"  >> /etc/hosts'
 
-#pytube-master-10.4.1.zip
-RUN python -m nltk.downloader stopwords
-RUN python -m nltk.downloader brown
+RUN python -m pip install --no-cache-dir pytube-pytube-v11.0.2.tar.gz
+
+RUN python -m nltk.downloader stopwords brown
 
 # Nice:Very low priority but not lowest priority (18 out of 19)
 #ionice: Best effort class but second lowest priory (6 out of 7)
 CMD [ "bash", "./dockerentry.sh"]
-#"nice","-n","18", "ionice","-c","2","-n","6", "python3", "-u", "/PythonRpcServer/server.py" ]

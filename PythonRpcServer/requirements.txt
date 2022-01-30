@@ -12,7 +12,8 @@ ipython-genutils==0.2.0
 jedi==0.17.0
 KalturaApiClient==15.20.0
 numpy==1.18.2
-opencv-python==4.2.0.34
+#opencv-python==4.2.0.34
+# replaced by opencv-contrib-python
 parso==0.7.0
 pexpect==4.8.0
 pickleshare==0.7.5
@@ -20,7 +21,7 @@ prompt-toolkit==3.0.5
 protobuf==3.11.3
 ptyprocess==0.6.0
 Pygments==2.7.4
-#pytube3==9.6.4
+#pytube3==11.0.0 not available; so use the tar.gz package
 requests==2.23.0
 requests-toolbelt==0.9.1
 scenedetect==0.5.2
@@ -30,7 +31,7 @@ traitlets==4.3.3
 urllib3==1.25.8
 wcwidth==0.1.9
 scikit-image==0.17.2
-nltk==3.6.2
+nltk==3.6.5
 pytesseract==0.3.7
 prefixspan==0.5.2
 opencv-contrib-python==4.5.3.56

@@ -1,15 +1,13 @@
-﻿using System.Collections.Generic;
-using System.IO;
-using ClassTranscribeDatabase;
+﻿using ClassTranscribeDatabase;
 using ClassTranscribeDatabase.Models;
+using ClassTranscribeDatabase.Services;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
-using System.Threading.Tasks;
-using CTCommons.Grpc;
-using Grpc.Core;
-using static ClassTranscribeDatabase.CommonUtils;
-using CTCommons;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.IO;
+using System.Threading.Tasks;
+using static ClassTranscribeDatabase.CommonUtils;
 
 
 namespace TaskEngine.Tasks
@@ -38,7 +36,7 @@ namespace TaskEngine.Tasks
             {
                 Video video = await _context.Videos.FindAsync(videoId);
                 
-                if (video.SceneData == null || taskParameters.Force)
+                if (!video.SceneData.HasValues || taskParameters.Force)
                 {
                     filepath =  video.Video1.VMPath;
                 }

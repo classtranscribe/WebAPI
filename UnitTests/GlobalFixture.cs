@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
@@ -20,6 +21,7 @@ namespace UnitTests
         public readonly ServiceProvider _serviceProvider;
         public readonly IAuthorizationService _authorizationService;
         public readonly ControllerContext _controllerContext;
+        public readonly PhysicalFileProvider _physicalFileProvider;
 
         // 'data' must exist (and be last). Otherwise FileRecord Path setter will fail
         private static readonly string _testDataDirectory = Path.Combine("test_data","automatically_deleted","data");
@@ -37,6 +39,7 @@ namespace UnitTests
             var mockWake = new Mock<WakeDownloader>(MockBehavior.Strict, null);
             mockWake.Setup(wake => wake.UpdateVTTFile(It.IsAny<string>()));
             mockWake.Setup(wake => wake.UpdatePlaylist(It.IsAny<string>()));
+            mockWake.Setup(wake => wake.SceneDetection(It.IsAny<string>(), It.IsAny<bool>()));
 
             _serviceProvider = new ServiceCollection()
                 .AddEntityFrameworkInMemoryDatabase()
@@ -46,6 +49,7 @@ namespace UnitTests
                 .AddLogging(cfg => cfg.AddConsole())
                 .AddScoped(sp => mockWake.Object)
                 .AddScoped<MockUserManager>()
+                .AddScoped<MockRoleManager>()
                 .AddScoped<MockSignInManager>()
                 .BuildServiceProvider();
 
@@ -75,6 +79,8 @@ namespace UnitTests
             {
                 HttpContext = new DefaultHttpContext() { User = userPrincipal }
             };
+
+            _physicalFileProvider = new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory(), "Assets"));
         }
 
         public void Dispose()
