@@ -31,7 +31,8 @@ namespace TaskEngine.Tasks
                 CaptionQueries captionQueries = new CaptionQueries(_context);
                 var captions = await captionQueries.GetCaptionsAsync(transcription.Id);
 
-                var vttfile = await FileRecord.GetNewFileRecordAsync(Caption.GenerateWebVTTFile(captions, transcription.Language), ".vtt");
+                var co = GetRelatedCourseOffering(transcription);
+                var vttfile = await FileRecord.GetNewFileRecordAsync(Caption.GenerateWebVTTFile(captions, transcription.Language), ".vtt", co);
 
 #nullable enable
                 FileRecord? existingVtt = await _context.FileRecords.FindAsync(transcription.FileId);
@@ -51,7 +52,7 @@ namespace TaskEngine.Tasks
                     _context.Entry(existingVtt).State = EntityState.Modified;
                 }
 
-                var srtfile = await FileRecord.GetNewFileRecordAsync(Caption.GenerateSrtFile(captions), ".srt");
+                var srtfile = await FileRecord.GetNewFileRecordAsync(Caption.GenerateSrtFile(captions), ".srt", co);
 
 #nullable enable
                 FileRecord? existingSrt = await _context.FileRecords.FindAsync(transcription.SrtFileId);

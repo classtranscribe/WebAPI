@@ -4,6 +4,7 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Text;
 
 namespace ClassTranscribeDatabase
@@ -63,17 +64,8 @@ namespace ClassTranscribeDatabase
        
         public static string RandomString(int length)
         {
-            // TODO/TOREVIEW: C# random is seeded with a time since 1970 at 100ns, so what if two
-            // threads start at the same time, to within the tick resolution?
-            // e.g. https://stackoverflow.com/questions/1785744/how-do-i-seed-a-random-class-to-avoid-getting-duplicate-random-values#
-            // Could this mean that two threads cmight be seeded with the same number
-
-            // Some filesystems are case insensitive so only use uppercase
-            // Drop 1 and 0 because they are too similar to IO
-            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ23456789";
-
-            // The day we want GUID-like filenames we can return Guid.NewGuid().ToString()
-            // But for now there are too many GUIDS when debugging data, so let's keep filename as not-GUID formatted!
+            // Drop aeiouy to prevent unwanted words; drop 1 and 0 because they are too similar to IO
+            const string chars = "bcdfghjklmnpqrstvwxzBCDFGHJKLMNPQRSTVWXZ23456789";
 
             // This new GUID-as-source of random bytes implementation avoids an exclusive file lock in /dev/urandom
             // ... And also overcomes the 2^32 seed limitation of the random class (4bn states is insufficient if we have a million files)
@@ -165,6 +157,33 @@ namespace ClassTranscribeDatabase
             }
 
             return name;
+        }
+
+        public static CourseOffering GetRelatedCourseOffering(Entity entity)
+        {
+            switch (entity)
+            {
+                case Course c:
+                    return c.CourseOfferings?.Where(co => !string.IsNullOrEmpty(co.FilePath)).FirstOrDefault();
+
+                case Media m:
+                    return GetRelatedCourseOffering(m.Playlist);
+
+                case Offering o:
+                    return o.CourseOfferings?.Where(co => !string.IsNullOrEmpty(co.FilePath)).FirstOrDefault();
+
+                case Playlist p:
+                    return GetRelatedCourseOffering(p.Offering);
+
+                case Transcription t:
+                    return GetRelatedCourseOffering(t.Video);
+
+                case Video v:
+                    return GetRelatedCourseOffering(v.Medias?.FirstOrDefault());
+
+                default:
+                    throw new InvalidOperationException($"GetRelatedCourseOffering not implemented for type {entity.GetType()} (Object ID: {entity.Id})");
+            }
         }
     }
 }

@@ -63,7 +63,8 @@ namespace TaskEngine.Tasks
                         });
 
                         //This does not work
-                        video.ProcessedVideo1 = await FileRecord.GetNewFileRecordAsync(file.FilePath, file.Ext);
+                        var co = GetRelatedCourseOffering(video);
+                        video.ProcessedVideo1 = await FileRecord.GetNewFileRecordAsync(file.FilePath, file.Ext, co);
                         videoUpdated = true;
                     }
                 }
@@ -77,7 +78,8 @@ namespace TaskEngine.Tasks
                         });
 
                         //This does not work
-                        video.ProcessedVideo2 = await FileRecord.GetNewFileRecordAsync(file.FilePath, file.Ext);
+                        var co = GetRelatedCourseOffering(video);
+                        video.ProcessedVideo2 = await FileRecord.GetNewFileRecordAsync(file.FilePath, file.Ext, co);
                         videoUpdated = true;
                     }
                 }

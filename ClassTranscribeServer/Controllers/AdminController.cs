@@ -1,8 +1,10 @@
 ﻿using ClassTranscribeDatabase;
+using ClassTranscribeDatabase.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -222,6 +224,48 @@ namespace ClassTranscribeServer.Controllers
                 Build = Globals.appSettings.BUILDNUMBER
             };
             return result;
+        }
+
+        /// <summary>
+        /// Attempts to generate FilePath fields for all Course and CourseOffering entities that currently
+        /// do not have FilePath fields. This also creates the corresponding directories.
+        ///
+        /// Return the number of successfully generated file paths.
+        /// </summary>
+        [HttpPost("GenerateFilePaths")]
+        [Authorize(Roles = Globals.ROLE_ADMIN)]
+        public async Task<ActionResult<int>> GenerateFilePaths()
+        {
+            int numGenerated = 0;
+
+            var courses = await _context.Courses
+                .Where(c => string.IsNullOrEmpty(c.FilePath))
+                .ToListAsync();
+
+            foreach (var c in courses) {
+                try
+                {
+                    await FileRecord.SetFilePath(_context, c);
+                    numGenerated++;
+                }
+                catch (InvalidOperationException) { }
+            };
+
+            var courseOfferings = await _context.CourseOfferings
+                .Where(co => string.IsNullOrEmpty(co.FilePath))
+                .ToListAsync();
+
+            foreach (var co in courseOfferings)
+            {
+                try
+                {
+                    await FileRecord.SetFilePath(_context, co);
+                    numGenerated++;
+                }
+                catch (InvalidOperationException) { }
+            }
+
+            return numGenerated;
         }
 
         public class BuildVersionDTO

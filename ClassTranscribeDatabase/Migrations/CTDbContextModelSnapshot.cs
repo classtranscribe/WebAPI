@@ -183,6 +183,9 @@ namespace ClassTranscribeDatabase.Migrations
                     b.Property<string>("DepartmentId")
                         .HasColumnType("text");
 
+                    b.Property<string>("FilePath")
+                        .HasColumnType("text");
+
                     b.Property<int>("IsDeletedStatus")
                         .HasColumnType("integer");
 
@@ -217,6 +220,9 @@ namespace ClassTranscribeDatabase.Migrations
                         .HasColumnType("timestamp without time zone");
 
                     b.Property<string>("DeletedBy")
+                        .HasColumnType("text");
+
+                    b.Property<string>("FilePath")
                         .HasColumnType("text");
 
                     b.Property<string>("Id")

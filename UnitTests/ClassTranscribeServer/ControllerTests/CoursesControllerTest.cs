@@ -1,9 +1,13 @@
-﻿using ClassTranscribeDatabase.Models;
+﻿using ClassTranscribeDatabase;
+using ClassTranscribeDatabase.Models;
 using ClassTranscribeServer.Controllers;
 using Microsoft.AspNetCore.Mvc;
+using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using UnitTests.Utils;
 using Xunit;
 
 namespace UnitTests.ClassTranscribeServer.ControllerTests
@@ -39,6 +43,7 @@ namespace UnitTests.ClassTranscribeServer.ControllerTests
 
             getResult = await _controller.GetCourse(course.Id);
             Assert.Equal(course, getResult.Value);
+            Assert.True(Common.IsValidFilePath(course));
         }
 
         [Fact]

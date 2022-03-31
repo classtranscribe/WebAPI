@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using UnitTests.Utils;
 using Xunit;
 
 namespace UnitTests.ClassTranscribeServer.ControllerTests
@@ -24,17 +25,18 @@ namespace UnitTests.ClassTranscribeServer.ControllerTests
         {
             var offeringId = "1111";
             var userId = "13";
-            var courseIds = new List<string>();
+            var courseIds = new List<string> { "0001" };
             SetupEntities(offeringId, userId, courseIds);
 
             var courseOffering = new CourseOffering
             {
-                CourseId = "0001",
+                CourseId = courseIds[0],
                 OfferingId = offeringId
             };
 
             var postResult = await _controller.PostCourseOffering(courseOffering);
             Assert.IsType<OkResult>(postResult.Result);
+            Assert.True(Common.IsValidFilePath(courseOffering));
 
             var deleteResult = await _controller.DeleteCourseOffering(courseOffering.CourseId, courseOffering.OfferingId);
             Assert.Single(deleteResult.Value);
@@ -58,7 +60,7 @@ namespace UnitTests.ClassTranscribeServer.ControllerTests
                 },
                 new CourseOffering
                 {
-                    CourseId = "not_existing",
+                    CourseId = courseIds[0],
                     OfferingId = "not_existing"
                 },
                 new CourseOffering
@@ -169,7 +171,8 @@ namespace UnitTests.ClassTranscribeServer.ControllerTests
             {
                 Id = courseId,
                 CourseNumber = courseId,
-                DepartmentId = "0000"
+                DepartmentId = "0000",
+                FilePath = "0101-path"
             }));
         }
     }
