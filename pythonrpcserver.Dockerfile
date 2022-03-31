@@ -33,8 +33,10 @@ RUN python -m grpc_tools.protoc -I . --python_out=./ --grpc_python_out=./ ct.pro
 
 COPY ./PythonRpcServer .
 
-# Downloaded tgz from https://github.com/nficano/pytube and renamed to include version
-RUN pip install --no-cache-dir pytube-v11.0.1.tar.gz
+# Old:Downloaded tgz from https://github.com/nficano/pytube and renamed to include version
+# New: Grab link directly from https://github.com/pytube/pytube/tags
+#-L = follow redirect
+RUN curl -L https://github.com/pytube/pytube/archive/refs/tags/v12.0.0.tar.gz -o pytube.tar.gz && pip install --no-cache-dir pytube.tar.gz && rm pytube.tar.gz
 
 RUN python -m nltk.downloader stopwords brown
 
