@@ -168,7 +168,6 @@ namespace TaskEngine.Tasks
                 video.Video1 = await FileRecord.GetNewFileRecordAsync(mediaResponse.FilePath, mediaResponse.Ext, co);
             }
 
-
             if (!string.IsNullOrEmpty(media.JsonMetadata["altVideoUrl"].ToString()))
             {
 
@@ -189,8 +188,6 @@ namespace TaskEngine.Tasks
                 // As there is no file to download, it's "successfull"
                 video2Success = true;
             }
-
-
 
             if (video1Success && video2Success)
             {
@@ -216,15 +213,22 @@ namespace TaskEngine.Tasks
             {
                 VideoUrl = media.JsonMetadata["videoUrl"].ToString()
             });
+            // can be much later ie. be careful-  the database context may have been disposed.
 
             if (FileRecord.IsValidFile(mediaResponse.FilePath))
             {
-                var co = GetRelatedCourseOffering(media);
-                Video video = new Video
+                
+                using (var context = CTDbContext.CreateDbContext())
                 {
-                    Video1 = await FileRecord.GetNewFileRecordAsync(mediaResponse.FilePath, mediaResponse.Ext, co)
-                };
-                return video;
+                    // reload media so we can do lazy tranversal
+                    media = await context.Medias.Where(m => m.Id == media.Id).FirstAsync();
+                    var co = GetRelatedCourseOffering(media); // may use database, so need fresh instance of the media
+                    Video video = new Video
+                    {
+                        Video1 = await FileRecord.GetNewFileRecordAsync(mediaResponse.FilePath, mediaResponse.Ext, co)
+                    };
+                    return video;
+                }                
             }
             else
             {
