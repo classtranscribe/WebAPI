@@ -101,8 +101,8 @@ namespace ClassTranscribeServer.Controllers
                 }
 
                 var sourceEntity = await GetSourceEntity(type, sourceId);
-                var co = CommonUtils.GetRelatedCourseOffering(sourceEntity);
-                image.ImageFile = await FileRecord.GetNewFileRecordAsync(filePath, extension, co);
+                var subdir = CommonUtils.ToCourseOfferingSubDirectory(sourceEntity);
+                image.ImageFile = await FileRecord.GetNewFileRecordAsync(filePath, extension, subdir);
 
                 _context.Images.Add(image);
                 await _context.SaveChangesAsync();

@@ -186,8 +186,8 @@ namespace ClassTranscribeServer.Controllers
             media.JsonMetadata.Add("video1Path", filePath);
 
             var playlist = await _context.Playlists.FindAsync(playlistId);
-            var co = CommonUtils.GetRelatedCourseOffering(playlist);
-            video.Video1 = await FileRecord.GetNewFileRecordAsync(filePath, Path.GetExtension(filePath), co);
+            var subdir = CommonUtils.ToCourseOfferingSubDirectory(playlist);
+            video.Video1 = await FileRecord.GetNewFileRecordAsync(filePath, Path.GetExtension(filePath), subdir);
 
             // Only do this for the first (primary) video
             media.UniqueMediaIdentifier = video.Video1.Hash;
@@ -208,7 +208,7 @@ namespace ClassTranscribeServer.Controllers
 
                 media.JsonMetadata.Add("video2", JsonConvert.SerializeObject(video2));
                 media.JsonMetadata.Add("video2Path", filePath2);
-                video.Video2 = await FileRecord.GetNewFileRecordAsync(filePath2, Path.GetExtension(filePath2), co);
+                video.Video2 = await FileRecord.GetNewFileRecordAsync(filePath2, Path.GetExtension(filePath2), subdir);
             }
 
             // The following is essentially a replication of the logic in DownloadMediaTask.OnConsume, but there is enough
