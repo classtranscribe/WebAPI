@@ -48,14 +48,15 @@ namespace TaskEngine.Tasks
                     .Include(m => m.Playlist).FirstAsync();
             }
             GetLogger().LogInformation($"Downloading media id=({media.Id}), UniqueMediaIdentifier={media.UniqueMediaIdentifier}");
+            string subdir = ToCourseOfferingSubDirectory(media); // e.g. "/data/2203-abcd"
             Video video = new Video();
             switch (media.SourceType)
             {
-                case SourceType.Echo360: video = await DownloadEchoVideo(media); break;
-                case SourceType.Youtube: video = await DownloadYoutubeVideo(media); break;
-                case SourceType.Local: video = await DownloadLocalPlaylist(media); break;
-                case SourceType.Kaltura: video = await DownloadKalturaVideo(media); break;
-                case SourceType.Box: video = await DownloadBoxVideo(media); break;
+                case SourceType.Echo360: video = await DownloadEchoVideo(subdir, media); break;
+                case SourceType.Youtube: video = await DownloadYoutubeVideo(subdir, media); break;
+                case SourceType.Local: video = await DownloadLocalPlaylist(subdir, media); break;
+                case SourceType.Kaltura: video = await DownloadKalturaVideo(subdir, media); break;
+                case SourceType.Box: video = await DownloadBoxVideo(subdir, media); break;
             }
             // If no valid video1, or if a video2 object exists but not a valid file - fail the task.
             if (video == null || video.Video1 == null || !video.Video1.IsValidFile()
@@ -126,7 +127,7 @@ namespace TaskEngine.Tasks
             }
         }
 
-        public async Task<Video> DownloadKalturaVideo(Media media)
+        public async Task<Video> DownloadKalturaVideo(string subdir, Media media)
         {
             var mediaResponse = await _rpcClient.PythonServerClient.DownloadKalturaVideoRPCAsync(new CTGrpc.MediaRequest
             {
@@ -136,10 +137,9 @@ namespace TaskEngine.Tasks
             Video video;
             if (FileRecord.IsValidFile(mediaResponse.FilePath))
             {
-                var co = GetRelatedCourseOffering(media);
                 video = new Video
                 {
-                    Video1 = await FileRecord.GetNewFileRecordAsync(mediaResponse.FilePath, mediaResponse.Ext, co)
+                    Video1 = await FileRecord.GetNewFileRecordAsync(mediaResponse.FilePath, mediaResponse.Ext, subdir)
                 };
             }
             else
@@ -150,7 +150,7 @@ namespace TaskEngine.Tasks
             return video;
         }
 
-        public async Task<Video> DownloadEchoVideo(Media media)
+        public async Task<Video> DownloadEchoVideo(string subdir, Media media)
         {
             Video video = new Video();
             bool video1Success = false, video2Success = false;
@@ -164,8 +164,7 @@ namespace TaskEngine.Tasks
             video1Success = FileRecord.IsValidFile(mediaResponse.FilePath);
             if (video1Success)
             {
-                var co = GetRelatedCourseOffering(media);
-                video.Video1 = await FileRecord.GetNewFileRecordAsync(mediaResponse.FilePath, mediaResponse.Ext, co);
+                video.Video1 = await FileRecord.GetNewFileRecordAsync(mediaResponse.FilePath, mediaResponse.Ext, subdir);
             }
 
             if (!string.IsNullOrEmpty(media.JsonMetadata["altVideoUrl"].ToString()))
@@ -179,8 +178,7 @@ namespace TaskEngine.Tasks
                 video2Success = FileRecord.IsValidFile(mediaResponse2.FilePath);
                 if (video2Success)
                 {
-                    var co = GetRelatedCourseOffering(media);
-                    video.Video2 = await  FileRecord.GetNewFileRecordAsync(mediaResponse2.FilePath, mediaResponse.Ext, co);
+                    video.Video2 = await  FileRecord.GetNewFileRecordAsync(mediaResponse2.FilePath, mediaResponse.Ext, subdir);
                 }
             }
             else
@@ -207,8 +205,9 @@ namespace TaskEngine.Tasks
             }
         }
 
-        public async Task<Video> DownloadYoutubeVideo(Media media)
+        public async Task<Video> DownloadYoutubeVideo(string subdir, Media media)
         {
+           
             var mediaResponse = await _rpcClient.PythonServerClient.DownloadYoutubeVideoRPCAsync(new CTGrpc.MediaRequest
             {
                 VideoUrl = media.JsonMetadata["videoUrl"].ToString()
@@ -218,17 +217,11 @@ namespace TaskEngine.Tasks
             if (FileRecord.IsValidFile(mediaResponse.FilePath))
             {
                 
-                using (var context = CTDbContext.CreateDbContext())
-                {
-                    // reload media so we can do lazy tranversal
-                    media = await context.Medias.Where(m => m.Id == media.Id).FirstAsync();
-                    var co = GetRelatedCourseOffering(media); // may use database, so need fresh instance of the media
                     Video video = new Video
                     {
-                        Video1 = await FileRecord.GetNewFileRecordAsync(mediaResponse.FilePath, mediaResponse.Ext, co)
+                        Video1 = await FileRecord.GetNewFileRecordAsync(mediaResponse.FilePath, mediaResponse.Ext, subdir)
                     };
                     return video;
-                }                
             }
             else
             {
@@ -244,7 +237,7 @@ namespace TaskEngine.Tasks
             }
         }
 
-        public async Task<Video> DownloadLocalPlaylist(Media media)
+        public async Task<Video> DownloadLocalPlaylist(string subdir, Media media)
         {
             try
             {
@@ -252,14 +245,14 @@ namespace TaskEngine.Tasks
                 if (media.JsonMetadata.ContainsKey("video1Path"))
                 {
                     var video1Path = media.JsonMetadata["video1Path"].ToString();
-                    var co = GetRelatedCourseOffering(media);
-                    video.Video1 = await FileRecord.GetNewFileRecordAsync(video1Path, Path.GetExtension(video1Path), co);
+                    
+                    video.Video1 = await FileRecord.GetNewFileRecordAsync(video1Path, Path.GetExtension(video1Path), subdir);
                 }
                 if (media.JsonMetadata.ContainsKey("video2Path"))
                 {
                     var video2Path = media.JsonMetadata["video2Path"].ToString();
-                    var co = GetRelatedCourseOffering(media);
-                    video.Video2 = await  FileRecord.GetNewFileRecordAsync(video2Path, Path.GetExtension(video2Path), co);
+                    
+                    video.Video2 = await  FileRecord.GetNewFileRecordAsync(video2Path, Path.GetExtension(video2Path), subdir);
                 }
 
                 return video;
@@ -276,7 +269,7 @@ namespace TaskEngine.Tasks
             }
         }
 
-        public async Task<Video> DownloadBoxVideo(Media media)
+        public async Task<Video> DownloadBoxVideo(string subdir, Media media)
         {
             try
             {
@@ -290,10 +283,9 @@ namespace TaskEngine.Tasks
                 }
                 if (FileRecord.IsValidFile(newPath))
                 {
-                    var co = GetRelatedCourseOffering(media);
                     Video video = new Video
                     {
-                        Video1 = await FileRecord.GetNewFileRecordAsync(newPath, Path.GetExtension(newPath), co)
+                        Video1 = await FileRecord.GetNewFileRecordAsync(newPath, Path.GetExtension(newPath), subdir)
                     };
                     return video;
                 }
@@ -311,7 +303,7 @@ namespace TaskEngine.Tasks
             }
             catch (Box.V2.Exceptions.BoxSessionInvalidatedException e)
             {
-                GetLogger().LogError(e, "Box Token Failure.");
+                GetLogger().LogError(e, "Box Token Failure in DownloadMediaTask.");
                 await _slack.PostErrorAsync(e, "Box Token Failure.");
                 throw;
             }
