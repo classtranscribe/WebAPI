@@ -57,7 +57,7 @@ namespace UnitTests.ClassTranscribeDatabase
             await imageFile.CopyToAsync(stream2);
 
             var c = new Course { Id = "001" };
-            var co = new CourseOffering { CourseId = c.Id };
+            var co = new CourseOffering { CourseId = c.Id, FilePath="a/../../b" };
             _context.Courses.Add(c);
             _context.CourseOfferings.Add(co);
             await _context.SaveChangesAsync();
@@ -97,18 +97,17 @@ namespace UnitTests.ClassTranscribeDatabase
             await FileRecord.SetFilePath(_context, co);
             string subdir = CommonUtils.ToCourseOfferingSubDirectory(co);
 
-            using var stream = File.OpenRead("Assets/test.png");
-            var imageFile = new FormFile(stream, 0, stream.Length, null, Path.GetFileName(stream.Name));
-            var fileExt = Path.GetExtension(imageFile.FileName);
             var filePath = CommonUtils.GetTmpFile();
-            using var stream2 = new FileStream(filePath, FileMode.Create);
-            await imageFile.CopyToAsync(stream2);
-
+            var fileExt = "png";           
+            File.Copy("Assets/test.png", filePath);
             var fileRecord = await FileRecord.GetNewFileRecordAsync(filePath, fileExt, subdir);
 
             Assert.True(fileRecord.IsValidFile());
             Assert.EndsWith(fileExt, fileRecord.Path);
-            Assert.StartsWith(Path.Combine(Globals.appSettings.DATA_DIRECTORY, co.FilePath), fileRecord.Path);
+            var expectedPath = Path.Combine(Globals.appSettings.DATA_DIRECTORY, co.FilePath).Replace("\\", "/"); ;
+            var actualPath = fileRecord.Path.Replace("\\", "/");
+            
+            Assert.StartsWith(expectedPath, actualPath);
         }
     }
 }

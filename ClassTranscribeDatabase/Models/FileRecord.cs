@@ -38,10 +38,10 @@ namespace ClassTranscribeDatabase.Models
             //     throw new InvalidOperationException("Invalid CourseOffering entity- Course Offering was deleted");
             // } else {
             //     courseOfferingSubDir = courseOffering.FilePath; // e.g. "/data/2203-abcd"
-            //     if( courseOfferingSubDir.Contains("..") )
-            //     {
-            //         throw new InvalidOperationException("Sanity check: Course Offering FilePaths cannot contain parent directory traversal paths, '..'");
-            //     }
+             if(subdir.Contains("..") )
+            {
+               throw new InvalidOperationException("Sanity check: Course Offering FilePaths cannot contain parent directory traversal paths, '..'");
+            }
 
             // }
 
