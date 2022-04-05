@@ -61,7 +61,7 @@ namespace UnitTests.ClassTranscribeDatabase
             _context.Courses.Add(c);
             _context.CourseOfferings.Add(co);
             await _context.SaveChangesAsync();
-            string subdir = CommonUtils.ToCourseOfferingSubDirectory(co);
+            string subdir = CommonUtils.ToCourseOfferingSubDirectory(_context, co);
             // The CourseOffering must have a valid FilePath
             await Assert.ThrowsAsync<InvalidOperationException>(
                 async () => await FileRecord.GetNewFileRecordAsync(filePath, fileExt, subdir)
@@ -95,7 +95,7 @@ namespace UnitTests.ClassTranscribeDatabase
             _context.CourseOfferings.Add(co);
             await FileRecord.SetFilePath(_context, c);
             await FileRecord.SetFilePath(_context, co);
-            string subdir = CommonUtils.ToCourseOfferingSubDirectory(co);
+            string subdir = CommonUtils.ToCourseOfferingSubDirectory(_context,co);
 
             var filePath = CommonUtils.GetTmpFile();
             var fileExt = "png";           
