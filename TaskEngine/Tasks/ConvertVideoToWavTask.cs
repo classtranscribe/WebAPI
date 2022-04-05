@@ -45,7 +45,7 @@ namespace TaskEngine.Tasks
             {
                 // Get the video object
                 var video = await _context.Videos.FindAsync(videoId);
-                string subdir = ToCourseOfferingSubDirectory(video);
+                string subdir = ToCourseOfferingSubDirectory(_context, video);
                 GetLogger().LogInformation("Consuming" + video);
                 // Make RPC call to produce audio file.
                 var file = await _rpcClient.PythonServerClient.ConvertVideoToWavRPCWithOffsetAsync(new CTGrpc.FileForConversion

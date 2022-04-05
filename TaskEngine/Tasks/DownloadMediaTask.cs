@@ -42,13 +42,14 @@ namespace TaskEngine.Tasks
             registerTask(cleanup,mediaId); // may throw AlreadyInProgress exception
 
             Media media;
+            string subdir;
             using (var _context = CTDbContext.CreateDbContext())
             {
                 media = await _context.Medias.Where(m => m.Id == mediaId)
                     .Include(m => m.Playlist).FirstAsync();
+                GetLogger().LogInformation($"Downloading media id=({media.Id}), UniqueMediaIdentifier={media.UniqueMediaIdentifier}");
+                subdir = ToCourseOfferingSubDirectory(_context, media); // e.g. "/data/2203-abcd"
             }
-            GetLogger().LogInformation($"Downloading media id=({media.Id}), UniqueMediaIdentifier={media.UniqueMediaIdentifier}");
-            string subdir = ToCourseOfferingSubDirectory(media); // e.g. "/data/2203-abcd"
             Video video = new Video();
             switch (media.SourceType)
             {

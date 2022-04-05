@@ -4,12 +4,16 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using Xunit;
+using UnitTests.ClassTranscribeServer.ControllerTests;
+
 
 namespace UnitTests.ClassTranscribeDatabase
 {
-    public class CommonUtilsTest
+    public class CommonUtilsTest : BaseControllerTest
     {
-        [Fact]
+         public CommonUtilsTest(GlobalFixture fixture) : base(fixture) { }
+
+       [Fact]
         public void Get_Media_Name_Echo_360()
         {
             var media = new Media() { SourceType = SourceType.Echo360 };
@@ -83,22 +87,34 @@ namespace UnitTests.ClassTranscribeDatabase
         [Fact]
         public void Get_Related_Course_Offering()
         {
-            var co = new CourseOffering { FilePath = "example" };
-            var c = new Course { CourseOfferings = new List<CourseOffering> { co } };
-            var o = new Offering { CourseOfferings = new List<CourseOffering> { co } };
-            var p = new Playlist { Offering = o };
-            var m = new Media { Playlist = p };
-            var v = new Video { Medias = new List<Media> { m } };
-            var t = new Transcription { Video = v };
+            const string expected = "examplePath";
 
-            Assert.Equal(co, CommonUtils.GetRelatedCourseOffering(c));
-            Assert.Equal(co, CommonUtils.GetRelatedCourseOffering(o));
-            Assert.Equal(co, CommonUtils.GetRelatedCourseOffering(p));
-            Assert.Equal(co, CommonUtils.GetRelatedCourseOffering(m));
-            Assert.Equal(co, CommonUtils.GetRelatedCourseOffering(v));
-            Assert.Equal(co, CommonUtils.GetRelatedCourseOffering(t));
+            var co = new CourseOffering { Id = "co1", FilePath = expected };
+            var c = new Course { Id = "c1", CourseOfferings = new List<CourseOffering> { co } };
+            var o = new Offering { Id = "o1", CourseOfferings = new List<CourseOffering> { co } };
+            var p = new Playlist { Id = "p1", Offering = o };
+            var m = new Media { Id="m1", Playlist = p };
+            var v = new Video { Id = "v1", Medias = new List<Media> { m } };
+            var t = new Transcription { Id = "t1", Video = v };
 
-            Assert.Throws<InvalidOperationException>(() => CommonUtils.GetRelatedCourseOffering(new Message()));
+            _context.CourseOfferings.Add(co);
+            _context.Offerings.Add(o);
+            _context.Courses.Add(c);
+            _context.Playlists.Add(p);
+            _context.Medias.Add(m);
+            _context.Videos.Add(v);
+            _context.Transcriptions.Add(t);
+            _context.SaveChanges();
+
+            Assert.Equal(expected, CommonUtils.GetRelatedCourseOfferingFilePath(_context,c));
+            Assert.Equal(expected, CommonUtils.GetRelatedCourseOfferingFilePath(_context,o));
+            Assert.Equal(expected, CommonUtils.GetRelatedCourseOfferingFilePath(_context,p));
+            Assert.Equal(expected, CommonUtils.GetRelatedCourseOfferingFilePath(_context,m));
+            Assert.Equal(expected, CommonUtils.GetRelatedCourseOfferingFilePath(_context,v));
+            Assert.Equal(expected, CommonUtils.GetRelatedCourseOfferingFilePath(_context,t));
+
+            Assert.Throws<InvalidOperationException>(
+                () => CommonUtils.GetRelatedCourseOfferingFilePath(_context,new Message()));
         }
     }
 }

@@ -38,7 +38,7 @@ namespace TaskEngine.Tasks
                     //.Include(v => v.ProcessedVideo1)
                     //.Include(v => v.ProcessedVideo2)
                     .Where(v => v.Id == videoId).FirstAsync();
-                subdir = ToCourseOfferingSubDirectory(video); // needs to traverse from Video to CO
+                subdir = ToCourseOfferingSubDirectory(_context, video); // needs to traverse from Video to CO
             }
             GetLogger().LogInformation("Consuming" + video);
             if(video.Duration == null && video.Video1 != null)

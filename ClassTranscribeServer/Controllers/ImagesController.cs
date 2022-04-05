@@ -101,7 +101,7 @@ namespace ClassTranscribeServer.Controllers
                 }
 
                 var sourceEntity = await GetSourceEntity(type, sourceId);
-                var subdir = CommonUtils.ToCourseOfferingSubDirectory(sourceEntity);
+                var subdir = CommonUtils.ToCourseOfferingSubDirectory(_context, sourceEntity);
                 image.ImageFile = await FileRecord.GetNewFileRecordAsync(filePath, extension, subdir);
 
                 _context.Images.Add(image);

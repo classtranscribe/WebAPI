@@ -27,7 +27,7 @@ namespace TaskEngine.Tasks
             using (var _context = CTDbContext.CreateDbContext())
             {
                 var transcription = await _context.Transcriptions.FindAsync(transcriptionId);
-                string subdir = ToCourseOfferingSubDirectory(transcription);
+                string subdir = ToCourseOfferingSubDirectory(_context, transcription);
                 CaptionQueries captionQueries = new CaptionQueries(_context);
                 var captions = await captionQueries.GetCaptionsAsync(transcription.Id);
 
