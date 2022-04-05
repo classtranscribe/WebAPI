@@ -45,6 +45,7 @@ namespace TaskEngine.Tasks
             {
                 // Get the video object
                 var video = await _context.Videos.FindAsync(videoId);
+                string subdir = ToCourseOfferingSubDirectory(video);
                 GetLogger().LogInformation("Consuming" + video);
                 // Make RPC call to produce audio file.
                 var file = await _rpcClient.PythonServerClient.ConvertVideoToWavRPCWithOffsetAsync(new CTGrpc.FileForConversion
@@ -56,8 +57,7 @@ namespace TaskEngine.Tasks
                 // Check if a valid file was returned.
                 if (FileRecord.IsValidFile(file.FilePath))
                 {
-                    var co = GetRelatedCourseOffering(video);
-                    var fileRecord = await FileRecord.GetNewFileRecordAsync(file.FilePath, file.Ext, co);
+                    var fileRecord = await FileRecord.GetNewFileRecordAsync(file.FilePath, file.Ext, subdir);
                     // Get the latest video object, in case it has changed
                     var videoLatest = await _context.Videos.FindAsync(video.Id);
 

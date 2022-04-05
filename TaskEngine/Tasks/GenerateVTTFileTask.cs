@@ -27,12 +27,11 @@ namespace TaskEngine.Tasks
             using (var _context = CTDbContext.CreateDbContext())
             {
                 var transcription = await _context.Transcriptions.FindAsync(transcriptionId);
-
+                string subdir = ToCourseOfferingSubDirectory(transcription);
                 CaptionQueries captionQueries = new CaptionQueries(_context);
                 var captions = await captionQueries.GetCaptionsAsync(transcription.Id);
 
-                var co = GetRelatedCourseOffering(transcription);
-                var vttfile = await FileRecord.GetNewFileRecordAsync(Caption.GenerateWebVTTFile(captions, transcription.Language), ".vtt", co);
+                var vttfile = await FileRecord.GetNewFileRecordAsync(Caption.GenerateWebVTTFile(captions, transcription.Language), ".vtt", subdir);
 
 #nullable enable
                 FileRecord? existingVtt = await _context.FileRecords.FindAsync(transcription.FileId);
@@ -52,7 +51,7 @@ namespace TaskEngine.Tasks
                     _context.Entry(existingVtt).State = EntityState.Modified;
                 }
 
-                var srtfile = await FileRecord.GetNewFileRecordAsync(Caption.GenerateSrtFile(captions), ".srt", co);
+                var srtfile = await FileRecord.GetNewFileRecordAsync(Caption.GenerateSrtFile(captions), ".srt", subdir);
 
 #nullable enable
                 FileRecord? existingSrt = await _context.FileRecords.FindAsync(transcription.SrtFileId);
