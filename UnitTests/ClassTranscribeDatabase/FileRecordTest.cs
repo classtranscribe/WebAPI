@@ -66,18 +66,13 @@ namespace UnitTests.ClassTranscribeDatabase
             _context.Courses.Add(c);
             _context.CourseOfferings.Add(co);
             await _context.SaveChangesAsync();
-
+            string subdir = CommonUtils.ToCourseOfferingSubDirectory(co);
             // The CourseOffering must have a valid FilePath
             await Assert.ThrowsAsync<InvalidOperationException>(
-                async () => await FileRecord.GetNewFileRecordAsync(filePath, fileExt, co)
+                async () => await FileRecord.GetNewFileRecordAsync(filePath, fileExt, subdir)
             );
 
-            co.FilePath = "non-existing";
-
-            // The CourseOffering's FilePath must point to an existing directory
-            await Assert.ThrowsAsync<DirectoryNotFoundException>(
-                async () => await FileRecord.GetNewFileRecordAsync(filePath, fileExt, co)
-            );
+  
 
             co.FilePath = null;
 
@@ -86,19 +81,13 @@ namespace UnitTests.ClassTranscribeDatabase
             Assert.True(Common.IsValidFilePath(c));
             Assert.True(Common.IsValidFilePath(co));
 
-            co.IsDeletedStatus = Status.Deleted;
-
-            // CourseOffering needs to be active
-            await Assert.ThrowsAsync<InvalidOperationException>(
-                async () => await FileRecord.GetNewFileRecordAsync(filePath, fileExt, co)
-            );
 
             co.IsDeletedStatus = Status.Active;
 
             // File must exist
             var nonExistingFile = Path.Combine(Globals.appSettings.DATA_DIRECTORY, "non-existing");
             await Assert.ThrowsAsync<FileNotFoundException>(
-                async () => await FileRecord.GetNewFileRecordAsync(nonExistingFile, fileExt, co)
+                async () => await FileRecord.GetNewFileRecordAsync(nonExistingFile, fileExt, "/data/")
             );
         }
 
@@ -111,6 +100,7 @@ namespace UnitTests.ClassTranscribeDatabase
             _context.CourseOfferings.Add(co);
             await FileRecord.SetFilePath(_context, c);
             await FileRecord.SetFilePath(_context, co);
+            string subdir = CommonUtils.ToCourseOfferingSubDirectory(co);
 
             using var stream = File.OpenRead("Assets/test.png");
             var imageFile = new FormFile(stream, 0, stream.Length, null, Path.GetFileName(stream.Name));
@@ -119,7 +109,7 @@ namespace UnitTests.ClassTranscribeDatabase
             using var stream2 = new FileStream(filePath, FileMode.Create);
             await imageFile.CopyToAsync(stream2);
 
-            var fileRecord = await FileRecord.GetNewFileRecordAsync(filePath, fileExt, co);
+            var fileRecord = await FileRecord.GetNewFileRecordAsync(filePath, fileExt, subdir);
 
             Assert.True(fileRecord.IsValidFile());
             Assert.EndsWith(fileExt, fileRecord.Path);
