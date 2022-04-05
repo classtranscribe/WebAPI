@@ -32,12 +32,13 @@ namespace TaskEngine.Tasks
             string subdir;
             using (var _context = CTDbContext.CreateDbContext())
             {
-                video = await _context.Videos.Include(v => v.Video1)
-                    .Include(v => v.Video2)
-                    .Include(v => v.ProcessedVideo1)
-                    .Include(v => v.ProcessedVideo2)
+                video = await _context.Videos
+                    //.Include(v => v.Video1)
+                    //.Include(v => v.Video2)
+                    //.Include(v => v.ProcessedVideo1)
+                    //.Include(v => v.ProcessedVideo2)
                     .Where(v => v.Id == videoId).FirstAsync();
-                subdir = ToCourseOfferingSubDirectory(video);
+                subdir = ToCourseOfferingSubDirectory(video); // needs to traverse from Video to CO
             }
             GetLogger().LogInformation("Consuming" + video);
             if(video.Duration == null && video.Video1 != null)
