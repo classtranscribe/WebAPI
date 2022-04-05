@@ -56,11 +56,6 @@ namespace UnitTests.ClassTranscribeDatabase
             using var stream2 = new FileStream(filePath, FileMode.Create);
             await imageFile.CopyToAsync(stream2);
 
-            // The CourseOffering cannot be null
-            await Assert.ThrowsAsync<InvalidOperationException>(
-                async () => await FileRecord.GetNewFileRecordAsync(filePath, fileExt, null)
-            );
-
             var c = new Course { Id = "001" };
             var co = new CourseOffering { CourseId = c.Id };
             _context.Courses.Add(c);
