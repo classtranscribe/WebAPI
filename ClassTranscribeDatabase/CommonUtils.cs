@@ -158,39 +158,54 @@ namespace ClassTranscribeDatabase
 
             return name;
         }
-        public static string ToCourseOfferingSubDirectory(Entity entity) {
-            CourseOffering? co = GetRelatedCourseOffering(entity);
+        public static string ToCourseOfferingSubDirectory(CTDbContext ctx, Entity entity) {
+            String? path = GetRelatedCourseOfferingFilePath(ctx, entity);
             
-            if( !string.IsNullOrEmpty( co?.FilePath ) ) {
-                return co.FilePath;
+            if( !string.IsNullOrEmpty(path ) ) {
+                return path;
             }
-            return "/data/"; //legacy, pre 2022, everything was stored in the same directory
+            return "/data/"; //legacy, pre 2022, default = everything is stored in the same directory
         }
 
-        public static CourseOffering GetRelatedCourseOffering(Entity entity)
+        public static string? GetRelatedCourseOfferingFilePath(CTDbContext ctx, Entity entity)
         {
+            // the only thing that we can trust exists on the given the entity Id
+            // Drop recursion... this may reduce the number of SQL calls
+            // Or maybe this needs to be rewritten - it is possible that each traversal 
+            // is another lazy load of the next object.
+
+           
             switch (entity)
             {
                 case CourseOffering co:
-                    return co;
+                    return ctx.CourseOfferings.Where(co2 => co2.Id == co.Id).OrderBy(co=>co.CreatedAt).FirstOrDefault()?.FilePath;
                     
                 case Course c:
-                    return c.CourseOfferings?.Where(co => !string.IsNullOrEmpty(co.FilePath)).FirstOrDefault();
+                    return ctx.CourseOfferings.Where(c2 => c2.CourseId == c.Id)
+                        .OrderBy(co=>co.CreatedAt).FirstOrDefault()?.FilePath;
 
                 case Media m:
-                    return GetRelatedCourseOffering(m.Playlist);
+                    return ctx.Medias.FirstOrDefault(m2=>m2.Id == m.Id ).Playlist.Offering
+                        .CourseOfferings.OrderBy(co=>co.CreatedAt).FirstOrDefault()?.FilePath;
 
                 case Offering o:
-                    return o.CourseOfferings?.Where(co => !string.IsNullOrEmpty(co.FilePath)).FirstOrDefault();
+                    return ctx.CourseOfferings.Where(co2 => co2.OfferingId == o.Id)
+                        .OrderBy(co=>co.CreatedAt).FirstOrDefault()?.FilePath;
 
                 case Playlist p:
-                    return GetRelatedCourseOffering(p.Offering);
-
+                    return ctx.Playlists.FirstOrDefault(p2=>p2.Id == p.Id ).Offering
+                        .CourseOfferings.OrderBy(co=>co.CreatedAt).FirstOrDefault()?.FilePath;
+  
                 case Transcription t:
-                    return GetRelatedCourseOffering(t.Video);
-
+                    return ctx.Transcriptions.FirstOrDefault(t2=>t2.Id == t.Id)?.Video
+                        .Medias.OrderBy(co=>co.CreatedAt).FirstOrDefault()
+                        ?.Playlist.Offering
+                        .CourseOfferings.OrderBy(co=>co.CreatedAt).FirstOrDefault()?.FilePath;
+                    
                 case Video v:
-                    return GetRelatedCourseOffering(v.Medias?.FirstOrDefault());
+                    return ctx.Medias.OrderBy(co=>co.CreatedAt).FirstOrDefault(m2=>m2.VideoId == v.Id )
+                        .Playlist.Offering
+                        .CourseOfferings.OrderBy(co=>co.CreatedAt).FirstOrDefault()?.FilePath;
 
                 default:
                     throw new InvalidOperationException($"GetRelatedCourseOffering not implemented for type {entity.GetType()} (Object ID: {entity.Id})");

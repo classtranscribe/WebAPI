@@ -235,7 +235,7 @@ namespace UnitTests.ClassTranscribeServer.ControllerTests
             }
 
             var co = await Common.GetCourseOfferingForFileRecord(_context);
-            var subdir =  CommonUtils.ToCourseOfferingSubDirectory(co);
+            var subdir =  CommonUtils.ToCourseOfferingSubDirectory(_context,co);
             var playlistId = co.Offering.Playlists[0].Id;
 
             // This FileRecord will get deleted in the call to PostMedia below

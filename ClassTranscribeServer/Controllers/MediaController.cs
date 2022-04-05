@@ -186,7 +186,7 @@ namespace ClassTranscribeServer.Controllers
             media.JsonMetadata.Add("video1Path", filePath);
 
             var playlist = await _context.Playlists.FindAsync(playlistId);
-            var subdir = CommonUtils.ToCourseOfferingSubDirectory(playlist);
+            var subdir = CommonUtils.ToCourseOfferingSubDirectory(_context, playlist);
             video.Video1 = await FileRecord.GetNewFileRecordAsync(filePath, Path.GetExtension(filePath), subdir);
 
             // Only do this for the first (primary) video
