@@ -29,6 +29,7 @@ namespace TaskEngine.Tasks
             registerTask(cleanup,videoId); // may throw AlreadyInProgress exception
             Video video;
             bool videoUpdated = false;
+            string subdir;
             using (var _context = CTDbContext.CreateDbContext())
             {
                 video = await _context.Videos.Include(v => v.Video1)
@@ -36,6 +37,7 @@ namespace TaskEngine.Tasks
                     .Include(v => v.ProcessedVideo1)
                     .Include(v => v.ProcessedVideo2)
                     .Where(v => v.Id == videoId).FirstAsync();
+                subdir = ToCourseOfferingSubDirectory(video);
             }
             GetLogger().LogInformation("Consuming" + video);
             if(video.Duration == null && video.Video1 != null)
@@ -63,8 +65,7 @@ namespace TaskEngine.Tasks
                         });
 
                         //This does not work
-                        var co = GetRelatedCourseOffering(video);
-                        video.ProcessedVideo1 = await FileRecord.GetNewFileRecordAsync(file.FilePath, file.Ext, co);
+                        video.ProcessedVideo1 = await FileRecord.GetNewFileRecordAsync(file.FilePath, file.Ext, subdir);
                         videoUpdated = true;
                     }
                 }
@@ -78,8 +79,7 @@ namespace TaskEngine.Tasks
                         });
 
                         //This does not work
-                        var co = GetRelatedCourseOffering(video);
-                        video.ProcessedVideo2 = await FileRecord.GetNewFileRecordAsync(file.FilePath, file.Ext, co);
+                        video.ProcessedVideo2 = await FileRecord.GetNewFileRecordAsync(file.FilePath, file.Ext, subdir);
                         videoUpdated = true;
                     }
                 }

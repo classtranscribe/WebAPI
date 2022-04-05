@@ -27,20 +27,33 @@ namespace ClassTranscribeDatabase.Models
         /// </summary>
         /// <param name="filepath">Path of the file</param>
         /// <param name="ext">Extension of the file</param>
-        public static async Task<FileRecord> GetNewFileRecordAsync(string filepath, string ext, CourseOffering courseOffering)
+        public static async Task<FileRecord> GetNewFileRecordAsync(string filepath, string ext, string subdir)
         {
-            if (courseOffering == null ||
-                courseOffering.IsDeletedStatus == Status.Deleted ||
-                string.IsNullOrEmpty(courseOffering.FilePath))
+            // string courseOfferingSubDir = "";
+            // if ( courseOffering == null || string.IsNullOrEmpty(courseOffering.FilePath)) {
+            //     courseOfferingSubDir="/data/"; //legacy, pre 2022
+
+            // } else if ( courseOffering.IsDeletedStatus == Status.Deleted  )
+            // {
+            //     throw new InvalidOperationException("Invalid CourseOffering entity- Course Offering was deleted");
+            // } else {
+            //     courseOfferingSubDir = courseOffering.FilePath; // e.g. "/data/2203-abcd"
+             if(subdir.Contains("..") )
             {
-                throw new InvalidOperationException("Invalid CourseOffering entity");
+               throw new InvalidOperationException("Sanity check: Course Offering FilePaths cannot contain parent directory traversal paths, '..'");
             }
+
+            // }
 
             // Move file to the CourseOffering's FilePath
             var tmpFile = new FileRecord(filepath);
+
+            var newDirectory = System.IO.Path.Combine(Globals.appSettings.DATA_DIRECTORY, subdir );
+            
+            Directory.CreateDirectory(newDirectory); // No-op if dir already exists and is a directory
             var uuid = Guid.NewGuid().ToString();
-            var newDirectory = System.IO.Path.Combine(Globals.appSettings.DATA_DIRECTORY, courseOffering.FilePath);
             var newFilePath = System.IO.Path.Combine(newDirectory, uuid + ext);
+        
             File.Move(tmpFile.Path, newFilePath);
 
             var fileRecord = new FileRecord(newFilePath);

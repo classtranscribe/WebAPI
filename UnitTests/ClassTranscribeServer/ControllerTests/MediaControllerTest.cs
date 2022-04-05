@@ -235,10 +235,11 @@ namespace UnitTests.ClassTranscribeServer.ControllerTests
             }
 
             var co = await Common.GetCourseOfferingForFileRecord(_context);
+            var subdir =  CommonUtils.ToCourseOfferingSubDirectory(co);
             var playlistId = co.Offering.Playlists[0].Id;
 
             // This FileRecord will get deleted in the call to PostMedia below
-            var firstFileRecord = await FileRecord.GetNewFileRecordAsync(filePath, Path.GetExtension(filePath), co);
+            var firstFileRecord = await FileRecord.GetNewFileRecordAsync(filePath, Path.GetExtension(filePath), subdir);
             _context.FileRecords.Add(firstFileRecord);
             _context.SaveChanges();
 

@@ -158,11 +158,22 @@ namespace ClassTranscribeDatabase
 
             return name;
         }
+        public static string ToCourseOfferingSubDirectory(Entity entity) {
+            CourseOffering? co = GetRelatedCourseOffering(entity);
+            
+            if( !string.IsNullOrEmpty( co?.FilePath ) ) {
+                return co.FilePath;
+            }
+            return "/data/"; //legacy, pre 2022, everything was stored in the same directory
+        }
 
         public static CourseOffering GetRelatedCourseOffering(Entity entity)
         {
             switch (entity)
             {
+                case CourseOffering co:
+                    return co;
+                    
                 case Course c:
                     return c.CourseOfferings?.Where(co => !string.IsNullOrEmpty(co.FilePath)).FirstOrDefault();
 
