@@ -171,6 +171,9 @@ namespace ClassTranscribeDatabase
         {
             switch (entity)
             {
+                case CourseOffering co:
+                    return co;
+                    
                 case Course c:
                     return c.CourseOfferings?.Where(co => !string.IsNullOrEmpty(co.FilePath)).FirstOrDefault();
 
