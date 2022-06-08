@@ -56,7 +56,9 @@ namespace TaskEngine
                 .AddSingleton<RpcClient>()
                 .AddSingleton<ProcessVideoTask>()
                 .AddSingleton<MSTranscriptionService>()
-                .AddSingleton<SceneDetectionTask>()
+                // SceneDetection now handled by native Python
+                //    See https://github.com/classtranscribe/pyapi
+                // .AddSingleton<SceneDetectionTask>()
                 .AddSingleton<UpdateBoxTokenTask>()
                 .AddSingleton<CreateBoxTokenTask>()
                 .AddSingleton<BuildElasticIndexTask>()
