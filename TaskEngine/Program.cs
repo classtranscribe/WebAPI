@@ -121,9 +121,12 @@ namespace TaskEngine
             serviceProvider.GetService<GenerateVTTFileTask>().Consume(concurrent_transcriptions);
 
             // Video Processing Related
-            _logger.LogInformation($"Creating ProcessVideoTask & SceneDetectionTask consumers. Concurrency={concurrent_videotasks} ");
+            _logger.LogInformation($"Creating ProcessVideoTask consumer. Concurrency={concurrent_videotasks} ");
             serviceProvider.GetService<ProcessVideoTask>().Consume(concurrent_videotasks);
-            serviceProvider.GetService<SceneDetectionTask>().Consume(concurrent_videotasks);
+            
+            // SceneDetection now handled by native Python
+            //    See https://github.com/classtranscribe/pyapi
+            // serviceProvider.GetService<SceneDetectionTask>().Consume(concurrent_videotasks);
 
             // We dont want concurrency for these tasks
             _logger.LogInformation("Creating QueueAwakerTask and Box token tasks consumers.");
