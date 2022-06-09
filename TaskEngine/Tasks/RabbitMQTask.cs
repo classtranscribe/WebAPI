@@ -86,6 +86,9 @@ namespace TaskEngine
 
         public void Consume(ushort concurrency)
         {
+            if (concurrency == 0) {
+                return;
+            }
             try
             {
                 _rabbitMQ.ConsumeTask<T>(_queueName, OnConsume, PostConsumeCleanup, concurrency);

@@ -24,6 +24,7 @@ namespace TaskEngine
         private const ushort NO_CONCURRENCY = 1; // Some tasks should be serialized
         private const ushort MIN_CONCURRENCY = 2; // By definition minimal is two.
 
+        private const ushort DISABLED_TASK = 0; // Task is disabled, expecting external task agent
 
         public static ServiceProvider _serviceProvider;
         public static ILogger<Program> _logger;
@@ -119,9 +120,12 @@ namespace TaskEngine
             serviceProvider.GetService<GenerateVTTFileTask>().Consume(concurrent_transcriptions);
 
             // Video Processing Related
-            _logger.LogInformation($"Creating ProcessVideoTask & SceneDetectionTask consumers. Concurrency={concurrent_videotasks} ");
+            _logger.LogInformation($"Creating ProcessVideoTask consumer. Concurrency={concurrent_videotasks} ");
             serviceProvider.GetService<ProcessVideoTask>().Consume(concurrent_videotasks);
-            serviceProvider.GetService<SceneDetectionTask>().Consume(concurrent_videotasks);
+            
+            // SceneDetection now handled by native Python
+            //    See https://github.com/classtranscribe/pyapi
+            serviceProvider.GetService<SceneDetectionTask>().Consume(DISABLED_TASK);
 
             // We dont want concurrency for these tasks
             _logger.LogInformation("Creating QueueAwakerTask and Box token tasks consumers.");
