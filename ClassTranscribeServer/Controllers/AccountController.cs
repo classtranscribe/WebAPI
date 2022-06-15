@@ -177,6 +177,58 @@ namespace ClassTranscribeServer.Controllers
         }
 
         [HttpPost]
+        public async Task<ActionResult<LoggedInDTO>> LTISignIn(string sharedsecret, string email, string? first, string? last) {
+            _logger.LogInformation("LTISignIn for {0}: starting", email);
+            if( string.IsNullOrEmpty( Globals.appSettings.LTI_SHARED_SECRET)) {
+                _logger.LogError("LTI_SHARED_SECRET environment variable not set; LTI logins will allowed in test mode but not be authorized in production");
+                
+                if(Globals.appSettings.TEST_SIGN_IN != "true") {
+                    return Unauthorized();
+                }
+            }
+            try {
+                var allowed =  (Globals.appSettings.TEST_SIGN_IN == "true" || (Globals.appSettings.LTI_SHARED_SECRET == sharedsecret));
+                if(!allowed) {
+                    return Unauthorized();
+                }
+                 _logger.LogInformation("LTISignIn for {0}", email);
+                var user = new ApplicationUser
+                {
+                    UserName = email,
+                    Email = email,
+                    FirstName = first ?? "",
+                    LastName = last ?? "",
+                    EmailConfirmed = true
+                };
+
+                ApplicationUser applicationUser = await _userManager.FindByEmailAsync(email);
+               
+                if (applicationUser == null)
+                {
+                    _logger.LogInformation("Could not find user by email {0}", email);
+                    await Register(user);
+                
+                }
+                if (!(await _userManager.IsEmailConfirmedAsync(applicationUser)))
+                {
+                    _logger.LogInformation("LTISignIn for {0}: IsEmailConfirmedAsync not confirmed; setting first and last name", email);
+                    applicationUser.EmailConfirmed = true;
+                    applicationUser.FirstName = user.FirstName;
+                    applicationUser.LastName = user.LastName;
+                    await _context.SaveChangesAsync();
+                }
+                _logger.LogInformation("LTISignIn for {0}: login (generating auth token etc)", email);
+                var loggedInDTO = await Login(user);
+                _logger.LogInformation("LTISignIn for {0}: Returning okay", email);
+                return Ok(loggedInDTO);
+           }
+           catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error signing in User with email {0}.", email);
+                return Unauthorized();
+            }
+        } 
+        [HttpPost]
         public async Task<ActionResult<LoggedInDTO>> SignIn([FromBody] LoginDto model)
         {
             if (model == null)

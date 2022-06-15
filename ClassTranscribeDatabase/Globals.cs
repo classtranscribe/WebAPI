@@ -5,12 +5,15 @@
     /// </summary>
     public class AppSettings
     {
+        public string LTI_SHARED_SECRET { get; set; }
+        
         public string JWT_EXPIRE_DAYS { get; set; }
         public string HOST_NAME { get; set; }
         public string JWT_KEY { get; set; }
         public string ALLOWED_HOSTS { get; set; }
         public string POSTGRES_SERVER_NAME { get; set; }
         public string POSTGRES_DB { get; set; }
+
         public string ADMIN_USER_ID { get; set; }
         public string ADMIN_PASSWORD { get; set; }
         public string RabbitMQServer { get; set; } = ""; // deprecated - use RABBITMQ_SERVER_NAME instead
