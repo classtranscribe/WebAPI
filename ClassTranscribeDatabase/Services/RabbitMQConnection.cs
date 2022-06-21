@@ -204,11 +204,11 @@ namespace ClassTranscribeDatabase.Services
             }
         }
         /// <summary>
-        /// Deletes all Rabbit MQ queues (currently used in TaskEngine Program.cs during startup)
+        /// Purges all Rabbit MQ queues (currently used in TaskEngine Program.cs during startup)
         /// </summary>
-        public void DeleteAllQueues()
+        public void PurgeAllQueues()
         {
-            _logger.LogInformation( "DeleteAllQueues");
+            _logger.LogInformation( "DeleteAllQueue- purging messages if queues exist");
             lock (_channel)
             {
                 foreach (CommonUtils.TaskType taskType in Enum.GetValues(typeof(CommonUtils.TaskType)))
@@ -216,11 +216,13 @@ namespace ClassTranscribeDatabase.Services
                     string queueName = taskType.ToString();
                     try
                     {
-                        _channel.QueueDelete(queueName);
+                        PurgeQueue(queueName);
+                        // Nope!  _channel.QueueDelete(queueName); 
+                        // delete causes race condition with other containers
                     }
                     catch (Exception e)
                     {
-                        _logger.LogError(e, "Error deleting queue {0}", queueName);
+                        _logger.LogError(e, "Error purging queue {0}", queueName);
                     }
                 }
             }
