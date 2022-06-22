@@ -90,12 +90,10 @@ namespace TaskEngine
             // Delete any pre-existing queues on rabbitMQ.
             RabbitMQConnection rabbitMQ = serviceProvider.GetService<RabbitMQConnection>();
 
-            _logger.LogInformation("RabbitMQ - deleting all queues");
+            _logger.LogInformation("RabbitMQ - purging all queues");
 
-            rabbitMQ.DeleteAllQueues();
-            //TODO/TOREVIEW: Should we create all of the queues _before_ starting them?
-            // In the current version (all old messages deleted) it is ununnecessary
-            // But it seems cleaner to me to create them all first before starting them
+            rabbitMQ.PurgeAllQueues();
+            // Purging is cleaner than deleting when you have multiple containers connecting to the queues
 
 
 
