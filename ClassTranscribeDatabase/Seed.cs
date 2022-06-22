@@ -119,24 +119,16 @@ namespace ClassTranscribeDatabase
                 }
             }
 
-            ApplicationUser testuser = new ApplicationUser
-            {
-                Id = "99",
-                UserName = "testuser999@classtranscribe.com",
-                Email = "testuser999@classtranscribe.com",
-                FirstName = "Test",
-                LastName = "User",
-                UniversityId = sampleUniversity.Id,
-                NormalizedEmail = "TESTUSER999@CLASSTRANSCRIBE.COM",
-                NormalizedUserName = "TESTUSER999@CLASSTRANSCRIBE.COM",
-                EmailConfirmed = true,
-                LockoutEnabled = false,
-                SecurityStamp = Guid.NewGuid().ToString()
-            };
+            ApplicationUser testuser =
+                newUser("99", sampleUniversity.Id, "testuser999@classtranscribe.com");
+
+            ApplicationUser workeruser = newUser("10", sampleUniversity.Id, Globals.MEDIA_WORKER_EMAIL);
+            
+
 
             testuser.PasswordHash = new PasswordHasher<ApplicationUser>().HashPassword(testuser, testuser.Email);
 
-            List<ApplicationUser> users = new List<ApplicationUser> { testuser };
+            List<ApplicationUser> users = new List<ApplicationUser> { testuser, workeruser };
             foreach (ApplicationUser user in users)
             {
                 if (!_context.Users.IgnoreQueryFilters().Any(u => u.Email == user.Email))
@@ -304,6 +296,27 @@ namespace ClassTranscribeDatabase
 
             _context.SaveChanges();
             _logger.LogInformation("Seeded");
+        }
+
+        private ApplicationUser newUser(string id, string universityId, string email)
+        {
+            string lower = email.ToLower(), upper = email.ToUpper();
+            ApplicationUser user = new ApplicationUser
+            {
+                Id = "99",
+                UserName = lower
+                    ,
+                    Email = lower,
+                    FirstName = "Firstname",
+                    LastName = "User",
+                    UniversityId = universityId,
+                    NormalizedEmail = upper,
+                    NormalizedUserName = upper,
+                    EmailConfirmed = true,
+                    LockoutEnabled = false,
+                    SecurityStamp = Guid.NewGuid().ToString()
+                };
+            return user;
         }
     }
 }

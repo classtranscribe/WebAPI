@@ -17,28 +17,31 @@ namespace ClassTranscribeServer.Controllers
     [ApiController]
     public class TaskController : BaseController
     {
-//        private readonly WakeDownloader _wakeDownloader;
+        private readonly WakeDownloader _wakeDownloader;
 
         public TaskController(WakeDownloader wakeDownloader,
             CTDbContext context,
             ILogger<TaskController> logger) : base(context, logger)
         {
- //           _wakeDownloader = wakeDownloader;
+            _wakeDownloader = wakeDownloader;
         }
-
+        
         /// <summary>
         /// Get Video data
         /// </summary>
         /// 
         [HttpGet("Video")]
+        [Authorize(Roles = Globals.ROLE_ADMIN)]
         public async Task<ActionResult<Video>> GetVideo(string videoId)
         {
+            
             Video video = await _context.Videos.FindAsync(videoId);
             return video;
         }
 
         [HttpPost("UpdateSceneData")]
         [DisableRequestSizeLimit]
+        [Authorize(Roles = Globals.ROLE_ADMIN)]
         public async Task<ActionResult> UpdateSceneData(string videoId, JObject scene)
         {
             
@@ -49,13 +52,15 @@ namespace ClassTranscribeServer.Controllers
         }
         [HttpPost("UpdatePhraseHints")]
         [DisableRequestSizeLimit]
+        [Authorize(Roles = Globals.ROLE_ADMIN)]
         public async Task<ActionResult> UpdateSceneData(string videoId, string phraseHints)
-        {    
+        {
+           
             Video video = await _context.Videos.FindAsync(videoId);
             video.PhraseHints = phraseHints;
             await _context.SaveChangesAsync();
+            _wakeDownloader.TranscribeVideo(videoId, false /*deleteExisting*/);
             return Ok();
         }
-        // Todo _transcriptionTask.Publish(videoId);
     }
 }

@@ -6,7 +6,8 @@
     public class AppSettings
     {
         public string LTI_SHARED_SECRET { get; set; }
-        
+        public string MEDIA_WORKER_SHARED_SECRET { get; set; }
+
         public string JWT_EXPIRE_DAYS { get; set; }
         public string HOST_NAME { get; set; }
         public string JWT_KEY { get; set; }
@@ -97,6 +98,10 @@
         public const string POLICY_UPDATE_OFFERING = "UpdateOffering";
         public const string POLICY_READ_OFFERING = "ReadOffering";
         public const string CLAIM_USER_ID = "classtranscribe/UserId";
+        public const string WORKER_USER_ID = "10";
+        public const string TEST_USER_ID = "99";
+        public const string MEDIA_WORKER_EMAIL = "automated_media_worker@classtranscribe"; // Deliberately invalid domain
+        public const string TEST_USER_EMAIL = "testuser999@classtranscribe.com";
 
         public const int CAPTION_LENGTH = 40;
     }
