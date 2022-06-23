@@ -82,8 +82,9 @@ namespace ClassTranscribeDatabase
             IdentityRole UniversityAdmin = new IdentityRole { Name = Globals.ROLE_UNIVERSITY_ADMIN, Id = "0003", NormalizedName = Globals.ROLE_UNIVERSITY_ADMIN.ToUpper() };
             IdentityRole TeachingAssistant = new IdentityRole { Name = Globals.ROLE_TEACHING_ASSISTANT, Id = "0004", NormalizedName = Globals.ROLE_TEACHING_ASSISTANT.ToUpper() };
             IdentityRole Advisors = new IdentityRole { Name = Globals.ROLE_ADVISORS, Id = "0005", NormalizedName = Globals.ROLE_ADVISORS.ToUpper() };
+            IdentityRole MediaWorker = new IdentityRole { Name = Globals.ROLE_MEDIA_WORKER, Id = "0006", NormalizedName = Globals.ROLE_ADVISORS.ToUpper() };
 
-            List<IdentityRole> roles = new List<IdentityRole> { Instructor, Student, Admin, UniversityAdmin, TeachingAssistant, Advisors };
+            List<IdentityRole> roles = new List<IdentityRole> { Instructor, Student, Admin, UniversityAdmin, TeachingAssistant, Advisors, MediaWorker };
             for (int i = 0; i < roles.Count(); i++)
             {
                 if (!_context.Roles.IgnoreQueryFilters().Any(r => r.Name == roles[i].Name))
@@ -120,15 +121,15 @@ namespace ClassTranscribeDatabase
             }
 
             ApplicationUser testuser =
-                newUser("99", sampleUniversity.Id, "testuser999@classtranscribe.com");
+                newUser(Globals.TEST_USER_ID, sampleUniversity.Id, "testuser999@classtranscribe.com");
 
-            ApplicationUser workeruser = newUser("10", sampleUniversity.Id, Globals.MEDIA_WORKER_EMAIL);
+            ApplicationUser mediaworkeruser = newUser(Globals.MEDIA_WORKER_USER_ID, sampleUniversity.Id, Globals.MEDIA_WORKER_EMAIL);
             
 
 
             testuser.PasswordHash = new PasswordHasher<ApplicationUser>().HashPassword(testuser, testuser.Email);
 
-            List<ApplicationUser> users = new List<ApplicationUser> { testuser, workeruser };
+            List<ApplicationUser> users = new List<ApplicationUser> { testuser  };
             foreach (ApplicationUser user in users)
             {
                 if (!_context.Users.IgnoreQueryFilters().Any(u => u.Email == user.Email))
@@ -137,6 +138,10 @@ namespace ClassTranscribeDatabase
                     _context.UserRoles.Add(new IdentityUserRole<string> { RoleId = Instructor.Id, UserId = user.Id });
                     _context.UserRoles.Add(new IdentityUserRole<string> { RoleId = Admin.Id, UserId = user.Id });
                 }
+            }
+            if(!_context.Users.IgnoreQueryFilters().Any( u=> u.Email == mediaworkeruser.Email))
+            {
+                _context.UserRoles.Add(new IdentityUserRole<string> { RoleId = MediaWorker.Id, UserId = mediaworkeruser.Id });
             }
 
             _context.SaveChanges();

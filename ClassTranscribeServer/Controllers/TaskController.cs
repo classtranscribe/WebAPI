@@ -31,7 +31,7 @@ namespace ClassTranscribeServer.Controllers
         /// </summary>
         /// 
         [HttpGet("Video")]
-        [Authorize(Roles = Globals.ROLE_ADMIN)]
+        //Future: [Authorize(Roles = Globals.ROLE_MEDIA_WORKER + "," + Globals.ROLE_ADMIN)]
         public async Task<ActionResult<Video>> GetVideo(string videoId)
         {
             
@@ -41,7 +41,7 @@ namespace ClassTranscribeServer.Controllers
 
         [HttpPost("UpdateSceneData")]
         [DisableRequestSizeLimit]
-        [Authorize(Roles = Globals.ROLE_ADMIN)]
+        //Future: [Authorize(Roles = Globals.ROLE_MEDIA_WORKER + "," + Globals.ROLE_ADMIN)]
         public async Task<ActionResult> UpdateSceneData(string videoId, JObject scene)
         {
             
@@ -52,7 +52,7 @@ namespace ClassTranscribeServer.Controllers
         }
         [HttpPost("UpdatePhraseHints")]
         [DisableRequestSizeLimit]
-        [Authorize(Roles = Globals.ROLE_ADMIN)]
+        //Future: [Authorize(Roles = Globals.ROLE_MEDIA_WORKER + "," + Globals.ROLE_ADMIN)]
         public async Task<ActionResult> UpdateSceneData(string videoId, string phraseHints)
         {
            
