@@ -82,7 +82,7 @@ namespace ClassTranscribeDatabase
             IdentityRole UniversityAdmin = new IdentityRole { Name = Globals.ROLE_UNIVERSITY_ADMIN, Id = "0003", NormalizedName = Globals.ROLE_UNIVERSITY_ADMIN.ToUpper() };
             IdentityRole TeachingAssistant = new IdentityRole { Name = Globals.ROLE_TEACHING_ASSISTANT, Id = "0004", NormalizedName = Globals.ROLE_TEACHING_ASSISTANT.ToUpper() };
             IdentityRole Advisors = new IdentityRole { Name = Globals.ROLE_ADVISORS, Id = "0005", NormalizedName = Globals.ROLE_ADVISORS.ToUpper() };
-            IdentityRole MediaWorker = new IdentityRole { Name = Globals.ROLE_MEDIA_WORKER, Id = "0006", NormalizedName = Globals.ROLE_ADVISORS.ToUpper() };
+            IdentityRole MediaWorker = new IdentityRole { Name = Globals.ROLE_MEDIA_WORKER, Id = "A100", NormalizedName = Globals.ROLE_MEDIA_WORKER.ToUpper() };
 
             List<IdentityRole> roles = new List<IdentityRole> { Instructor, Student, Admin, UniversityAdmin, TeachingAssistant, Advisors, MediaWorker };
             for (int i = 0; i < roles.Count(); i++)
