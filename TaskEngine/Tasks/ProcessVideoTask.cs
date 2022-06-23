@@ -30,29 +30,29 @@ namespace TaskEngine.Tasks
             Video video;
             bool videoUpdated = false;
             string subdir;
-            string video1_vmpath = "";
+            FileRecord video1Record = null;
+            FileRecord video2Record = null;
             using (var _context = CTDbContext.CreateDbContext())
             {
-                video = await _context.Videos
-                    .Include(v => v.Video1)
-                    .Include(v => v.Video2)
-                    //.Include(v => v.ProcessedVideo1)
-                    //.Include(v => v.ProcessedVideo2)
-                    .Where(v => v.Id == videoId).FirstAsync();
+                video = await _context.Videos.Where(v => v.Id == videoId).FirstAsync();
                 subdir = ToCourseOfferingSubDirectory(_context, video); // needs to traverse from Video to CO
 
-                GetLogger().LogInformation("Consuming " + video);
-                
-                if (video.Duration == null && video.Video1 != null)
+                GetLogger().LogInformation("Process Video; Consuming " + video);
+
+                if (video.Video1Id != null)
                 {
-                    video1_vmpath = video.Video1.VMPath;
+                    video1Record = await _context.FileRecords.FindAsync(video.Video1Id);
+                }
+                if (video.Video2Id != null)
+                {
+                    video2Record = await _context.FileRecords.FindAsync(video.Video2Id);
                 }
             }
-            if(! string.IsNullOrEmpty(video1_vmpath) ) {
+            if(video.Duration == null &&  video1Record != null ) {
                 var mediaInfoResult = await _rpcClient.PythonServerClient.GetMediaInfoRPCAsync(new CTGrpc.File
                 {
-                    FilePath = video1_vmpath
-                }); ;
+                    FilePath = video1Record.VMPath
+                }); ; 
 
                 var mediaJson = JObject.Parse(mediaInfoResult.Json);
                 video.FileMediaInfo = mediaJson;
@@ -62,30 +62,30 @@ namespace TaskEngine.Tasks
             bool runbrokencode = false;
             if (runbrokencode)
             {
-                if (video.Video1 != null)
+                if (video.Video1Id != null)
                 {
                     if (video.ProcessedVideo1 == null || taskParameters.Force)
                     {
                         var file = await _rpcClient.PythonServerClient.ProcessVideoRPCAsync(new CTGrpc.File
                         {
-                            FilePath = video.Video1.VMPath
+                            FilePath = video1Record.VMPath
                         });
 
-                        //This does not work
+                        // TODO: Does this work now?
                         video.ProcessedVideo1 = await FileRecord.GetNewFileRecordAsync(file.FilePath, file.Ext, subdir);
                         videoUpdated = true;
                     }
                 }
-                if (video.Video2 != null)
+                if (video.Video2Id != null)
                 {
                     if (video.ProcessedVideo2 == null || taskParameters.Force)
                     {
                         var file = await _rpcClient.PythonServerClient.ProcessVideoRPCAsync(new CTGrpc.File
                         {
-                            FilePath = video.Video2.VMPath
+                            FilePath = video2Record.VMPath
                         });
 
-                        //This does not work
+                        // TODO: Does this work now?
                         video.ProcessedVideo2 = await FileRecord.GetNewFileRecordAsync(file.FilePath, file.Ext, subdir);
                         videoUpdated = true;
                     }
