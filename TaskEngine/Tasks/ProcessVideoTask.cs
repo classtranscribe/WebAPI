@@ -37,7 +37,7 @@ namespace TaskEngine.Tasks
                 video = await _context.Videos.Where(v => v.Id == videoId).FirstAsync();
                 subdir = ToCourseOfferingSubDirectory(_context, video); // needs to traverse from Video to CO
 
-                GetLogger().LogInformation("Process Video; Consuming " + video);
+                GetLogger().LogInformation("ProcessVideo Task; Consuming video.Id=" + video.Id);
 
                 if (video.Video1Id != null)
                 {
