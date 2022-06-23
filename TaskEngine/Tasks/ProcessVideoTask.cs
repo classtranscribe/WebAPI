@@ -30,23 +30,29 @@ namespace TaskEngine.Tasks
             Video video;
             bool videoUpdated = false;
             string subdir;
+            string video1_vmpath = "";
             using (var _context = CTDbContext.CreateDbContext())
             {
                 video = await _context.Videos
-                    //.Include(v => v.Video1)
-                    //.Include(v => v.Video2)
+                    .Include(v => v.Video1)
+                    .Include(v => v.Video2)
                     //.Include(v => v.ProcessedVideo1)
                     //.Include(v => v.ProcessedVideo2)
                     .Where(v => v.Id == videoId).FirstAsync();
                 subdir = ToCourseOfferingSubDirectory(_context, video); // needs to traverse from Video to CO
+
+                GetLogger().LogInformation("Consuming " + video);
+                
+                if (video.Duration == null && video.Video1 != null)
+                {
+                    video1_vmpath = video.Video1.VMPath;
+                }
             }
-            GetLogger().LogInformation("Consuming" + video);
-            if(video.Duration == null && video.Video1 != null)
-            {
+            if(! string.IsNullOrEmpty(video1_vmpath) ) {
                 var mediaInfoResult = await _rpcClient.PythonServerClient.GetMediaInfoRPCAsync(new CTGrpc.File
                 {
-                    FilePath = video.Video1.VMPath
-                });
+                    FilePath = video1_vmpath
+                }); ;
 
                 var mediaJson = JObject.Parse(mediaInfoResult.Json);
                 video.FileMediaInfo = mediaJson;
