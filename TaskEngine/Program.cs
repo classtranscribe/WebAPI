@@ -90,20 +90,14 @@ namespace TaskEngine
             // Delete any pre-existing queues on rabbitMQ.
             RabbitMQConnection rabbitMQ = serviceProvider.GetService<RabbitMQConnection>();
 
-            _logger.LogInformation("RabbitMQ - purging all queues");
-
-            rabbitMQ.PurgeAllQueues();
-            // Purging is cleaner than deleting when you have multiple containers connecting to the queues
-
-
-
+            // Active queues managed by C# (concurrency > 0) are now purged after the queue is created and before messages are processed
 
             ushort concurrent_videotasks = toUInt16(Globals.appSettings.MAX_CONCURRENT_VIDEO_TASKS, NO_CONCURRENCY);
             ushort concurrent_synctasks = toUInt16(Globals.appSettings.MAX_CONCURRENT_SYNC_TASKS, MIN_CONCURRENCY);
             ushort concurrent_transcriptions = toUInt16(Globals.appSettings.MAX_CONCURRENT_TRANSCRIPTIONS, MIN_CONCURRENCY);
 
 
-            // Create and start consuming from all queues.
+            // Create and start consuming from all queues. If concurrency >=1 the queues are purged
 
 
             // Upstream Sync related

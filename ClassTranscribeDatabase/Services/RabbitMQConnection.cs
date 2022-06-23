@@ -160,6 +160,9 @@ namespace ClassTranscribeDatabase.Services
                 // See https://stackoverflow.com/questions/59493540/what-is-prefetchsize-in-rabbitmq
 
                 _channel.BasicQos(prefetchSize: 0, prefetchCount: concurrency, global: false);
+                _logger.LogInformation(" [*] Queue created. Purging old messages for {0}", queueName);
+
+                _channel.QueuePurge(queueName);
             }
 
             _logger.LogInformation(" [*] Waiting for messages, queueName - {0}", queueName);
@@ -203,53 +206,7 @@ namespace ClassTranscribeDatabase.Services
                                      consumer: consumer);
             }
         }
-        /// <summary>
-        /// Purges all Rabbit MQ queues (currently used in TaskEngine Program.cs during startup)
-        /// </summary>
-        public void PurgeAllQueues()
-        {
-            _logger.LogInformation( "DeleteAllQueue- purging messages if queues exist");
-            lock (_channel)
-            {
-                foreach (CommonUtils.TaskType taskType in Enum.GetValues(typeof(CommonUtils.TaskType)))
-                {
-                    string queueName = taskType.ToString();
-                    try
-                    {
-                        PurgeQueue(queueName);
-                        // Nope!  _channel.QueueDelete(queueName); 
-                        // delete causes race condition with other containers
-                    }
-                    catch (Exception e)
-                    {
-                        _logger.LogError(e, "Error purging queue {0}", queueName);
-                    }
-                }
-            }
-            // TODO Update JobStatus table here
-        }
-
-        public void PurgeQueue(String queueName)
-        {
-            _logger.LogInformation( $"PurgeQueue {queueName}");
-            lock (_channel)
-            {
-                try
-                {
-                    var count = _channel.MessageCount(queueName);
-                    _logger.LogInformation("Purging queue {0}: {1} message(s) will be removed", queueName, count);
-
-                    _channel.QueuePurge(queueName);
-                }
-                catch (Exception e)
-                {
-                    _logger.LogError(e, "Error purging queue {0}", queueName);
-                    throw e;
-                }
-
-            }
-            // TODO Update JobStatus table here
-        }
+        
 
         #region IDisposable Support
         private bool disposedValue = false; // To detect redundant calls
