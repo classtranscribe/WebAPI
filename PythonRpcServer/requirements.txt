@@ -21,7 +21,6 @@ prompt-toolkit==3.0.5
 protobuf==3.11.3
 ptyprocess==0.6.0
 Pygments==2.7.4
-#pytube3==11.0.0 not available; so use the tar.gz package
 requests==2.23.0
 requests-toolbelt==0.9.1
 scenedetect==0.5.2
@@ -37,3 +36,6 @@ prefixspan==0.5.2
 opencv-contrib-python==4.5.3.56
 mtcnn-opencv==1.0.2
 decord==0.6.0
+
+# Use latest version
+pytube     # if not available, use the tar.gz package (see Dockerfile)
