@@ -34,9 +34,10 @@ RUN python -m grpc_tools.protoc -I . --python_out=./ --grpc_python_out=./ ct.pro
 COPY ./PythonRpcServer .
 
 # Old:Downloaded tgz from https://github.com/nficano/pytube and renamed to include version
-# New: Grab link directly from https://github.com/pytube/pytube/tags
-#-L = follow redirect
-RUN curl -L https://github.com/pytube/pytube/archive/refs/tags/v12.0.0.tar.gz -o pytube.tar.gz && pip install --no-cache-dir pytube.tar.gz && rm pytube.tar.gz
+# New: Grab link directly from https://github.com/pytube/pytube/tags   (-L => follow redirect)
+# Uncomment to pull pytube tar.gz directly from github, if version unavailable on pypi (remember to comment out in PythonRpcServer/requirements.txt)
+ARG PYTUBE_VERSION=""
+RUN if [ "${PYTUBE_VERSION}" != "" ]; then curl -L https://github.com/pytube/pytube/archive/refs/tags/v${PYTUBE_VERSION}.tar.gz -o pytube.tar.gz && pip install --no-cache-dir --force-reinstall pytube.tar.gz && rm pytube.tar.gz; fi
 
 RUN python -m nltk.downloader stopwords brown
 
