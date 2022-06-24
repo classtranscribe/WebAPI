@@ -82,8 +82,9 @@ namespace ClassTranscribeDatabase
             IdentityRole UniversityAdmin = new IdentityRole { Name = Globals.ROLE_UNIVERSITY_ADMIN, Id = "0003", NormalizedName = Globals.ROLE_UNIVERSITY_ADMIN.ToUpper() };
             IdentityRole TeachingAssistant = new IdentityRole { Name = Globals.ROLE_TEACHING_ASSISTANT, Id = "0004", NormalizedName = Globals.ROLE_TEACHING_ASSISTANT.ToUpper() };
             IdentityRole Advisors = new IdentityRole { Name = Globals.ROLE_ADVISORS, Id = "0005", NormalizedName = Globals.ROLE_ADVISORS.ToUpper() };
+            IdentityRole MediaWorker = new IdentityRole { Name = Globals.ROLE_MEDIA_WORKER, Id = "A100", NormalizedName = Globals.ROLE_MEDIA_WORKER.ToUpper() };
 
-            List<IdentityRole> roles = new List<IdentityRole> { Instructor, Student, Admin, UniversityAdmin, TeachingAssistant, Advisors };
+            List<IdentityRole> roles = new List<IdentityRole> { Instructor, Student, Admin, UniversityAdmin, TeachingAssistant, Advisors, MediaWorker };
             for (int i = 0; i < roles.Count(); i++)
             {
                 if (!_context.Roles.IgnoreQueryFilters().Any(r => r.Name == roles[i].Name))
@@ -119,32 +120,25 @@ namespace ClassTranscribeDatabase
                 }
             }
 
-            ApplicationUser testuser = new ApplicationUser
-            {
-                Id = "99",
-                UserName = "testuser999@classtranscribe.com",
-                Email = "testuser999@classtranscribe.com",
-                FirstName = "Test",
-                LastName = "User",
-                UniversityId = sampleUniversity.Id,
-                NormalizedEmail = "TESTUSER999@CLASSTRANSCRIBE.COM",
-                NormalizedUserName = "TESTUSER999@CLASSTRANSCRIBE.COM",
-                EmailConfirmed = true,
-                LockoutEnabled = false,
-                SecurityStamp = Guid.NewGuid().ToString()
-            };
+            ApplicationUser testuser =
+                newUserObject(Globals.TEST_USER_ID, sampleUniversity.Id, "testuser999@classtranscribe.com");
 
+            ApplicationUser mediaworkeruser = newUserObject(Globals.MEDIA_WORKER_USER_ID, sampleUniversity.Id, Globals.MEDIA_WORKER_EMAIL);
+            
+            // Todo/Toreview is Password  necessary?
             testuser.PasswordHash = new PasswordHasher<ApplicationUser>().HashPassword(testuser, testuser.Email);
 
-            List<ApplicationUser> users = new List<ApplicationUser> { testuser };
-            foreach (ApplicationUser user in users)
+            if (!_context.Users.IgnoreQueryFilters().Any(u => u.Email == testuser.Email))
             {
-                if (!_context.Users.IgnoreQueryFilters().Any(u => u.Email == user.Email))
-                {
-                    _context.Users.Add(user);
-                    _context.UserRoles.Add(new IdentityUserRole<string> { RoleId = Instructor.Id, UserId = user.Id });
-                    _context.UserRoles.Add(new IdentityUserRole<string> { RoleId = Admin.Id, UserId = user.Id });
-                }
+                _context.Users.Add(testuser);
+                _context.UserRoles.Add(new IdentityUserRole<string> { RoleId = Instructor.Id, UserId = testuser.Id });
+                _context.UserRoles.Add(new IdentityUserRole<string> { RoleId = Admin.Id, UserId = testuser.Id });
+            }
+
+            if (!_context.Users.IgnoreQueryFilters().Any( u=> u.Email == mediaworkeruser.Email))
+            {
+                _context.Users.Add(mediaworkeruser);
+                _context.UserRoles.Add(new IdentityUserRole<string> { RoleId = MediaWorker.Id, UserId = mediaworkeruser.Id });
             }
 
             _context.SaveChanges();
@@ -257,7 +251,7 @@ namespace ClassTranscribeDatabase
             UserOffering userOffering2 = new UserOffering
             {
                 OfferingId = offering2.Id,
-                ApplicationUserId = users[0].Id,
+                ApplicationUserId = testuser.Id,
                 IdentityRoleId = Instructor.Id
             };
 
@@ -304,6 +298,27 @@ namespace ClassTranscribeDatabase
 
             _context.SaveChanges();
             _logger.LogInformation("Seeded");
+        }
+
+        private ApplicationUser newUserObject(string id, string universityId, string email)
+        {
+            string lower = email.ToLower();
+            string upper = email.ToUpper();
+            ApplicationUser user = new ApplicationUser
+            {
+                Id = id,
+                UserName = lower,
+                Email = lower,
+                FirstName = email.Substring(0, email.IndexOf("@")),
+                LastName = "Account",
+                UniversityId = universityId,
+                NormalizedEmail = upper,
+                NormalizedUserName = upper,
+                EmailConfirmed = true,
+                LockoutEnabled = false,
+                SecurityStamp = Guid.NewGuid().ToString()
+            };
+            return user;
         }
     }
 }

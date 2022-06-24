@@ -144,6 +144,33 @@ namespace ClassTranscribeServer.Controllers
             return Ok(loggedInDTO);
         }
 
+        [HttpGet]
+        public async Task<ActionResult<LoggedInDTO>> MediaWorkerSignIn(string access)
+        {
+            try
+            {
+                if (! string.IsNullOrEmpty(Globals.appSettings.MEDIA_WORKER_SHARED_SECRET) && Globals.appSettings.MEDIA_WORKER_SHARED_SECRET == access)
+                {
+                    ApplicationUser user = await _userManager.FindByEmailAsync(Globals.MEDIA_WORKER_EMAIL);
+                    await _signInManager.SignInAsync(user, false);
+                    LoggedInDTO loggedInDTO = await GenerateJwtToken(user);
+                    return Ok(loggedInDTO);
+                }
+                else
+                {
+                    _logger.LogError( "TaskWorkerSignIn incorrect access secret or secret not set");
+                    return Unauthorized();
+                }
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "TaskWorkerSignIn failed");
+                return Unauthorized();
+            }
+
+            return Unauthorized();
+        }
+
         [HttpGet("GetUserMetadata")]
         [Authorize]
         public async Task<ActionResult<JObject>> GetUserMetadata()
