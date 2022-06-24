@@ -206,8 +206,30 @@ namespace ClassTranscribeDatabase.Services
                                      consumer: consumer);
             }
         }
-        
 
+        public void PurgeQueue(String queueName)
+        {
+            _logger.LogInformation($"PurgeQueue {queueName}");
+            lock (_channel)
+            {
+                try
+                {
+                    var count = _channel.MessageCount(queueName);
+                    _logger.LogInformation("Purging queue {0}: {1} message(s) will be removed", queueName, count);
+                } catch(Exception) {
+                    // ignored
+                }
+                try { 
+                    _channel.QueuePurge(queueName);
+                }
+                catch (Exception e)
+                {
+                    _logger.LogError(e, "Error purging queue {0}", queueName);
+                    throw e;
+                }
+
+            }
+        }
         #region IDisposable Support
         private bool disposedValue = false; // To detect redundant calls
 

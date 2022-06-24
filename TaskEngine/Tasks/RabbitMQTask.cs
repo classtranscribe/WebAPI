@@ -37,6 +37,10 @@ namespace TaskEngine
                 }
             }
         }
+        public void PurgeQueue()
+        {
+            _rabbitMQ.PurgeQueue(_queueName);
+        }
 
         public void Publish(T data, TaskParameters taskParameters = null)
         {
