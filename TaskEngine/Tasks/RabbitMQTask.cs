@@ -87,7 +87,7 @@ namespace TaskEngine
         public void Consume(ushort concurrency)
         {
             if (concurrency == 0) {
-                return;
+                return; // note this means the queue will not be purged 
             }
             try
             {
