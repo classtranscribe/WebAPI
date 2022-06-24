@@ -30,7 +30,7 @@ traitlets==4.3.3
 urllib3==1.25.8
 wcwidth==0.1.9
 scikit-image==0.17.2
-nltk==3.6.5
+nltk==3.6.6
 pytesseract==0.3.7
 prefixspan==0.5.2
 opencv-contrib-python==4.5.3.56
