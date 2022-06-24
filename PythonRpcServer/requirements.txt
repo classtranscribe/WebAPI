@@ -7,21 +7,22 @@ ffmpy==0.2.2
 grpcio==1.28.1
 grpcio-tools==1.28.1
 idna==2.9
-ipython==7.13.0
+ipython==7.16.3
 ipython-genutils==0.2.0
 jedi==0.17.0
 KalturaApiClient==15.20.0
-numpy==1.18.2
+numpy==1.21.6
+#Dependabot suggested 1.22 ; but that's not generally available yet
+
 #opencv-python==4.2.0.34
 # replaced by opencv-contrib-python
 parso==0.7.0
 pexpect==4.8.0
 pickleshare==0.7.5
 prompt-toolkit==3.0.5
-protobuf==3.11.3
+protobuf==3.15.0
 ptyprocess==0.6.0
 Pygments==2.7.4
-#pytube3==11.0.0 not available; so use the tar.gz package
 requests==2.23.0
 requests-toolbelt==0.9.1
 scenedetect==0.5.2
@@ -31,9 +32,12 @@ traitlets==4.3.3
 urllib3==1.25.8
 wcwidth==0.1.9
 scikit-image==0.17.2
-nltk==3.6.5
+nltk==3.6.6
 pytesseract==0.3.7
 prefixspan==0.5.2
 opencv-contrib-python==4.5.3.56
 mtcnn-opencv==1.0.2
 decord==0.6.0
+
+# Use latest version
+pytube     # if not available, use the tar.gz package (see Dockerfile)
