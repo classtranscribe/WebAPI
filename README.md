@@ -35,6 +35,23 @@ To build this repository,
    
  4. That's it.
  
+ ## Building Docker Images Manually
+ You can also build any of the three services individually for testing using one or more of the following commands:
+ ```
+ docker build -t classtranscribe/api:latest -f API.Dockerfile .
+ docker build -t classtranscribe/pythonrpcserver -f pythonrpcserver.Dockerfile .
+ docker build -t classtranscribe/taskengine -f TaskEngine.Dockerfile .
+ ```
+ 
+ #### Overriding PYTUBE_VERSION
+ By default, the `pythonrpcserver` is built with the latest version of pytube available from pypi.
+ 
+ To build `pythonrpcserver` with a specific version of [pytube](https://pypi.org/project/pytube/) (for testing purposes):
+ ```bash
+ docker build -t classtranscribe/pythonrpcserver -f pythonrpcserver.Dockerfile . --build-arg=PYTUBE_VERSION=12.1.0
+ ```
+ 
+ This will run an optional build step to override the installed version of `pytube` with the target version downloaded directly from Github.
  
 # Notes
 1. If there are dependency changes made to classtranscribeserver, you are required to rebuild using docker-compose
