@@ -2,7 +2,6 @@ FROM mcr.microsoft.com/dotnet/core/sdk:3.1.201-bionic as build
 
 WORKDIR /
 RUN git clone https://github.com/eficode/wait-for.git
-
 WORKDIR /src
 COPY ./ClassTranscribeDatabase/ClassTranscribeDatabase.csproj ./ClassTranscribeDatabase/ClassTranscribeDatabase.csproj
 RUN dotnet restore ./ClassTranscribeDatabase/ClassTranscribeDatabase.csproj
@@ -11,6 +10,7 @@ COPY ./ClassTranscribeServer/ClassTranscribeServer.csproj ./ClassTranscribeServe
 RUN dotnet restore ./ClassTranscribeServer/ClassTranscribeServer.csproj
 
 COPY ./world_universities_and_domains.json ./world_universities_and_domains.json
+COPY ./vs_appsettings.json ./vs_appsettings.json
 COPY ./ct.proto ./ct.proto
 COPY ./ClassTranscribeServer ./ClassTranscribeServer
 COPY ./ClassTranscribeDatabase ./ClassTranscribeDatabase

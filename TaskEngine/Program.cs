@@ -35,13 +35,14 @@ namespace TaskEngine
             // This project relies on Dependency Injection to configure its various services,
             // For more info, https://docs.microsoft.com/en-us/aspnet/core/fundamentals/dependency-injection?view=aspnetcore-3.1
             // All the services used are configured using the service provider.
+
             var serviceProvider = new ServiceCollection()
                 .AddLogging(builder =>
                 {
                     builder.AddConsole();
                     builder.AddFilter<Microsoft.Extensions.Logging.ApplicationInsights.ApplicationInsightsLoggerProvider>
                              ("", LogLevel.Warning);
-                    builder.AddApplicationInsights(configuration.GetValue<string>("APPLICATION_INSIGHTS_KEY"));
+                    //builder.AddApplicationInsights(configuration.GetValue<string>("APPLICATION_INSIGHTS_KEY"));
                 })
                 .AddOptions()
                 .Configure<AppSettings>(configuration)
@@ -73,7 +74,7 @@ namespace TaskEngine
             _logger = serviceProvider.GetRequiredService<ILogger<Program>>();
 
             Globals.appSettings = serviceProvider.GetService<IOptions<AppSettings>>().Value;
-            TaskEngineGlobals.KeyProvider = new KeyProvider(Globals.appSettings);
+            //TaskEngineGlobals.KeyProvider = new KeyProvider(Globals.appSettings);
 
             AppDomain currentDomain = AppDomain.CurrentDomain;
             currentDomain.UnhandledException += new UnhandledExceptionEventHandler(ExceptionHandler);

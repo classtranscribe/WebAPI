@@ -1,0 +1,45 @@
+settings:
+    logging: info ## Log verbosity <debug, info (default), warn, error>
+    tags: ## List of tags you want to appear in notifications for identification purposes
+      - docker
+    inclusions:
+        - api
+        - taskengine
+        - traefik
+        - db
+        - pythonrpcserver
+        - rabbitmq
+  
+events: ## The Docker event types that you want to trigger alerts for
+    container: 
+        - health_status
+        - oom
+        - destroy
+        - start
+        - stop
+        - restart
+    image: 
+        - delete
+    plugin:
+        - install
+        - remove
+    volume: 
+        - destroy
+        - create
+    network:
+        - destroy
+    daemon:
+        - reload
+    service:
+        - remove
+    node:
+        - remove
+    secret:
+        - remove
+    config:
+        - remove
+
+integrations: ## Available integrations  
+    slack:
+        enabled: True
+        url: <REPLACE WITH SLACK WEBHOOK URL>

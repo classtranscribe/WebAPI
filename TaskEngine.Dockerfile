@@ -12,6 +12,7 @@ RUN dotnet restore ./TaskEngine/TaskEngine.csproj
 
 COPY ./world_universities_and_domains.json ./world_universities_and_domains.json
 COPY ./ct.proto ./ct.proto
+COPY ./vs_appsettings.json ./vs_appsettings.json
 COPY ./ClassTranscribeDatabase ./ClassTranscribeDatabase
 COPY ./TaskEngine ./TaskEngine
 WORKDIR /src/TaskEngine

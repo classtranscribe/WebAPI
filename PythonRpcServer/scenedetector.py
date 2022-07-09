@@ -12,13 +12,15 @@ from datetime import datetime
 from collections import Counter
 from mtcnn_cv2 import MTCNN
 
-DATA_DIR = os.getenv('DATA_DIRECTORY')
+DATA_DIR = os.getenv('DATA_DIRECTORY', 'DATA_DIRECTORY')
 TARGET_FPS = float(os.getenv('SCENE_DETECT_FPS', 0.5))
 SCENE_DETECT_USE_FACE = os.getenv('SCENE_DETECT_USE_FACE', 'true') == 'true'
 SCENE_DETECT_USE_OCR = os.getenv('SCENE_DETECT_USE_OCR', 'true') == 'true'
-SCENE_DETECT_USE_EARLY_DROP = os.getenv('SCENE_DETECT_USE_EARLY_DROP', 'true') == 'true'
+SCENE_DETECT_USE_EARLY_DROP = os.getenv(
+    'SCENE_DETECT_USE_EARLY_DROP', 'true') == 'true'
 
 detector = MTCNN()
+
 
 def require_face_result(curr_frame):
     """
@@ -155,6 +157,7 @@ def calculate_score(sim_structural, sim_ocr, sim_structural_no_face):
     """
     return 0.3 * sim_structural + 0.3 * sim_structural_no_face + 0.4 * sim_ocr
 
+
 def generate_frame_similarity(video_path, num_samples, everyN, start_time):
     """
     Generate simlarity values for each sample frames.
@@ -217,7 +220,7 @@ def generate_frame_similarity(video_path, num_samples, everyN, start_time):
             print(
                 f"find_scenes({video_path}): {i}/{num_samples}. Elapsed {int(t-start_time)} s")
             last_log_time = t
-        
+
         # Read the next frame, resizing and converting to grayscale
         frame_vr = vr_full[i * everyN]
         frame = cv2.cvtColor(frame_vr.asnumpy(), cv2.COLOR_RGB2BGR)
@@ -231,16 +234,18 @@ def generate_frame_similarity(video_path, num_samples, everyN, start_time):
         # Calculate the SSIM between the current frame and last frame
         if i >= 1:
             sim_structural[i] = ssim(last_frame, curr_frame)
-        
+
         # Check the sim_structural score to ignore Face Detection and OCR
-        is_early_drop = (i >= 1 and sim_structural[i] >= DROP_THRESHOLD and SCENE_DETECT_USE_EARLY_DROP)
+        is_early_drop = (
+            i >= 1 and sim_structural[i] >= DROP_THRESHOLD and SCENE_DETECT_USE_EARLY_DROP)
 
         # Drop Face Detection and OCR
         if is_early_drop:
-            sim_structural[i] = 1 # By setting all of these to 1 we declare that there is no change in frame here.
+            # By setting all of these to 1 we declare that there is no change in frame here.
+            sim_structural[i] = 1
             sim_structural_no_face[i] = 1
             sim_ocr[i] = 1
-        
+
         # Continue Face Detection and OCR
         else:
             if SCENE_DETECT_USE_FACE:
@@ -257,7 +262,6 @@ def generate_frame_similarity(video_path, num_samples, everyN, start_time):
                 last_face_detection_result = curr_face_detection_result
             else:
                 sim_structural_no_face[i] = sim_structural[i]
-                
 
             if SCENE_DETECT_USE_OCR:
                 # Calculate the OCR difference between the current frame and last frame
@@ -297,13 +301,13 @@ def generate_frame_similarity(video_path, num_samples, everyN, start_time):
         del curr_face_detection_result
         del last_ocr
 
-    del last_frame # May prevent a memory leak
+    del last_frame  # May prevent a memory leak
     del frame_vr
     del frame
     del curr_frame
-    
-    
+
     return timestamps, sim_structural, sim_structural_no_face, sim_ocr
+
 
 def extract_scene_information(video_path, timestamps, frame_cuts, everyN, start_time):
     """
@@ -407,10 +411,11 @@ def extract_scene_information(video_path, timestamps, frame_cuts, everyN, start_
         del frame_vr
         del frame
         del gray_frame
-        
+
         del str_text
 
     return scenes
+
 
 def find_scenes(video_path):
     """
@@ -481,7 +486,8 @@ def find_scenes(video_path):
         min_samples_between_cut = max(0, int(MIN_SCENE_LENGTH * TARGET_FPS))
 
         # Scene Analysis
-        timestamps, sim_structural, sim_structural_no_face, sim_ocr = generate_frame_similarity(video_path, num_samples, everyN, start_time)
+        timestamps, sim_structural, sim_structural_no_face, sim_ocr = generate_frame_similarity(
+            video_path, num_samples, everyN, start_time)
 
         t = perf_counter()
         print(
@@ -513,7 +519,8 @@ def find_scenes(video_path):
         frame_cuts = [int(s * everyN) for s in sample_cuts]
 
         # Image Extraction and OCR
-        scenes = extract_scene_information(video_path, timestamps, frame_cuts, everyN, start_time)
+        scenes = extract_scene_information(
+            video_path, timestamps, frame_cuts, everyN, start_time)
 
         return json.dumps(scenes)
 

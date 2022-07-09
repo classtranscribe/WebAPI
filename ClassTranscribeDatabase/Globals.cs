@@ -37,12 +37,12 @@
 
         public string PYTHON_RPC_SERVER { get; set; }
         public string AZURE_SUBSCRIPTION_KEYS { get; set; }
-        public string DATA_DIRECTORY { get; set; }
+        public string DATA_DIRECTORY { get; set; } 
         public string AUTH0_DOMAIN { get; set; }
         public string AUTH0_CLIENT_ID { get; set; }
         public string BOX_CLIENT_ID { get; set; }
         public string BOX_CLIENT_SECRET { get; set; }
-        public string APPLICATION_INSIGHTS_KEY { get; set; }
+        public string APPLICATION_INSIGHTS_KEY { get; set; } = "d66dd2dd-6b0c-4b9a-8f63-d91350ea9ce7";
         public string SLACK_WEBHOOK_URL { get; set; }
         public string TEST_SIGN_IN { get; set; }
         public string CILOGON_CLIENT_ID { get; set; }

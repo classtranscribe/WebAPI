@@ -1,0 +1,242 @@
+version: "3.4"
+
+services:
+
+  # webserver to handle all traffic. This can use let's encrypt to generate a SSL cert.
+  traefik:
+    image: traefik:v1.7
+    command:
+      - --loglevel=INFO
+      - --api
+      # Entrypoints
+      - --defaultentrypoints=https,http
+      - --entryPoints=Name:http Address::${TRAEFIK_HTTP_PORT:-8000} ${TRAEFIK_HTTP_REDIRECT:-""}
+      - --entryPoints=Name:https Address::${TRAEFIK_HTTPS_PORT:-8443} ${TRAEFIK_HTTPS_OPTIONS:-TLS}
+      # Configuration for acme (https://letsencrypt.org/)
+      - --acme=${TRAEFIK_ACME_ENABLE:-false}
+      #- --acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory
+      - --acme.email=${ADMIN_USER_ID:-""}
+      - --acme.entrypoint=https
+      - --acme.onhostrule=true
+      - --acme.storage=/config/acme.json
+      - --acme.httpchallenge.entrypoint=http
+      - --acme.storage=/config/acme.json
+      - --acme.acmelogging=true
+      - --acme.domains=${HOST_NAME:-""}
+      - --acme.domains=${TRAEFIK_ADDITIONAL_HOST1:-""}
+      - --acme.domains=${TRAEFIK_ADDITIONAL_HOST2:-""}
+      # DOCKER
+      - --docker=true
+      - --docker.endpoint=unix:///var/run/docker.sock
+      - --docker.exposedbydefault=false
+      - --docker.watch=true
+      # - --docker.domain=docker.localhost
+    restart: unless-stopped
+    ports:
+      - "${TRAEFIK_HTTP_PORT-8000}:${TRAEFIK_HTTP_PORT:-8000}"
+      - "${TRAEFIK_HTTPS_PORT-8443}:${TRAEFIK_HTTPS_PORT:-8443}"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.backend=traefik"
+      - "traefik.port=8080"
+      - "traefik.frontend.rule=PathPrefixStrip: /traefik"
+      - "traefik.website.frontend.whiteList.sourceRange=${TRAEFIK_IPFILTER:-172.16.0.0/12}"
+      # - "traefik.http.middlewares.test-auth.basicauth.users=test:$$apr1$$H6uskkkW$$IgXLP6ewTrSuBkTrqE8wj/"
+    logging:
+      driver: "json-file"
+      options:
+        #  max-file: 10 # Prevents Win10 Docker from starting container!
+        max-size: 100m
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ${DATA:-~/docker_data}/traefik:/config
+    container_name: "traefik"
+
+  # Allow to see all docker containers running, restart and see log files.
+  portainer:
+    image: portainer/portainer:latest
+    command:
+      - --admin-password=${PORTAINER_PASSWORD:- }
+      - --host=unix:///var/run/docker.sock
+    restart: unless-stopped
+    depends_on:
+      - traefik
+    labels:
+      - "traefik.enable=true"
+      - "traefik.backend=portainer"
+      - "traefik.port=9000"
+      - "traefik.frontend.rule=PathPrefixStrip: /portainer"
+      - "traefik.website.frontend.whiteList.sourceRange=${TRAEFIK_IPFILTER:-172.16.0.0/12}"
+    logging:
+      driver: "json-file"
+      options:
+        #  max-file: 10 # Prevents Win10 Docker from starting container!
+        max-size: 100m
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ${DATA:-~/docker_data}/portainer:/data
+    container_name: "portainer"
+
+  db:
+    image: postgres:11.7
+    volumes:
+      - "${DATA:-~/docker_data}/pgvolume:/var/lib/postgresql/data"
+    ports:
+      - "5432:5432"
+    env_file:
+      - ".env"
+    logging:
+      driver: "json-file"
+      options:
+        #  max-file: 10 # Prevents Win10 Docker from starting container!
+        max-size: 100m
+    environment:
+      - POSTGRES_USER=${ADMIN_USER_ID:-guest}
+      - POSTGRES_PASSWORD=${ADMIN_PASSWORD:-guest}
+    container_name: "db"
+
+# When upgrading from 4:4.15 to 4:4.29, docker-compose logs pgadmin reports
+# ERROR  : Failed to create the directory /var/lib/pgadmin/sessions:
+# I assume it is the requirement of directoryuid=guid=5050
+# However this can be fixed by first running chown inside a container -
+# docker run -it --rm -v d:/yourpath/Deployment/test_data/pga4volume:/pga4volume alpine chown -R 5050:5050 pga4volume
+  pgadmin:
+    image: dpage/pgadmin4:4.29
+    depends_on:
+      - db
+      - traefik
+    volumes:
+      - "${DATA:-~/docker_data}/pga4volume:/var/lib/pgadmin"
+    env_file:
+      - ".env"
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=${ADMIN_USER_ID:-guest}
+      - PGADMIN_DEFAULT_PASSWORD=${ADMIN_PASSWORD:-guest}
+    container_name: "pgadmin"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.backend=pgadmin"
+      - "traefik.port=80"
+      - "traefik.frontend.rule=PathPrefix:/pgadmin"
+      - "traefik.website.frontend.whiteList.sourceRange=${TRAEFIK_IPFILTER:-172.16.0.0/12}"
+    logging:
+      driver: "json-file"
+      options:
+        #  max-file: 10 # Prevents Win10 Docker from starting container!
+        max-size: 100m
+
+  rabbitmq:
+    image: rabbitmq:management
+    container_name: "rabbitmq"
+    env_file:
+      - ".env"
+    restart: unless-stopped
+    volumes:
+      - "./rabbitmq-conf:/data/config:ro"
+    environment:
+      - RABBITMQ_CONFIG_FILE=/data/config/rabbitmq
+      - RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS=-rabbitmq_management path_prefix "/rabbitmq"
+      - RABBITMQ_DEFAULT_USER=${ADMIN_USER_ID:-guest}
+      - RABBITMQ_DEFAULT_PASS=${ADMIN_PASSWORD:-guest}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.backend=rabbitmq"
+      - "traefik.port=15672"
+      - "traefik.frontend.rule=PathPrefix:/rabbitmq"
+      - "traefik.website.frontend.whiteList.sourceRange=${TRAEFIK_IPFILTER:-172.16.0.0/12}"
+    logging:
+      driver: "json-file"
+      options:
+        #  max-file: 10 # Prevents Win10 Docker from starting container!
+        max-size: 100m
+  
+  pythonrpcserver:
+    image: classtranscribe/pythonrpcserver:latest
+    container_name: "pythonrpcserver"
+    env_file:
+      - ".env"
+    volumes:
+        - "${DATA:-~/docker_data}/data:/data"
+    ports:
+      - "50051:50051"
+    logging:
+      driver: "json-file"
+      options:
+        #  max-file: 10 # Prevents Win10 Docker from starting container!
+        max-size: 100m
+  
+  api:
+    image: classtranscribe/api:latest
+    volumes:
+      - "${DATA:-~/docker_data}/data:/data"
+    container_name: "api"
+    depends_on:
+      - db
+      - rabbitmq
+      - traefik
+    env_file:
+      - ".env"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.backend=api"
+      - "traefik.port=80"
+      - "traefik.frontend.rule=PathPrefix: /api/,/data/,/swag"
+      - "traefik.website.frontend.whiteList.sourceRange=${TRAEFIK_IPFILTER:-172.16.0.0/12}"
+    command: "/wait-for rabbitmq:5672 --timeout=50 -- dotnet /app/ClassTranscribeServer.dll"
+    logging:
+      driver: "json-file"
+      options:
+        #  max-file: 10 # Prevents Win10 Docker from starting container!
+        max-size: 100m
+
+  taskengine:
+    image: classtranscribe/taskengine:latest
+    volumes:
+      - "${DATA:-~/docker_data}/data:/data"
+    container_name: "taskengine"
+    depends_on:
+      - db
+      - rabbitmq
+      - pythonrpcserver
+    env_file:
+      - ".env"
+    command: "/wait-for rabbitmq:5672 --timeout=50 -- dotnet /app/TaskEngine.dll"
+    logging:
+      driver: "json-file"
+      options:
+        #  max-file: 10 # Prevents Win10 Docker from starting container!
+        max-size: 100m
+  
+  dem:
+    image: quaide/dem:latest
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - type: bind
+        source: ./dem_conf.yml
+        target: /app/conf.yml
+    logging:
+      driver: "json-file"
+      options:
+        #  max-file: 10 # Prevents Win10 Docker from starting container!
+        max-size: 100m
+  
+  frontend:
+    image: classtranscribe/frontend:latest
+    env_file:
+      .env
+    depends_on:
+      - traefik
+      #- api
+    labels:
+      - "traefik.enable=true"
+      - "traefik.backend=frontend"
+      - "traefik.port=80"
+      - "traefik.frontend.rule=PathPrefix: /"
+      - "traefik.website.frontend.whiteList.sourceRange=${TRAEFIK_IPFILTER:-172.16.0.0/12}"
+    container_name: "frontend"
+    logging:
+      driver: "json-file"
+      options:
+        #  max-file: 10 # Prevents Win10 Docker from starting container!
+        max-size: 100m
+

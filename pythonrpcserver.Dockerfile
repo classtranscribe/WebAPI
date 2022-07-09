@@ -1,6 +1,8 @@
 
 # Total laptop build 626 seconds
-FROM python:3.7-slim-stretch
+
+FROM python:3.7-slim-stretch 
+
 
 RUN apt-get update
 RUN apt-get install -y curl gcc g++ make libglib2.0-0 libsm6 libxext6 libxrender-dev ffmpeg
@@ -24,6 +26,7 @@ ENV TESSDATA_PREFIX=/tesseract-4.1.1/tessdata
 ENV OMP_THREAD_LIMIT=1
 
 WORKDIR /PythonRpcServer
+
 
 COPY ./PythonRpcServer/requirements.txt requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt

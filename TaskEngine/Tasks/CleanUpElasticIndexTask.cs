@@ -25,7 +25,8 @@ namespace TaskEngine.Tasks
 
             // initialize elastic client
             var node = new Uri(configuration.GetValue<string>("ES_CONNECTION_ADDR"));
-            _time_to_live = Int32.Parse(configuration.GetValue<string>("ES_INDEX_TIME_TO_LIVE"));
+            _time_to_live = 15;
+                //Int32.Parse(configuration.GetValue<string>("ES_INDEX_TIME_TO_LIVE"));
             using (var settings = new ConnectionSettings(node))
             {
                 //settings.DefaultIndex("classTranscribe");
