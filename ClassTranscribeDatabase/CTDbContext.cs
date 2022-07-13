@@ -38,6 +38,7 @@ namespace ClassTranscribeDatabase
     public class CTDbContext : IdentityDbContext<ApplicationUser>
     {
         private readonly IHttpContextAccessor _httpContextAccessor;
+        public object Adictionary;
 
         public DbSet<University> Universities { get; set; }
         public DbSet<Department> Departments { get; set; }
@@ -60,6 +61,9 @@ namespace ClassTranscribeDatabase
         public DbSet<Message> Messages { get; set; }
         public DbSet<TaskItem> TaskItems { get; set; }
         public DbSet<Image> Images { get; set; }
+
+        //add by LJX 2022-07-13
+        public DbSet<Adictionary> Adictionaries { get; set; }
 
         /// <summary>
         /// This method builds a connectionstring to connect with the database.
@@ -181,6 +185,7 @@ namespace ClassTranscribeDatabase
             builder.Entity<EPub>().HasQueryFilter(m => m.IsDeletedStatus == Status.Active);
             builder.Entity<TaskItem>().HasQueryFilter(m => m.IsDeletedStatus == Status.Active);
             builder.Entity<Image>().HasQueryFilter(m => m.IsDeletedStatus == Status.Active);
+            builder.Entity<Adictionary>().HasQueryFilter(m => m.IsDeletedStatus == Status.Active);
 
             // Configure m-to-n relationships.
             builder.Entity<CourseOffering>()

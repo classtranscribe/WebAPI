@@ -465,6 +465,15 @@ namespace ClassTranscribeDatabase.Models
         public string Value { get; set; }
     }
 
+    public class Adictionary : Entity
+    {
+        //[Key]
+        //public string Id { get; set; }
+        public string Inword { get; set; }
+        public string Outword { get; set; }
+    }
+
+
     public enum ResourceType
     {
         // Since these are persisted in the database these integer values are immutable once assigned (hence explicit)

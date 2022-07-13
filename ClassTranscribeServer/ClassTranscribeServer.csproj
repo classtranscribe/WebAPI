@@ -10,13 +10,13 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <OutputPath>..\ClassTranscribeServerDebug\bin\netcoreapp3.1</OutputPath>
-    <IntermediateOutputPath>..\ClassTranscribeServerDebug\obj\netcoreapp3.1</IntermediateOutputPath>
+    <OutputPath>..\ClassTranscribeServerDebug\bin\netcoreapp3.1\netcoreapp3.1</OutputPath>
+    <IntermediateOutputPath>..\ClassTranscribeServerDebug\obj\netcoreapp3.1\netcoreapp3.1</IntermediateOutputPath>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <OutputPath>..\ClassTranscribeServerRelease\bin\netcoreapp3.1</OutputPath>
-    <IntermediateOutputPath>..\ClassTranscribeServerRelease\obj\netcoreapp3.1</IntermediateOutputPath>
+    <OutputPath>..\ClassTranscribeServerRelease\bin\netcoreapp3.1\netcoreapp3.1</OutputPath>
+    <IntermediateOutputPath>..\ClassTranscribeServerRelease\obj\netcoreapp3.1\netcoreapp3.1</IntermediateOutputPath>
   </PropertyGroup>
   
   <PropertyGroup>
@@ -37,6 +37,11 @@
     </Content>
   </ItemGroup>
 
+  <ItemGroup>
+    <None Remove="Google.Cloud.Translation.V2" />
+    <None Remove="Google.Apis.Translate.v2" />
+    <None Remove="GoogleTranslateFreeApi" />
+  </ItemGroup>
   <ItemGroup>
     <None Include="..\.editorconfig" Link=".editorconfig" />
   </ItemGroup>
@@ -73,6 +78,7 @@
     <PackageReference Include="NEST" Version="7.10.0" />
     <PackageReference Include="Elasticsearch.Net" Version="7.10.0" />
     <PackageReference Include="SubtitlesParser" Version="1.5.0" />
+    <PackageReference Include="GoogleTranslateFreeApi" Version="1.1.1" />
   </ItemGroup>
 
   <ItemGroup>
