@@ -118,7 +118,7 @@ namespace ClassTranscribeServer
                 {
                     Version = "v1",
                     Title = "ClassTranscribeServer API",
-                    Description ="An accessible video platform server. Internal Ref: 0x14cd. See ClassTranscribeServer/Controllers for implementation (https://github.com/classtranscribe/WebAPI/tree/master/ClassTranscribeServer/Controllers)"
+                    Description ="An accessible video platform server. Internal Ref: 0x14cd. See ClassTranscribeServer/Controllers for implementation (https://github.com/classtranscribe/WebAPI/tree/main/ClassTranscribeServer/Controllers)"
                 });
                 // Set the comments path for the Swagger JSON and UI.
                 var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
