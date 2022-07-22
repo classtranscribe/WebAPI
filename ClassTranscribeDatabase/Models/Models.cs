@@ -24,9 +24,11 @@ namespace ClassTranscribeDatabase.Models
     /// "ClassTranscribeDatabase"
     ///
     /// Steps to create migration using command line:
-    /// 1. Make edits to the entity model (in this file or another model file)
+    /// 1. Make edits to the entity model in Models.cs and CTDbContext.cs
     ///     - NOTE: if creating a new entity/table, you must follow the steps in CTDbContext.cs before continuing
     /// 2. Open terminal, navigate to the "ClassTranscribeDatabase" directory
+    /// 3. Install dotnet 3.1.201 from https://github.com/dotnet/core/blob/main/release-notes/3.1/3.1.3/3.1.201-download.md
+    /// 4. Install dotnet-ef 3.1.4 by running "dotnet tool install --global dotnet-ef --version 3.1.4"
     /// 3. Run "dotnet ef migrations add <name of migration>" to create the migration
     /// 4. To apply the migration to the database, run "dotnet ef database update"
     /// 
@@ -401,6 +403,10 @@ namespace ClassTranscribeDatabase.Models
         [IgnoreDataMember]
         public virtual Offering Offering { get; set; }
         public string FilePath { get; set; }
+
+        [SwaggerIgnore]
+        [IgnoreDataMember]
+        public virtual List<Glossary> Glossaries { get; set; }
     }
 
     public class UserOffering : Entity
@@ -464,6 +470,28 @@ namespace ClassTranscribeDatabase.Models
         public string Key { get; set; }
         public string Value { get; set; }
     }
+
+    public class Glossary : Entity
+    {
+        public string Term { get; set; }
+        public string Link { get; set; }
+        public string Description { get; set; }
+        public string Source { get; set; }
+        public string LicenseTag { get; set; }
+        public string ASLVideoLink { get; set; }
+        public string ASLSource { get; set; }
+        public bool Shared { get; set; }
+        public bool Editable { get; set; }
+
+        public string CourseId { get; set; }
+        public string OfferingId { get; set; }
+
+        [SwaggerIgnore]
+        [IgnoreDataMember]
+        public virtual CourseOffering CourseOffering { get; set; }
+        
+    }
+
 
     public enum ResourceType
     {

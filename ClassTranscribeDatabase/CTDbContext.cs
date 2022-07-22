@@ -38,6 +38,7 @@ namespace ClassTranscribeDatabase
     public class CTDbContext : IdentityDbContext<ApplicationUser>
     {
         private readonly IHttpContextAccessor _httpContextAccessor;
+        public object Adictionary;
 
         public DbSet<University> Universities { get; set; }
         public DbSet<Department> Departments { get; set; }
@@ -60,6 +61,7 @@ namespace ClassTranscribeDatabase
         public DbSet<Message> Messages { get; set; }
         public DbSet<TaskItem> TaskItems { get; set; }
         public DbSet<Image> Images { get; set; }
+        public DbSet<Glossary> Glossaries { get; set; } 
 
         /// <summary>
         /// This method builds a connectionstring to connect with the database.
@@ -181,6 +183,7 @@ namespace ClassTranscribeDatabase
             builder.Entity<EPub>().HasQueryFilter(m => m.IsDeletedStatus == Status.Active);
             builder.Entity<TaskItem>().HasQueryFilter(m => m.IsDeletedStatus == Status.Active);
             builder.Entity<Image>().HasQueryFilter(m => m.IsDeletedStatus == Status.Active);
+            builder.Entity<Glossary>().HasQueryFilter(m => m.IsDeletedStatus == Status.Active);
 
             // Configure m-to-n relationships.
             builder.Entity<CourseOffering>()
@@ -212,6 +215,12 @@ namespace ClassTranscribeDatabase
             builder.Entity<Media>().HasOne(m => m.Video)
                 .WithMany(v => v.Medias)
                 .HasForeignKey(m => m.VideoId);
+
+            builder.Entity<Glossary>()
+                .HasOne(pt => pt.CourseOffering)
+                .WithMany(p => p.Glossaries)
+                .HasForeignKey(pt => new { pt.CourseId, pt.OfferingId });
+
 
             // Configure Entities which have a JObject.
             // Forgetting to add this causes
