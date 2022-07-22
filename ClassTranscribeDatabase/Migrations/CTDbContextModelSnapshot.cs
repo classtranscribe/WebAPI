@@ -438,6 +438,73 @@ namespace ClassTranscribeDatabase.Migrations
                     b.ToTable("FileRecords");
                 });
 
+            modelBuilder.Entity("ClassTranscribeDatabase.Models.Glossary", b =>
+                {
+                    b.Property<string>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("text");
+
+                    b.Property<string>("ASLSource")
+                        .HasColumnType("text");
+
+                    b.Property<string>("ASLVideoLink")
+                        .HasColumnType("text");
+
+                    b.Property<string>("CourseId")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<string>("DeletedBy")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("text");
+
+                    b.Property<bool>("Editable")
+                        .HasColumnType("boolean");
+
+                    b.Property<int>("IsDeletedStatus")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("LastUpdatedAt")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<string>("LastUpdatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<string>("LicenseTag")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Link")
+                        .HasColumnType("text");
+
+                    b.Property<string>("OfferingId")
+                        .HasColumnType("text");
+
+                    b.Property<bool>("Shared")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Source")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Term")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CourseId", "OfferingId");
+
+                    b.ToTable("Glossaries");
+                });
+
             modelBuilder.Entity("ClassTranscribeDatabase.Models.Image", b =>
                 {
                     b.Property<string>("Id")
@@ -1444,6 +1511,13 @@ namespace ClassTranscribeDatabase.Migrations
                     b.HasOne("ClassTranscribeDatabase.Models.Video", null)
                         .WithMany("EPubs")
                         .HasForeignKey("VideoId");
+                });
+
+            modelBuilder.Entity("ClassTranscribeDatabase.Models.Glossary", b =>
+                {
+                    b.HasOne("ClassTranscribeDatabase.Models.CourseOffering", "CourseOffering")
+                        .WithMany("Glossaries")
+                        .HasForeignKey("CourseId", "OfferingId");
                 });
 
             modelBuilder.Entity("ClassTranscribeDatabase.Models.Image", b =>
