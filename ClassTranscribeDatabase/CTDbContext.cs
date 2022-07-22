@@ -38,8 +38,6 @@ namespace ClassTranscribeDatabase
     public class CTDbContext : IdentityDbContext<ApplicationUser>
     {
         private readonly IHttpContextAccessor _httpContextAccessor;
-        public object Adictionary;
-
         public DbSet<University> Universities { get; set; }
         public DbSet<Department> Departments { get; set; }
         public DbSet<Course> Courses { get; set; }

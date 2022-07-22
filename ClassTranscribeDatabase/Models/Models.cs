@@ -29,8 +29,8 @@ namespace ClassTranscribeDatabase.Models
     /// 2. Open terminal, navigate to the "ClassTranscribeDatabase" directory
     /// 3. Install dotnet 3.1.201 from https://github.com/dotnet/core/blob/main/release-notes/3.1/3.1.3/3.1.201-download.md
     /// 4. Install dotnet-ef 3.1.4 by running "dotnet tool install --global dotnet-ef --version 3.1.4"
-    /// 3. Run "dotnet ef migrations add <name of migration>" to create the migration
-    /// 4. To apply the migration to the database, run "dotnet ef database update"
+    /// 5. Run "dotnet ef migrations add <name of migration>" to create the migration
+    /// 6. To apply the migration to the database, run "dotnet ef database update"
     /// 
     /// </summary>
     public enum AccessTypes
