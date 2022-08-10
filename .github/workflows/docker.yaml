@@ -50,7 +50,7 @@ jobs:
             FOLDER: "."
             DOCKERFILE: pythonrpcserver.Dockerfile
             IMAGE: pythonrpcserver
-            PLATFORM: "linux/amd64,linux/arm64"
+            PLATFORM: "linux/amd64"
 
     steps:
       - uses: actions/checkout@v2
