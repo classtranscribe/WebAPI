@@ -10,7 +10,7 @@ idna==2.9
 ipython==7.16.3
 ipython-genutils==0.2.0
 jedi==0.17.0
-KalturaApiClient==15.20.0
+KalturaApiClient==18.11.0
 numpy==1.21.6
 #Dependabot suggested 1.22 ; but that's not generally available yet
 
