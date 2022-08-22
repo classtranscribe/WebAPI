@@ -82,13 +82,15 @@ class KalturaProvider(MediaProvider):
         result = client.session.startWidgetSession(widgetId, expiry)
         client.setKs(result.ks)
 
+        # the following token-based session is no longer required.
+        # Attempting it causes the startSession call to throw an exception with 'APP_TOKEN_ID_NOT_FOUND'
         # generate token hash from ks + appToken
-        tokenHash = hashlib.sha256(result.ks.encode(
-            'ascii')+appToken.encode('ascii')).hexdigest()
+        #tokenHash = hashlib.sha256(result.ks.encode(
+        #    'ascii')+appToken.encode('ascii')).hexdigest()
         # start an app token session
-        result = client.appToken.startSession(
-            tokenId, tokenHash, '', '', expiry)
-        client.setKs(result.ks)
+        #result = client.appToken.startSession(
+        #    tokenId, tokenHash, '', '', expiry)
+        #client.setKs(result.ks)
         return client
     # Returns dict of Media information for a specific media
     # k.getMediaInfo('1_tbxlkewh')
