@@ -6,6 +6,7 @@ import hashlib
 import json
 import os
 from time import perf_counter 
+import traceback
 
 
 from utils import download_file
@@ -16,8 +17,6 @@ KALTURA_PARTNER_ID = int(os.getenv('KALTURA_PARTNER_ID', default=0))
 KALTURA_TOKEN_ID = os.getenv('KALTURA_TOKEN_ID', default=None)
 KATLURA_APP_TOKEN = os.getenv('KALTURA_APP_TOKEN', default=None)
 
-if KALTURA_PARTNER_ID == 0 or not KALTURA_TOKEN_ID or not KATLURA_APP_TOKEN:
-    print("INVALID KALTURA CREDENTIALS, check KALTURA environment variables.")
 
 # Examples of Playlists URLs the user is likely to see-
 # Playlist 1_eilnj5er is Angrave's short set of example vidos
@@ -106,7 +105,7 @@ class KalturaProvider(MediaProvider):
                  'description': mediaEntry.description,
                  'createdAt': mediaEntry.createdAt,
                  
-                 'duration' : mediaEntry.duration,
+                 #'duration' : mediaEntry.duration,
                  'parentEntryId' : mediaEntry.parentEntryId
                  }
         return media
@@ -137,7 +136,7 @@ class KalturaProvider(MediaProvider):
             mediaIds = mediaIds[:500]
         infolist = [self.getMediaInfo(id) for id in mediaIds]
         # Drop missing (None) entries
-        return [info for info in infolist if info and info.duration > 0 ]
+        return [info for info in infolist if info ] #and info.duration > 0
 
     # Channel example - k.getMediaInfosForKalturaChannel(channelId=180228801)
     def getMediaInfosForKalturaChannel(self, partnerInfo, channelId):
@@ -214,7 +213,7 @@ class KalturaProvider(MediaProvider):
         result = {}
         return result
     
-    def organizeParentMedia(medialist):
+    def organizeParentMedia(mediaList):
         result = [m for m in mediaList if m.parentEntryId == '']
         return result
         
@@ -243,6 +242,7 @@ class KalturaProvider(MediaProvider):
             raise e
         except Exception as e:
             print(f"getPlaylistItems({request}) Exception:{e}")
+            traceback.print_exc()
             raise InvalidPlaylistInfoException(
                 "Error during Channel/Playlist processing " + str(e))
         end_time = perf_counter()
@@ -255,7 +255,7 @@ class KalturaProvider(MediaProvider):
             start_time = perf_counter()
             print(f"getMedia({request}) starting")
             
-            videoUrl = request.videoUrl.replace('/flavorParamIds/',f"/ks/${self.ks}/flavorParamIds/");
+            videoUrl = request.videoUrl.replace('/flavorParamIds/',f"/ks/{self.ks}/flavorParamIds/");
             
             result =  self.downloadLecture(videoUrl)
             end_time = perf_counter()
@@ -265,3 +265,6 @@ class KalturaProvider(MediaProvider):
         except Exception as e:
             print(f"getMedia({request}) Exception:{e}" )
             raise e
+
+if KALTURA_PARTNER_ID == 0 or not KALTURA_TOKEN_ID or not KATLURA_APP_TOKEN:
+    print("INVALID KALTURA CREDENTIALS, check KALTURA environment variables.")
