@@ -105,7 +105,7 @@ class KalturaProvider(MediaProvider):
                  'description': mediaEntry.description,
                  'createdAt': mediaEntry.createdAt,
                  
-                 #'duration' : mediaEntry.duration,
+                 'duration' : mediaEntry.duration,
                  'parentEntryId' : mediaEntry.parentEntryId
                  }
         return media
@@ -214,7 +214,7 @@ class KalturaProvider(MediaProvider):
         return result
     
     def organizeParentMedia(self, mediaList):
-        result = [m for m in mediaList if m.parentEntryId == '']
+        result = [m for m in mediaList if m.get('duration') >0 and m.get('parentEntryId') == '']
         return result
         
     # Main entry point- overrides stub in MediaProvider
