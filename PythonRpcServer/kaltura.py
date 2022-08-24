@@ -136,8 +136,8 @@ class KalturaProvider(MediaProvider):
         if len(mediaIds) > 500:
             mediaIds = mediaIds[:500]
         infolist = [self.getMediaInfo(id) for id in mediaIds]
-        # Drop missing (None) entries and zero duration entries
-        return [info for info in infolist if info and info.duration >0 ]
+        # Drop missing (None) entries
+        return [info for info in infolist if info and info.duration > 0 ]
 
     # Channel example - k.getMediaInfosForKalturaChannel(channelId=180228801)
     def getMediaInfosForKalturaChannel(self, partnerInfo, channelId):
@@ -156,7 +156,7 @@ class KalturaProvider(MediaProvider):
             entries = self.client.categoryEntry.list(a, pager)
 
             for entry in entries.objects:
-                if(entry.entryId and len(entry.entryId) > 0):
+                if(entry.entryId and len(entry.entryId) > 0 and entry.duration > 0):
                     res.append(entry.entryId)
 
             if len(res) >= self.maxTotalEntries:
