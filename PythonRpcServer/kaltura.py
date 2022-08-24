@@ -61,7 +61,7 @@ class KalturaProvider(MediaProvider):
     DEFAULT_PARTNER_HOST = 'mediaspace.illinois.edu'
 
     def __init__(self):
-        self.client = self.getClient(
+        self.client, self.ks = self.getClient(
             KALTURA_PARTNER_ID, KALTURA_TOKEN_ID, KATLURA_APP_TOKEN)
 
     # Returns the Kaltura SDK client. Only used internally by constructor
@@ -85,13 +85,11 @@ class KalturaProvider(MediaProvider):
         # the following token-based session is no longer required.
         # Attempting it causes the startSession call to throw an exception with 'APP_TOKEN_ID_NOT_FOUND'
         # generate token hash from ks + appToken
-        #tokenHash = hashlib.sha256(result.ks.encode(
-        #    'ascii')+appToken.encode('ascii')).hexdigest()
+        tokenHash = hashlib.sha256(result.ks.encode('ascii')+appToken.encode('ascii')).hexdigest()
         # start an app token session
-        #result = client.appToken.startSession(
-        #    tokenId, tokenHash, '', '', expiry)
-        #client.setKs(result.ks)
-        return client
+        result = client.appToken.startSession( tokenId, tokenHash, '', '', expiry)
+        client.setKs(result.ks)
+        return client,result.ks
     # Returns dict of Media information for a specific media
     # k.getMediaInfo('1_tbxlkewh')
     # {'id': '1_tbxlkewh',
@@ -106,7 +104,10 @@ class KalturaProvider(MediaProvider):
                  'downloadUrl': mediaEntry.downloadUrl,
                  'name': mediaEntry.name,
                  'description': mediaEntry.description,
-                 'createdAt': mediaEntry.createdAt
+                 'createdAt': mediaEntry.createdAt,
+                 
+                 'duration' : mediaEntry.duration,
+                 'parentEntryId' : mediaEntry.parentEntryId
                  }
         return media
 
@@ -135,8 +136,8 @@ class KalturaProvider(MediaProvider):
         if len(mediaIds) > 500:
             mediaIds = mediaIds[:500]
         infolist = [self.getMediaInfo(id) for id in mediaIds]
-        # Drop missing (None) entries
-        return [info for info in infolist if info]
+        # Drop missing (None) entries and zero duration entries
+        return [info for info in infolist if info and info.duration >0 ]
 
     # Channel example - k.getMediaInfosForKalturaChannel(channelId=180228801)
     def getMediaInfosForKalturaChannel(self, partnerInfo, channelId):
@@ -213,7 +214,10 @@ class KalturaProvider(MediaProvider):
         result = {}
         return result
     
-
+    def organizeParentMedia(medialist):
+        result = [m for m in mediaList if m.parentEntryId == '']
+        return result
+        
     # Main entry point- overrides stub in MediaProvider
     def getPlaylistItems(self, request):
         # We could be getting a channel or a playlist
@@ -231,6 +235,7 @@ class KalturaProvider(MediaProvider):
 
             res = self.getMediaInfosForKalturaPlaylist(partnerInfo, id) if isPlaylist else \
                 self.getMediaInfosForKalturaChannel(partnerInfo, id)
+            res = organizeParentMedia(res)
             print(f'Found {len(res)} items')
             result = json.dumps(res)
         except InvalidPlaylistInfoException as e:
@@ -249,7 +254,10 @@ class KalturaProvider(MediaProvider):
         try:
             start_time = perf_counter()
             print(f"getMedia({request}) starting")
-            result =  self.downloadLecture(request.videoUrl)
+            
+            videoUrl = request.videoUrl.replace('/flavorParamIds/',f"/ks/${self.ks}/flavorParamIds/");
+            
+            result =  self.downloadLecture(videoUrl)
             end_time = perf_counter()
             print(f"getMedia({request}) returning '{result}'. Processing ({end_time-start_time:.2f}) seconds.")
 
