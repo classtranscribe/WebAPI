@@ -6,6 +6,7 @@ import hashlib
 import json
 import os
 from time import perf_counter 
+import traceback
 
 
 from utils import download_file
@@ -16,8 +17,6 @@ KALTURA_PARTNER_ID = int(os.getenv('KALTURA_PARTNER_ID', default=0))
 KALTURA_TOKEN_ID = os.getenv('KALTURA_TOKEN_ID', default=None)
 KATLURA_APP_TOKEN = os.getenv('KALTURA_APP_TOKEN', default=None)
 
-if KALTURA_PARTNER_ID == 0 or not KALTURA_TOKEN_ID or not KATLURA_APP_TOKEN:
-    print("INVALID KALTURA CREDENTIALS, check KALTURA environment variables.")
 
 # Examples of Playlists URLs the user is likely to see-
 # Playlist 1_eilnj5er is Angrave's short set of example vidos
@@ -61,7 +60,7 @@ class KalturaProvider(MediaProvider):
     DEFAULT_PARTNER_HOST = 'mediaspace.illinois.edu'
 
     def __init__(self):
-        self.client = self.getClient(
+        self.client, self.ks = self.getClient(
             KALTURA_PARTNER_ID, KALTURA_TOKEN_ID, KATLURA_APP_TOKEN)
 
     # Returns the Kaltura SDK client. Only used internally by constructor
@@ -82,14 +81,14 @@ class KalturaProvider(MediaProvider):
         result = client.session.startWidgetSession(widgetId, expiry)
         client.setKs(result.ks)
 
+        # the following token-based session is no longer required.
+        # Attempting it causes the startSession call to throw an exception with 'APP_TOKEN_ID_NOT_FOUND'
         # generate token hash from ks + appToken
-        tokenHash = hashlib.sha256(result.ks.encode(
-            'ascii')+appToken.encode('ascii')).hexdigest()
+        tokenHash = hashlib.sha256(result.ks.encode('ascii')+appToken.encode('ascii')).hexdigest()
         # start an app token session
-        result = client.appToken.startSession(
-            tokenId, tokenHash, '', '', expiry)
+        result = client.appToken.startSession( tokenId, tokenHash, '', '', expiry)
         client.setKs(result.ks)
-        return client
+        return client,result.ks
     # Returns dict of Media information for a specific media
     # k.getMediaInfo('1_tbxlkewh')
     # {'id': '1_tbxlkewh',
@@ -104,7 +103,10 @@ class KalturaProvider(MediaProvider):
                  'downloadUrl': mediaEntry.downloadUrl,
                  'name': mediaEntry.name,
                  'description': mediaEntry.description,
-                 'createdAt': mediaEntry.createdAt
+                 'createdAt': mediaEntry.createdAt,
+                 
+                 'duration' : mediaEntry.duration,
+                 'parentEntryId' : mediaEntry.parentEntryId
                  }
         return media
 
@@ -134,7 +136,7 @@ class KalturaProvider(MediaProvider):
             mediaIds = mediaIds[:500]
         infolist = [self.getMediaInfo(id) for id in mediaIds]
         # Drop missing (None) entries
-        return [info for info in infolist if info]
+        return [info for info in infolist if info ] #and info.duration > 0
 
     # Channel example - k.getMediaInfosForKalturaChannel(channelId=180228801)
     def getMediaInfosForKalturaChannel(self, partnerInfo, channelId):
@@ -153,7 +155,7 @@ class KalturaProvider(MediaProvider):
             entries = self.client.categoryEntry.list(a, pager)
 
             for entry in entries.objects:
-                if(entry.entryId and len(entry.entryId) > 0):
+                if(entry.entryId and len(entry.entryId) > 0 ):
                     res.append(entry.entryId)
 
             if len(res) >= self.maxTotalEntries:
@@ -211,7 +213,10 @@ class KalturaProvider(MediaProvider):
         result = {}
         return result
     
-
+    def organizeParentMedia(self, mediaList):
+        result = [m for m in mediaList if m.get('duration') >0 and m.get('parentEntryId') == '']
+        return result
+        
     # Main entry point- overrides stub in MediaProvider
     def getPlaylistItems(self, request):
         # We could be getting a channel or a playlist
@@ -219,23 +224,28 @@ class KalturaProvider(MediaProvider):
         # We try a playlist first
         print('getPlaylistItems' + str(request))
         start_time = perf_counter()
+        result = []
         try:
-            res = []
+
             servername, isPlaylist, id = self.extractKalturalChannelPlaylistResource(
                 request)
             partnerInfo = self.getPartnerInfo(servername)
 
             print(f"server={servername},partner= {partnerInfo}, playlist={isPlaylist},id={id}")
 
-            res = self.getMediaInfosForKalturaPlaylist(partnerInfo, id) if isPlaylist else \
+            resInitial = self.getMediaInfosForKalturaPlaylist(partnerInfo, id) if isPlaylist else \
                 self.getMediaInfosForKalturaChannel(partnerInfo, id)
-            print(f'Found {len(res)} items')
-            result = json.dumps(res)
+
+            resFiltered = self.organizeParentMedia(resInitial)
+            print(f'Found {len(resFiltered)} items ({len(resInitial)} before filtering)')
+            result = json.dumps(resFiltered)
+            
         except InvalidPlaylistInfoException as e:
             print(f"getPlaylistItems({request}) Exception:{e}")
             raise e
         except Exception as e:
             print(f"getPlaylistItems({request}) Exception:{e}")
+            traceback.print_exc()
             raise InvalidPlaylistInfoException(
                 "Error during Channel/Playlist processing " + str(e))
         end_time = perf_counter()
@@ -247,7 +257,10 @@ class KalturaProvider(MediaProvider):
         try:
             start_time = perf_counter()
             print(f"getMedia({request}) starting")
-            result =  self.downloadLecture(request.videoUrl)
+            
+            videoUrl = request.videoUrl.replace('/flavorParamIds/',f"/ks/{self.ks}/flavorParamIds/");
+            
+            result =  self.downloadLecture(videoUrl)
             end_time = perf_counter()
             print(f"getMedia({request}) returning '{result}'. Processing ({end_time-start_time:.2f}) seconds.")
 
@@ -255,3 +268,6 @@ class KalturaProvider(MediaProvider):
         except Exception as e:
             print(f"getMedia({request}) Exception:{e}" )
             raise e
+
+if KALTURA_PARTNER_ID == 0 or not KALTURA_TOKEN_ID or not KATLURA_APP_TOKEN:
+    print("INVALID KALTURA CREDENTIALS, check KALTURA environment variables.")

@@ -50,6 +50,19 @@ def nolongervalidtestPlaylists():
 def testChannels():
     k = kaltura.KalturaProvider()
 
+    channelurl = 'https://mediaspace.illinois.edu/channel/266843702'
+    request = ct_pb2.PlaylistRequest()
+    request.Url = channelurl  # should be ignored
+    request.metadata.json = '{"source":"' + channelurl + '"}'
+
+    result = json.loads(k.getPlaylistItems(request))
+    assert len(result) == 2   
+
+
+
+def testChannels():
+    k = kaltura.KalturaProvider()
+
     channelurl = 'https://mediaspace.illinois.edu/channel/Test%2BVideosB%2B2020_03_09/180228801'
 
     # See ct.proto
