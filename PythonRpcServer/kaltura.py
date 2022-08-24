@@ -156,7 +156,7 @@ class KalturaProvider(MediaProvider):
             entries = self.client.categoryEntry.list(a, pager)
 
             for entry in entries.objects:
-                if(entry.entryId and len(entry.entryId) > 0 and entry.duration > 0):
+                if(entry.entryId and len(entry.entryId) > 0 ):
                     res.append(entry.entryId)
 
             if len(res) >= self.maxTotalEntries:
