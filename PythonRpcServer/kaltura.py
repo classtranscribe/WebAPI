@@ -213,7 +213,7 @@ class KalturaProvider(MediaProvider):
         result = {}
         return result
     
-    def organizeParentMedia(mediaList):
+    def organizeParentMedia(self, mediaList):
         result = [m for m in mediaList if m.parentEntryId == '']
         return result
         
@@ -224,19 +224,22 @@ class KalturaProvider(MediaProvider):
         # We try a playlist first
         print('getPlaylistItems' + str(request))
         start_time = perf_counter()
+        result = []
         try:
-            res = []
+
             servername, isPlaylist, id = self.extractKalturalChannelPlaylistResource(
                 request)
             partnerInfo = self.getPartnerInfo(servername)
 
             print(f"server={servername},partner= {partnerInfo}, playlist={isPlaylist},id={id}")
 
-            res = self.getMediaInfosForKalturaPlaylist(partnerInfo, id) if isPlaylist else \
+            resInitial = self.getMediaInfosForKalturaPlaylist(partnerInfo, id) if isPlaylist else \
                 self.getMediaInfosForKalturaChannel(partnerInfo, id)
-            res = organizeParentMedia(res)
-            print(f'Found {len(res)} items')
-            result = json.dumps(res)
+
+            resFiltered = self.organizeParentMedia(resInitial)
+            print(f'Found {len(resFiltered)} items ({len(resInitial)} before filtering)')
+            result = json.dumps(resFiltered)
+            
         except InvalidPlaylistInfoException as e:
             print(f"getPlaylistItems({request}) Exception:{e}")
             raise e
