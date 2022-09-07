@@ -230,7 +230,7 @@ namespace ClassTranscribeDatabase
             builder.Entity<Video>().Property(m => m.SceneData).HasJsonValueConversion();
             builder.Entity<Video>().Property(m => m.JsonMetadata).HasJsonValueConversion();
             builder.Entity<Video>().Property(m => m.FileMediaInfo).HasJsonValueConversion();
-            builder.Entity<Video>().Property(m => m.Glossary).HasJsonValueConversion(); // 831
+            builder.Entity<Video>().Property(m => m.Glossary).HasJsonValueConversion();
             builder.Entity<Offering>().Property(m => m.JsonMetadata).HasJsonValueConversion();
             builder.Entity<WatchHistory>().Property(m => m.Json).HasJsonValueConversion();
             builder.Entity<Message>().Property(m => m.Payload).HasJsonValueConversion();

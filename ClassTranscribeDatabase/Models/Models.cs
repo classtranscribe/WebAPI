@@ -341,7 +341,7 @@ namespace ClassTranscribeDatabase.Models
         public virtual JObject FileMediaInfo { get; set; } = new JObject();
 
         [Required]
-        public JObject Glossary { get; set; } = new JObject(); // 831
+        public JObject Glossary { get; set; } = new JObject();
 
 
         public virtual void UpdateMediaProperties()
