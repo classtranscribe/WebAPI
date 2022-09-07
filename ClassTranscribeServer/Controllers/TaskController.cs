@@ -50,7 +50,7 @@ namespace ClassTranscribeServer.Controllers
             await _context.SaveChangesAsync();
             return Ok();
         }
-        
+
         [HttpPost("UpdatePhraseHints")]
         [DisableRequestSizeLimit]
         //Future: [Authorize(Roles = Globals.ROLE_MEDIA_WORKER + "," + Globals.ROLE_ADMIN)]
@@ -64,6 +64,7 @@ namespace ClassTranscribeServer.Controllers
             return Ok();
         }
 
+        /**
         [HttpPost("UpdateGlossary")]
         [DisableRequestSizeLimit]
         //Future: [Authorize(Roles = Globals.ROLE_MEDIA_WORKER + "," + Globals.ROLE_ADMIN)]
@@ -75,5 +76,6 @@ namespace ClassTranscribeServer.Controllers
             await _context.SaveChangesAsync();
             return Ok();
         }
+        **/
     }
 }
