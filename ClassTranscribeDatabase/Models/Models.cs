@@ -342,7 +342,6 @@ namespace ClassTranscribeDatabase.Models
 
         //
 
-
         public virtual void UpdateMediaProperties()
         {
             Duration = null;
