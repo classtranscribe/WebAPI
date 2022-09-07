@@ -50,6 +50,7 @@ namespace ClassTranscribeServer.Controllers
             await _context.SaveChangesAsync();
             return Ok();
         }
+        
         [HttpPost("UpdatePhraseHints")]
         [DisableRequestSizeLimit]
         //Future: [Authorize(Roles = Globals.ROLE_MEDIA_WORKER + "," + Globals.ROLE_ADMIN)]
@@ -60,6 +61,18 @@ namespace ClassTranscribeServer.Controllers
             video.PhraseHints = phraseHints;
             await _context.SaveChangesAsync();
             _wakeDownloader.TranscribeVideo(videoId, false /*deleteExisting*/);
+            return Ok();
+        }
+
+        [HttpPost("UpdateGlossary")]
+        [DisableRequestSizeLimit]
+        //Future: [Authorize(Roles = Globals.ROLE_MEDIA_WORKER + "," + Globals.ROLE_ADMIN)]
+        public async Task<ActionResult> UpdateGlossary(string videoId, JObject glossary)
+        {
+           
+            Video video = await _context.Videos.FindAsync(videoId);
+            video.Glossary = glossary;
+            await _context.SaveChangesAsync();
             return Ok();
         }
     }
