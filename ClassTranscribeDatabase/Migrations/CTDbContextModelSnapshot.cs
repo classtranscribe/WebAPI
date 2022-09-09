@@ -1234,6 +1234,10 @@ namespace ClassTranscribeDatabase.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<string>("Glossary")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<int>("IsDeletedStatus")
                         .HasColumnType("integer");
 
