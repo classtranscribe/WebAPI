@@ -13,7 +13,7 @@ jedi==0.17.0
 KalturaApiClient==18.11.0
 lxml==4.9.1
 
-numpy==1.21.6
+numpy==1.22.0
 #Dependabot suggested 1.22 ; but that's not generally available yet
 
 #opencv-python==4.2.0.34
