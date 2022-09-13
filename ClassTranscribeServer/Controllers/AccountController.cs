@@ -144,8 +144,8 @@ namespace ClassTranscribeServer.Controllers
             return Ok(loggedInDTO);
         }
 
-        [HttpGet]
-        public async Task<ActionResult<LoggedInDTO>> MediaWorkerSignIn(string access)
+        [HttpPost]
+        public async Task<ActionResult<LoggedInDTO>> MediaWorkerSignIn([FromBody] string access)
         {
             try
             {
