@@ -42,7 +42,7 @@ namespace ClassTranscribeServer.Controllers
         [HttpPost("UpdateSceneData")]
         [DisableRequestSizeLimit]
         //Future: [Authorize(Roles = Globals.ROLE_MEDIA_WORKER + "," + Globals.ROLE_ADMIN)]
-        public async Task<ActionResult> UpdateSceneData(string videoId, JObject scene)
+        public async Task<ActionResult> UpdateSceneData(string videoId,  JObject scene)
         {
             
             Video video = await _context.Videos.FindAsync(videoId);
@@ -50,14 +50,20 @@ namespace ClassTranscribeServer.Controllers
             await _context.SaveChangesAsync();
             return Ok();
         }
+
+        public class PhraseHintsDTO
+        {
+            public string PhraseHints { get; set; }
+        }
+
         [HttpPost("UpdatePhraseHints")]
         [DisableRequestSizeLimit]
         //Future: [Authorize(Roles = Globals.ROLE_MEDIA_WORKER + "," + Globals.ROLE_ADMIN)]
-        public async Task<ActionResult> UpdateSceneData(string videoId, string phraseHints)
+        public async Task<ActionResult> UpdatePhraseHints(string videoId, PhraseHintsDTO phraseHintsDTO)
         {
            
             Video video = await _context.Videos.FindAsync(videoId);
-            video.PhraseHints = phraseHints;
+            video.PhraseHints = phraseHintsDTO.PhraseHints;
             await _context.SaveChangesAsync();
             _wakeDownloader.TranscribeVideo(videoId, false /*deleteExisting*/);
             return Ok();

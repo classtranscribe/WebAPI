@@ -144,11 +144,17 @@ namespace ClassTranscribeServer.Controllers
             return Ok(loggedInDTO);
         }
 
-        [HttpGet]
-        public async Task<ActionResult<LoggedInDTO>> MediaWorkerSignIn(string access)
+        public class MediaWorkerLoginDTO
+        {
+            public string Access { get; set; }
+        }
+
+        [HttpPost]
+        public async Task<ActionResult<LoggedInDTO>> MediaWorkerSignIn(MediaWorkerLoginDTO accessDTO)
         {
             try
             {
+                string access = accessDTO.Access;
                 if (! string.IsNullOrEmpty(Globals.appSettings.MEDIA_WORKER_SHARED_SECRET) && Globals.appSettings.MEDIA_WORKER_SHARED_SECRET == access)
                 {
                     ApplicationUser user = await _userManager.FindByEmailAsync(Globals.MEDIA_WORKER_EMAIL);
@@ -202,7 +208,7 @@ namespace ClassTranscribeServer.Controllers
                 return BadRequest();
             }
         }
-
+        
         [HttpPost]
         public async Task<ActionResult<LoggedInDTO>> LTISignIn(string sharedsecret, string email, string? first, string? last) {
             _logger.LogInformation("LTISignIn for {0}: starting", email);
