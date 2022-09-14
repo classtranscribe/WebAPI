@@ -7,19 +7,19 @@ RUN apt-get install -y curl gcc g++ make libglib2.0-0 libsm6 libxext6 libxrender
 
 # Build stuff for tesseract
 # Based on https://medium.com/quantrium-tech/installing-tesseract-4-on-ubuntu-18-04-b6fcd0cbd78f
-RUN apt-get install -y automake pkg-config libsdl-pango-dev libicu-dev libcairo2-dev bc libleptonica-dev
-RUN  curl -L  https://github.com/tesseract-ocr/tesseract/archive/refs/tags/4.1.1.tar.gz  | tar xvz
+#RUN apt-get install -y automake pkg-config libsdl-pango-dev libicu-dev libcairo2-dev bc libleptonica-dev
+#RUN  curl -L  https://github.com/tesseract-ocr/tesseract/archive/refs/tags/4.1.1.tar.gz  | tar xvz
 
-WORKDIR /tesseract-4.1.1
-RUN ./autogen.sh && ./configure && make -j && make install && ldconfig 
+#WORKDIR /tesseract-4.1.1
+#RUN ./autogen.sh && ./configure && make -j && make install && ldconfig 
 # Slow! The above line takes 435 seconds on my laptop
-RUN make training && make training-install
+#RUN make training && make training-install
 # The above line takes 59 seconds on my laptop 
 
-RUN curl -L -o tessdata/eng.traineddata https://github.com/tesseract-ocr/tessdata/raw/main/eng.traineddata
-RUN curl -L -o tessdata/osd.traineddata https://github.com/tesseract-ocr/tessdata/raw/main/osd.traineddata
+# RUN curl -L -o tessdata/eng.traineddata https://github.com/tesseract-ocr/tessdata/raw/main/eng.traineddata
+# RUN curl -L -o tessdata/osd.traineddata https://github.com/tesseract-ocr/tessdata/raw/main/osd.traineddata
 
-ENV TESSDATA_PREFIX=/tesseract-4.1.1/tessdata
+# ENV TESSDATA_PREFIX=/tesseract-4.1.1/tessdata
 #Disable multi-threading
 ENV OMP_THREAD_LIMIT=1
 
