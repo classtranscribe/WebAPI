@@ -120,7 +120,7 @@ namespace TaskEngine.Tasks
 
                 video.TranscribingAttempts += 10;
                 await _context.SaveChangesAsync();
-
+                GetLogger().LogInformation($"{videoId}: Updated TranscribingAttempts = {video.TranscribingAttempts}");
                 try
                 {
                     // create Dictionary and pass it to the recognition function
@@ -169,8 +169,10 @@ namespace TaskEngine.Tasks
                     //    lastSuccessTime = TimeSpan.Parse(video.JsonMetadata["LastSuccessfulTime"].ToString());
                     //}
 
-
+                    GetLogger().LogInformation($"{videoId}: Calling RecognitionWithVideoStreamAsync");
                     var result = await _msTranscriptionService.RecognitionWithVideoStreamAsync(videoId, video.Video1, key, captionsMap, sourceLanguage, phraseHints, startAfterMap);
+
+                    GetLogger().LogInformation($"{videoId}: Finished RecognitionWithVideoStreamAsync - Releasing Key");
 
                     TaskEngineGlobals.KeyProvider.ReleaseKey(key, video.Id);
 
@@ -211,7 +213,7 @@ namespace TaskEngine.Tasks
                     video.TranscriptionStatus = result.ErrorCode;
                     video.JsonMetadata["LastSuccessfulTime"] = result.LastSuccessTime.ToString();
 
-
+                    GetLogger().LogInformation($"{videoId}: Saving captions Code={result.ErrorCode}. LastSuccessTime={result.LastSuccessTime}"); 
                     await _context.SaveChangesAsync();
                     // we now do the scene detection first because we want to complete the OCR and phrase list
                     //Not any more xxx_sceneDetectionTask.xxxPublish(video.Id);
