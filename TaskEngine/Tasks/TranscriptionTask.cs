@@ -131,7 +131,7 @@ namespace TaskEngine.Tasks
                     var sourceLanguage = String.IsNullOrWhiteSpace(Globals.appSettings.SPEECH_RECOGNITION_DIALECT) ?
                         Languages.ENGLISH_AMERICAN : Globals.appSettings.SPEECH_RECOGNITION_DIALECT.Trim();
 
-                    var translations = new List<string> { Languages.ENGLISH_AMERICAN };//, Languages.SIMPLIFIED_CHINESE, Languages.KOREAN, Languages.SPANISH, Languages.FRENCH };
+                    var translations = new List<string> { Languages.ENGLISH_AMERICAN, Languages.SIMPLIFIED_CHINESE, Languages.KOREAN, Languages.SPANISH, Languages.FRENCH };
                     if (!String.IsNullOrWhiteSpace(Globals.appSettings.LANGUAGE_TRANSLATIONS))
                     {
                         translations = Globals.appSettings.LANGUAGE_TRANSLATIONS.Split(',').ToList();
