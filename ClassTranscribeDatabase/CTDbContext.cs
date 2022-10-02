@@ -60,8 +60,8 @@ namespace ClassTranscribeDatabase
         public DbSet<TaskItem> TaskItems { get; set; }
         public DbSet<Image> Images { get; set; }
         public DbSet<Glossary> Glossaries { get; set; } 
-        public DbSet<ASLVideo> ASLVideos { get; set; } // 929
-        public DbSet<ASLVideoGlossaryMap> ASLVideoGlossaryMaps { get; set; } // 929
+        public DbSet<ASLVideo> ASLVideos { get; set; }
+        public DbSet<ASLVideoGlossaryMap> ASLVideoGlossaryMaps { get; set; }
 
         /// <summary>
         /// This method builds a connectionstring to connect with the database.
@@ -184,8 +184,8 @@ namespace ClassTranscribeDatabase
             builder.Entity<TaskItem>().HasQueryFilter(m => m.IsDeletedStatus == Status.Active);
             builder.Entity<Image>().HasQueryFilter(m => m.IsDeletedStatus == Status.Active);
             builder.Entity<Glossary>().HasQueryFilter(m => m.IsDeletedStatus == Status.Active);
-            builder.Entity<ASLVideo>().HasQueryFilter(m => m.IsDeletedStatus == Status.Active); // 929
-            builder.Entity<ASLVideoGlossaryMap>().HasQueryFilter(m => m.IsDeletedStatus == Status.Active); // 929
+            builder.Entity<ASLVideo>().HasQueryFilter(m => m.IsDeletedStatus == Status.Active);
+            builder.Entity<ASLVideoGlossaryMap>().HasQueryFilter(m => m.IsDeletedStatus == Status.Active);
 
             // Configure m-to-n relationships.
             builder.Entity<CourseOffering>()
@@ -223,7 +223,7 @@ namespace ClassTranscribeDatabase
                 .WithMany(p => p.Glossaries)
                 .HasForeignKey(pt => new { pt.CourseId, pt.OfferingId });
             
-            builder.Entity<ASLVideo>() // 929
+            builder.Entity<ASLVideo>()
                 .HasOne(pt => pt.CourseOffering)
                 .WithMany(p => p.ASLVideos)
                 .HasForeignKey(pt => new { pt.CourseId, pt.OfferingId });

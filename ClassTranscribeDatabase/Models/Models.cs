@@ -344,7 +344,7 @@ namespace ClassTranscribeDatabase.Models
         public JObject Glossary { get; set; } = new JObject();
 
         [Required]
-        public JObject ASLVideo { get; set; } = new JObject(); // 929
+        public JObject ASLVideo { get; set; } = new JObject();
 
 
         public virtual void UpdateMediaProperties()
@@ -416,7 +416,7 @@ namespace ClassTranscribeDatabase.Models
 
         [SwaggerIgnore]
         [IgnoreDataMember]
-        public virtual List<ASLVideo> ASLVideos { get; set; } // 929
+        public virtual List<ASLVideo> ASLVideos { get; set; }
     }
 
     public class UserOffering : Entity
@@ -490,8 +490,8 @@ namespace ClassTranscribeDatabase.Models
         public string LicenseTag { get; set; }
         public bool Shared { get; set; }
         public bool Editable { get; set; }
-        public string Domain { get; set; } // 929
-        public int Likes { get; set; } // 929
+        public string Domain { get; set; }
+        public int Likes { get; set; }
 
         public string CourseId { get; set; }
         public string OfferingId { get; set; }
@@ -502,7 +502,7 @@ namespace ClassTranscribeDatabase.Models
         
     }
 
-    public class ASLVideo : Entity // 929
+    public class ASLVideo : Entity
     {
         public string Term { get; set; }
         public int Kind { get; set; }
@@ -522,7 +522,7 @@ namespace ClassTranscribeDatabase.Models
         public virtual CourseOffering CourseOffering { get; set; }
     }
 
-    public class ASLVideoGlossaryMap : Entity // 929
+    public class ASLVideoGlossaryMap : Entity 
     {
         public string GlossaryId { get; set; }
         public string ASLVideoId { get; set; }
