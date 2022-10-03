@@ -60,6 +60,8 @@ namespace ClassTranscribeDatabase
         public DbSet<TaskItem> TaskItems { get; set; }
         public DbSet<Image> Images { get; set; }
         public DbSet<Glossary> Glossaries { get; set; } 
+        public DbSet<ASLVideo> ASLVideos { get; set; }
+        public DbSet<ASLVideoGlossaryMap> ASLVideoGlossaryMaps { get; set; }
 
         /// <summary>
         /// This method builds a connectionstring to connect with the database.
@@ -182,6 +184,8 @@ namespace ClassTranscribeDatabase
             builder.Entity<TaskItem>().HasQueryFilter(m => m.IsDeletedStatus == Status.Active);
             builder.Entity<Image>().HasQueryFilter(m => m.IsDeletedStatus == Status.Active);
             builder.Entity<Glossary>().HasQueryFilter(m => m.IsDeletedStatus == Status.Active);
+            builder.Entity<ASLVideo>().HasQueryFilter(m => m.IsDeletedStatus == Status.Active);
+            builder.Entity<ASLVideoGlossaryMap>().HasQueryFilter(m => m.IsDeletedStatus == Status.Active);
 
             // Configure m-to-n relationships.
             builder.Entity<CourseOffering>()
@@ -218,6 +222,11 @@ namespace ClassTranscribeDatabase
                 .HasOne(pt => pt.CourseOffering)
                 .WithMany(p => p.Glossaries)
                 .HasForeignKey(pt => new { pt.CourseId, pt.OfferingId });
+            
+            builder.Entity<ASLVideo>()
+                .HasOne(pt => pt.CourseOffering)
+                .WithMany(p => p.ASLVideos)
+                .HasForeignKey(pt => new { pt.CourseId, pt.OfferingId });
 
 
             // Configure Entities which have a JObject.
@@ -230,7 +239,8 @@ namespace ClassTranscribeDatabase
             builder.Entity<Video>().Property(m => m.SceneData).HasJsonValueConversion();
             builder.Entity<Video>().Property(m => m.JsonMetadata).HasJsonValueConversion();
             builder.Entity<Video>().Property(m => m.FileMediaInfo).HasJsonValueConversion();
-            builder.Entity<Video>().Property(m => m.Glossary).HasJsonValueConversion(); // 831
+            builder.Entity<Video>().Property(m => m.Glossary).HasJsonValueConversion();
+            builder.Entity<Video>().Property(m => m.ASLVideo).HasJsonValueConversion();
             builder.Entity<Offering>().Property(m => m.JsonMetadata).HasJsonValueConversion();
             builder.Entity<WatchHistory>().Property(m => m.Json).HasJsonValueConversion();
             builder.Entity<Message>().Property(m => m.Payload).HasJsonValueConversion();

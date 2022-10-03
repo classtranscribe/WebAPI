@@ -11,12 +11,22 @@ namespace ClassTranscribeDatabase.Migrations
                 table: "Videos",
                 nullable: false,
                 defaultValue: "");
+            
+            migrationBuilder.AddColumn<string>(
+                name: "ASLVideo",
+                table: "Videos",
+                nullable: false,
+                defaultValue: "");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropColumn(
                 name: "Glossary",
+                table: "Videos");
+            
+            migrationBuilder.DropColumn(
+                name: "ASLVideo",
                 table: "Videos");
         }
     }
