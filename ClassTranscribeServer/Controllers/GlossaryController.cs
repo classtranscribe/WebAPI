@@ -12,85 +12,126 @@ namespace ClassTranscribeServer.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class AWordController : BaseController
+    public class GlossaryController : BaseController
     {
-        private readonly WakeDownloader _wakeDownloader;
-        private readonly IAuthorizationService _authorizationService;
+        public GlossaryController(CTDbContext context, ILogger<GlossaryController> logger) : base(context, logger) { }
 
-        public AWordController(IAuthorizationService authorizationService, WakeDownloader wakeDownloader,
-            CTDbContext context, ILogger<AWordController> logger) : base(context, logger)
+        // GET: api/Glossaries/3
+        [HttpGet("{id}")]
+        public async Task<ActionResult<Glossary>> GetGlossary(string id)
         {
-            _authorizationService = authorizationService;
-            _wakeDownloader = wakeDownloader;
-        }
 
+            var glossary = await _context.Glossaries.FindAsync(id);
 
-        //[HttpGet("aId}")]
-        //public async Task<ActionResult<IEnumerable<Adictionary>>> GetAdictionaries(string aId)
-        //{
-        //    return await _context.Adictionaries.Where(c => c.id == aId).OrderBy(c => c.id).ToListAsync();
-        //}
-
-        //[HttpGet("{ID}")]
-        //public Adictionary Get(string ID)
-        //{
-        //    return _context.Adictionaries.FirstOrDefault(e => e.Id == ID);
-        //}
-
-
-
-        [HttpGet("{Inword}")]
-        public async Task<ActionResult<Adictionary>> GetAdictionary(string Inword)
-        {
-            //Adictionary adictionary = await _context.Adictionaries.FindAsync(Id);
-
-            //if (adictionary == null)
-            //{
-            //    return NotFound();
-            //}
-
-            //return adictionary;
-
-            var adictionaries = await _context .Adictionaries.Where(c => c.Inword == Inword)
-            .ToListAsync();
-            if (adictionaries == null || adictionaries.Count == 0)
+            if (glossary == null)
             {
                 return NotFound();
             }
-            else
-            {
-                return adictionaries.First();
-            }
+
+            return glossary;
         }
 
+        // POST: api/Glossaries
+        [HttpPost]
+        // [Authorize(Roles = Globals.ROLE_ADMIN)]
+        public async Task<ActionResult<Glossary>> PostGlossary(Glossary glossary)
+        {
+            if (glossary == null)
+            {
+                return BadRequest();
+            }
 
-        //[HttpGet("{inWord}")]
-        //public ActionResult<Adictionary> GetWord(string inWord)
-        //{
+            _context.Glossaries.Add(glossary);
+            await _context.SaveChangesAsync();
 
-        //    var adictionary = new Adictionary();
-        //    adictionary.inWord = inWord;
-        //    adictionary.outWord = "out";
-        //    if (adictionary == null)
-        //    {
-        //        return NotFound();
-        //    }
+            return CreatedAtAction("GetGlossary", new { id = glossary.Id }, glossary);
+        }
 
-        //    return adictionary;
-        //}
+        // DELETE: api/Glossaries/3
+        [HttpDelete("{id}")]
+        // [Authorize(Roles = Globals.ROLE_ADMIN)]
+        public async Task<ActionResult<Glossary>> DeleteGlossary(string id)
+        {
+            var glossary = await _context.Glossaries.FindAsync(id);
+            if (glossary == null)
+            {
+                return NotFound();
+            }
 
+            _context.Glossaries.Remove(glossary);
+            await _context.SaveChangesAsync();
 
-        /// <summary> 
-        /// Enqueue DownloadAllPlaylists task, which updates all playlists for all terms where start date is within 6 months of today.
-        /// 
+            return glossary;
+        }
+
+        // PUT: api/Glossaries/3
+        [HttpPut("{id}")]
+        // [Authorize(Roles = Globals.ROLE_ADMIN)]
+        public async Task<IActionResult> PutGlossary(string id, Glossary glossary)
+        {
+            if (glossary == null || id == null || id != glossary.Id)
+            {
+                return BadRequest();
+            }
+
+            _context.Entry(glossary).State = EntityState.Modified;
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!GlossaryExists(id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+
+            return Ok();
+        }
+
+        /// <summary>
+        /// Gets all glossaries for a term from an CourseOffering
         /// </summary>
-        /// <remarks> 
-        /// Each playlist update is a separate task. Requesting an update is harmless though
-        /// be aware that some external sources (e.g. Youtube) limit API usage.
-        /// See QueueAwakerTask.DownloadAllPlaylists, DownloadPlaylistInfoTask for details
-        /// This API call is just for the impatient because the PeriodicCheck task also updates 
-        /// all playlists and (unlike this API function) also performs a PendingJobs task to kick off transcriptions.
-        /// </remarks>
+        [HttpGet("ByTerm/{term}")]
+        public async Task<ActionResult<IEnumerable<Glossary>>> GetAllGlossaryByTerm(string term, string courseId, string offeringId) 
+        {
 
+            var glossaries = await _context.Glossaries.Where(c => c.CourseId == courseId && c.OfferingId == offeringId && c.Term == term).OrderBy(c => c.Id).ToListAsync();
+        
+            if (glossaries == null)
+            {
+                return NotFound();
+            }
+
+            return glossaries;
+        }
+
+        /// <summary>
+        /// Gets all glossaries from an CourseOffering
+        /// </summary>
+        [HttpGet("ByCourseOffering")]
+        public async Task<ActionResult<IEnumerable<Glossary>>> GetAllGlossaryByCourseOffering(string courseId, string offeringId) 
+        {
+
+            var glossaries = await _context.Glossaries.Where(c => c.CourseId == courseId && c.OfferingId == offeringId).OrderBy(c => c.Id).ToListAsync();
+        
+            if (glossaries == null)
+            {
+                return NotFound();
+            }
+
+            return glossaries;
+        }
+
+        private bool GlossaryExists(string id)
+        {
+            return _context.Glossaries.Any(e => e.Id == id);
+        }
     }
 }
