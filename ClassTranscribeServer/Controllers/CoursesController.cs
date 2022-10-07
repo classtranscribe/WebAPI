@@ -17,6 +17,15 @@ namespace ClassTranscribeServer.Controllers
         public CoursesController(CTDbContext context, ILogger<CoursesController> logger) : base(context, logger) { }
 
         /// <summary>
+        /// Gets all Courses
+        /// </summary>
+        [HttpGet("")]
+        public async Task<ActionResult<IEnumerable<Course>>> GetAllCourses()
+        {
+            return await _context.Courses.OrderBy(c => c.CourseNumber).ToListAsync();
+        }
+        
+        /// <summary>
         /// Gets all Courses for departmentId
         /// </summary>
         [HttpGet("ByDepartment/{departmentId}")]

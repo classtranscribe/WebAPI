@@ -34,6 +34,46 @@ namespace ClassTranscribeServer.Controllers
 
         // GET: api/Playlists
         /// <summary>
+        /// Gets the Playlist for videoId
+        /// </summary>
+        [HttpGet("ByVideo/{videoId}")]
+        public async Task<ActionResult<PlaylistDTO>> GetPlaylistsByVideoId(string videoId)
+        {
+            var video = await _context.Videos.FindAsync(videoId);
+            if (video == null)
+            {
+                return BadRequest();
+            }
+
+            var medias = await _context.Medias
+                .Where(p => p.VideoId == videoId)
+                .OrderBy(p => p.CreatedAt).ToListAsync();
+            
+            if (medias == null)
+            {
+                return BadRequest();
+            }
+
+            var temp = await _context.Playlists
+                .Where(p => p.Id == medias.FirstOrDefault().PlaylistId)
+                .OrderBy(p => p.Index)
+                .ThenBy(p => p.CreatedAt).ToListAsync();
+            var playlist = temp.Select(p => new PlaylistDTO
+            {
+                Id = p.Id,
+                CreatedAt = p.CreatedAt,
+                SourceType = p.SourceType,
+                OfferingId = p.OfferingId,
+                Name = p.Name,
+                Index = p.Index,
+                PlaylistIdentifier = p.PlaylistIdentifier,
+                PublishStatus = p.PublishStatus
+            }).ToList().FirstOrDefault();
+            return playlist;
+        }
+
+        // GET: api/Playlists
+        /// <summary>
         /// Gets all Playlists for offeringId
         /// </summary>
         [HttpGet("ByOffering/{offeringId}")]

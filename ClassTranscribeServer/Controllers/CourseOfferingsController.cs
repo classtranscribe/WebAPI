@@ -23,6 +23,57 @@ namespace ClassTranscribeServer.Controllers
 
         // GET: api/Courses/
         /// <summary>
+        /// Gets FirstOrDefault Course by Offering
+        /// </summary>
+        [HttpGet("ByOffering/{offeringId}")]
+        public async Task<ActionResult<CourseOfferingDTO>> GetCourseOfferingsByOfferingId(string offeringId) 
+        {
+            var courseOfferings = await _context.CourseOfferings
+                .Where(co => co.OfferingId == offeringId).ToListAsync();
+            
+            var newCourseOfferingDTO = courseOfferings.Select(p => new CourseOfferingDTO
+            {
+                Id = p.CourseId
+
+            }).ToList().FirstOrDefault();
+            return newCourseOfferingDTO;
+        }
+
+        // GET: api/Courses/
+        /// <summary>
+        /// Gets all courses with their offered terms
+        /// </summary>
+        [HttpGet("")]
+        public async Task<ActionResult<IEnumerable<CourseOfferingDTO>>> GetCourseOfferings() 
+        {
+            var courseOfferings = await _context.CourseOfferings.ToListAsync();
+            
+            return courseOfferings.GroupBy(co => co.CourseId, co => co.Offering).Select(p => new CourseOfferingDTO
+            {
+                Id = p.Key,
+                Offerings = p.ToList()
+            }).ToList();
+        }
+
+        // GET: api/Courses/
+        /// <summary>
+        /// Gets all Offerings per CourseID
+        /// </summary>
+        [HttpGet("ByCourse/{courseId}")]
+        public async Task<ActionResult<CourseOfferingDTO>> GetCourseOfferingsByCourse(string courseId) 
+        {
+            var courseOfferings = await _context.CourseOfferings
+                .Where(co => co.CourseId == courseId).ToListAsync();
+            
+            return courseOfferings.GroupBy(co => co.CourseId, co => co.Offering).Select(p => new CourseOfferingDTO
+            {
+                Id = p.Key,
+                Offerings = p.ToList()
+            }).ToList().FirstOrDefault();
+        }
+
+        // GET: api/Courses/
+        /// <summary>
         /// Gets all Offerings per Course per Instructor
         /// </summary>
         [HttpGet("ByInstructor/{userId}")]
@@ -110,6 +161,7 @@ namespace ClassTranscribeServer.Controllers
 
         public class CourseOfferingDTO
         {
+            public string Id { get; set; }
             public Course Course { get; set; }
             public List<Offering> Offerings { get; set; }
         }
