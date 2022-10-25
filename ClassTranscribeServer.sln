@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.28902.138
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClassTranscribeServer", "ClassTranscribeServer\ClassTranscribeServer.csproj", "{E4C52518-A6B4-42B0-8A02-DC1BFBE9CD89}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ClassTranscribeServer", "ClassTranscribeServer\ClassTranscribeServer.csproj", "{E4C52518-A6B4-42B0-8A02-DC1BFBE9CD89}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClassTranscribeDatabase", "ClassTranscribeDatabase\ClassTranscribeDatabase.csproj", "{C628B570-E8F8-4CEC-B75B-E2F9C3D0CE42}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ClassTranscribeDatabase", "ClassTranscribeDatabase\ClassTranscribeDatabase.csproj", "{C628B570-E8F8-4CEC-B75B-E2F9C3D0CE42}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TaskEngine", "TaskEngine\TaskEngine.csproj", "{F41D8DB4-4E5F-4F94-A909-A3978D85657A}"
 EndProject
@@ -20,7 +20,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DevExperiments", "DevExperiments\DevExperiments.csproj", "{7D7B3A3B-FFFD-400F-9121-9AC3EF4EE421}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnitTests", "UnitTests\UnitTests.csproj", "{E944DD15-8FC0-481D-8B79-ACC0D092296E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UnitTests", "UnitTests\UnitTests.csproj", "{E944DD15-8FC0-481D-8B79-ACC0D092296E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestAzureCognitiveServices", "TestAzureCognitiveServices\TestAzureCognitiveServices.csproj", "{DA560288-98FC-4233-8CD5-252F8570CBFB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -48,6 +50,10 @@ Global
 		{E944DD15-8FC0-481D-8B79-ACC0D092296E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E944DD15-8FC0-481D-8B79-ACC0D092296E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E944DD15-8FC0-481D-8B79-ACC0D092296E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DA560288-98FC-4233-8CD5-252F8570CBFB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DA560288-98FC-4233-8CD5-252F8570CBFB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DA560288-98FC-4233-8CD5-252F8570CBFB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DA560288-98FC-4233-8CD5-252F8570CBFB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
