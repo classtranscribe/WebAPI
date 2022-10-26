@@ -149,9 +149,14 @@ namespace TaskEngine
             QueueAwakerTask queueAwakerTask = serviceProvider.GetService<QueueAwakerTask>();
 
             int periodicCheck = Math.Max(1,Convert.ToInt32(Globals.appSettings.PERIODIC_CHECK_EVERY_MINUTES));
+             _logger.LogInformation("Periodic Check Every {0} minutes", periodicCheck);
             
-            _logger.LogInformation("Periodic Check Every {0} minutes", periodicCheck);
             var timeInterval = new TimeSpan(0, periodicCheck, 0);
+            
+            var initialPauseInterval = new TimeSpan(0, 2, 0);
+            _logger.LogInformation("Pausing {0} minutes before first periodicCheck", initialPauseInterval);
+            
+            Thread.Sleep(initialPauseInterval);
 
             // Check for new tasks every "timeInterval".
             // The periodic check will discover all undone tasks

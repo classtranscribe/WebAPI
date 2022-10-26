@@ -97,9 +97,10 @@ namespace ClassTranscribeDatabase.Services.MSTranscription
             try
             {
 
+                _logger.LogInformation($"{logId}:createSpeechTranslationConfig");
                 SpeechTranslationConfig speechConfig = createSpeechTranslationConfig(logId, key, sourceLanguage, outputLanguages);
 
-
+                _logger.LogInformation($"{logId}:performRecognitionAsync ...");
                 var result = await performRecognitionAsync(logId, trimmedAudioFile.FilePath, speechConfig, restartOffset,
                     sourceLanguage, captions, phraseHints, startAfterMap);
 
@@ -108,6 +109,7 @@ namespace ClassTranscribeDatabase.Services.MSTranscription
             }
             finally
             {
+                _logger.LogInformation($"{logId}:QuietDelete ({trimmedAudioFile.FilePath})");
                 QuietDelete(trimmedAudioFile.FilePath);
             }
 
@@ -120,7 +122,7 @@ namespace ClassTranscribeDatabase.Services.MSTranscription
             {
                 var logOnce = new HashSet<string>();
                 var stopRecognition = new TaskCompletionSource<int>();
-                bool verboseLogging = false;
+                bool verboseLogging = true;
                 TimeSpan lastSuccessfulTime = TimeSpan.Zero;
                 string errorCode = "";
                 var phrasesHintUsedCount = 0;

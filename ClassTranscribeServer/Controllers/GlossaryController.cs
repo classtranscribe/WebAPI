@@ -33,7 +33,7 @@ namespace ClassTranscribeServer.Controllers
 
         // POST: api/Glossaries
         [HttpPost]
-        [Authorize(Roles = Globals.ROLE_ADMIN)]
+        // [Authorize(Roles = Globals.ROLE_ADMIN)]
         public async Task<ActionResult<Glossary>> PostGlossary(Glossary glossary)
         {
             if (glossary == null)
@@ -49,7 +49,7 @@ namespace ClassTranscribeServer.Controllers
 
         // DELETE: api/Glossaries/3
         [HttpDelete("{id}")]
-        [Authorize(Roles = Globals.ROLE_ADMIN)]
+        // [Authorize(Roles = Globals.ROLE_ADMIN)]
         public async Task<ActionResult<Glossary>> DeleteGlossary(string id)
         {
             var glossary = await _context.Glossaries.FindAsync(id);
@@ -66,7 +66,7 @@ namespace ClassTranscribeServer.Controllers
 
         // PUT: api/Glossaries/3
         [HttpPut("{id}")]
-        [Authorize(Roles = Globals.ROLE_ADMIN)]
+        // [Authorize(Roles = Globals.ROLE_ADMIN)]
         public async Task<IActionResult> PutGlossary(string id, Glossary glossary)
         {
             if (glossary == null || id == null || id != glossary.Id)
@@ -92,7 +92,41 @@ namespace ClassTranscribeServer.Controllers
                 }
             }
 
-            return NoContent();
+            return Ok();
+        }
+
+        /// <summary>
+        /// Gets all glossaries for a term from an CourseOffering
+        /// </summary>
+        [HttpGet("ByTerm/{term}")]
+        public async Task<ActionResult<IEnumerable<Glossary>>> GetAllGlossaryByTerm(string term, string courseId, string offeringId) 
+        {
+
+            var glossaries = await _context.Glossaries.Where(c => c.CourseId == courseId && c.OfferingId == offeringId && c.Term == term).OrderBy(c => c.Id).ToListAsync();
+        
+            if (glossaries == null)
+            {
+                return NotFound();
+            }
+
+            return glossaries;
+        }
+
+        /// <summary>
+        /// Gets all glossaries from an CourseOffering
+        /// </summary>
+        [HttpGet("ByCourseOffering")]
+        public async Task<ActionResult<IEnumerable<Glossary>>> GetAllGlossaryByCourseOffering(string courseId, string offeringId) 
+        {
+
+            var glossaries = await _context.Glossaries.Where(c => c.CourseId == courseId && c.OfferingId == offeringId).OrderBy(c => c.Id).ToListAsync();
+        
+            if (glossaries == null)
+            {
+                return NotFound();
+            }
+
+            return glossaries;
         }
 
         private bool GlossaryExists(string id)

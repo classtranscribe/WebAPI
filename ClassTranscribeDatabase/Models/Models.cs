@@ -341,7 +341,7 @@ namespace ClassTranscribeDatabase.Models
         public virtual JObject FileMediaInfo { get; set; } = new JObject();
 
         [Required]
-        public JObject Glossary { get; set; } = new JObject(); // 831
+        public JObject Glossary { get; set; } = new JObject();
 
 
         public virtual void UpdateMediaProperties()
@@ -410,6 +410,10 @@ namespace ClassTranscribeDatabase.Models
         [SwaggerIgnore]
         [IgnoreDataMember]
         public virtual List<Glossary> Glossaries { get; set; }
+
+        [SwaggerIgnore]
+        [IgnoreDataMember]
+        public virtual List<ASLVideo> ASLVideos { get; set; }
     }
 
     public class UserOffering : Entity
@@ -481,10 +485,10 @@ namespace ClassTranscribeDatabase.Models
         public string Description { get; set; }
         public string Source { get; set; }
         public string LicenseTag { get; set; }
-        public string ASLVideoLink { get; set; }
-        public string ASLSource { get; set; }
         public bool Shared { get; set; }
         public bool Editable { get; set; }
+        public string Domain { get; set; }
+        public int Likes { get; set; }
 
         public string CourseId { get; set; }
         public string OfferingId { get; set; }
@@ -495,6 +499,31 @@ namespace ClassTranscribeDatabase.Models
         
     }
 
+    public class ASLVideo : Entity
+    {
+        public string Term { get; set; }
+        public int Kind { get; set; }
+        public string Text { get; set; }
+        public string Link { get; set; }
+        public string Source { get; set; }
+        public string LicenseTag { get; set; }
+        public bool Shared { get; set; }
+        public bool Editable { get; set; }
+        public string Domain { get; set; }
+        public int Likes { get; set; }
+        public string CourseId { get; set; }
+        public string OfferingId { get; set; }
+
+        [SwaggerIgnore]
+        [IgnoreDataMember]
+        public virtual CourseOffering CourseOffering { get; set; }
+    }
+
+    public class ASLVideoGlossaryMap : Entity 
+    {
+        public string GlossaryId { get; set; }
+        public string ASLVideoId { get; set; }
+    }
 
     public enum ResourceType
     {

@@ -11,6 +11,7 @@ namespace ClassTranscribeDatabase.Migrations
                 table: "Videos",
                 nullable: false,
                 defaultValue: "");
+            
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
@@ -18,6 +19,7 @@ namespace ClassTranscribeDatabase.Migrations
             migrationBuilder.DropColumn(
                 name: "Glossary",
                 table: "Videos");
+            
         }
     }
 }
