@@ -343,9 +343,6 @@ namespace ClassTranscribeDatabase.Models
         [Required]
         public JObject Glossary { get; set; } = new JObject();
 
-        [Required]
-        public JObject ASLVideo { get; set; } = new JObject();
-
 
         public virtual void UpdateMediaProperties()
         {

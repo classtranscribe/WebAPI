@@ -80,17 +80,5 @@ namespace ClassTranscribeServer.Controllers
             await _context.SaveChangesAsync();
             return Ok();
         }
-
-        [HttpPost("UpdateASLVideo")]
-        [DisableRequestSizeLimit]
-        //Future: [Authorize(Roles = Globals.ROLE_MEDIA_WORKER + "," + Globals.ROLE_ADMIN)]
-        public async Task<ActionResult> UpdateASLVideo(string videoId, JObject asl)
-        {
-           
-            Video video = await _context.Videos.FindAsync(videoId);
-            video.ASLVideo = asl;
-            await _context.SaveChangesAsync();
-            return Ok();
-        }
     }
 }
