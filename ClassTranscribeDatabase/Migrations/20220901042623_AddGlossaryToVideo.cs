@@ -12,11 +12,6 @@ namespace ClassTranscribeDatabase.Migrations
                 nullable: false,
                 defaultValue: "");
             
-            migrationBuilder.AddColumn<string>(
-                name: "ASLVideo",
-                table: "Videos",
-                nullable: false,
-                defaultValue: "");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
@@ -25,9 +20,6 @@ namespace ClassTranscribeDatabase.Migrations
                 name: "Glossary",
                 table: "Videos");
             
-            migrationBuilder.DropColumn(
-                name: "ASLVideo",
-                table: "Videos");
         }
     }
 }
