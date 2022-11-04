@@ -35,13 +35,14 @@ namespace TaskEngine
             // This project relies on Dependency Injection to configure its various services,
             // For more info, https://docs.microsoft.com/en-us/aspnet/core/fundamentals/dependency-injection?view=aspnetcore-3.1
             // All the services used are configured using the service provider.
+
             var serviceProvider = new ServiceCollection()
                 .AddLogging(builder =>
                 {
                     builder.AddConsole();
                     builder.AddFilter<Microsoft.Extensions.Logging.ApplicationInsights.ApplicationInsightsLoggerProvider>
                              ("", LogLevel.Warning);
-                    builder.AddApplicationInsights(configuration.GetValue<string>("APPLICATION_INSIGHTS_KEY"));
+                    //builder.AddApplicationInsights(configuration.GetValue<string>("APPLICATION_INSIGHTS_KEY"));
                 })
                 .AddOptions()
                 .Configure<AppSettings>(configuration)
@@ -58,6 +59,7 @@ namespace TaskEngine
                 .AddSingleton<ProcessVideoTask>()
                 .AddSingleton<MSTranscriptionService>()
                 .AddSingleton<SceneDetectionTask>()
+                .AddSingleton<PythonCrawlerTask>()
                 .AddSingleton<UpdateBoxTokenTask>()
                 .AddSingleton<CreateBoxTokenTask>()
                 .AddSingleton<BuildElasticIndexTask>()
@@ -73,7 +75,7 @@ namespace TaskEngine
             _logger = serviceProvider.GetRequiredService<ILogger<Program>>();
 
             Globals.appSettings = serviceProvider.GetService<IOptions<AppSettings>>().Value;
-            TaskEngineGlobals.KeyProvider = new KeyProvider(Globals.appSettings);
+            //TaskEngineGlobals.KeyProvider = new KeyProvider(Globals.appSettings);
 
             AppDomain currentDomain = AppDomain.CurrentDomain;
             currentDomain.UnhandledException += new UnhandledExceptionEventHandler(ExceptionHandler);
@@ -132,6 +134,8 @@ namespace TaskEngine
             serviceProvider.GetService<CleanUpElasticIndexTask>().Consume(NO_CONCURRENCY);
 
             serviceProvider.GetService<ExampleTask>().Consume(NO_CONCURRENCY);
+
+            serviceProvider.GetService<PythonCrawlerTask>().Consume(DISABLED_TASK); 
             
             _logger.LogInformation("Done creating task consumers");
             //nolonger used :
@@ -149,14 +153,9 @@ namespace TaskEngine
             QueueAwakerTask queueAwakerTask = serviceProvider.GetService<QueueAwakerTask>();
 
             int periodicCheck = Math.Max(1,Convert.ToInt32(Globals.appSettings.PERIODIC_CHECK_EVERY_MINUTES));
-             _logger.LogInformation("Periodic Check Every {0} minutes", periodicCheck);
             
+            _logger.LogInformation("Periodic Check Every {0} minutes", periodicCheck);
             var timeInterval = new TimeSpan(0, periodicCheck, 0);
-            
-            var initialPauseInterval = new TimeSpan(0, 2, 0);
-            _logger.LogInformation("Pausing {0} minutes before first periodicCheck", initialPauseInterval);
-            
-            Thread.Sleep(initialPauseInterval);
 
             // Check for new tasks every "timeInterval".
             // The periodic check will discover all undone tasks

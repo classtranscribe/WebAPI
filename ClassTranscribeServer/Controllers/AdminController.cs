@@ -191,6 +191,13 @@ namespace ClassTranscribeServer.Controllers
             return Ok();
         }
 
+        [HttpPost("UpdateASLVideos")]
+        public ActionResult UpdateASL(string sourceId)
+        {
+            _wakeDownloader.UpdateASLVideo(sourceId);
+            return Ok();
+        }
+
         [HttpPost("PeriodicCheck")]
         [Authorize(Roles = Globals.ROLE_ADMIN)]
         public ActionResult PeriodicCheck()
