@@ -156,6 +156,11 @@ namespace TaskEngine
             
             _logger.LogInformation("Periodic Check Every {0} minutes", periodicCheck);
             var timeInterval = new TimeSpan(0, periodicCheck, 0);
+            
+            var initialPauseInterval = new TimeSpan(0, 2, 0);
+            _logger.LogInformation("Pausing {0} minutes before first periodicCheck", initialPauseInterval);
+
+            Thread.Sleep(initialPauseInterval);
 
             // Check for new tasks every "timeInterval".
             // The periodic check will discover all undone tasks
