@@ -59,6 +59,7 @@ namespace TaskEngine
                 .AddSingleton<ProcessVideoTask>()
                 .AddSingleton<MSTranscriptionService>()
                 .AddSingleton<SceneDetectionTask>()
+                .AddSingleton<PythonCrawlerTask>()
                 .AddSingleton<UpdateBoxTokenTask>()
                 .AddSingleton<CreateBoxTokenTask>()
                 .AddSingleton<BuildElasticIndexTask>()
@@ -133,6 +134,8 @@ namespace TaskEngine
             serviceProvider.GetService<CleanUpElasticIndexTask>().Consume(NO_CONCURRENCY);
 
             serviceProvider.GetService<ExampleTask>().Consume(NO_CONCURRENCY);
+
+            serviceProvider.GetService<PythonCrawlerTask>().Consume(DISABLED_TASK); 
             
             _logger.LogInformation("Done creating task consumers");
             //nolonger used :

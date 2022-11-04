@@ -99,6 +99,14 @@ namespace ClassTranscribeServer
             Wake(msg);
         }
 
+        public void UpdateASLVideo(string sourceId)
+        {
+            JObject msg = new JObject();
+            msg.Add("Type", TaskType.PythonCrawler.ToString());
+            msg.Add("SourceId", sourceId);
+            Wake(msg);
+        }
+
         private void Wake(JObject message, TaskParameters taskParameters = null)
         {
             var queueName = TaskType.QueueAwaker.ToString();

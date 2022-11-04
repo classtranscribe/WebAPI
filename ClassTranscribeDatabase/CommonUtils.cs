@@ -32,7 +32,8 @@ namespace ClassTranscribeDatabase
             ReTranscribePlaylist = 15,
             BuildElasticIndex = 16,
             ExampleTask = 17,
-            CleanUpElasticIndex = 18
+            CleanUpElasticIndex = 18,
+            PythonCrawler = 19 
         }
 
         public class Languages

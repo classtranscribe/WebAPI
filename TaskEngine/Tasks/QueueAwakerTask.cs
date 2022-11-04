@@ -24,6 +24,7 @@ namespace TaskEngine.Tasks
         private readonly GenerateVTTFileTask _generateVTTFileTask;
         private readonly ProcessVideoTask _processVideoTask;
         private readonly SceneDetectionTask _sceneDetectionTask;
+        private readonly PythonCrawlerTask _pythonCrawlerTask; 
         private readonly CreateBoxTokenTask _createBoxTokenTask;
         private readonly UpdateBoxTokenTask _updateBoxTokenTask;
         private readonly BuildElasticIndexTask _buildElasticIndexTask;
@@ -37,7 +38,7 @@ namespace TaskEngine.Tasks
             DownloadMediaTask downloadMediaTask,
             TranscriptionTask transcriptionTask, ProcessVideoTask processVideoTask,
             GenerateVTTFileTask generateVTTFileTask, SceneDetectionTask sceneDetectionTask,
-            CreateBoxTokenTask createBoxTokenTask, UpdateBoxTokenTask updateBoxTokenTask,
+            CreateBoxTokenTask createBoxTokenTask, UpdateBoxTokenTask updateBoxTokenTask, PythonCrawlerTask pythonCrawlerTask, 
             BuildElasticIndexTask buildElasticIndexTask, CleanUpElasticIndexTask cleanUpElasticIndexTask,
             ExampleTask exampleTask,
             ILogger<QueueAwakerTask> logger, SlackLogger slackLogger)
@@ -50,6 +51,7 @@ namespace TaskEngine.Tasks
             _generateVTTFileTask = generateVTTFileTask;
             _processVideoTask = processVideoTask;
             _sceneDetectionTask = sceneDetectionTask;
+            _pythonCrawlerTask = pythonCrawlerTask; 
             _createBoxTokenTask = createBoxTokenTask;
             _updateBoxTokenTask = updateBoxTokenTask;
             _buildElasticIndexTask = buildElasticIndexTask;
@@ -357,6 +359,11 @@ namespace TaskEngine.Tasks
 
                     }
 
+                }
+                else if (type == TaskType.PythonCrawler.ToString())
+                {
+                    var sourceId = jObject["SourceId"].ToString();
+                    _pythonCrawlerTask.Publish(sourceId);
                 }
                 else if (type == TaskType.TranscribeVideo.ToString())
                 {
