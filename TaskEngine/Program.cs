@@ -75,7 +75,7 @@ namespace TaskEngine
             _logger = serviceProvider.GetRequiredService<ILogger<Program>>();
 
             Globals.appSettings = serviceProvider.GetService<IOptions<AppSettings>>().Value;
-            //TaskEngineGlobals.KeyProvider = new KeyProvider(Globals.appSettings);
+            TaskEngineGlobals.KeyProvider = new KeyProvider(Globals.appSettings);
 
             AppDomain currentDomain = AppDomain.CurrentDomain;
             currentDomain.UnhandledException += new UnhandledExceptionEventHandler(ExceptionHandler);
