@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 
+
 namespace ClassTranscribeDatabase
 {
     public class CommonUtils
@@ -32,7 +33,8 @@ namespace ClassTranscribeDatabase
             ReTranscribePlaylist = 15,
             BuildElasticIndex = 16,
             ExampleTask = 17,
-            CleanUpElasticIndex = 18
+            CleanUpElasticIndex = 18,
+            PythonCrawler = 19 
         }
 
         public class Languages

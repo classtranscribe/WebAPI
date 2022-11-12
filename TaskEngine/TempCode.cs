@@ -21,6 +21,7 @@ namespace TaskEngine
         private readonly CreateBoxTokenTask _createBoxTokenTask;
         private readonly UpdateBoxTokenTask _updateBoxTokenTask;
         private readonly SceneDetectionTask _sceneDetectionTask;
+        private readonly PythonCrawlerTask _pythonCrawlerTask;
         private readonly ProcessVideoTask _processVideoTask;
         private readonly GenerateVTTFileTask _generateVTTFileTask;
         private readonly TranscriptionTask _transcriptionTask;
@@ -35,7 +36,8 @@ namespace TaskEngine
             SceneDetectionTask ePubGeneratorTask, ProcessVideoTask processVideoTask, GenerateVTTFileTask generateVTTFileTask,
             TranscriptionTask transcriptionTask, ConvertVideoToWavTask convertVideoToWavTask, DownloadMediaTask downloadMediaTask,
             DownloadPlaylistInfoTask downloadPlaylistInfoTask, QueueAwakerTask queueAwakerTask,
-            CleanUpElasticIndexTask cleanUpElasticIndexTask, RpcClient rpcClient)
+            CleanUpElasticIndexTask cleanUpElasticIndexTask, RpcClient rpcClient,
+            PythonCrawlerTask pythonCrawlerTask)
         {
             context = c;
             _createBoxTokenTask = createBoxTokenTask;
@@ -50,6 +52,7 @@ namespace TaskEngine
             _queueAwakerTask = queueAwakerTask;
             _rpcClient = rpcClient;
             _cleanUpElasticIndexTask = cleanUpElasticIndexTask;
+            _pythonCrawlerTask = pythonCrawlerTask;
         }
 
         public void CleanUpInvalidVideos()
