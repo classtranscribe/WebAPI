@@ -213,21 +213,21 @@ class KalturaProvider(MediaProvider):
         result = {}
         return result
     
-def organizeParentMedia(self, mediaList):
-    validMedia = [ m for m in mediaList if m.get('duration') >0]
-    mapping = {}
-    for m in validMedia:
-         if len(m.get('parentEntryId')) > 0:
-            mapping[  m.get('parentEntryId') ] = m
+    def organizeParentMedia(self, mediaList):
+        validMedia = [ m for m in mediaList if m.get('duration') >0]
+        mapping = {}
+        for m in validMedia:
+            if len(m.get('parentEntryId')) > 0:
+                mapping[  m.get('parentEntryId') ] = m
 
-    result = []
-    for m in validMedia:
-        if len( m.get('parentEntryId') ) == 0:
-            child = mapping.get( m.get('entryId'), {})
-            m['child'] = child
-        result.append(m)
-    
-    return result
+        result = []
+        for m in validMedia:
+            if len( m.get('parentEntryId') ) == 0:
+                child = mapping.get( m.get('entryId'), {})
+                m['child'] = child
+            result.append(m)
+        
+        return result
         
     # Main entry point- overrides stub in MediaProvider
     def getPlaylistItems(self, request):
