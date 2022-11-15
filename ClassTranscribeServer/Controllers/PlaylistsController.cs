@@ -297,7 +297,7 @@ public async Task<ActionResult<PlaylistDTO>> GetPlaylistBenchmark(string id)
                         Path = t.File != null ? t.File.Path : null,
                         SrtPath = t.SrtFile != null ? t.SrtFile.Path : null,
                         Language = t.Language
-                    }).ToList(),
+                    }).ToList(),git
                     WatchHistory =  null // #user != null ? m.WatchHistories.Where(w => w.ApplicationUserId == user.Id).FirstOrDefault() :
                 }).ToList();
 
@@ -314,6 +314,67 @@ public async Task<ActionResult<PlaylistDTO>> GetPlaylistBenchmark(string id)
                 PublishStatus = p.PublishStatus
             };
         }
+
+        
+public async Task<ActionResult<PlaylistDTO>> GetPlaylistBenchmark2(string id)
+        {
+            var p = await _context.Playlists.FindAsync(id);
+            var user = await _userUtils.GetUser(User);
+            if (p == null)
+            {
+                return NotFound();
+            }
+            var authorizationResult = await _authorizationService.AuthorizeAsync(User, p.Offering, Globals.POLICY_READ_OFFERING);
+            if (!authorizationResult.Succeeded)
+            {
+                if (User.Identity.IsAuthenticated)
+                {
+                    return new ForbidResult();
+                }
+
+                return new ChallengeResult();
+            }
+            List<MediaDTO> medias = p.Medias
+                .OrderBy(m => m.Index)
+                .ThenBy(m => m.CreatedAt).Select(m => new MediaDTO
+                {
+                    Id = m.Id,
+                    Index = m.Index,
+                    Name = m.Name,
+                    PlaylistId = m.PlaylistId,
+                    CreatedAt = m.CreatedAt,
+                    JsonMetadata = m.JsonMetadata,
+                    SourceType = m.SourceType,
+                    Duration = m.Video?.Duration,
+                    PublishStatus = m.PublishStatus,
+                    SceneDetectReady = true,
+                    Ready = m.Video == true,
+                    Video = m.Video == null ? null : new VideoDTO
+                    {
+                        Id = m.Video.Id,
+                        Video1Path = m.Video.Video1?.Path,
+                        Video2Path = m.Video.Video2?.Path
+                    },
+                    Transcriptions = null,
+                    WatchHistory =  null // #user != null ? m.WatchHistories.Where(w => w.ApplicationUserId == user.Id).FirstOrDefault() :
+                }).ToList();
+
+            return new PlaylistDTO
+            {
+                Id = p.Id,
+                CreatedAt = p.CreatedAt,
+                SourceType = p.SourceType,
+                OfferingId = p.OfferingId,
+                Name = p.Name,
+                Medias = medias,
+                JsonMetadata = p.JsonMetadata,
+                PlaylistIdentifier = p.PlaylistIdentifier,
+                PublishStatus = p.PublishStatus
+            };
+        }
+
+
+        
         // PUT: api/Playlists/5
         [HttpPut("{id}")]
         [Authorize]
