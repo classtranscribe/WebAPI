@@ -347,8 +347,8 @@ public async Task<ActionResult<PlaylistDTO>> GetPlaylistBenchmark2(string id)
                     SourceType = m.SourceType,
                     Duration = m.Video?.Duration,
                     PublishStatus = m.PublishStatus,
-                    SceneDetectReady = true,
-                    Ready = m.Video == true,
+                    SceneDetectReady = true, // remove tests
+                    Ready =true, // remove tests
                     Video = m.Video == null ? null : new VideoDTO
                     {
                         Id = m.Video.Id,
