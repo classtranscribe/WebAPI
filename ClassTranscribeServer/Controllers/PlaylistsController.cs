@@ -207,6 +207,75 @@ namespace ClassTranscribeServer.Controllers
 
                 return new ChallengeResult();
             }
+            // Single Database Query to get videos, transcriptions
+            var mediaList = await _context.Medias.Include(m=>m.Video).ThenInclude(v=>v.Transcriptions).Where(m=> m.PlaylistId == id).OrderBy(m => m.Index).ThenBy(m => m.CreatedAt).ToListAsync();
+            
+            var mediaIds = mediaList.Select(m=>m.Id).ToArray();
+
+            // user is null for unit tests
+            var partialWatchHistories = user !=null ? await _context.WatchHistories.Where(w => w.ApplicationUserId == user.Id && mediaIds.Contains(w.MediaId)).ToListAsync() : null;
+            // In memory transformation into DTO resut
+            List<MediaDTO> mediasDTO = mediaList.Select(m => new MediaDTO
+                {
+                    Id = m.Id,
+                    Index = m.Index,
+                    Name = m.Name,
+                    PlaylistId = m.PlaylistId,
+                    CreatedAt = m.CreatedAt,
+                    JsonMetadata = m.JsonMetadata,
+                    SourceType = m.SourceType,
+                    Duration = m.Video?.Duration,
+                    PublishStatus = m.PublishStatus,
+                    SceneDetectReady = m.Video == null && m.Video.SceneData != null ? false : m.Video.SceneData.HasValues,
+                    Ready = m.Video == null ? false : "NoError" == m.Video.TranscriptionStatus ,
+                    Video = m.Video == null ? null : new VideoDTO
+                    {
+                        Id = m.Video.Id,
+                        Video1Path = m.Video.Video1?.Path,
+                        Video2Path = m.Video.Video2?.Path
+                    },
+                    Transcriptions = m.Video == null ? null : m.Video.Transcriptions.Select(t => new TranscriptionDTO
+                    {
+                        Id = t.Id,
+                        Path = t.File != null ? t.File.Path : null,
+                        SrtPath = t.SrtFile != null ? t.SrtFile.Path : null,
+                        Language = t.Language
+                    }).ToList(),
+                    WatchHistory = user != null ? partialWatchHistories.Where(w => w.MediaId == m.Id).FirstOrDefault() :null
+                }).ToList();
+
+            return new PlaylistDTO
+            {
+                Id = p.Id,
+                CreatedAt = p.CreatedAt,
+                SourceType = p.SourceType,
+                OfferingId = p.OfferingId,
+                Name = p.Name,
+                Medias = mediasDTO,
+                JsonMetadata = p.JsonMetadata,
+                PlaylistIdentifier = p.PlaylistIdentifier,
+                PublishStatus = p.PublishStatus
+            };
+        }
+        [HttpGet("GetPlaylistBenchmark")]
+        public async Task<ActionResult<PlaylistDTO>> GetPlaylistBenchmark(string id)
+        {
+            var p = await _context.Playlists.FindAsync(id);
+            var user = await _userUtils.GetUser(User);
+            if (p == null)
+            {
+                return NotFound();
+            }
+            var authorizationResult = await _authorizationService.AuthorizeAsync(User, p.Offering, Globals.POLICY_READ_OFFERING);
+            if (!authorizationResult.Succeeded)
+            {
+                if (User.Identity.IsAuthenticated)
+                {
+                    return new ForbidResult();
+                }
+
+                return new ChallengeResult();
+            }
             List<MediaDTO> medias = p.Medias
                 .OrderBy(m => m.Index)
                 .ThenBy(m => m.CreatedAt).Select(m => new MediaDTO
@@ -235,7 +304,7 @@ namespace ClassTranscribeServer.Controllers
                         SrtPath = t.SrtFile != null ? t.SrtFile.Path : null,
                         Language = t.Language
                     }).ToList(),
-                    WatchHistory = user != null ? m.WatchHistories.Where(w => w.ApplicationUserId == user.Id).FirstOrDefault() : null
+                    WatchHistory =  null // #user != null ? m.WatchHistories.Where(w => w.ApplicationUserId == user.Id).FirstOrDefault() :
                 }).ToList();
 
             return new PlaylistDTO
@@ -252,6 +321,66 @@ namespace ClassTranscribeServer.Controllers
             };
         }
 
+        [HttpGet("GetPlaylistBenchmark2")]
+        public async Task<ActionResult<PlaylistDTO>> GetPlaylistBenchmark2(string id)
+        {
+            var p = await _context.Playlists.FindAsync(id);
+            var user = await _userUtils.GetUser(User);
+            if (p == null)
+            {
+                return NotFound();
+            }
+            var authorizationResult = await _authorizationService.AuthorizeAsync(User, p.Offering, Globals.POLICY_READ_OFFERING);
+            if (!authorizationResult.Succeeded)
+            {
+                if (User.Identity.IsAuthenticated)
+                {
+                    return new ForbidResult();
+                }
+
+                return new ChallengeResult();
+            }
+            List<MediaDTO> medias = p.Medias
+                .OrderBy(m => m.Index)
+                .ThenBy(m => m.CreatedAt).Select(m => new MediaDTO
+                {
+                    Id = m.Id,
+                    Index = m.Index,
+                    Name = m.Name,
+                    PlaylistId = m.PlaylistId,
+                    CreatedAt = m.CreatedAt,
+                    JsonMetadata = m.JsonMetadata,
+                    SourceType = m.SourceType,
+                    Duration = m.Video?.Duration,
+                    PublishStatus = m.PublishStatus,
+                    SceneDetectReady = true, // remove tests
+                    Ready =true, // remove tests
+                    Video = m.Video == null ? null : new VideoDTO
+                    {
+                        Id = m.Video.Id,
+                        Video1Path = m.Video.Video1?.Path,
+                        Video2Path = m.Video.Video2?.Path
+                    },
+                    Transcriptions = null,
+                    WatchHistory =  null // #user != null ? m.WatchHistories.Where(w => w.ApplicationUserId == user.Id).FirstOrDefault() :
+                }).ToList();
+
+            return new PlaylistDTO
+            {
+                Id = p.Id,
+                CreatedAt = p.CreatedAt,
+                SourceType = p.SourceType,
+                OfferingId = p.OfferingId,
+                Name = p.Name,
+                Medias = medias,
+                JsonMetadata = p.JsonMetadata,
+                PlaylistIdentifier = p.PlaylistIdentifier,
+                PublishStatus = p.PublishStatus
+            };
+        }
+
+
+        
         // PUT: api/Playlists/5
         [HttpPut("{id}")]
         [Authorize]
