@@ -297,7 +297,7 @@ public async Task<ActionResult<PlaylistDTO>> GetPlaylistBenchmark(string id)
                         Path = t.File != null ? t.File.Path : null,
                         SrtPath = t.SrtFile != null ? t.SrtFile.Path : null,
                         Language = t.Language
-                    }).ToList(),git
+                    }).ToList(),
                     WatchHistory =  null // #user != null ? m.WatchHistories.Where(w => w.ApplicationUserId == user.Id).FirstOrDefault() :
                 }).ToList();
 
