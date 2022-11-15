@@ -207,9 +207,13 @@ namespace ClassTranscribeServer.Controllers
 
                 return new ChallengeResult();
             }
-            List<MediaDTO> medias = p.Medias
-                .OrderBy(m => m.Index)
-                .ThenBy(m => m.CreatedAt).Select(m => new MediaDTO
+            // Single Database Query to get videos, transcriptions
+            var mediaList = await _context.Medias.Include(m=>m.Video).Include(m=>m.Video.Transcriptions).Where(m=> m.PlaylistId == id).OrderBy(m => m.Index).ThenBy(m => m.CreatedAt).ToListAsync();
+            
+            var mediaIds = mediaList.Select(m=>m.Id).ToArray();
+            var partialWatchHistories = await _context.WatchHistories.Where(w => w.ApplicationUserId == user.Id && mediaIds.Contains(w.MediaId)).ToListAsync();
+            // In memory transformation into DTO resut
+            List<MediaDTO> mediasDTO = mediaList.Select(m => new MediaDTO
                 {
                     Id = m.Id,
                     Index = m.Index,
@@ -221,7 +225,7 @@ namespace ClassTranscribeServer.Controllers
                     Duration = m.Video?.Duration,
                     PublishStatus = m.PublishStatus,
                     SceneDetectReady = m.Video == null ? false : m.Video.SceneData.HasValues,
-                    Ready = m.Video == null ? false : m.Video.Transcriptions.Any(),
+                    Ready = m.Video == null ? false : "NoError" == m.Video.TranscriptionStatus ,
                     Video = m.Video == null ? null : new VideoDTO
                     {
                         Id = m.Video.Id,
@@ -235,7 +239,7 @@ namespace ClassTranscribeServer.Controllers
                         SrtPath = t.SrtFile != null ? t.SrtFile.Path : null,
                         Language = t.Language
                     }).ToList(),
-                    WatchHistory = user != null ? m.WatchHistories.Where(w => w.ApplicationUserId == user.Id).FirstOrDefault() : null
+                    WatchHistory = user != null ? partialWatchHistories.Where(w => w.MediaId == m.Id).FirstOrDefault() : null
                 }).ToList();
 
             return new PlaylistDTO
@@ -245,7 +249,7 @@ namespace ClassTranscribeServer.Controllers
                 SourceType = p.SourceType,
                 OfferingId = p.OfferingId,
                 Name = p.Name,
-                Medias = medias,
+                Medias = mediasDTO,
                 JsonMetadata = p.JsonMetadata,
                 PlaylistIdentifier = p.PlaylistIdentifier,
                 PublishStatus = p.PublishStatus
