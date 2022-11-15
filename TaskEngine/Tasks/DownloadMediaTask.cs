@@ -119,11 +119,14 @@ namespace TaskEngine.Tasks
                             var existingVideo = await _context.Videos.Where(v => v.Video1Id == file.First().Id).FirstAsync();
                             latestMedia.VideoId = existingVideo.Id;
                             if( video.Video2 != null && existingVideo.Video2 == null) {
+                                var v2 = video.Video2;
+                                await _context.FileRecords.AddAsync(v2);
+                                await _context.SaveChangesAsync(); // now v2 has an Id
                                 // Special case;
                                 // add video2 to existing video
-                                GetLogger().LogInformation($"Adding video2 ({video.Video2Id}) to video ({existingVideo.Id})");
+                                GetLogger().LogInformation($"Adding video2 ({v2.Id}) to video ({existingVideo.Id})");
 
-                                existingVideo.Video2 =  video.Video2;
+                                existingVideo.Video2Id =  v2.Id;
                                 video.Video2= null; // otherwise DeleteVideo will delete the file
                             }
                             await _context.SaveChangesAsync();
