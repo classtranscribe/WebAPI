@@ -132,8 +132,8 @@ class KalturaProvider(MediaProvider):
     def getSensibleMediaInfos(self, mediaIds):
         if mediaIds is None:
             return []
-        if len(mediaIds) > 500:
-            mediaIds = mediaIds[:500]
+        if len(mediaIds) > 2000:
+            mediaIds = mediaIds[:2000]
         infolist = [self.getMediaInfo(id) for id in mediaIds]
         # Drop missing (None) entries
         return [info for info in infolist if info ] #and info.duration > 0
@@ -223,7 +223,7 @@ class KalturaProvider(MediaProvider):
         result = []
         for m in validMedia:
             if len( m.get('parentEntryId') ) == 0:
-                child = mapping.get( m.get('entryId'), {})
+                child = mapping.get( m.get('id'), {})
                 if child != {}: 
                     m['child'] = child
                 result.append(m)
