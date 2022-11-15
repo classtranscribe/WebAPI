@@ -251,8 +251,8 @@ namespace ClassTranscribeServer.Controllers
                 PublishStatus = p.PublishStatus
             };
         }
-
-public async Task<ActionResult<PlaylistDTO>> GetPlaylistBenchmark(string id)
+        [HttpGet("GetPlaylistBenchmark")]
+        public async Task<ActionResult<PlaylistDTO>> GetPlaylistBenchmark(string id)
         {
             var p = await _context.Playlists.FindAsync(id);
             var user = await _userUtils.GetUser(User);
@@ -315,8 +315,8 @@ public async Task<ActionResult<PlaylistDTO>> GetPlaylistBenchmark(string id)
             };
         }
 
-        
-public async Task<ActionResult<PlaylistDTO>> GetPlaylistBenchmark2(string id)
+        [HttpGet("GetPlaylistBenchmark2")]
+        public async Task<ActionResult<PlaylistDTO>> GetPlaylistBenchmark2(string id)
         {
             var p = await _context.Playlists.FindAsync(id);
             var user = await _userUtils.GetUser(User);
