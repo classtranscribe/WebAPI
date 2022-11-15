@@ -221,7 +221,14 @@ namespace UnitTests.ClassTranscribeServer.ControllerTests
                     }
                 }
             };
-
+            var watch = new WatchHistory
+            {
+                Id = "1",
+                ApplicationUserId = "123",
+                MediaId = "media_foo",
+                Json = new Newtonsoft.Json.Linq.JObject()   
+            };
+            _context.WatchHistories.Add(watch);
             _context.Playlists.Add(playlist);
             _context.SaveChanges();
 

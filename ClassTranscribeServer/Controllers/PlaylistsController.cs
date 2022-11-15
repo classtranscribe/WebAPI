@@ -208,10 +208,12 @@ namespace ClassTranscribeServer.Controllers
                 return new ChallengeResult();
             }
             // Single Database Query to get videos, transcriptions
-            var mediaList = await _context.Medias.Include(m=>m.Video).Include(m=>m.Video.Transcriptions).Where(m=> m.PlaylistId == id).OrderBy(m => m.Index).ThenBy(m => m.CreatedAt).ToListAsync();
+            var mediaList = await _context.Medias.Include(m=>m.Video).ThenInclude(v=>v.Transcriptions).Where(m=> m.PlaylistId == id).OrderBy(m => m.Index).ThenBy(m => m.CreatedAt).ToListAsync();
             
             var mediaIds = mediaList.Select(m=>m.Id).ToArray();
-            var partialWatchHistories = await _context.WatchHistories.Where(w => w.ApplicationUserId == user.Id && mediaIds.Contains(w.MediaId)).ToListAsync();
+
+            // user is null for unit tests
+            var partialWatchHistories = user !=null ? await _context.WatchHistories.Where(w => w.ApplicationUserId == user.Id && mediaIds.Contains(w.MediaId)).ToListAsync() : null;
             // In memory transformation into DTO resut
             List<MediaDTO> mediasDTO = mediaList.Select(m => new MediaDTO
                 {
@@ -224,7 +226,7 @@ namespace ClassTranscribeServer.Controllers
                     SourceType = m.SourceType,
                     Duration = m.Video?.Duration,
                     PublishStatus = m.PublishStatus,
-                    SceneDetectReady = m.Video == null ? false : m.Video.SceneData.HasValues,
+                    SceneDetectReady = m.Video == null && m.Video.SceneData != null ? false : m.Video.SceneData.HasValues,
                     Ready = m.Video == null ? false : "NoError" == m.Video.TranscriptionStatus ,
                     Video = m.Video == null ? null : new VideoDTO
                     {
@@ -239,7 +241,7 @@ namespace ClassTranscribeServer.Controllers
                         SrtPath = t.SrtFile != null ? t.SrtFile.Path : null,
                         Language = t.Language
                     }).ToList(),
-                    WatchHistory = user != null ? partialWatchHistories.Where(w => w.MediaId == m.Id).FirstOrDefault() : null
+                    WatchHistory = user != null ? partialWatchHistories.Where(w => w.MediaId == m.Id).FirstOrDefault() :null
                 }).ToList();
 
             return new PlaylistDTO
