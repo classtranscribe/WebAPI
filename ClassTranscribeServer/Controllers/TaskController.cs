@@ -75,11 +75,11 @@ namespace ClassTranscribeServer.Controllers
         }
 
         [HttpGet("GetSceneData")]
-        public async Task<ActionResult<JObject>> GetSceneData(string videoId) {
+        public async Task<ActionResult<Object>> GetSceneData(string videoId) {
              Video video = await _context.Videos.FindAsync(videoId);
              if(video.HasSceneObjectData()) {
                 TextData data = await _context.TextData.FindAsync(video.SceneObjectDataId);
-                return data.getAsJObject();
+                return data.getAsJSON();
              }
              // old version - 
              return video.SceneData;

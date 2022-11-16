@@ -230,7 +230,7 @@ namespace ClassTranscribeServer.Controllers
                 videoIdList = new string[] { requestId  };
             }
             int count = 0;
-            JObject emptyArray = JObject.Parse("[]");
+            var empty = JObject.Parse("{}");
             foreach (var id in videoIdList) {
                 var video = await  _context.Videos.FindAsync(id);
                 count ++;
@@ -240,14 +240,14 @@ namespace ClassTranscribeServer.Controllers
                      _logger.LogInformation($"UpdateSceneDataSchema {video.Id} - already has SceneOjectData - Skipping");
                     continue;
                 } else {
-                    JObject olddata = video.SceneData;
+                    JToken olddata = video.SceneData;
                     TextData data = new TextData();
-                    data.setFromJObject(olddata);
+                    data.setFromJSON(olddata);
                     _context.TextData.Add(data);
                     video.SceneObjectDataId = data.Id;
                     System.Diagnostics.Trace.Assert(!string.IsNullOrEmpty(data.Id)); 
                 }
-                video.SceneData = emptyArray;
+                video.SceneData = empty;
                 await _context.SaveChangesAsync();
             }
             

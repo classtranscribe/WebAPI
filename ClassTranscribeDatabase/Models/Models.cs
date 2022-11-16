@@ -327,7 +327,7 @@ namespace ClassTranscribeDatabase.Models
 
         public bool HasPhraseHints() { return !string.IsNullOrEmpty(PhraseHintsDataId); }
 #nullable enable
-        [ForeignKey("PhraseHintsData")]        
+        //[ForeignKey("PhraseHintsData")]        
         public string? PhraseHintsDataId { get; set; }
         // Deprecated - This is too much data to load for each video object
         public string? PhraseHints { get; set; } // null if not yet processed
@@ -342,8 +342,8 @@ namespace ClassTranscribeDatabase.Models
         [Required]
         public JObject SceneData { get; set; } = new JObject();
 
-        [ForeignKey("SceneObjectData")]    
-        public string SceneObjectDataId;
+        //[ForeignKey("SceneObjectData")]    
+        public string SceneObjectDataId {get; set;}
 
         public bool HasSceneObjectData() {return ! string.IsNullOrEmpty(SceneObjectDataId);} 
 
@@ -505,7 +505,7 @@ namespace ClassTranscribeDatabase.Models
         public string? Text {get; set;}
 
         
-        public void setFromJObject(JObject o) {
+        public void setFromJSON(JToken o) {
             if(o == null) {
                 Text = null;
                 return;
@@ -513,11 +513,11 @@ namespace ClassTranscribeDatabase.Models
             Text = o.ToString(Newtonsoft.Json.Formatting.None);
         }
        
-        public JObject? getAsJObject() { 
+        public JToken? getAsJSON() { 
             if( string.IsNullOrEmpty(Text)) {
                 return null;
             }
-            return JObject.Parse(Text);
+            return JToken.Parse(Text);
         }
     }
 
