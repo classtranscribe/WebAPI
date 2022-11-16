@@ -3,15 +3,17 @@ using System;
 using ClassTranscribeDatabase;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace ClassTranscribeDatabase.Migrations
 {
     [DbContext(typeof(CTDbContext))]
-    partial class CTDbContextModelSnapshot : ModelSnapshot
+    [Migration("20221116162318_PhraseHintJsonTable")]
+    partial class PhraseHintJsonTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -656,6 +658,41 @@ namespace ClassTranscribeDatabase.Migrations
                     b.ToTable("Images");
                 });
 
+            modelBuilder.Entity("ClassTranscribeDatabase.Models.JsonData", b =>
+                {
+                    b.Property<string>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<string>("DeletedBy")
+                        .HasColumnType("text");
+
+                    b.Property<int>("IsDeletedStatus")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Json")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("LastUpdatedAt")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<string>("LastUpdatedBy")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("JsonData");
+                });
+
             modelBuilder.Entity("ClassTranscribeDatabase.Models.Log", b =>
                 {
                     b.Property<string>("Id")
@@ -1157,41 +1194,6 @@ namespace ClassTranscribeDatabase.Migrations
                     b.ToTable("Terms");
                 });
 
-            modelBuilder.Entity("ClassTranscribeDatabase.Models.TextData", b =>
-                {
-                    b.Property<string>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("text");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp without time zone");
-
-                    b.Property<string>("CreatedBy")
-                        .HasColumnType("text");
-
-                    b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("timestamp without time zone");
-
-                    b.Property<string>("DeletedBy")
-                        .HasColumnType("text");
-
-                    b.Property<int>("IsDeletedStatus")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTime>("LastUpdatedAt")
-                        .HasColumnType("timestamp without time zone");
-
-                    b.Property<string>("LastUpdatedBy")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Text")
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("TextData");
-                });
-
             modelBuilder.Entity("ClassTranscribeDatabase.Models.Transcription", b =>
                 {
                     b.Property<string>("Id")
@@ -1394,10 +1396,10 @@ namespace ClassTranscribeDatabase.Migrations
                     b.Property<string>("LastUpdatedBy")
                         .HasColumnType("text");
 
-                    b.Property<string>("PhraseHints")
+                    b.Property<string>("PhraseHintDataId")
                         .HasColumnType("text");
 
-                    b.Property<string>("PhraseHintsDataId")
+                    b.Property<string>("PhraseHints")
                         .HasColumnType("text");
 
                     b.Property<string>("ProcessedVideo1Id")
@@ -1426,7 +1428,7 @@ namespace ClassTranscribeDatabase.Migrations
 
                     b.HasIndex("AudioId");
 
-                    b.HasIndex("PhraseHintsDataId");
+                    b.HasIndex("PhraseHintDataId");
 
                     b.HasIndex("ProcessedVideo1Id");
 
@@ -1776,9 +1778,9 @@ namespace ClassTranscribeDatabase.Migrations
                         .WithMany()
                         .HasForeignKey("AudioId");
 
-                    b.HasOne("ClassTranscribeDatabase.Models.TextData", "PhraseHintsData")
+                    b.HasOne("ClassTranscribeDatabase.Models.JsonData", "PhraseHintData")
                         .WithMany()
-                        .HasForeignKey("PhraseHintsDataId");
+                        .HasForeignKey("PhraseHintDataId");
 
                     b.HasOne("ClassTranscribeDatabase.Models.FileRecord", "ProcessedVideo1")
                         .WithMany()

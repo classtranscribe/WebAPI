@@ -111,7 +111,11 @@ namespace TaskEngine.Tasks
                     GetLogger().LogInformation($"{videoId}:Skipping Transcribing of- already complete");
                     return;
                 }
-                string phraseHints = video.PhraseHints ?? "";
+                
+                // video.PhraseHint is deprecated
+                GetLogger().LogInformation($"{videoId}: Has new Phrase Hints: {video.HasPhraseHints()}");
+
+                string phraseHints = video.HasPhraseHints() ? video.PhraseHintsData.Text : video.PhraseHints ?? "";
                 
                 GetLogger().LogInformation($"{videoId}:Using Phrase Hints length = {phraseHints.Length}");
                 // GetKey can throw if the video.Id is currently being transcribed

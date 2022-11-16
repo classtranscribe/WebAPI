@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -189,6 +190,29 @@ namespace ClassTranscribeServer.Controllers
         {
             _wakeDownloader.SceneDetection(videoMediaPlaylistId, deleteExisting);
             return Ok();
+        }
+
+        [HttpPost("UpdatePhraseHintsSchema")]
+        public async Task<ActionResult<int>> UpdatePhraseHintsSchema(String videoId)
+        {
+            var videosToUpdate= (videoId == "all") ?  _context.Videos.Where(v=>v.PhraseHints.Length>0).Take(1000) : _context.Videos.Where(v=> v.Id == videoId);
+            int count = 0;
+            foreach (var video in videosToUpdate) {
+                count ++;
+                _logger.LogInformation($"{count}: UpdatePhraseHintsSchema {video.Id}");
+                var hints = video.PhraseHints;
+                if(video.HasPhraseHints()) {
+                     _logger.LogInformation($"UpdatePhraseHintsSchema {video.Id} - already has Phrase Hints - Skipping");
+                    continue;
+                } else {
+                    TextData data = new TextData();
+                    data.Text = hints;
+                    video.PhraseHintsData = data;
+                    video.PhraseHints = null;
+                }
+            }
+            await _context.SaveChangesAsync();
+            return count;
         }
 
         [HttpPost("UpdateASLVideos")]
