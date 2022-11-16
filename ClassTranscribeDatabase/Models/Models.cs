@@ -323,7 +323,7 @@ namespace ClassTranscribeDatabase.Models
 
         public virtual List<EPub> EPubs { get; set; }
 
-        public virtual TextData? PhraseHintsData { get; set; }
+        //public virtual TextData? PhraseHintsData { get; set; }
 
         public bool HasPhraseHints() { return !string.IsNullOrEmpty(PhraseHintsDataId); }
 #nullable enable
@@ -341,6 +341,12 @@ namespace ClassTranscribeDatabase.Models
 
         [Required]
         public JObject SceneData { get; set; } = new JObject();
+
+        [ForeignKey("SceneObjectData")]    
+        public string SceneObjectDataId;
+
+        public bool HasSceneObjectData() {return ! string.IsNullOrEmpty(SceneObjectDataId);} 
+
         [Required]
         public JObject JsonMetadata { get; set; } = new JObject();
         [Required]
@@ -393,8 +399,19 @@ namespace ClassTranscribeDatabase.Models
             {
                 if (HasPhraseHints())
                 {
-                    context.TextData.Remove(PhraseHintsData);
+                    TextData data= await context.TextData.FindAsync(PhraseHintsDataId);
+                    if(data != null) {
+                        context.TextData.Remove(data);
+                    }
                 }
+                if (HasSceneObjectData())
+                {
+                    TextData data= await context.TextData.FindAsync(SceneObjectDataId);
+                    if(data != null) {
+                        context.TextData.Remove(data);
+                    }
+                }
+
                 context.Videos.Remove(dbVideoRow);
                 await context.SaveChangesAsync();
             }
@@ -486,6 +503,22 @@ namespace ClassTranscribeDatabase.Models
     public class TextData : Entity
     {
         public string? Text {get; set;}
+
+        
+        public void setFromJObject(JObject o) {
+            if(o == null) {
+                Text = null;
+                return;
+            }
+            Text = o.ToString(Newtonsoft.Json.Formatting.None);
+        }
+       
+        public JObject? getAsJObject() { 
+            if( string.IsNullOrEmpty(Text)) {
+                return null;
+            }
+            return JObject.Parse(Text);
+        }
     }
 
     public class Dictionary : Entity

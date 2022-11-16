@@ -7,6 +7,7 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -44,9 +45,21 @@ namespace ClassTranscribeServer.Controllers
         //Future: [Authorize(Roles = Globals.ROLE_MEDIA_WORKER + "," + Globals.ROLE_ADMIN)]
         public async Task<ActionResult> UpdateSceneData(string videoId,  JObject scene)
         {
-            
+            string sceneAsString = scene.ToString(0);
             Video video = await _context.Videos.FindAsync(videoId);
-            video.SceneData = scene;
+            if(video.HasSceneObjectData())
+            {
+                TextData data = await _context.TextData.FindAsync(video.SceneObjectDataId);
+                data.Text = sceneAsString;
+            } else
+            {
+                TextData data = new TextData();
+                data.Text = sceneAsString;
+                _context.TextData.Add(data);
+                video.SceneObjectDataId = data.Id;
+                Trace.Assert(!string.IsNullOrEmpty(data.Id));
+            }
+           
             await _context.SaveChangesAsync();
             return Ok();
         }
@@ -54,10 +67,22 @@ namespace ClassTranscribeServer.Controllers
         public async Task<string> GetPhraseHints(string videoId) {
              Video video = await _context.Videos.FindAsync(videoId);
              if(video.HasPhraseHints()) {
-                return video.PhraseHintsData.Text;
+                TextData data = await _context.TextData.FindAsync(video.PhraseHintsDataId);
+                return data.Text;
              }
              // old version - 
              return video.PhraseHints ?? "";
+        }
+
+        [HttpGet("GetSceneData")]
+        public async Task<ActionResult<JObject>> GetSceneData(string videoId) {
+             Video video = await _context.Videos.FindAsync(videoId);
+             if(video.HasSceneObjectData()) {
+                TextData data = await _context.TextData.FindAsync(video.SceneObjectDataId);
+                return data.getAsJObject();
+             }
+             // old version - 
+             return video.SceneData;
         }
 
         public class PhraseHintsDTO
@@ -74,13 +99,15 @@ namespace ClassTranscribeServer.Controllers
             string hints = phraseHintsDTO.PhraseHints ?? "";
                        
             if(video.HasPhraseHints()) {
-              video.PhraseHintsData.Text = hints;
+                TextData data = await _context.TextData.FindAsync(video.PhraseHintsDataId);
+                data.Text = hints;
             }
             else {
                 TextData data = new TextData();
                 data.Text = hints;
                 _context.TextData.Add(data);
-                video.PhraseHintsData = data;
+                video.PhraseHintsDataId = data.Id;
+                Trace.Assert(!string.IsNullOrEmpty(data.Id));
             }
             await _context.SaveChangesAsync();
             _wakeDownloader.TranscribeVideo(videoId, false /*deleteExisting*/);
