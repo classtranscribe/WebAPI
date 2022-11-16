@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -207,13 +208,52 @@ namespace ClassTranscribeServer.Controllers
                 } else {
                     TextData data = new TextData();
                     data.Text = hints;
-                    video.PhraseHintsData = data;
+                    _context.TextData.Add(data);
+
+                    video.PhraseHintsDataId = data.Id;
+                    Trace.Assert(!string.IsNullOrEmpty(data.Id));
                     video.PhraseHints = null;
                 }
             }
             await _context.SaveChangesAsync();
             return count;
         }
+
+         [HttpPost("UpdateSceneDataSchema")]
+        public async Task<ActionResult<int>> UpdateSceneDataSchema(String requestId)
+        {
+            string[] videoIdList = null;
+            if(requestId == "all") {
+                videoIdList =  _context.Videos.Select(v=>v.Id).ToArray<string>();
+            }
+            else {
+                videoIdList = new string[] { requestId  };
+            }
+            int count = 0;
+            JObject emptyArray = JObject.Parse("[]");
+            foreach (var id in videoIdList) {
+                var video = await  _context.Videos.FindAsync(id);
+                count ++;
+                _logger.LogInformation($"{count}: UpdateSceneDataSchema {video.Id}");
+                
+                if(video.HasSceneObjectData()) {
+                     _logger.LogInformation($"UpdateSceneDataSchema {video.Id} - already has SceneOjectData - Skipping");
+                    continue;
+                } else {
+                    JObject olddata = video.SceneData;
+                    TextData data = new TextData();
+                    data.setFromJObject(olddata);
+                    _context.TextData.Add(data);
+                    video.SceneObjectDataId = data.Id;
+                    System.Diagnostics.Trace.Assert(!string.IsNullOrEmpty(data.Id)); 
+                }
+                video.SceneData = emptyArray;
+                await _context.SaveChangesAsync();
+            }
+            
+            return count;
+        }
+
 
         [HttpPost("UpdateASLVideos")]
         public ActionResult UpdateASL(string sourceId)
