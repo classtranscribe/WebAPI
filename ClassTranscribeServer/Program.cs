@@ -3,6 +3,7 @@ using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using System;
 
 namespace ClassTranscribeServer
 {
@@ -18,11 +19,16 @@ namespace ClassTranscribeServer
             var v = WebHost.CreateDefaultBuilder(args)
                 .ConfigureServices(c => c.AddOptions().Configure<AppSettings>(CTDbContext.GetConfigurations()));
             
-            // TODO: This filter could be a environment variable setting
-            // However we are still building the configuration at this point (is AppSettings configured here?)
+            // TTODO better code would use AppSettings
+
+            string? viewSQL = Environment.GetEnvironmentVariable("LogEntityFrameworkSQL");
+
+            if(viewSQL == null  || viewSQL.Trim().ToLower() != "true") {
+                
                 v.ConfigureLogging((context, logging) => {
                     logging.AddFilter("Microsoft.EntityFrameworkCore.Database.Command", LogLevel.Warning);
                 });
+            }
             return v.UseStartup<Startup>();
         }
     }
