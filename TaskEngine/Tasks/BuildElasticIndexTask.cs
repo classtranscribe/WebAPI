@@ -37,6 +37,11 @@ namespace TaskEngine.Tasks
             registerTask(cleanup, "BuildElasticIndexTask"); // may throw AlreadyInProgress exception
             GetLogger().LogInformation("BuildElasticIndexTask Starting");
 
+            GetLogger().LogInformation("BuildElasticIndexTask EARLY RETURN ");
+
+            return; // Not currently used
+             
+
             using (var _context = CTDbContext.CreateDbContext())
             {
                 CaptionQueries captionQueries = new CaptionQueries(_context);
