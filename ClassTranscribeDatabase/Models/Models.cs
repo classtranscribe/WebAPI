@@ -322,7 +322,14 @@ namespace ClassTranscribeDatabase.Models
         public virtual List<Transcription> Transcriptions { get; set; }
 
         public virtual List<EPub> EPubs { get; set; }
+
+        public virtual TextData? PhraseHintsData { get; set; }
+
+        public bool HasPhraseHints() { return !string.IsNullOrEmpty(PhraseHintsDataId); }
 #nullable enable
+        [ForeignKey("PhraseHintsData")]        
+        public string? PhraseHintsDataId { get; set; }
+        // Deprecated - This is too much data to load for each video object
         public string? PhraseHints { get; set; } // null if not yet processed
 #nullable disable
 
@@ -380,9 +387,14 @@ namespace ClassTranscribeDatabase.Models
             {
                 await Audio.DeleteFileRecordAsync(context);
             }
+           
             var dbVideoRow = await context.Videos.FindAsync(Id);
             if (dbVideoRow != null)
             {
+                if (HasPhraseHints())
+                {
+                    context.TextData.Remove(PhraseHintsData);
+                }
                 context.Videos.Remove(dbVideoRow);
                 await context.SaveChangesAsync();
             }
@@ -470,6 +482,10 @@ namespace ClassTranscribeDatabase.Models
         public virtual ApplicationUser ApplicationUser { get; set; }
         [Required]
         public JObject Json { get; set; } = new JObject();
+    }
+    public class TextData : Entity
+    {
+        public string? Text {get; set;}
     }
 
     public class Dictionary : Entity

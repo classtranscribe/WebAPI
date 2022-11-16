@@ -62,7 +62,7 @@ namespace ClassTranscribeDatabase
         public DbSet<Glossary> Glossaries { get; set; } 
         public DbSet<ASLVideo> ASLVideos { get; set; }
         public DbSet<ASLVideoGlossaryMap> ASLVideoGlossaryMaps { get; set; }
-
+        public DbSet<TextData> TextData { get; set; }
         /// <summary>
         /// This method builds a connectionstring to connect with the database.
         /// More info, https://www.learnentityframeworkcore.com/connection-strings
@@ -186,6 +186,7 @@ namespace ClassTranscribeDatabase
             builder.Entity<Glossary>().HasQueryFilter(m => m.IsDeletedStatus == Status.Active);
             builder.Entity<ASLVideo>().HasQueryFilter(m => m.IsDeletedStatus == Status.Active);
             builder.Entity<ASLVideoGlossaryMap>().HasQueryFilter(m => m.IsDeletedStatus == Status.Active);
+            builder.Entity<TextData>().HasQueryFilter(m => m.IsDeletedStatus == Status.Active);
 
             // Configure m-to-n relationships.
             builder.Entity<CourseOffering>()
@@ -248,9 +249,7 @@ namespace ClassTranscribeDatabase
             builder.Entity<TaskItem>().Property(m => m.TaskParameters).HasJsonValueConversion();
             builder.Entity<TaskItem>().Property(m => m.ResultData).HasJsonValueConversion();
             builder.Entity<TaskItem>().Property(m => m.RemoteResultData).HasJsonValueConversion();
-
-
-
+            
             builder.Entity<Subscription>().HasAlternateKey(s => new { s.ResourceType, s.ResourceId, s.ApplicationUserId });
             //TODO:TOREVIEW  Good idea or not to include these?
             // And what about  .HasOne()
