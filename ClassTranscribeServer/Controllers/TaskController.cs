@@ -50,6 +50,15 @@ namespace ClassTranscribeServer.Controllers
             await _context.SaveChangesAsync();
             return Ok();
         }
+         [HttpGet("GetPhraseHints")]
+        public async Task<string> GetPhraseHints(string videoId) {
+             Video video = await _context.Videos.FindAsync(videoId);
+             if(video.HasPhraseHints()) {
+                return video.PhraseHintsData.Text;
+             }
+             // old version - 
+             return video.PhraseHints ?? "";
+        }
 
         public class PhraseHintsDTO
         {
@@ -61,9 +70,18 @@ namespace ClassTranscribeServer.Controllers
         //Future: [Authorize(Roles = Globals.ROLE_MEDIA_WORKER + "," + Globals.ROLE_ADMIN)]
         public async Task<ActionResult> UpdatePhraseHints(string videoId, PhraseHintsDTO phraseHintsDTO)
         {
-           
             Video video = await _context.Videos.FindAsync(videoId);
-            video.PhraseHints = phraseHintsDTO.PhraseHints;
+            string hints = phraseHintsDTO.PhraseHints ?? "";
+                       
+            if(video.HasPhraseHints()) {
+              video.PhraseHintsData.Text = hints;
+            }
+            else {
+                TextData data = new TextData();
+                data.Text = hints;
+                _context.TextData.Add(data);
+                video.PhraseHintsData = data;
+            }
             await _context.SaveChangesAsync();
             _wakeDownloader.TranscribeVideo(videoId, false /*deleteExisting*/);
             return Ok();
