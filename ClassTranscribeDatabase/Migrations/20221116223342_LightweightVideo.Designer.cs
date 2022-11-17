@@ -3,15 +3,17 @@ using System;
 using ClassTranscribeDatabase;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace ClassTranscribeDatabase.Migrations
 {
     [DbContext(typeof(CTDbContext))]
-    partial class CTDbContextModelSnapshot : ModelSnapshot
+    [Migration("20221116223342_LightweightVideo")]
+    partial class LightweightVideo
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1410,9 +1412,6 @@ namespace ClassTranscribeDatabase.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("SceneObjectDataId")
-                        .HasColumnType("text");
-
                     b.Property<int>("TranscribingAttempts")
                         .HasColumnType("integer");
 
@@ -1428,6 +1427,8 @@ namespace ClassTranscribeDatabase.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("AudioId");
+
+                    b.HasIndex("PhraseHintsDataId");
 
                     b.HasIndex("ProcessedVideo1Id");
 
@@ -1776,6 +1777,10 @@ namespace ClassTranscribeDatabase.Migrations
                     b.HasOne("ClassTranscribeDatabase.Models.FileRecord", "Audio")
                         .WithMany()
                         .HasForeignKey("AudioId");
+
+                    b.HasOne("ClassTranscribeDatabase.Models.TextData", "PhraseHintsData")
+                        .WithMany()
+                        .HasForeignKey("PhraseHintsDataId");
 
                     b.HasOne("ClassTranscribeDatabase.Models.FileRecord", "ProcessedVideo1")
                         .WithMany()

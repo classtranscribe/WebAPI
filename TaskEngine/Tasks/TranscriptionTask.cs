@@ -115,7 +115,15 @@ namespace TaskEngine.Tasks
                 // video.PhraseHint is deprecated
                 GetLogger().LogInformation($"{videoId}: Has new Phrase Hints: {video.HasPhraseHints()}");
 
-                string phraseHints = video.HasPhraseHints() ? video.PhraseHintsData.Text : video.PhraseHints ?? "";
+                string phraseHints = "";
+                if (video.HasPhraseHints()) {
+                    var data = await _context.TextData.FindAsync(video.PhraseHintsDataId);
+                    phraseHints = data.Text;
+                } else
+                { // deprecated
+                    phraseHints = video.PhraseHints ?? "";
+                }
+                   
                 
                 GetLogger().LogInformation($"{videoId}:Using Phrase Hints length = {phraseHints.Length}");
                 // GetKey can throw if the video.Id is currently being transcribed
