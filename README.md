@@ -8,9 +8,9 @@ The source code in this repository is licensed here under the GNU Public License
 
 | Branch | Status |
 |-------:|--------|
-| Production | ![Production](https://github.com/classtranscribe/WebAPI/actions/workflows/docker.yml/badge.svg?event=push&branch=main) |
-| Staging | ![Staging](https://github.com/classtranscribe/WebAPI/actions/workflows/docker.yml/badge.svg?event=push&branch=staging) |
-| Experiment | ![Experiment](https://github.com/classtranscribe/WebAPI/actions/workflows/docker.yml/badge.svg?event=push&branch=expt) |
+| Production | ![Production](https://github.com/classtranscribe/WebAPI/actions/workflows/docker.yaml/badge.svg?event=push&branch=main) |
+| Staging | ![Staging](https://github.com/classtranscribe/WebAPI/actions/workflows/docker.yaml/badge.svg?event=push&branch=staging) |
+| Experiment | ![Experiment](https://github.com/classtranscribe/WebAPI/actions/workflows/docker.yaml/badge.svg?event=push&branch=expt) |
 
 # Pull requests, Submitting code and copyright.
 
