@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -187,6 +188,14 @@ namespace ClassTranscribeServer.Controllers
 
             var playlist = await _context.Playlists.FindAsync(playlistId);
             var subdir = CommonUtils.ToCourseOfferingSubDirectory(_context, playlist);
+            
+            int index = 0;
+            try {
+                    index = 1 + await _context.Medias.Where(m=> m.PlaylistId == playlist.Id).Select(m => m.Index).MaxAsync();
+            } catch(Exception) {}
+            
+            media.Index = index;
+
             video.Video1 = await FileRecord.GetNewFileRecordAsync(filePath, Path.GetExtension(filePath), subdir);
 
             // Only do this for the first (primary) video
