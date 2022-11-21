@@ -77,7 +77,7 @@ class YoutubeProvider(MediaProvider):
             print(f'Youtube playlist {identifier}: Returning {len(medias)} items. Processing time {end_time - start_time :.2f} seconds')
             return medias
         except Exception as e:
-            print("get_youtube_playlist({request}) Exception:" + str(e))
+            print(f"get_youtube_playlist({identifier}) Exception:" + str(e))
             raise e        
 
     def download_youtube_video(self, youtubeUrl):
@@ -91,5 +91,5 @@ class YoutubeProvider(MediaProvider):
             print(f"download_youtube_video({youtubeUrl}): Done. Downloaded in {end_time - start_time :.2f} seconds")
             return filepath, extension
         except Exception as e:
-            print("download_youtube_video({request}) Exception:" + str(e))
+            print(f"download_youtube_video({youtubeUrl}) Exception:" + str(e))
             raise e
