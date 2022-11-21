@@ -45,8 +45,11 @@ namespace TaskEngine.Tasks
             using (var _context = CTDbContext.CreateDbContext())
             {
                 var playlist = await _context.Playlists.FindAsync(playlistId);
-                int index = 1 + _context.Medias.Where(m=> m.PlaylistId == playlist.Id && m.SourceType == playlist.SourceType).Select(m => m.Index).DefaultIfEmpty(-1).Max();
-
+                int index = 0;
+                try {
+                    index = 1 + await _context.Medias.Where(m=> m.PlaylistId == playlist.Id).Select(m => m.Index).MaxAsync();
+                } catch(Exception ignored) {}
+                GetLogger().LogInformation($"Playlist {playlistId}: Starting index = {index}");
                 List<Media> medias = new List<Media>();
                 switch (playlist.SourceType)
                 {
