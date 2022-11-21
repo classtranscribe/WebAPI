@@ -187,6 +187,9 @@ namespace ClassTranscribeServer.Controllers
 
             var playlist = await _context.Playlists.FindAsync(playlistId);
             var subdir = CommonUtils.ToCourseOfferingSubDirectory(_context, playlist);
+            media.Index = 1 + _context.Medias.Where(m=> m.PlaylistId == playlistId).Select(m => m.Index).DefaultIfEmpty(-1).Max();
+
+
             video.Video1 = await FileRecord.GetNewFileRecordAsync(filePath, Path.GetExtension(filePath), subdir);
 
             // Only do this for the first (primary) video
