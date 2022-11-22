@@ -911,6 +911,12 @@ namespace ClassTranscribeDatabase.Migrations
                     b.Property<string>("LastUpdatedBy")
                         .HasColumnType("text");
 
+                    b.Property<DateTime?>("ListCheckedAt")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<DateTime?>("ListUpdatedAt")
+                        .HasColumnType("timestamp without time zone");
+
                     b.Property<string>("Name")
                         .HasColumnType("text");
 

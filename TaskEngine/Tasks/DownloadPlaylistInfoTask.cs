@@ -71,8 +71,18 @@ namespace TaskEngine.Tasks
                     medias.ForEach(m => _downloadMediaTask.Publish(m.Id));
                 } else {
                     GetLogger().LogInformation($"Playlist {playlistId}: No new media to download");
-
                 }
+
+                 // reload a fresh playlist since it's been a while ...
+                playlist = await _context.Playlists.FindAsync(playlistId);
+                
+                playlist.ListCheckedAt = DateTime.Now;
+                // By updating a null value, means we can differentiate between an empty playlist and a new playlist
+                if(medias.Count > 0 || playlist.ListUpdatedAt == null) {
+                    playlist.ListUpdatedAt = playlist.ListCheckedAt;
+                }
+                await _context.SaveChangesAsync();
+                
             }
         }
 

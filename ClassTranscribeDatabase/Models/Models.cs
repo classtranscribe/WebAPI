@@ -243,6 +243,10 @@ namespace ClassTranscribeDatabase.Models
         public int Index { get; set; }
         public Visibility Visibility { get; set; }
         public PublishStatus PublishStatus { get; set; }
+        #nullable enable
+        public DateTime? ListUpdatedAt {get; set; } = null;
+        public DateTime? ListCheckedAt {get; set; } = null;
+        #nullable disable
     }
 
     public class Media : Entity
