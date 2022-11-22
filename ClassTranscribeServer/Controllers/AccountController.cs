@@ -165,13 +165,11 @@ namespace ClassTranscribeServer.Controllers
                 else
                 {
                     _logger.LogError( "TaskWorkerSignIn incorrect access secret or secret not set");
-                    return Unauthorized();
                 }
             }
             catch (Exception e)
             {
                 _logger.LogError(e, "TaskWorkerSignIn failed");
-                return Unauthorized();
             }
 
             return Unauthorized();
@@ -208,7 +206,7 @@ namespace ClassTranscribeServer.Controllers
                 return BadRequest();
             }
         }
-        
+        #nullable enable
         [HttpPost]
         public async Task<ActionResult<LoggedInDTO>> LTISignIn(string sharedsecret, string email, string? first, string? last) {
             _logger.LogInformation("LTISignIn for {0}: starting", email);
@@ -262,6 +260,8 @@ namespace ClassTranscribeServer.Controllers
                 return Unauthorized();
             }
         } 
+        #nullable disable
+
         [HttpPost]
         public async Task<ActionResult<LoggedInDTO>> SignIn([FromBody] LoginDto model)
         {

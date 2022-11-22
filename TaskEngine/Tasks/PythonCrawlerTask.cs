@@ -24,6 +24,8 @@ namespace TaskEngine.Tasks
 
         protected async override Task OnConsume(string sourceId, TaskParameters taskParameters, ClientActiveTasks cleanup)
         {
+            // To suppress CS1998 warning
+            await Task.CompletedTask;
         }
     }
 }
