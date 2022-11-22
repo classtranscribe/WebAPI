@@ -48,7 +48,9 @@ namespace TaskEngine.Tasks
                 int index = 0;
                 try {
                     index = 1 + await _context.Medias.Where(m=> m.PlaylistId == playlist.Id).Select(m => m.Index).MaxAsync();
-                } catch(Exception ignored) {}
+                } catch(Exception) {
+                    // ignored (e.g. no media). Tried DefaultIfEmpty but that threw an Entity Framework runtime error; hence this slightly clunky exception implementation
+                }
                 GetLogger().LogInformation($"Playlist {playlistId}: Starting index = {index}");
                 List<Media> medias = new List<Media>();
                 switch (playlist.SourceType)
