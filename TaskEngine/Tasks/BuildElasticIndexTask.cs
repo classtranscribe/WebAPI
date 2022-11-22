@@ -37,10 +37,13 @@ namespace TaskEngine.Tasks
             registerTask(cleanup, "BuildElasticIndexTask"); // may throw AlreadyInProgress exception
             GetLogger().LogInformation("BuildElasticIndexTask Starting");
 
-            GetLogger().LogInformation("BuildElasticIndexTask EARLY RETURN ");
 
-            return; // Not currently used
-             
+            var skipElasticIndexTask = true;
+            if(skipElasticIndexTask) {
+                GetLogger().LogInformation("BuildElasticIndexTask Done - No op - EARLY RETURN ");
+                await Task.CompletedTask;
+                return;
+            }
 
             using (var _context = CTDbContext.CreateDbContext())
             {

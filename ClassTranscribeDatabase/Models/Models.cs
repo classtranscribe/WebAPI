@@ -502,10 +502,11 @@ namespace ClassTranscribeDatabase.Models
     }
     public class TextData : Entity
     {
+        #nullable enable
         public string? Text {get; set;}
 
         
-        public void setFromJSON(JToken o) {
+        public void setFromJSON(JToken? o) {
             if(o == null) {
                 Text = null;
                 return;
@@ -519,6 +520,7 @@ namespace ClassTranscribeDatabase.Models
             }
             return JToken.Parse(Text);
         }
+         #nullable disable
     }
 
     public class Dictionary : Entity
