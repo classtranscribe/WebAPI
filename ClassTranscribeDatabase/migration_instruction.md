@@ -22,6 +22,11 @@ dotnet-ef migrations add <name of migration>
 dotnet-ef database update
 ```
 
+To remove,
+```
+dotnet-ef migrations remove
+```
+
 ## How to apply migration in Docker container
 1. Rebuild the solution
 ```

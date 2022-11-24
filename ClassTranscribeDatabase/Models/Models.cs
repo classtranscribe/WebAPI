@@ -243,6 +243,10 @@ namespace ClassTranscribeDatabase.Models
         public int Index { get; set; }
         public Visibility Visibility { get; set; }
         public PublishStatus PublishStatus { get; set; }
+        #nullable enable
+        public DateTime? ListUpdatedAt {get; set; } = null;
+        public DateTime? ListCheckedAt {get; set; } = null;
+        #nullable disable
     }
 
     public class Media : Entity
@@ -502,10 +506,11 @@ namespace ClassTranscribeDatabase.Models
     }
     public class TextData : Entity
     {
+        #nullable enable
         public string? Text {get; set;}
 
         
-        public void setFromJSON(JToken o) {
+        public void setFromJSON(JToken? o) {
             if(o == null) {
                 Text = null;
                 return;
@@ -519,6 +524,7 @@ namespace ClassTranscribeDatabase.Models
             }
             return JToken.Parse(Text);
         }
+         #nullable disable
     }
 
     public class Dictionary : Entity

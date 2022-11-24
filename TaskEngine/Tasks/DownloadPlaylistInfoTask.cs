@@ -14,6 +14,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using static ClassTranscribeDatabase.CommonUtils;
 
+#pragma warning disable CA2007
+// https://learn.microsoft.com/en-us/dotnet/fundamentals/code-analysis/quality-rules/ca2007
+// We are okay awaiting on a task in the same thread
 
 namespace TaskEngine.Tasks
 {
@@ -48,7 +51,9 @@ namespace TaskEngine.Tasks
                 int index = 0;
                 try {
                     index = 1 + await _context.Medias.Where(m=> m.PlaylistId == playlist.Id).Select(m => m.Index).MaxAsync();
-                } catch(Exception ignored) {}
+                } catch(Exception) {
+                    // ignored (e.g. no media). Tried DefaultIfEmpty but that threw an Entity Framework runtime error; hence this slightly clunky exception implementation
+                }
                 GetLogger().LogInformation($"Playlist {playlistId}: Starting index = {index}");
                 List<Media> medias = new List<Media>();
                 switch (playlist.SourceType)
@@ -66,8 +71,18 @@ namespace TaskEngine.Tasks
                     medias.ForEach(m => _downloadMediaTask.Publish(m.Id));
                 } else {
                     GetLogger().LogInformation($"Playlist {playlistId}: No new media to download");
-
                 }
+
+                 // reload a fresh playlist since it's been a while ...
+                playlist = await _context.Playlists.FindAsync(playlistId);
+                
+                playlist.ListCheckedAt = DateTime.Now;
+                // By updating a null value, means we can differentiate between an empty playlist and a new playlist
+                if(medias.Count > 0 || playlist.ListUpdatedAt == null) {
+                    playlist.ListUpdatedAt = playlist.ListCheckedAt;
+                }
+                await _context.SaveChangesAsync();
+                
             }
         }
 

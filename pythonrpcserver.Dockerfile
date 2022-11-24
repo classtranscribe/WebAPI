@@ -1,6 +1,6 @@
 
 # Total laptop build 626 seconds
-FROM python:3.7-slim-stretch
+FROM python:3.7-slim-buster
 
 RUN apt-get update
 RUN apt-get install -y curl gcc g++ make libglib2.0-0 libsm6 libxext6 libxrender-dev ffmpeg

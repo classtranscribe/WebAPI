@@ -161,14 +161,16 @@ namespace ClassTranscribeDatabase
             return name;
         }
         public static string ToCourseOfferingSubDirectory(CTDbContext ctx, Entity entity) {
+            #nullable enable
             String? path = GetRelatedCourseOfferingFilePath(ctx, entity);
             
             if( !string.IsNullOrEmpty(path ) ) {
                 return path;
             }
+            #nullable disable
             return "/data/"; //legacy, pre 2022, default = everything is stored in the same directory
         }
-
+        #nullable enable
         public static string? GetRelatedCourseOfferingFilePath(CTDbContext ctx, Entity entity)
         {
             // the only thing that we can trust exists on the given the entity Id
@@ -212,6 +214,8 @@ namespace ClassTranscribeDatabase
                 default:
                     throw new InvalidOperationException($"GetRelatedCourseOffering not implemented for type {entity.GetType()} (Object ID: {entity.Id})");
             }
+            
         }
+        #nullable disable
     }
 }
