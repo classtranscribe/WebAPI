@@ -223,11 +223,6 @@ namespace ClassTranscribeDatabase
                 .HasOne(pt => pt.CourseOffering)
                 .WithMany(p => p.Glossaries)
                 .HasForeignKey(pt => new { pt.CourseId, pt.OfferingId });
-            
-            builder.Entity<ASLVideo>()
-                .HasOne(pt => pt.CourseOffering)
-                .WithMany(p => p.ASLVideos)
-                .HasForeignKey(pt => new { pt.CourseId, pt.OfferingId });
 
 
             // Configure Entities which have a JObject.

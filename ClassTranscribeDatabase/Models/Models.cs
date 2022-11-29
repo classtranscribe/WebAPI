@@ -443,10 +443,6 @@ namespace ClassTranscribeDatabase.Models
         [SwaggerIgnore]
         [IgnoreDataMember]
         public virtual List<Glossary> Glossaries { get; set; }
-
-        [SwaggerIgnore]
-        [IgnoreDataMember]
-        public virtual List<ASLVideo> ASLVideos { get; set; }
     }
 
     public class UserOffering : Entity
@@ -559,19 +555,13 @@ namespace ClassTranscribeDatabase.Models
         public string Term { get; set; }
         public int Kind { get; set; }
         public string Text { get; set; }
-        public string Link { get; set; }
+        public string WebsiteURL { get; set; }
+        public string DownloadURL { get; set; }
         public string Source { get; set; }
         public string LicenseTag { get; set; }
-        public bool Shared { get; set; }
-        public bool Editable { get; set; }
         public string Domain { get; set; }
         public int Likes { get; set; }
-        public string CourseId { get; set; }
-        public string OfferingId { get; set; }
-
-        [SwaggerIgnore]
-        [IgnoreDataMember]
-        public virtual CourseOffering CourseOffering { get; set; }
+        public string UUID { get; set;} 
     }
 
     public class ASLVideoGlossaryMap : Entity 

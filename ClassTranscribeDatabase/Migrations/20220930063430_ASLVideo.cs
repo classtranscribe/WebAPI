@@ -23,36 +23,24 @@ namespace ClassTranscribeDatabase.Migrations
                     Term = table.Column<string>(nullable: true),
                     Kind = table.Column<int>(nullable: false),
                     Text = table.Column<string>(nullable: true),
-                    Link = table.Column<string>(nullable: true),
+                    WebsiteURL = table.Column<string>(nullable: true),
+                    DownloadURL = table.Column<string>(nullable: true),
                     Source = table.Column<string>(nullable: true),
                     LicenseTag = table.Column<string>(nullable: true),
-                    Shared = table.Column<bool>(nullable: false),
-                    Editable = table.Column<bool>(nullable: false),
                     Domain = table.Column<string>(nullable: true),
                     Likes = table.Column<int>(nullable: false),
-                    CourseId = table.Column<string>(nullable: true),
-                    OfferingId = table.Column<string>(nullable: true)
+                    UUID = table.Column<string>(nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_ASLVideos", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_ASLVideos_CourseOfferings_CourseId_OfferingId",
-                        columns: x => new { x.CourseId, x.OfferingId },
-                        principalTable: "CourseOfferings",
-                        principalColumns: new[] { "CourseId", "OfferingId" },
-                        onDelete: ReferentialAction.Restrict);
                 });
-
-            migrationBuilder.CreateIndex(
-                name: "IX_ASLVideos_CourseId_OfferingId",
-                table: "ASLVideos",
-                columns: new[] { "CourseId", "OfferingId" });
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            
+            migrationBuilder.DropTable(
+                name: "ASLVideos");
         }
     }
 }
