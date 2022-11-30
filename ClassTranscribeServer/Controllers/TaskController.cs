@@ -119,11 +119,34 @@ namespace ClassTranscribeServer.Controllers
         //Future: [Authorize(Roles = Globals.ROLE_MEDIA_WORKER + "," + Globals.ROLE_ADMIN)]
         public async Task<ActionResult> UpdateGlossary(string videoId, JObject glossary)
         {
-           
+            string glossaryAsString = glossary.ToString(0);
             Video video = await _context.Videos.FindAsync(videoId);
-            video.Glossary = glossary;
+            if(video.HasGlossaryData())
+            {
+                TextData data = await _context.TextData.FindAsync(video.GlossaryDataId);
+                data.Text = glossaryAsString;
+            } else
+            {
+                TextData data = new TextData();
+                data.Text = glossaryAsString;
+                _context.TextData.Add(data);
+                video.GlossaryDataId = data.Id;
+                Trace.Assert(!string.IsNullOrEmpty(data.Id));
+            }
+           
             await _context.SaveChangesAsync();
             return Ok();
+        }
+
+        [HttpGet("GetGlossary")]
+        public async Task<ActionResult<Object>> GetGlossary(string videoId) {
+             Video video = await _context.Videos.FindAsync(videoId);
+             if(video.HasGlossaryData()) {
+                TextData data = await _context.TextData.FindAsync(video.GlossaryDataId);
+                return data.getAsJSON();
+             }
+             // old version - 
+             return video.Glossary;
         }
     }
 }

@@ -360,6 +360,10 @@ namespace ClassTranscribeDatabase.Models
         [Required]
         public JObject Glossary { get; set; } = new JObject();
 
+        public string GlossaryDataId {get; set;}
+
+        public bool HasGlossaryData() {return ! string.IsNullOrEmpty(GlossaryDataId);} 
+
 
         public virtual void UpdateMediaProperties()
         {
@@ -411,6 +415,13 @@ namespace ClassTranscribeDatabase.Models
                 if (HasSceneObjectData())
                 {
                     TextData data= await context.TextData.FindAsync(SceneObjectDataId);
+                    if(data != null) {
+                        context.TextData.Remove(data);
+                    }
+                }
+                if (HasGlossaryData())
+                {
+                    TextData data= await context.TextData.FindAsync(GlossaryDataId);
                     if(data != null) {
                         context.TextData.Remove(data);
                     }
