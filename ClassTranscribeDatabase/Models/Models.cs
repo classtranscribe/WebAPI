@@ -572,7 +572,7 @@ namespace ClassTranscribeDatabase.Models
         public string LicenseTag { get; set; }
         public string Domain { get; set; }
         public int Likes { get; set; }
-        public string UUID { get; set;} 
+        public string UniqueASLIdentifier { get; set;} 
     }
 
     public class ASLVideoGlossaryMap : Entity 
@@ -580,6 +580,7 @@ namespace ClassTranscribeDatabase.Models
         public string GlossaryId { get; set; }
         public string ASLVideoId { get; set; }
     }
+    
 
     public enum ResourceType
     {
