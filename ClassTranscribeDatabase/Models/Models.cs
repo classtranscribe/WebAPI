@@ -580,6 +580,7 @@ namespace ClassTranscribeDatabase.Models
         public string GlossaryId { get; set; }
         public string ASLVideoId { get; set; }
     }
+    
 
     public enum ResourceType
     {
