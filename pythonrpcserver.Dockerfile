@@ -1,6 +1,10 @@
 
 # Total laptop build 626 seconds
-FROM python:3.7-slim-buster
+#FROM python:3.7-slim-buster
+
+#FROM python:3.10.8-slim-buster - Failed to install scipy/numpy
+#FROM python:3.9.15-slim-buster - failed to install scipy/numpy
+FROM python:3.8.15-slim-buster
 
 RUN apt-get update
 RUN apt-get install -y curl gcc g++ make libglib2.0-0 libsm6 libxext6 libxrender-dev ffmpeg

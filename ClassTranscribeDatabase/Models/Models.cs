@@ -360,6 +360,10 @@ namespace ClassTranscribeDatabase.Models
         [Required]
         public JObject Glossary { get; set; } = new JObject();
 
+        public string GlossaryDataId {get; set;}
+
+        public bool HasGlossaryData() {return ! string.IsNullOrEmpty(GlossaryDataId);} 
+
 
         public virtual void UpdateMediaProperties()
         {
@@ -415,6 +419,13 @@ namespace ClassTranscribeDatabase.Models
                         context.TextData.Remove(data);
                     }
                 }
+                if (HasGlossaryData())
+                {
+                    TextData data= await context.TextData.FindAsync(GlossaryDataId);
+                    if(data != null) {
+                        context.TextData.Remove(data);
+                    }
+                }
 
                 context.Videos.Remove(dbVideoRow);
                 await context.SaveChangesAsync();
@@ -443,10 +454,6 @@ namespace ClassTranscribeDatabase.Models
         [SwaggerIgnore]
         [IgnoreDataMember]
         public virtual List<Glossary> Glossaries { get; set; }
-
-        [SwaggerIgnore]
-        [IgnoreDataMember]
-        public virtual List<ASLVideo> ASLVideos { get; set; }
     }
 
     public class UserOffering : Entity
@@ -559,19 +566,13 @@ namespace ClassTranscribeDatabase.Models
         public string Term { get; set; }
         public int Kind { get; set; }
         public string Text { get; set; }
-        public string Link { get; set; }
+        public string WebsiteURL { get; set; }
+        public string DownloadURL { get; set; }
         public string Source { get; set; }
         public string LicenseTag { get; set; }
-        public bool Shared { get; set; }
-        public bool Editable { get; set; }
         public string Domain { get; set; }
         public int Likes { get; set; }
-        public string CourseId { get; set; }
-        public string OfferingId { get; set; }
-
-        [SwaggerIgnore]
-        [IgnoreDataMember]
-        public virtual CourseOffering CourseOffering { get; set; }
+        public string UniqueASLIdentifier { get; set;} 
     }
 
     public class ASLVideoGlossaryMap : Entity 
@@ -579,6 +580,7 @@ namespace ClassTranscribeDatabase.Models
         public string GlossaryId { get; set; }
         public string ASLVideoId { get; set; }
     }
+    
 
     public enum ResourceType
     {
