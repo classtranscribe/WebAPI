@@ -31,6 +31,35 @@ namespace ClassTranscribeServer.Controllers
             return aSLVideo;
         }
 
+        // GET: api/ASLVideos/GetASLVideosByTerm
+        [HttpGet("GetASLVideosByTerm")]
+        public async Task<ActionResult<IEnumerable<ASLVideo>>> GetAllASLVideoByTerm(string term) 
+        {
+
+            var aSLVideos = await _context.ASLVideos.Where(c => c.Term == term).OrderBy(c => c.Id).ToListAsync();
+        
+            if (aSLVideos == null)
+            {
+                return NotFound();
+            }
+
+            return aSLVideos;
+        }
+
+        // GET: api/ASLVideos/GetASLVideosByUniqueASLIdentifier
+        [HttpGet("GetASLVideosByUniqueASLIdentifier")]
+        public async Task<ActionResult<ASLVideo>> GetASLVideoByIdentifier(string uniqueASLIdentifier)
+        {   
+            var aSLVideos = await _context.ASLVideos.Where(c => c.UniqueASLIdentifier == uniqueASLIdentifier).OrderBy(c => c.Id).ToListAsync();
+        
+            if (aSLVideos == null)
+            {
+                return NotFound();
+            }
+
+            return aSLVideos.FirstOrDefault();
+        }
+
         // POST: api/ASLVideos
         [HttpPost]
         // [Authorize(Roles = Globals.ROLE_ADMIN)]
