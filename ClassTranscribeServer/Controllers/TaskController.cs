@@ -148,5 +148,40 @@ namespace ClassTranscribeServer.Controllers
              // old version - 
              return video.Glossary;
         }
+
+        [HttpPost("UpdateGlossaryTimestamp")]
+        [DisableRequestSizeLimit]
+        //Future: [Authorize(Roles = Globals.ROLE_MEDIA_WORKER + "," + Globals.ROLE_ADMIN)]
+        public async Task<ActionResult> UpdateGlossaryTimestamp(string videoId, JObject glossaryTimestamp)
+        {
+            string glossaryTimestampAsString = glossaryTimestamp.ToString(0);
+            Video video = await _context.Videos.FindAsync(videoId);
+            if(video.HasGlossaryTimestamp())
+            {
+                TextData data = await _context.TextData.FindAsync(video.GlossaryTimestampId);
+                data.Text = glossaryTimestampAsString;
+            } else
+            {
+                TextData data = new TextData();
+                data.Text = glossaryTimestampAsString;
+                _context.TextData.Add(data);
+                video.GlossaryTimestampId = data.Id;
+                Trace.Assert(!string.IsNullOrEmpty(data.Id));
+            }
+           
+            await _context.SaveChangesAsync();
+            return Ok();
+        }
+
+        [HttpGet("GetGlossaryTimestamp")]
+        public async Task<ActionResult<Object>> GetGlossaryTimestamp(string videoId) {
+             Video video = await _context.Videos.FindAsync(videoId);
+             if(video.HasGlossaryTimestamp()) {
+                TextData data = await _context.TextData.FindAsync(video.GlossaryTimestampId);
+                return data.getAsJSON();
+             }
+             // old version - 
+             return NotFound();
+        }
     }
 }
