@@ -110,7 +110,7 @@ namespace ClassTranscribeServer.Controllers
         /// </summary>
         /// 
         [HttpGet("GetGlossaryData")]
-        // [Authorize]
+        [Authorize]
         public async Task<ActionResult<Object>> GetGlossaryData(string mediaId)
         {
             var media = _context.Medias.Find(mediaId);
