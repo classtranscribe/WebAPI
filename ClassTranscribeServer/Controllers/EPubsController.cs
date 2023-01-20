@@ -88,10 +88,10 @@ namespace ClassTranscribeServer.Controllers
             var media = _context.Medias.Find(mediaId);
             Video video = await _context.Videos.FindAsync(media.VideoId);
 
-            if (!video.SceneData.HasValues)
-            {
+            if (!video.HasSceneObjectData()) {
                 return NotFound();
             }
+            TextData data = await _context.TextData.FindAsync(video.SceneObjectDataId);
 
             EPub epub = new EPub
             {
@@ -102,7 +102,7 @@ namespace ClassTranscribeServer.Controllers
 
             var captions = await _captionQueries.GetCaptionsAsync(media.VideoId, epub.Language);
 
-            return GetSceneData(video.SceneData["Scenes"] as JArray, captions);
+            return GetSceneData(data.getAsJSON() as JArray, captions);
         }
 
         /// <summary>
