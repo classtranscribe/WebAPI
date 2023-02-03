@@ -95,6 +95,7 @@ namespace ClassTranscribeServer.Controllers
             return Ok();
         }
 
+
         // Upvote: api/Glossaries/Upvote/3
         [HttpPut("Upvote/{id}")]
         // [Authorize(Roles = Globals.ROLE_ADMIN)]
