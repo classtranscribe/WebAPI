@@ -95,6 +95,46 @@ namespace ClassTranscribeServer.Controllers
             return Ok();
         }
 
+        // Upvote: api/Glossaries/Upvote/3
+        [HttpPut("Upvote/{id}")]
+        // [Authorize(Roles = Globals.ROLE_ADMIN)]
+        public async Task<IActionResult> UpvoteGlossary(string id)
+        {
+            if (id == null)
+            {
+                return BadRequest();
+            }
+
+            var glossary = await _context.Glossaries.FindAsync(id);
+
+            if (glossary == null)
+            {
+                return NotFound();
+            }
+
+            glossary.Likes++;
+
+            _context.Entry(glossary).State = EntityState.Modified;
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!GlossaryExists(id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+
+            return Ok();
+        }
+
         /// <summary>
         /// Gets all glossaries for a term from an CourseOffering
         /// </summary>
