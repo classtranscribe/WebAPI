@@ -103,6 +103,7 @@ namespace ClassTranscribeServer.Controllers
             var captions = await _captionQueries.GetCaptionsAsync(media.VideoId, epub.Language);
 
             return GetSceneData(data.getAsJSON() as JArray, captions);
+
         }
 
         /// <summary>
@@ -120,6 +121,7 @@ namespace ClassTranscribeServer.Controllers
                 return data.getAsJSON();
             }
             return video.Glossary;
+
         }
 
         [HttpGet("RequestEpubCreation")]

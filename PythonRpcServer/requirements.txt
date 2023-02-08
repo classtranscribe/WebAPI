@@ -22,7 +22,10 @@ parso==0.7.0
 pexpect==4.8.0
 pickleshare==0.7.5
 prompt-toolkit==3.0.5
-protobuf==3.18.3
+protobuf==3.15.0
+# protobuf version 3.18.3 causes  NotImplementedError("To be implemented") in PythonRpcServer/mediaprovider.py
+# Likely need to coordinate updating the C# version too
+
 ptyprocess==0.6.0
 Pygments==2.7.4
 requests==2.23.0
