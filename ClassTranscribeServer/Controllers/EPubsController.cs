@@ -103,6 +103,25 @@ namespace ClassTranscribeServer.Controllers
             var captions = await _captionQueries.GetCaptionsAsync(media.VideoId, epub.Language);
 
             return GetSceneData(data.getAsJSON() as JArray, captions);
+
+        }
+
+        /// <summary>
+        /// Gets glossary for a given video
+        /// </summary>
+        /// 
+        [HttpGet("GetGlossaryData")]
+        [Authorize]
+        public async Task<ActionResult<Object>> GetGlossaryData(string mediaId)
+        {
+            var media = _context.Medias.Find(mediaId);
+            Video video = await _context.Videos.FindAsync(media.VideoId);
+            if (video.HasGlossaryData()) {
+                TextData data = await _context.TextData.FindAsync(video.GlossaryDataId);
+                return data.getAsJSON();
+            }
+            return video.Glossary;
+
         }
 
         [HttpGet("RequestEpubCreation")]

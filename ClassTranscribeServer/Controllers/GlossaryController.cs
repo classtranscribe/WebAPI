@@ -95,14 +95,70 @@ namespace ClassTranscribeServer.Controllers
             return Ok();
         }
 
+
+        // Upvote: api/Glossaries/Upvote/3
+        [HttpPut("Upvote/{id}")]
+        // [Authorize(Roles = Globals.ROLE_ADMIN)]
+        public async Task<IActionResult> UpvoteGlossary(string id)
+        {
+            if (id == null)
+            {
+                return BadRequest();
+            }
+
+            var glossary = await _context.Glossaries.FindAsync(id);
+
+            if (glossary == null)
+            {
+                return NotFound();
+            }
+
+            glossary.Likes++;
+
+            _context.Entry(glossary).State = EntityState.Modified;
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!GlossaryExists(id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+
+            return Ok();
+        }
+
         /// <summary>
         /// Gets all glossaries for a term from an CourseOffering
         /// </summary>
-        [HttpGet("ByTerm/{term}")]
-        public async Task<ActionResult<IEnumerable<Glossary>>> GetAllGlossaryByTerm(string term, string courseId, string offeringId) 
+        [HttpGet("ByTermCourseOffering/{term}")]
+        public async Task<ActionResult<IEnumerable<Glossary>>> GetAllGlossaryByTermCourseOffering(string term, string courseId, string offeringId) 
         {
 
             var glossaries = await _context.Glossaries.Where(c => c.CourseId == courseId && c.OfferingId == offeringId && c.Term == term).OrderBy(c => c.Id).ToListAsync();
+        
+            if (glossaries == null)
+            {
+                return NotFound();
+            }
+
+            return glossaries;
+        }
+
+        // GET: api/Glossary/GetGlossaryByTerm
+        [HttpGet("GetGlossaryByTerm")]
+        public async Task<ActionResult<IEnumerable<Glossary>>> GetAllGlossaryByTerm(string term) 
+        {
+
+            var glossaries = await _context.Glossaries.Where(c => c.Term == term).OrderBy(c => c.Id).ToListAsync();
         
             if (glossaries == null)
             {

@@ -364,6 +364,10 @@ namespace ClassTranscribeDatabase.Models
 
         public bool HasGlossaryData() {return ! string.IsNullOrEmpty(GlossaryDataId);} 
 
+        public string GlossaryTimestampId {get; set;}
+
+        public bool HasGlossaryTimestamp() {return ! string.IsNullOrEmpty(GlossaryTimestampId);} 
+
 
         public virtual void UpdateMediaProperties()
         {
@@ -422,6 +426,13 @@ namespace ClassTranscribeDatabase.Models
                 if (HasGlossaryData())
                 {
                     TextData data= await context.TextData.FindAsync(GlossaryDataId);
+                    if(data != null) {
+                        context.TextData.Remove(data);
+                    }
+                }
+                if (HasGlossaryTimestamp())
+                {
+                    TextData data= await context.TextData.FindAsync(GlossaryTimestampId);
                     if(data != null) {
                         context.TextData.Remove(data);
                     }
@@ -579,6 +590,7 @@ namespace ClassTranscribeDatabase.Models
     {
         public string GlossaryId { get; set; }
         public string ASLVideoId { get; set; }
+        public bool Published { get; set; }
     }
     
 
