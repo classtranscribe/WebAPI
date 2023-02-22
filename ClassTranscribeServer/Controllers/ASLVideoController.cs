@@ -139,6 +139,46 @@ namespace ClassTranscribeServer.Controllers
             return Ok();
         }
 
+        // Upvote: api/ASLVideos/Upvote/3
+        [HttpPut("Upvote/{id}")]
+        // [Authorize(Roles = Globals.ROLE_ADMIN)]
+        public async Task<IActionResult> UpvoteASL(string id)
+        {
+            if (id == null)
+            {
+                return BadRequest();
+            }
+
+            var aSLVideo = await _context.ASLVideos.FindAsync(id);
+
+            if (aSLVideo == null)
+            {
+                return NotFound();
+            }
+
+            aSLVideo.Likes++;
+
+            _context.Entry(aSLVideo).State = EntityState.Modified;
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!ASLVideoExists(id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+
+            return Ok();
+        }
+
         private bool ASLVideoExists(string id)
         {
             return _context.ASLVideos.Any(e => e.Id == id);
