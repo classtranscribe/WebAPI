@@ -60,6 +60,21 @@ namespace ClassTranscribeServer.Controllers
             return aSLVideos.FirstOrDefault();
         }
 
+        // GET: api/ASLVideos/GetAllASLVideos
+        [HttpGet("GetAllASLVideos")]
+        public async Task<ActionResult<IEnumerable<ASLVideo>>> GetAllASLVideo() 
+        {
+
+            var aSLVideos = await _context.ASLVideos.OrderBy(c => c.Id).ToListAsync();
+        
+            if (aSLVideos == null)
+            {
+                return NotFound();
+            }
+
+            return aSLVideos;
+        }
+
         // POST: api/ASLVideos
         [HttpPost]
         // [Authorize(Roles = Globals.ROLE_ADMIN)]
