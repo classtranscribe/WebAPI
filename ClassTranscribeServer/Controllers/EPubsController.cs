@@ -85,13 +85,18 @@ namespace ClassTranscribeServer.Controllers
         [Authorize]
         public async Task<ActionResult<List<EPubSceneData>>> GetEpubData(string mediaId, string language)
         {
+            _logger.LogInformation($"GetEpubData({mediaId},{language}) starting");
             var media = _context.Medias.Find(mediaId);
             Video video = await _context.Videos.FindAsync(media.VideoId);
+            _logger.LogInformation($"GetEpubData({mediaId},{language}) video found. SceneData:{video.SceneObjectDataId}.");
 
             if (!video.HasSceneObjectData()) {
+                _logger.LogInformation($"GetEpubData({mediaId}) - Early return - no SceneObjectData");
                 return NotFound();
             }
             TextData data = await _context.TextData.FindAsync(video.SceneObjectDataId);
+            _logger.LogInformation($"GetEpubData({mediaId},{language}) getting scenedata as JArray");
+            JArray sceneArray = data.getAsJSON()["Scenes"] as JArray;
 
             EPub epub = new EPub
             {
@@ -101,8 +106,9 @@ namespace ClassTranscribeServer.Controllers
             };
 
             var captions = await _captionQueries.GetCaptionsAsync(media.VideoId, epub.Language);
+            _logger.LogInformation($"GetEpubData({mediaId}) - returning combined SceneData");
 
-            return GetSceneData(data.getAsJSON() as JArray, captions);
+            return GetSceneData(sceneArray, captions);
 
         }
 
