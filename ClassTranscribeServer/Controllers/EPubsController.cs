@@ -96,7 +96,7 @@ namespace ClassTranscribeServer.Controllers
             }
             TextData data = await _context.TextData.FindAsync(video.SceneObjectDataId);
             _logger.LogInformation($"GetEpubData({mediaId},{language}) getting scenedata as JArray");
-            JArray sceneArray = data.getAsJArray();
+            JArray sceneArray = data.getAsJSON()["Scenes"] as JArray;
 
             EPub epub = new EPub
             {
