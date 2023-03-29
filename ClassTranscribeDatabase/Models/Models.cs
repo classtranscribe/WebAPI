@@ -542,7 +542,17 @@ namespace ClassTranscribeDatabase.Models
             }
             return JToken.Parse(Text);
         }
-         #nullable disable
+
+        public JArray? getAsJArray()
+        {
+            if (string.IsNullOrEmpty(Text))
+            {
+                return null;
+            }
+            return JArray.Parse(Text);
+
+        }
+    #nullable disable
     }
 
     public class Dictionary : Entity
