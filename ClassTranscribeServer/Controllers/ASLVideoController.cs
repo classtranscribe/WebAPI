@@ -60,6 +60,21 @@ namespace ClassTranscribeServer.Controllers
             return aSLVideos.FirstOrDefault();
         }
 
+        // GET: api/ASLVideos/GetAllASLVideos
+        [HttpGet("GetAllASLVideos")]
+        public async Task<ActionResult<IEnumerable<ASLVideo>>> GetAllASLVideo() 
+        {
+
+            var aSLVideos = await _context.ASLVideos.OrderBy(c => c.Id).ToListAsync();
+        
+            if (aSLVideos == null)
+            {
+                return NotFound();
+            }
+
+            return aSLVideos;
+        }
+
         // POST: api/ASLVideos
         [HttpPost]
         // [Authorize(Roles = Globals.ROLE_ADMIN)]
@@ -102,6 +117,46 @@ namespace ClassTranscribeServer.Controllers
             {
                 return BadRequest();
             }
+
+            _context.Entry(aSLVideo).State = EntityState.Modified;
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!ASLVideoExists(id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+
+            return Ok();
+        }
+
+        // Upvote: api/ASLVideos/Upvote/3
+        [HttpPut("Upvote/{id}")]
+        // [Authorize(Roles = Globals.ROLE_ADMIN)]
+        public async Task<IActionResult> UpvoteASL(string id)
+        {
+            if (id == null)
+            {
+                return BadRequest();
+            }
+
+            var aSLVideo = await _context.ASLVideos.FindAsync(id);
+
+            if (aSLVideo == null)
+            {
+                return NotFound();
+            }
+
+            aSLVideo.Likes++;
 
             _context.Entry(aSLVideo).State = EntityState.Modified;
 

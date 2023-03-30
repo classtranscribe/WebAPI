@@ -572,6 +572,7 @@ namespace ClassTranscribeDatabase.Models
         public bool Editable { get; set; }
         public string Domain { get; set; }
         public int Likes { get; set; }
+        public string Explanation { get; set; }
 
         public string CourseId { get; set; }
         public string OfferingId { get; set; }
