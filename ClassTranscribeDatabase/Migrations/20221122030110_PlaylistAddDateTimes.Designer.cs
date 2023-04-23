@@ -3,15 +3,17 @@ using System;
 using ClassTranscribeDatabase;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace ClassTranscribeDatabase.Migrations
 {
     [DbContext(typeof(CTDbContext))]
-    partial class CTDbContextModelSnapshot : ModelSnapshot
+    [Migration("20221122030110_PlaylistAddDateTimes")]
+    partial class PlaylistAddDateTimes
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -23,6 +25,9 @@ namespace ClassTranscribeDatabase.Migrations
                 {
                     b.Property<string>("Id")
                         .ValueGeneratedOnAdd()
+                        .HasColumnType("text");
+
+                    b.Property<string>("CourseId")
                         .HasColumnType("text");
 
                     b.Property<DateTime>("CreatedAt")
@@ -40,8 +45,8 @@ namespace ClassTranscribeDatabase.Migrations
                     b.Property<string>("Domain")
                         .HasColumnType("text");
 
-                    b.Property<string>("DownloadURL")
-                        .HasColumnType("text");
+                    b.Property<bool>("Editable")
+                        .HasColumnType("boolean");
 
                     b.Property<int>("IsDeletedStatus")
                         .HasColumnType("integer");
@@ -61,6 +66,15 @@ namespace ClassTranscribeDatabase.Migrations
                     b.Property<int>("Likes")
                         .HasColumnType("integer");
 
+                    b.Property<string>("Link")
+                        .HasColumnType("text");
+
+                    b.Property<string>("OfferingId")
+                        .HasColumnType("text");
+
+                    b.Property<bool>("Shared")
+                        .HasColumnType("boolean");
+
                     b.Property<string>("Source")
                         .HasColumnType("text");
 
@@ -70,13 +84,9 @@ namespace ClassTranscribeDatabase.Migrations
                     b.Property<string>("Text")
                         .HasColumnType("text");
 
-                    b.Property<string>("UniqueASLIdentifier")
-                        .HasColumnType("text");
-
-                    b.Property<string>("WebsiteURL")
-                        .HasColumnType("text");
-
                     b.HasKey("Id");
+
+                    b.HasIndex("CourseId", "OfferingId");
 
                     b.ToTable("ASLVideos");
                 });
@@ -113,9 +123,6 @@ namespace ClassTranscribeDatabase.Migrations
 
                     b.Property<string>("LastUpdatedBy")
                         .HasColumnType("text");
-
-                    b.Property<bool>("Published")
-                        .HasColumnType("boolean");
 
                     b.HasKey("Id");
 
@@ -570,9 +577,6 @@ namespace ClassTranscribeDatabase.Migrations
 
                     b.Property<bool>("Editable")
                         .HasColumnType("boolean");
-
-                    b.Property<string>("Explanation")
-                        .HasColumnType("text");
 
                     b.Property<int>("IsDeletedStatus")
                         .HasColumnType("integer");
@@ -1385,12 +1389,6 @@ namespace ClassTranscribeDatabase.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("GlossaryDataId")
-                        .HasColumnType("text");
-
-                    b.Property<string>("GlossaryTimestampId")
-                        .HasColumnType("text");
-
                     b.Property<int>("IsDeletedStatus")
                         .HasColumnType("integer");
 
@@ -1624,6 +1622,13 @@ namespace ClassTranscribeDatabase.Migrations
                     b.HasKey("UserId", "LoginProvider", "Name");
 
                     b.ToTable("AspNetUserTokens");
+                });
+
+            modelBuilder.Entity("ClassTranscribeDatabase.Models.ASLVideo", b =>
+                {
+                    b.HasOne("ClassTranscribeDatabase.Models.CourseOffering", "CourseOffering")
+                        .WithMany("ASLVideos")
+                        .HasForeignKey("CourseId", "OfferingId");
                 });
 
             modelBuilder.Entity("ClassTranscribeDatabase.Models.ApplicationUser", b =>

@@ -1,8 +1,16 @@
 ## WebAPI
 
-This repository provides the source code primary API endpoint of the ClassTranscribe Server. Copyright (C) University of Illinois, USA. 2019-2020
+This repository provides the source code primary API endpoint of the ClassTranscribe Server. Copyright (C) University of Illinois, USA. 2019-2022
 
 The source code in this repository is licensed here under the GNU Public License 3.0 (https://www.gnu.org/licenses/gpl-3.0.en.html). Please email angrave at Illinois if you are interested in alternative licenses of this code and related intellectual property.
+
+## Build Status
+
+| Branch | Status |
+|-------:|--------|
+| Production | ![Production](https://github.com/classtranscribe/WebAPI/actions/workflows/docker.yaml/badge.svg?event=push&branch=main) |
+| Staging | ![Staging](https://github.com/classtranscribe/WebAPI/actions/workflows/docker.yaml/badge.svg?event=push&branch=staging) |
+| Experimental | ![Experimental](https://github.com/classtranscribe/WebAPI/actions/workflows/docker.yaml/badge.svg?event=push&branch=expt) |
 
 # Pull requests, Submitting code and copyright.
 
@@ -29,7 +37,7 @@ To build this repository,
     ```
     Eg.
     ```
-    docker-compose up -d classtranscribeserver
+    docker-compose up -d api
     ```
     "-d" option allows running the service in a detached mode
    
@@ -55,8 +63,8 @@ To build this repository,
  
 # Notes
 1. If there are dependency changes made to classtranscribeserver, you are required to rebuild using docker-compose
-  ```docker-compose up --build classtranscribeserver```
+  ```docker-compose up --build api```
 2. After making any code changes to rebuild code, just re-run the service,
-  ```docker-compose up classtranscribeserver```
+  ```docker-compose up api```
 3. Refer [gotchas.md](./gotchas.md) for known coding blunders.
     

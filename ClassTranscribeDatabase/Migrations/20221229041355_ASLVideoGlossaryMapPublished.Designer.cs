@@ -3,15 +3,17 @@ using System;
 using ClassTranscribeDatabase;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace ClassTranscribeDatabase.Migrations
 {
     [DbContext(typeof(CTDbContext))]
-    partial class CTDbContextModelSnapshot : ModelSnapshot
+    [Migration("20221229041355_ASLVideoGlossaryMapPublished")]
+    partial class ASLVideoGlossaryMapPublished
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -570,9 +572,6 @@ namespace ClassTranscribeDatabase.Migrations
 
                     b.Property<bool>("Editable")
                         .HasColumnType("boolean");
-
-                    b.Property<string>("Explanation")
-                        .HasColumnType("text");
 
                     b.Property<int>("IsDeletedStatus")
                         .HasColumnType("integer");
@@ -1386,9 +1385,6 @@ namespace ClassTranscribeDatabase.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("GlossaryDataId")
-                        .HasColumnType("text");
-
-                    b.Property<string>("GlossaryTimestampId")
                         .HasColumnType("text");
 
                     b.Property<int>("IsDeletedStatus")

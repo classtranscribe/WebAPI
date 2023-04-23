@@ -132,8 +132,8 @@ class KalturaProvider(MediaProvider):
     def getSensibleMediaInfos(self, mediaIds):
         if mediaIds is None:
             return []
-        if len(mediaIds) > 500:
-            mediaIds = mediaIds[:500]
+        if len(mediaIds) > 2000:
+            mediaIds = mediaIds[:2000]
         infolist = [self.getMediaInfo(id) for id in mediaIds]
         # Drop missing (None) entries
         return [info for info in infolist if info ] #and info.duration > 0
@@ -213,21 +213,22 @@ class KalturaProvider(MediaProvider):
         result = {}
         return result
     
-def organizeParentMedia(self, mediaList):
-    validMedia = [ m for m in mediaList if m.get('duration') >0]
-    mapping = {}
-    for m in validMedia:
-         if len(m.get('parentEntryId')) > 0:
-            mapping[  m.get('parentEntryId') ] = m
-
-    result = []
-    for m in validMedia:
-        if len( m.get('parentEntryId') ) == 0:
-            child = mapping.get( m.get('entryId'), {})
-            m['child'] = child
-        result.append(m)
-    
-    return result
+    def organizeParentMedia(self, mediaList):
+        validMedia = [ m for m in mediaList if m.get('duration') >0]
+        mapping = {}
+        for m in validMedia:
+            if len(m.get('parentEntryId')) > 0:
+                mapping[ m.get('parentEntryId') ] = m
+        print(f"{len(mapping)} parent-child mappings for {len(validMedia)} valid media (duration>0)")
+        result = []
+        for m in validMedia:
+            if len( m.get('parentEntryId') ) == 0:
+                child = mapping.get( m.get('id'), {})
+                if child != {}: 
+                    m['child'] = child
+                result.append(m)
+        
+        return result
         
     # Main entry point- overrides stub in MediaProvider
     def getPlaylistItems(self, request):
@@ -283,3 +284,4 @@ def organizeParentMedia(self, mediaList):
 
 if KALTURA_PARTNER_ID == 0 or not KALTURA_TOKEN_ID or not KATLURA_APP_TOKEN:
     print("INVALID KALTURA CREDENTIALS, check KALTURA environment variables.")
+

@@ -14,6 +14,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using static ClassTranscribeDatabase.CommonUtils;
 
+#pragma warning disable CA2007
+// https://learn.microsoft.com/en-us/dotnet/fundamentals/code-analysis/quality-rules/ca2007
+// We are okay awaiting on a task in the same thread
 
 namespace TaskEngine.Tasks
 {
@@ -45,22 +48,45 @@ namespace TaskEngine.Tasks
             using (var _context = CTDbContext.CreateDbContext())
             {
                 var playlist = await _context.Playlists.FindAsync(playlistId);
+                int index = 0;
+                try {
+                    index = 1 + await _context.Medias.Where(m=> m.PlaylistId == playlist.Id).Select(m => m.Index).MaxAsync();
+                } catch(Exception) {
+                    // ignored (e.g. no media). Tried DefaultIfEmpty but that threw an Entity Framework runtime error; hence this slightly clunky exception implementation
+                }
+                GetLogger().LogInformation($"Playlist {playlistId}: Starting index = {index}");
                 List<Media> medias = new List<Media>();
                 switch (playlist.SourceType)
                 {
-                    case SourceType.Echo360: medias = await GetEchoPlaylist(playlist, _context); break;
-                    case SourceType.Youtube: medias = await GetYoutubePlaylist(playlist, _context); break;
+                    case SourceType.Echo360: medias = await GetEchoPlaylist(playlist, index,  _context); break;
+                    case SourceType.Youtube: medias = await GetYoutubePlaylist(playlist, index, _context); break;
                     case SourceType.Local: medias = await GetLocalPlaylist(playlist, _context); break;
-                    case SourceType.Kaltura: medias = await GetKalturaPlaylist(playlist, _context); break;
-                    case SourceType.Box: medias = await GetBoxPlaylist(playlist, _context); break;
+                    case SourceType.Kaltura: medias = await GetKalturaPlaylist(playlist, index, _context); break;
+                    case SourceType.Box: medias = await GetBoxPlaylist(playlist, index, _context); break;
                 }
-                // TASK DEPENDENCY (REFACTOR)
-                GetLogger().LogInformation($"Playlist {playlistId}: {medias.Count} media listed. Publishing downloadMediaTasks...");
-                medias.ForEach(m => _downloadMediaTask.Publish(m.Id));
+                
+                GetLogger().LogInformation($"Playlist {playlistId}: {medias.Count} media listed.");
+                if( medias.Count > 0) {
+                    GetLogger().LogInformation($"Playlist {playlistId}: Publishing { medias.Count } download tasks");
+                    medias.ForEach(m => _downloadMediaTask.Publish(m.Id));
+                } else {
+                    GetLogger().LogInformation($"Playlist {playlistId}: No new media to download");
+                }
+
+                 // reload a fresh playlist since it's been a while ...
+                playlist = await _context.Playlists.FindAsync(playlistId);
+                
+                playlist.ListCheckedAt = DateTime.Now;
+                // By updating a null value, means we can differentiate between an empty playlist and a new playlist
+                if(medias.Count > 0 || playlist.ListUpdatedAt == null) {
+                    playlist.ListUpdatedAt = playlist.ListCheckedAt;
+                }
+                await _context.SaveChangesAsync();
+                
             }
         }
 
-        public async Task<List<Media>> GetKalturaPlaylist(Playlist playlist, CTDbContext _context)
+        public async Task<List<Media>> GetKalturaPlaylist(Playlist playlist, int index,  CTDbContext _context)
         {
             List<Media> newMedia = new List<Media>();
             CTGrpc.JsonString jsonString = null;
@@ -92,7 +118,7 @@ namespace TaskEngine.Tasks
                 // Check if there is a valid Id, and for the same playlist the same media does not exist.
                 if (jObject["id"].ToString().Length > 0 &&
                     !await _context.Medias.Where(m => m.UniqueMediaIdentifier == jObject["id"].ToString() &&
-                    m.SourceType == playlist.SourceType &&
+                //    m.SourceType == playlist.SourceType &&
                     m.PlaylistId == playlist.Id).AnyAsync())
                 {
                     newMedia.Add(new Media
@@ -102,8 +128,10 @@ namespace TaskEngine.Tasks
                         PlaylistId = playlist.Id,
                         UniqueMediaIdentifier = jObject["id"].ToString(),
                         CreatedAt = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)
-                            .AddSeconds(jObject["createdAt"].ToObject<int>())
+                            .AddSeconds(jObject["createdAt"].ToObject<int>()),
+                        Index = index
                     });
+                    index ++;
                 } else
                 {
                     skipped ++;
@@ -117,7 +145,7 @@ namespace TaskEngine.Tasks
             return newMedia;
         }
 
-        public async Task<List<Media>> GetEchoPlaylist(Playlist playlist, CTDbContext _context)
+        public async Task<List<Media>> GetEchoPlaylist(Playlist playlist, int index, CTDbContext _context)
         {
             List<Media> newMedia = new List<Media>();
             CTGrpc.JsonString jsonString = null;
@@ -161,7 +189,7 @@ namespace TaskEngine.Tasks
                 // Check if there is a valid Id, and for the same playlist the same media does not exist.
                 if (jObject["mediaId"].ToString().Length > 0 &&
                     !await _context.Medias.Where(m => m.UniqueMediaIdentifier == jObject["mediaId"].ToString() &&
-                    m.SourceType == playlist.SourceType &&
+                    //m.SourceType == playlist.SourceType &&
                     m.PlaylistId == playlist.Id).AnyAsync())
                 {
                     newMedia.Add(new Media
@@ -170,8 +198,10 @@ namespace TaskEngine.Tasks
                         SourceType = playlist.SourceType,
                         PlaylistId = playlist.Id,
                         UniqueMediaIdentifier = jObject["mediaId"].ToString(),
-                        CreatedAt = Convert.ToDateTime(jObject["createdAt"], CultureInfo.InvariantCulture)
+                        CreatedAt = Convert.ToDateTime(jObject["createdAt"], CultureInfo.InvariantCulture),
+                        Index = index
                     });
+                    index ++;
                 }
             }
             newMedia.ForEach(m => m.Name = GetMediaName(m));
@@ -180,7 +210,7 @@ namespace TaskEngine.Tasks
             return newMedia;
         }
 
-        public async Task<List<Media>> GetYoutubePlaylist(Playlist playlist, CTDbContext _context)
+        public async Task<List<Media>> GetYoutubePlaylist(Playlist playlist, int index, CTDbContext _context)
         {
             List<Media> newMedia = new List<Media>();
             CTGrpc.JsonString jsonString = null;
@@ -208,13 +238,17 @@ namespace TaskEngine.Tasks
                 }
                 return newMedia;
             }
-            JArray jArray = JArray.Parse(jsonString.Json);            
+            JArray jArray = JArray.Parse(jsonString.Json);
+           
+            
+            int skipped = 0;
+            GetLogger().LogInformation($"{playlist.Id}:Starting index {index}");
             foreach (JObject jObject in jArray)
             {
                 // Check if there is a valid videoId, and for the same playlist the same media does not exist.
                 if (jObject["videoId"].ToString().Length > 0 &&
                     !await _context.Medias.Where(m => m.UniqueMediaIdentifier == jObject["videoId"].ToString() &&
-                m.SourceType == playlist.SourceType &&
+                //m.SourceType == playlist.SourceType &&
                 m.PlaylistId == playlist.Id).AnyAsync())
                 {
                     newMedia.Add(new Media
@@ -222,10 +256,17 @@ namespace TaskEngine.Tasks
                         JsonMetadata = jObject,
                         SourceType = playlist.SourceType,
                         PlaylistId = playlist.Id,
-                        UniqueMediaIdentifier = jObject["videoId"].ToString()
+                        UniqueMediaIdentifier = jObject["videoId"].ToString(),
+                        CreatedAt = Convert.ToDateTime(jObject["createdAt"], CultureInfo.InvariantCulture),
+                        Index = index
                     });
+                    index ++;
+                } else {
+                    skipped ++;
                 }
             }
+            GetLogger().LogInformation($"Youtube playlist=({playlist.Id}): {skipped} skipped existing. Adding {newMedia.Count} new media items");
+
             newMedia.ForEach(m => m.Name = GetMediaName(m));
             await _context.Medias.AddRangeAsync(newMedia);
             await _context.SaveChangesAsync();
@@ -243,11 +284,12 @@ namespace TaskEngine.Tasks
         {
             var medias = await _context.Medias.Where(m => m.Video == null && m.PlaylistId == playlist.Id).ToListAsync();
             medias.ForEach(m => m.Name = GetMediaName(m));
+            
             await _context.SaveChangesAsync();
             return medias;
         }
 
-        private async Task<List<Media>> GetBoxPlaylist(Playlist playlist, CTDbContext _context)
+        private async Task<List<Media>> GetBoxPlaylist(Playlist playlist, int index, CTDbContext _context)
         {
             try
             {
@@ -276,8 +318,10 @@ namespace TaskEngine.Tasks
                             PlaylistId = playlist.Id,
                             UniqueMediaIdentifier = file.Id,
                             JsonMetadata = JObject.FromObject(file),
-                            CreatedAt = file.CreatedAt ?? DateTime.Now
+                            CreatedAt = file.CreatedAt ?? DateTime.Now,
+                            Index = index
                         });
+                        index ++;
                     }
 
                 }

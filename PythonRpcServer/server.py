@@ -3,11 +3,11 @@ from __future__ import print_function
 import ct_pb2
 import ct_pb2_grpc
 import grpc
-import time
+#import time
 import logging
 from concurrent import futures
 import scenedetector
-import echo
+#import echo
 from youtube import YoutubeProvider
 from echo import EchoProvider
 from kaltura import KalturaProvider
@@ -16,11 +16,13 @@ import hasher
 import ffmpeg
 import phrasehinter
 import os
+import signal
+import threading
 import traceback
 from time import perf_counter 
 # Main entry point for docker container
 
-_ONE_DAY_IN_SECONDS = 60 * 60 * 24
+MAX_SECONDS_TO_SHUTDOWN = 8 # Docker waits 10s before kiling the process anyway 
 
 def LogWorker(logId, worker):
     start_time = perf_counter()
@@ -126,11 +128,20 @@ def serve():
     
     server.start()
     print("Python RPC Server Started")
-    try:
-        while True:
-            time.sleep(_ONE_DAY_IN_SECONDS)
-    except KeyboardInterrupt:
-        server.stop(0)
+    
+    done = threading.Event()
+    
+    def on_done(signum, frame):
+        if signal.SIGINT == signum:
+            MAX_SECONDS_TO_SHUTDOWN = 1
+        done.set()
+
+    signal.signal(signal.SIGTERM, on_done) # Docker sends SIGTERM then waits 10s
+    signal.signal(signal.SIGINT, on_done) # We only expect thissignal  in local testing
+    done.wait()
+
+    print(f"Python RPC Server Stopping. Waiting for up to {MAX_SECONDS_TO_SHUTDOWN} seconds for outstanding requests")
+    server.stop(MAX_SECONDS_TO_SHUTDOWN).wait()
     print("Python RPC Server Stopped")
 
 if __name__ == '__main__':

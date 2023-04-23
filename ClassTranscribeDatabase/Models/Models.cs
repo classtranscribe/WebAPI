@@ -243,6 +243,10 @@ namespace ClassTranscribeDatabase.Models
         public int Index { get; set; }
         public Visibility Visibility { get; set; }
         public PublishStatus PublishStatus { get; set; }
+        #nullable enable
+        public DateTime? ListUpdatedAt {get; set; } = null;
+        public DateTime? ListCheckedAt {get; set; } = null;
+        #nullable disable
     }
 
     public class Media : Entity
@@ -322,7 +326,14 @@ namespace ClassTranscribeDatabase.Models
         public virtual List<Transcription> Transcriptions { get; set; }
 
         public virtual List<EPub> EPubs { get; set; }
+
+        //public virtual TextData? PhraseHintsData { get; set; }
+
+        public bool HasPhraseHints() { return !string.IsNullOrEmpty(PhraseHintsDataId); }
 #nullable enable
+        //[ForeignKey("PhraseHintsData")]        
+        public string? PhraseHintsDataId { get; set; }
+        // Deprecated - This is too much data to load for each video object
         public string? PhraseHints { get; set; } // null if not yet processed
 #nullable disable
 
@@ -334,6 +345,12 @@ namespace ClassTranscribeDatabase.Models
 
         [Required]
         public JObject SceneData { get; set; } = new JObject();
+
+        //[ForeignKey("SceneObjectData")]    
+        public string SceneObjectDataId {get; set;}
+
+        public bool HasSceneObjectData() {return ! string.IsNullOrEmpty(SceneObjectDataId);} 
+
         [Required]
         public JObject JsonMetadata { get; set; } = new JObject();
         [Required]
@@ -342,6 +359,14 @@ namespace ClassTranscribeDatabase.Models
 
         [Required]
         public JObject Glossary { get; set; } = new JObject();
+
+        public string GlossaryDataId {get; set;}
+
+        public bool HasGlossaryData() {return ! string.IsNullOrEmpty(GlossaryDataId);} 
+
+        public string GlossaryTimestampId {get; set;}
+
+        public bool HasGlossaryTimestamp() {return ! string.IsNullOrEmpty(GlossaryTimestampId);} 
 
 
         public virtual void UpdateMediaProperties()
@@ -380,9 +405,39 @@ namespace ClassTranscribeDatabase.Models
             {
                 await Audio.DeleteFileRecordAsync(context);
             }
+           
             var dbVideoRow = await context.Videos.FindAsync(Id);
             if (dbVideoRow != null)
             {
+                if (HasPhraseHints())
+                {
+                    TextData data= await context.TextData.FindAsync(PhraseHintsDataId);
+                    if(data != null) {
+                        context.TextData.Remove(data);
+                    }
+                }
+                if (HasSceneObjectData())
+                {
+                    TextData data= await context.TextData.FindAsync(SceneObjectDataId);
+                    if(data != null) {
+                        context.TextData.Remove(data);
+                    }
+                }
+                if (HasGlossaryData())
+                {
+                    TextData data= await context.TextData.FindAsync(GlossaryDataId);
+                    if(data != null) {
+                        context.TextData.Remove(data);
+                    }
+                }
+                if (HasGlossaryTimestamp())
+                {
+                    TextData data= await context.TextData.FindAsync(GlossaryTimestampId);
+                    if(data != null) {
+                        context.TextData.Remove(data);
+                    }
+                }
+
                 context.Videos.Remove(dbVideoRow);
                 await context.SaveChangesAsync();
             }
@@ -410,10 +465,6 @@ namespace ClassTranscribeDatabase.Models
         [SwaggerIgnore]
         [IgnoreDataMember]
         public virtual List<Glossary> Glossaries { get; set; }
-
-        [SwaggerIgnore]
-        [IgnoreDataMember]
-        public virtual List<ASLVideo> ASLVideos { get; set; }
     }
 
     public class UserOffering : Entity
@@ -471,6 +522,38 @@ namespace ClassTranscribeDatabase.Models
         [Required]
         public JObject Json { get; set; } = new JObject();
     }
+    public class TextData : Entity
+    {
+        #nullable enable
+        public string? Text {get; set;}
+
+        
+        public void setFromJSON(JToken? o) {
+            if(o == null) {
+                Text = null;
+                return;
+            }
+            Text = o.ToString(Newtonsoft.Json.Formatting.None);
+        }
+       
+        public JToken? getAsJSON() { 
+            if( string.IsNullOrEmpty(Text)) {
+                return null;
+            }
+            return JToken.Parse(Text);
+        }
+
+        public JArray? getAsJArray()
+        {
+            if (string.IsNullOrEmpty(Text))
+            {
+                return null;
+            }
+            return JArray.Parse(Text);
+
+        }
+    #nullable disable
+    }
 
     public class Dictionary : Entity
     {
@@ -489,6 +572,7 @@ namespace ClassTranscribeDatabase.Models
         public bool Editable { get; set; }
         public string Domain { get; set; }
         public int Likes { get; set; }
+        public string Explanation { get; set; }
 
         public string CourseId { get; set; }
         public string OfferingId { get; set; }
@@ -504,26 +588,22 @@ namespace ClassTranscribeDatabase.Models
         public string Term { get; set; }
         public int Kind { get; set; }
         public string Text { get; set; }
-        public string Link { get; set; }
+        public string WebsiteURL { get; set; }
+        public string DownloadURL { get; set; }
         public string Source { get; set; }
         public string LicenseTag { get; set; }
-        public bool Shared { get; set; }
-        public bool Editable { get; set; }
         public string Domain { get; set; }
         public int Likes { get; set; }
-        public string CourseId { get; set; }
-        public string OfferingId { get; set; }
-
-        [SwaggerIgnore]
-        [IgnoreDataMember]
-        public virtual CourseOffering CourseOffering { get; set; }
+        public string UniqueASLIdentifier { get; set;} 
     }
 
     public class ASLVideoGlossaryMap : Entity 
     {
         public string GlossaryId { get; set; }
         public string ASLVideoId { get; set; }
+        public bool Published { get; set; }
     }
+    
 
     public enum ResourceType
     {

@@ -10,7 +10,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using static ClassTranscribeDatabase.CommonUtils;
 
-
+#pragma warning disable CA2007
+// https://learn.microsoft.com/en-us/dotnet/fundamentals/code-analysis/quality-rules/ca2007
+// We are okay awaiting on a task in the same thread
 
 namespace TaskEngine.Tasks
 {
@@ -193,13 +195,13 @@ namespace TaskEngine.Tasks
 
                 var maxSceneDetection = 400;
                 todoSceneDetection = await context.Videos.AsNoTracking().Where( 
-                        v=> v.PhraseHints == null &&
+                    v=> (v.PhraseHintsDataId== null) && v.PhraseHints == null &&
                         v.Medias.Any() && v.CreatedAt < tooRecentCutoff
                     ).OrderByDescending(t => t.CreatedAt).Take(maxSceneDetection).Select(e => e.Id).ToListAsync();
 
                 var maxTranscriptions = 40;
                 todoTranscriptions = await context.Videos.AsNoTracking().Where( 
-                        v=> v.PhraseHints != null &&
+                        v=> (v.PhraseHintsDataId != null || v.PhraseHints != null) &&
                         v.TranscribingAttempts < 41 && v.TranscriptionStatus != "NoError" && 
                         v.Medias.Any() && v.CreatedAt < tooRecentCutoff
                     ).OrderByDescending(t => t.CreatedAt).Take(maxTranscriptions).Select(e => e.Id).ToListAsync();

@@ -13,12 +13,18 @@ cd WebAPI/ClassTranscribeDatabase
 
 4. Create a new migration by running
 ```
-dotnet ef migrations add <name of migration>
+(also try dotnet ef may work for you)
+dotnet-ef migrations add <name of migration>
 ```
 
 ## How to apply migration in the local database
 ```
-dotnet ef database update
+dotnet-ef database update
+```
+
+To remove,
+```
+dotnet-ef migrations remove
 ```
 
 ## How to apply migration in Docker container

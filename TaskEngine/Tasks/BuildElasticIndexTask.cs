@@ -11,6 +11,10 @@ using System.Linq;
 using System.Threading.Tasks;
 using static ClassTranscribeDatabase.CommonUtils;
 
+#pragma warning disable CA2007
+// https://learn.microsoft.com/en-us/dotnet/fundamentals/code-analysis/quality-rules/ca2007
+// We are okay awaiting on a task in the same thread
+
 namespace TaskEngine.Tasks
 {
     [SuppressMessage("Microsoft.Performance", "CA1812:MarkMembersAsStatic")] // This class is never directly instantiated
@@ -36,6 +40,14 @@ namespace TaskEngine.Tasks
         {
             registerTask(cleanup, "BuildElasticIndexTask"); // may throw AlreadyInProgress exception
             GetLogger().LogInformation("BuildElasticIndexTask Starting");
+
+
+            var skipElasticIndexTask = true;
+            if(skipElasticIndexTask) {
+                GetLogger().LogInformation("BuildElasticIndexTask Done - No op - EARLY RETURN ");
+                await Task.CompletedTask;
+                return;
+            }
 
             using (var _context = CTDbContext.CreateDbContext())
             {

@@ -10,6 +10,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using static ClassTranscribeDatabase.CommonUtils;
 
+#pragma warning disable CA2007
+// https://learn.microsoft.com/en-us/dotnet/fundamentals/code-analysis/quality-rules/ca2007
+// We are okay awaiting on a task in the same thread
 
 namespace TaskEngine.Tasks
 {
@@ -102,7 +105,8 @@ namespace TaskEngine.Tasks
 
                             // Create new video Record
                             await _context.Videos.AddAsync(video);
-                            await _context.SaveChangesAsync();
+                            await _context.SaveChangesAsync(); // now video has an Id
+
                             latestMedia.VideoId = video.Id;
                             await _context.SaveChangesAsync();
                             GetLogger().LogInformation($"Media ({media.Id}):Downloaded (file existed) new video.Id={video.Id}");
@@ -117,6 +121,17 @@ namespace TaskEngine.Tasks
 
                             var existingVideo = await _context.Videos.Where(v => v.Video1Id == file.First().Id).FirstAsync();
                             latestMedia.VideoId = existingVideo.Id;
+                            if( video.Video2 != null && existingVideo.Video2 == null) {
+                                var v2 = video.Video2;
+                                await _context.FileRecords.AddAsync(v2);
+                                await _context.SaveChangesAsync(); // now v2 has an Id
+                                // Special case;
+                                // add video2 to existing video
+                                GetLogger().LogInformation($"Adding video2 ({v2.Id}) to video ({existingVideo.Id})");
+
+                                existingVideo.Video2Id =  v2.Id;
+                                video.Video2= null; // otherwise DeleteVideo will delete the file
+                            }
                             await _context.SaveChangesAsync();
                             GetLogger().LogInformation($"Media ({media.Id}): Existing Video found. (Deleting New) video.Id=" + video.Id);
 
@@ -142,6 +157,21 @@ namespace TaskEngine.Tasks
                 {
                     Video1 = await FileRecord.GetNewFileRecordAsync(mediaResponse.FilePath, mediaResponse.Ext, subdir)
                 };
+                try {
+                    if ( media.JsonMetadata["child"]!= null && media.JsonMetadata["child"]["downloadUrl"] != null) {
+                        GetLogger().LogInformation($"Media ({media.Id}): Downloading child video");
+
+                        var childMediaR = await _rpcClient.PythonServerClient.DownloadKalturaVideoRPCAsync(new CTGrpc.MediaRequest
+                        {
+                            VideoUrl = media.JsonMetadata["child"]["downloadUrl"].ToString()
+                        });
+                        if(FileRecord.IsValidFile(childMediaR.FilePath)) {
+                            video.Video2 =  await FileRecord.GetNewFileRecordAsync(childMediaR.FilePath, childMediaR.Ext, subdir);
+                        }
+                    }
+                } catch(Exception  ignored) {
+                    GetLogger().LogInformation(ignored, $"Couldnt download second video for {media.Id}");
+                }
             }
             else
             {

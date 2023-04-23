@@ -67,7 +67,9 @@ namespace ClassTranscribeServer.Controllers
                 Name = p.Name,
                 Index = p.Index,
                 PlaylistIdentifier = p.PlaylistIdentifier,
-                PublishStatus = p.PublishStatus
+                PublishStatus = p.PublishStatus,
+                ListCheckedAt = p.ListCheckedAt,
+                ListUpdatedAt = p.ListUpdatedAt
             }).ToList().FirstOrDefault();
             return playlist;
         }
@@ -102,7 +104,9 @@ namespace ClassTranscribeServer.Controllers
                 Name = p.Name,
                 Index = p.Index,
                 PlaylistIdentifier = p.PlaylistIdentifier,
-                PublishStatus = p.PublishStatus
+                PublishStatus = p.PublishStatus,
+                ListCheckedAt = p.ListCheckedAt,
+                ListUpdatedAt = p.ListUpdatedAt
             }).ToList();
             return playlists;
         }
@@ -138,6 +142,8 @@ namespace ClassTranscribeServer.Controllers
                 Index = p.Index,
                 PlaylistIdentifier = p.PlaylistIdentifier,
                 PublishStatus = p.PublishStatus,
+                ListCheckedAt = p.ListCheckedAt,
+                ListUpdatedAt = p.ListUpdatedAt,
                 Medias = p.Medias.Where(m => m.Video != null).Select(m => new MediaDTO
                 {
                     Id = m.Id,
@@ -145,7 +151,7 @@ namespace ClassTranscribeServer.Controllers
                     Name = m.Name,
                     JsonMetadata = m.JsonMetadata,
                     CreatedAt = m.CreatedAt,
-                    SceneDetectReady = m.Video == null ? false : m.Video.SceneData.HasValues,
+                    SceneDetectReady = m.Video.HasSceneObjectData(),
                     Ready = m.Video == null ? false : "NoError" == m.Video.TranscriptionStatus ,
                     SourceType = m.SourceType,
                     Duration = m.Video?.Duration,
@@ -207,9 +213,15 @@ namespace ClassTranscribeServer.Controllers
 
                 return new ChallengeResult();
             }
-            List<MediaDTO> medias = p.Medias
-                .OrderBy(m => m.Index)
-                .ThenBy(m => m.CreatedAt).Select(m => new MediaDTO
+            // Single Database Query to get videos, transcriptions
+            var mediaList = await _context.Medias.Include(m=>m.Video).ThenInclude(v=>v.Transcriptions).Where(m=> m.PlaylistId == id).OrderBy(m => m.Index).ThenBy(m => m.CreatedAt).ToListAsync();
+            
+            var mediaIds = mediaList.Select(m=>m.Id).ToArray();
+
+            // user is null for unit tests
+            var partialWatchHistories = user !=null ? await _context.WatchHistories.Where(w => w.ApplicationUserId == user.Id && mediaIds.Contains(w.MediaId)).ToListAsync() : null;
+            // In memory transformation into DTO resut
+            List<MediaDTO> mediasDTO = mediaList.Select(m => new MediaDTO
                 {
                     Id = m.Id,
                     Index = m.Index,
@@ -220,8 +232,8 @@ namespace ClassTranscribeServer.Controllers
                     SourceType = m.SourceType,
                     Duration = m.Video?.Duration,
                     PublishStatus = m.PublishStatus,
-                    SceneDetectReady = m.Video == null ? false : m.Video.SceneData.HasValues,
-                    Ready = m.Video == null ? false : m.Video.Transcriptions.Any(),
+                    SceneDetectReady = m.Video != null && m.Video.HasSceneObjectData(),
+                    Ready = m.Video == null ? false : "NoError" == m.Video.TranscriptionStatus ,
                     Video = m.Video == null ? null : new VideoDTO
                     {
                         Id = m.Video.Id,
@@ -235,7 +247,7 @@ namespace ClassTranscribeServer.Controllers
                         SrtPath = t.SrtFile != null ? t.SrtFile.Path : null,
                         Language = t.Language
                     }).ToList(),
-                    WatchHistory = user != null ? m.WatchHistories.Where(w => w.ApplicationUserId == user.Id).FirstOrDefault() : null
+                    WatchHistory = user != null ? partialWatchHistories.Where(w => w.MediaId == m.Id).FirstOrDefault() :null
                 }).ToList();
 
             return new PlaylistDTO
@@ -245,13 +257,16 @@ namespace ClassTranscribeServer.Controllers
                 SourceType = p.SourceType,
                 OfferingId = p.OfferingId,
                 Name = p.Name,
-                Medias = medias,
+                Medias = mediasDTO,
                 JsonMetadata = p.JsonMetadata,
                 PlaylistIdentifier = p.PlaylistIdentifier,
-                PublishStatus = p.PublishStatus
+                PublishStatus = p.PublishStatus,
+                ListUpdatedAt = p.ListUpdatedAt,
+                ListCheckedAt = p.ListCheckedAt
             };
         }
-
+       
+        
         // PUT: api/Playlists/5
         [HttpPut("{id}")]
         [Authorize]
@@ -449,6 +464,10 @@ namespace ClassTranscribeServer.Controllers
         public List<MediaDTO> Medias { get; set; }
         public JObject JsonMetadata { get; set; }
         public PublishStatus PublishStatus { get; set; }
+#nullable enable
+        public DateTime? ListUpdatedAt {get; set; }
+        public DateTime? ListCheckedAt {get; set; }
+#nullable disable
     }
 
     public class MediaDTO
