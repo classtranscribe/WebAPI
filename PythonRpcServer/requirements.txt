@@ -27,7 +27,7 @@ protobuf==3.15.0
 # Likely need to coordinate updating the C# version too
 
 ptyprocess==0.6.0
-Pygments==2.7.4
+Pygments==2.15.0
 requests==2.23.0
 requests-toolbelt==0.9.1
 scenedetect==0.5.2
