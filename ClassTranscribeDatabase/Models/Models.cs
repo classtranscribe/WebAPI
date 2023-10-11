@@ -319,6 +319,14 @@ namespace ClassTranscribeDatabase.Models
         public string AudioId { get; set; }
         public virtual FileRecord Audio { get; set; }
 
+        [ForeignKey("ASLVideo")]
+        public string ASLVideoId { get; set; }
+        public virtual FileRecord ASLVideo { get; set; }
+
+        [ForeignKey("ProcessedASLVideo")]
+        public string ProcessedASLVideoId { get; set; }
+        public virtual FileRecord ProcessedASLVideo { get; set; }
+        public string ProcessingLog { get; set; }
         public string Description { get; set; }
         public virtual List<Media> Medias { get; set; }
         public string TranscriptionStatus { get; set; }
