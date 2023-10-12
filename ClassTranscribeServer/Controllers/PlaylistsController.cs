@@ -159,8 +159,10 @@ namespace ClassTranscribeServer.Controllers
                     Video = new VideoDTO
                     {
                         Id = m.Video.Id,
-                        Video1Path = m.Video.Video1 != null ? m.Video.Video1.Path : null,
-                        Video2Path = m.Video.Video2 != null ? m.Video.Video2.Path : null,
+                        Video1Path = m.Video.ProcessedVideo1?.Path != null ? m.Video.ProcessedVideo1.Path : m.Video.Video1?.Path,
+                        Video2Path = m.Video.ProcessedVideo2?.Path != null ? m.Video.ProcessedVideo2.Path : m.Video.Video2?.Path,
+                        ASLPath = m.Video.ASLVideo?.Path,
+                        TaskLog = m.Video.TaskLog
                     },
                     Transcriptions = m.Video.Transcriptions.Select(t => new TranscriptionDTO
                     {
@@ -441,6 +443,8 @@ namespace ClassTranscribeServer.Controllers
         public string Id { get; set; }
         public string Video1Path { get; set; }
         public string Video2Path { get; set; }
+        public string ASLPath { get; set; }
+        public String TaskLog { get; set; }
     }
 
     public class TranscriptionDTO

@@ -326,7 +326,8 @@ namespace ClassTranscribeDatabase.Models
         [ForeignKey("ProcessedASLVideo")]
         public string ProcessedASLVideoId { get; set; }
         public virtual FileRecord ProcessedASLVideo { get; set; }
-        public string ProcessingLog { get; set; }
+
+        public string TaskLog { get; set; }
         public string Description { get; set; }
         public virtual List<Media> Medias { get; set; }
         public string TranscriptionStatus { get; set; }

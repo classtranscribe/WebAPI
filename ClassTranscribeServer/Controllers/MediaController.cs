@@ -58,8 +58,9 @@ namespace ClassTranscribeServer.Controllers
                 return new ChallengeResult();
             }
 
-            var v = await _context.Videos.FindAsync(media.VideoId);
+            //unused var v = await _context.Videos.FindAsync(media.VideoId);
             var user = await _userUtils.GetUser(User);
+
             var mediaDTO = new MediaDTO
             {
                 Id = media.Id,
@@ -79,9 +80,11 @@ namespace ClassTranscribeServer.Controllers
                 }).ToList(),
                 Video = new VideoDTO
                 {
-                    Id = media.Video.Id,
-                    Video1Path = media.Video.Video1?.Path,
-                    Video2Path = media.Video.Video2?.Path
+                    Id = media.Video.Id, 
+                    Video1Path = media.Video.ProcessedVideo1?.Path != null ? media.Video.ProcessedVideo1.Path : media.Video.Video1?.Path,
+                    Video2Path = media.Video.ProcessedVideo2?.Path != null ? media.Video.ProcessedVideo2.Path : media.Video.Video2?.Path,
+                    ASLPath = media.Video.ASLVideo?.Path,
+                    TaskLog = media.Video.TaskLog
                 },
                 WatchHistory = user != null ? media.WatchHistories.Where(w => w.ApplicationUserId == user.Id).FirstOrDefault() : null
             };
@@ -153,9 +156,75 @@ namespace ClassTranscribeServer.Controllers
             return NoContent();
         }
 
+
+        // POST: api/ASLMedia
+        [DisableRequestSizeLimit]
+        [HttpPost("ASLVideo")]
+        [Authorize]
+        
+        [Consumes("multipart/form-data")]
+        public async Task<ActionResult<Media>> PostASLVideo(IFormFile aSLVideo, [FromForm] string mediaId)
+        {
+            
+            
+
+            if (aSLVideo == null || aSLVideo.Length == 0)
+            {
+                return BadRequest("ASL Video is compulsory");
+            }
+
+            if (Path.GetExtension(aSLVideo.FileName) != ".mp4")
+            {
+                return BadRequest("File format not permitted");
+            }
+
+            var media = await _context.Medias.FindAsync(mediaId);
+            if (media == null)
+            {
+                return NotFound("No such media");
+            }
+            var video = await _context.Videos.FindAsync(media.VideoId);
+            if (video == null)
+            {
+                return NotFound("No video");
+            }
+
+            var filePath = CommonUtils.GetTmpFile();
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await aSLVideo.CopyToAsync(stream);
+            }
+
+            var subdir = CommonUtils.ToCourseOfferingSubDirectory(_context, media);
+
+            var filerecord = await FileRecord.GetNewFileRecordAsync(filePath, Path.GetExtension(filePath), subdir);
+            video.ASLVideo = filerecord;
+            await _context.SaveChangesAsync();
+            return Ok();
+        }
+
+        public async Task<ActionResult<Media>> DeleteASLVideo(string mediaId)
+        {
+
+            var media = await _context.Medias.FindAsync(mediaId);
+            if (media == null)
+            {
+                return NotFound("No such media");
+            }
+            var video = await _context.Videos.FindAsync(media.VideoId);
+            if (video == null)
+            {
+                return NotFound("No video");
+            }
+
+            video.ASLVideoId = null; ;
+            await _context.SaveChangesAsync();
+            return Ok();
+        }
+
         // POST: api/Media
         [DisableRequestSizeLimit]
-        [HttpPost]
+        [HttpPost("Media")]
         [Authorize]
         [Consumes("multipart/form-data")]
         public async Task<ActionResult<Media>> PostMedia(IFormFile video1, IFormFile video2, [FromForm] string playlistId)
