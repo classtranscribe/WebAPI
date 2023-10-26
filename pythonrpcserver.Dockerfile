@@ -29,7 +29,9 @@ ENV OMP_THREAD_LIMIT=1
 
 WORKDIR /PythonRpcServer
 
+
 COPY ./PythonRpcServer/requirements.txt requirements.txt
+RUN pip install --no-cache-dir --upgrade pip
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY ct.proto ct.proto
@@ -43,7 +45,7 @@ COPY ./PythonRpcServer .
 ARG PYTUBE_VERSION=""
 RUN if [ "${PYTUBE_VERSION}" != "" ]; then curl -L https://github.com/pytube/pytube/archive/refs/tags/v${PYTUBE_VERSION}.tar.gz -o pytube.tar.gz && pip install --no-cache-dir --force-reinstall pytube.tar.gz && rm pytube.tar.gz; fi
 
-RUN python -m nltk.downloader stopwords brown
+# RUN python -m nltk.downloader stopwords brown
 
 
 # Nice:Very low priority but not lowest priority (18 out of 19)
