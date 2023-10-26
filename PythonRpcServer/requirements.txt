@@ -13,7 +13,8 @@ jedi==0.17.0
 KalturaApiClient==18.11.0
 lxml==4.9.1
 
-numpy==1.21.6
+#numpy==1.21.6
+numpy
 #Dependabot suggested 1.22 ; but that's not generally available yet
 
 #opencv-python==4.2.0.34
@@ -30,19 +31,19 @@ ptyprocess==0.6.0
 Pygments==2.7.4
 requests==2.23.0
 requests-toolbelt==0.9.1
-scenedetect==0.5.2
+#scenedetect==0.5.2
 six==1.14.0
 tqdm==4.45.0
 traitlets==4.3.3
 urllib3==1.25.8
 wcwidth==0.1.9
-scikit-image==0.17.2
-nltk==3.6.6
-pytesseract==0.3.7
-prefixspan==0.5.2
-opencv-contrib-python==4.5.3.56
-mtcnn-opencv==1.0.2
-decord==0.6.0
+#scikit-image==0.17.2
+#nltk==3.6.6
+#pytesseract==0.3.7
+#prefixspan==0.5.2
+#opencv-contrib-python==4.5.3.56
+#mtcnn-opencv==1.0.2
+#decord==0.6.0
 
 # Use latest version
 pytube     # if not available, use the tar.gz package (see Dockerfile)
