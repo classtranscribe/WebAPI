@@ -76,7 +76,9 @@ namespace ClassTranscribeServer.Controllers
                 {
                     Id = t.Id,
                     Path = t.File != null ? t.File.Path : null,
-                    Language = t.Language
+                    Language = t.Language,
+                    TranscriptionType = (int) t.TranscriptionType,
+                    Label = String.IsNullOrWhiteSpace( t.Label ) ? "" : t.Label
                 }).ToList(),
                 Video = new VideoDTO
                 {

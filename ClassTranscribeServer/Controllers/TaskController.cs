@@ -11,6 +11,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static ClassTranscribeDatabase.CommonUtils;
 
 namespace ClassTranscribeServer.Controllers
 {
@@ -47,23 +48,70 @@ namespace ClassTranscribeServer.Controllers
         {
             string sceneAsString = scene.ToString(0);
             Video video = await _context.Videos.FindAsync(videoId);
-            if(video.HasSceneObjectData())
+            var existingScenes = video.HasSceneObjectData();
+
+            TextData data;
+            if (existingScenes)
             {
-                TextData data = await _context.TextData.FindAsync(video.SceneObjectDataId);
+                data = await _context.TextData.FindAsync(video.SceneObjectDataId);
                 data.Text = sceneAsString;
             } else
             {
-                TextData data = new TextData();
-                data.Text = sceneAsString;
+                data = new TextData() { Text = sceneAsString };
                 _context.TextData.Add(data);
                 video.SceneObjectDataId = data.Id;
                 Trace.Assert(!string.IsNullOrEmpty(data.Id));
             }
-           
+
+            createDescriptionsIfNone(video, data);
             await _context.SaveChangesAsync();
             return Ok();
         }
-         [HttpGet("GetPhraseHints")]
+        private void createDescriptionsIfNone(Video v, TextData scenedata)
+        {
+            JArray scenes = scenedata.getAsJSON()["Scenes"] as JArray;
+            if (scenes == null || v == null || v.Id == null)
+            {
+                return;
+            }
+
+            var exists = v.Transcriptions.Exists(t=>t.TranscriptionType == TranscriptionType.TextDescription);
+            if(exists)
+            {
+                _logger.LogInformation($"{v.Id}: already has descriptions (skipping)");
+                return;
+            }
+            _logger.LogInformation($"{v.Id}: Creating basic descriptions");
+            var captions = new List<Caption>();
+
+            int index = 0;
+            foreach (JObject scene in scenes)
+            {
+                var c = new Caption
+                {
+                    Index = index++,
+                    Begin = TimeSpan.Parse(scene["start"].ToString()),
+                    End = TimeSpan.Parse(scene["end"].ToString()),
+                    CaptionType = CaptionType.AudioDescription,
+                    Text = scene["phrases"]?.ToString()
+                };
+            }
+            _logger.LogInformation($"{v.Id}: {index} entries added");
+            var transcription = new Transcription()
+            {
+                Captions = captions,
+                TranscriptionType = TranscriptionType.TextDescription,
+                VideoId = v.Id,
+                Language = Languages.ENGLISH_AMERICAN,
+                Label = "Description",
+                SourceLabel = "ClassTranscribe",
+                SourceInternalRef = "ClassTranscribe/Scene-OCR"
+            };
+
+            _context.Add(transcription);
+        }
+
+            [HttpGet("GetPhraseHints")]
         public async Task<string> GetPhraseHints(string videoId) {
              Video video = await _context.Videos.FindAsync(videoId);
              if(video.HasPhraseHints()) {
@@ -73,6 +121,8 @@ namespace ClassTranscribeServer.Controllers
              // old version - 
              return video.PhraseHints ?? "";
         }
+
+
 
         [HttpGet("GetSceneData")]
         public async Task<ActionResult<Object>> GetSceneData(string videoId) {
