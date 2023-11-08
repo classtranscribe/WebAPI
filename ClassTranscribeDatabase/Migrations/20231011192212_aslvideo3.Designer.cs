@@ -3,15 +3,17 @@ using System;
 using ClassTranscribeDatabase;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace ClassTranscribeDatabase.Migrations
 {
     [DbContext(typeof(CTDbContext))]
-    partial class CTDbContextModelSnapshot : ModelSnapshot
+    [Migration("20231011192212_aslvideo3")]
+    partial class aslvideo3
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1422,14 +1424,14 @@ namespace ClassTranscribeDatabase.Migrations
                     b.Property<string>("ProcessedVideo2Id")
                         .HasColumnType("text");
 
+                    b.Property<string>("ProcessingLog")
+                        .HasColumnType("text");
+
                     b.Property<string>("SceneData")
                         .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("SceneObjectDataId")
-                        .HasColumnType("text");
-
-                    b.Property<string>("TaskLog")
                         .HasColumnType("text");
 
                     b.Property<int>("TranscribingAttempts")
