@@ -95,6 +95,8 @@ namespace ClassTranscribeServer.Controllers
                     CaptionType = CaptionType.AudioDescription,
                     Text = scene["phrases"]?.ToString()
                 };
+                
+                captions.Add(c);
             }
             _logger.LogInformation($"{v.Id}: {index} entries added");
             var transcription = new Transcription()
