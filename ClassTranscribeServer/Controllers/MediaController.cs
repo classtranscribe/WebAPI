@@ -157,7 +157,7 @@ namespace ClassTranscribeServer.Controllers
         }
 
 
-        // POST: api/ASLMedia
+        // POST: api/ASLVideo
         [DisableRequestSizeLimit]
         [HttpPost("ASLVideo")]
         [Authorize]
@@ -203,6 +203,11 @@ namespace ClassTranscribeServer.Controllers
             return Ok();
         }
 
+        // DELETE: api/Media/ASLVideo/{mediaId}
+
+        [HttpDelete("ASLVideo/{mediaId}")]
+       
+        [Authorize]
         public async Task<ActionResult<Media>> DeleteASLVideo(string mediaId)
         {
 
