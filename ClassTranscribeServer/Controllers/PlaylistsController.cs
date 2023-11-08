@@ -169,7 +169,11 @@ namespace ClassTranscribeServer.Controllers
                         Id = t.Id,
                         Path = t.File != null ? t.File.Path : null,
                         SrtPath = t.SrtFile != null ? t.SrtFile.Path : null,
-                        Language = t.Language
+                        Language = t.Language,
+                        Label = t.Label,
+                        SourceLabel = t.SourceLabel,
+                        TranscriptionType = (int) t.TranscriptionType
+
                     }).ToList()
                 }).ToList()
             }).ToList();
@@ -453,6 +457,11 @@ namespace ClassTranscribeServer.Controllers
         public string Path { get; set; }
         public string SrtPath { get; set; }
         
+        public int TranscriptionType { get; set;  } // 0=Caption 1=Description
+
+        public String Label { get; set; }
+
+        public String SourceLabel { get; set; } // where did this transcription originate?
         public string Language { get; set; }
     }
 
