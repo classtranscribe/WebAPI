@@ -103,7 +103,7 @@ namespace ClassTranscribeServer.Controllers
                     Begin = TimeSpan.Parse(scene["start"].ToString()),
                     End = TimeSpan.Parse(scene["end"].ToString()),
                     CaptionType = CaptionType.AudioDescription,
-                    Text = sb.ToString();
+                    Text = sb.ToString()
                 };
                 
                 captions.Add(c);
