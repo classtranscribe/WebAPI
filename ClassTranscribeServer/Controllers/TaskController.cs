@@ -88,7 +88,7 @@ namespace ClassTranscribeServer.Controllers
             foreach (JObject scene in scenes)
             {
                 StringBuilder sb = new StringBuilder();
-                var again = False;
+                var again = false;
                 foreach (string phrase in scene["phrases"])
                 {
                     sb.Append(again ? '\n' : '\"' );
