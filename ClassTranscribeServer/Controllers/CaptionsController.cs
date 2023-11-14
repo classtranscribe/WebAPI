@@ -74,6 +74,7 @@ namespace ClassTranscribeServer.Controllers
                 Begin = oldCaption.Begin,
                 End = oldCaption.End,
                 Index = oldCaption.Index,
+                CaptionType = oldCaption.CaptionType,
                 Text = modifiedCaption.Text,
                 TranscriptionId = oldCaption.TranscriptionId
             };
