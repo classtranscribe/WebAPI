@@ -25,7 +25,8 @@ namespace ClassTranscribeDatabase
         {
             try
             {
-                var transcriptionId = _context.Transcriptions.Where(t => t.Language == language && t.VideoId == videoId).First().Id;
+                var transcriptionId = _context.Transcriptions.Where(t => t.Language == language && t.VideoId == videoId
+                && t.TranscriptionType == TranscriptionType.Caption).First().Id;
                 return await GetCaptionsAsync(transcriptionId);
             }
             catch (System.InvalidOperationException)

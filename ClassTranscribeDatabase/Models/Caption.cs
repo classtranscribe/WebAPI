@@ -13,11 +13,18 @@ namespace ClassTranscribeDatabase.Models
         TextCaption = 0,
         AudioDescription = 1
     }
+
+    public static class CaptionConstants {
+        public const string PlaceHolderText = "...Processing...";
+
+    }
     /// <summary>
     /// Each line of caption is stored as a row in the database.
     /// </summary>
     public class Caption : Entity
     {
+        
+        public bool HasPlaceHolderText() { return this.Text == CaptionConstants.PlaceHolderText; }
         public int Index { get; set; }
         public TimeSpan Begin { get; set; }
         public TimeSpan End { get; set; }

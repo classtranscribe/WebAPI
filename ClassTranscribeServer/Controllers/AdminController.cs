@@ -135,6 +135,15 @@ namespace ClassTranscribeServer.Controllers
             return Ok();
         }
 
+        [HttpPost("DescribeVideo")]
+        [Authorize(Roles = Globals.ROLE_ADMIN)]
+        public ActionResult DescribeVideo(string playlistMediaVideoId, bool deleteExisting)
+        {
+            _wakeDownloader.DescribeVideo(playlistMediaVideoId, deleteExisting);
+            return Ok();
+        }
+
+
         /// <summary>
         /// Requests a re-download of missing media
         /// </summary>

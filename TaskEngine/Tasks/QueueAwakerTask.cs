@@ -33,7 +33,8 @@ namespace TaskEngine.Tasks
         private readonly CleanUpElasticIndexTask _cleanUpElasticIndexTask;
         private readonly ExampleTask _exampleTask;
         private readonly SlackLogger _slackLogger;
-
+        private readonly DescribeVideoTask _describeVideoTask;
+        private readonly DescribeImageTask _describeImageTask;
         public QueueAwakerTask() { }
 
         public QueueAwakerTask(RabbitMQConnection rabbitMQ, DownloadPlaylistInfoTask downloadPlaylistInfoTask,
@@ -42,7 +43,7 @@ namespace TaskEngine.Tasks
             GenerateVTTFileTask generateVTTFileTask, SceneDetectionTask sceneDetectionTask,
             CreateBoxTokenTask createBoxTokenTask, UpdateBoxTokenTask updateBoxTokenTask, PythonCrawlerTask pythonCrawlerTask, 
             BuildElasticIndexTask buildElasticIndexTask, CleanUpElasticIndexTask cleanUpElasticIndexTask,
-            ExampleTask exampleTask,
+            ExampleTask exampleTask,DescribeVideoTask describeVideoTask,DescribeImageTask describeImageTask,
             ILogger<QueueAwakerTask> logger, SlackLogger slackLogger)
             : base(rabbitMQ, TaskType.QueueAwaker, logger)
         {
@@ -58,6 +59,8 @@ namespace TaskEngine.Tasks
             _updateBoxTokenTask = updateBoxTokenTask;
             _buildElasticIndexTask = buildElasticIndexTask;
             _cleanUpElasticIndexTask = cleanUpElasticIndexTask;
+            _describeVideoTask = describeVideoTask;
+            _describeImageTask = describeImageTask;
             _exampleTask = exampleTask;
             _slackLogger = slackLogger;
         }
@@ -359,6 +362,32 @@ namespace TaskEngine.Tasks
                         }
                         _sceneDetectionTask.Publish(video.Id);
 
+                    }
+
+                } else if(type==TaskType.DescribeVideo.ToString())
+                {
+                    var id = jObject["videoMediaPlaylistId"].ToString();
+                    bool deleteExisting = jObject["DeleteExisting"]?.Value<bool>() ?? false;
+                    GetLogger().LogInformation($"{type}:{id}");
+                    var videos = await _context.Videos.Where(v=>v.Id ==id).ToListAsync();
+                    if (videos.Count == 0)
+                    {
+                        videos = await _context.Medias.Where(m => (m.PlaylistId == id) || (m.Id == id)).Select(m => m.Video).ToListAsync();
+                    }
+                    foreach (var video in videos)
+                    {
+                        if (deleteExisting)
+                        {
+                            GetLogger().LogInformation($"{id}:Removing Descriptions for video ({video.Id})");
+
+                            var transcriptions = await _context.Transcriptions.Where( t =>(t.VideoId == video.Id && t.SourceInternalRef =="Local-SceneDescription")).ToListAsync();
+                            foreach(var t in transcriptions) {
+                                _context.RemoveRange(t.Captions);
+                            }
+                            _context.RemoveRange(transcriptions);
+                            await _context.SaveChangesAsync();
+                        }
+                        _describeVideoTask.Publish(video.Id);
                     }
 
                 }

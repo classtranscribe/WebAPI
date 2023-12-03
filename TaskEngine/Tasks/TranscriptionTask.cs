@@ -50,7 +50,7 @@ namespace TaskEngine.Tasks
                 foreach (var language in languages)
                 {
 
-                    var transcription = video.Transcriptions.SingleOrDefault(t => t.Language == language);
+                    var transcription = video.Transcriptions.SingleOrDefault(t => t.Language == language && t.TranscriptionType == TranscriptionType.Caption);
                     // Did we get the default or an existing Transcription entity?
                     if (transcription == null)
                     {
@@ -206,11 +206,13 @@ namespace TaskEngine.Tasks
                             {
                                 t = new Transcription()
                                 {
+                                    TranscriptionType = TranscriptionType.Caption,
                                     Captions = theCaptions,
                                     Language = theLanguage,
                                     VideoId = video.Id,
                                     Label = $"{theLanguage} (ClassTranscribe)",
-                                    SourceInternalRef = "ClassTranscribe/Azure"
+                                    SourceInternalRef = "ClassTranscribe/Azure",
+                                    SourceLabel = "ClassTranscribe (Azure" + (phraseHints.Length>0 ?" with phrase hints)" : ")")
                                 };
                                 _context.Add(t);
                             }

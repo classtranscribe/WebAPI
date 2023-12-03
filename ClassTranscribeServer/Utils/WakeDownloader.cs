@@ -99,6 +99,14 @@ namespace ClassTranscribeServer
             Wake(msg);
         }
 
+        public virtual void DescribeVideo(string videoMediaPlaylistId, bool deleteExisting) {
+            JObject msg = new JObject();
+            msg.Add("Type", TaskType.DescribeVideo.ToString());
+            msg.Add("videoMediaPlaylistId", videoMediaPlaylistId);
+            msg.Add("DeleteExisting", deleteExisting);
+            Wake(msg);
+        }
+
         public void UpdateASLVideo(string sourceId)
         {
             JObject msg = new JObject();
