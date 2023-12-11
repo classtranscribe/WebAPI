@@ -4,6 +4,7 @@ using ClassTranscribeServer.Utils;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion.Internal;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
 using System;
@@ -70,7 +71,7 @@ namespace ClassTranscribeServer.Controllers
                 PublishStatus = p.PublishStatus,
                 ListCheckedAt = p.ListCheckedAt,
                 ListUpdatedAt = p.ListUpdatedAt,
-                Options = p.Options
+                Options = p.getOptionsAsJson()
             }).ToList().FirstOrDefault();
             return playlist;
         }
@@ -108,7 +109,7 @@ namespace ClassTranscribeServer.Controllers
                 PublishStatus = p.PublishStatus,
                 ListCheckedAt = p.ListCheckedAt,
                 ListUpdatedAt = p.ListUpdatedAt,
-                Options = p.Options
+                Options = p.getOptionsAsJson()
             }).ToList();
             return playlists;
         }
@@ -146,7 +147,7 @@ namespace ClassTranscribeServer.Controllers
                 PublishStatus = p.PublishStatus,
                 ListCheckedAt = p.ListCheckedAt,
                 ListUpdatedAt = p.ListUpdatedAt,
-                Options = p.Options,
+                Options = p.getOptionsAsJson(),
                 Medias = p.Medias.Where(m => m.Video != null).Select(m => new MediaDTO
                 {
                     Id = m.Id,
@@ -159,7 +160,7 @@ namespace ClassTranscribeServer.Controllers
                     SourceType = m.SourceType,
                     Duration = m.Video?.Duration,
                     PublishStatus = m.PublishStatus,
-                    Options = m.Options,
+                    Options = m.getOptionsAsJson(),
                     Video = new VideoDTO
                     {
                         Id = m.Video.Id,
@@ -242,7 +243,7 @@ namespace ClassTranscribeServer.Controllers
                     SourceType = m.SourceType,
                     Duration = m.Video?.Duration,
                     PublishStatus = m.PublishStatus,
-                    Options = m.Options,
+                    Options = m.getOptionsAsJson(),
                     SceneDetectReady = m.Video != null && m.Video.HasSceneObjectData(),
                     Ready = m.Video == null ? false : "NoError" == m.Video.TranscriptionStatus ,
                     Video = m.Video == null ? null : new VideoDTO
@@ -276,10 +277,54 @@ namespace ClassTranscribeServer.Controllers
                 PublishStatus = p.PublishStatus,
                 ListUpdatedAt = p.ListUpdatedAt,
                 ListCheckedAt = p.ListCheckedAt,
-                Options = p.Options
+                Options = p.getOptionsAsJson()
             };
         }
        
+       // PUT: api/Playlists/Option
+        [HttpPut("Option/{id}")]
+        [Authorize]
+        public async Task<IActionResult> PutPlaylistOptions(string id, JObject options)
+        {
+            if ( id == null || options == null )
+            {
+                return BadRequest();
+            }
+            var p = await _context.Playlists.FindAsync(id);
+            var offering = await _context.Offerings.FindAsync(p.OfferingId);
+
+            var authorizationResult = await _authorizationService.AuthorizeAsync(this.User, offering, Globals.POLICY_UPDATE_OFFERING);
+            if (!authorizationResult.Succeeded)
+            {
+                if (User.Identity.IsAuthenticated)
+                {
+                    return new ForbidResult();
+                }
+
+                return new ChallengeResult();
+            }
+            
+            p.setOptionsAsJson(options);
+           
+            try
+            {
+                await _context.SaveChangesAsync();
+                _wakeDownloader.UpdatePlaylist(p.Id);
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!PlaylistExists(id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+
+            return NoContent();
+        }
         
         // PUT: api/Playlists/5
         [HttpPut("{id}")]
