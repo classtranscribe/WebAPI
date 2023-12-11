@@ -244,7 +244,7 @@ namespace ClassTranscribeDatabase.Models
         public string Options { get; set; } = "";
         
         public virtual JObject getOptionsAsJson() {
-            return JObject.Parse(this.Options);
+            return String.IsNullOrEmpty(this.Options) ? new JObject() : JObject.Parse(this.Options);
         }
         
         public virtual void setOptionsAsJson(JObject json) {
@@ -282,7 +282,7 @@ namespace ClassTranscribeDatabase.Models
         public string Options { get; set; } = "";
         
         public virtual JObject getOptionsAsJson() {
-            return JObject.Parse(this.Options);
+            return String.IsNullOrEmpty(this.Options) ? new JObject() :  JObject.Parse(this.Options);
         }
         
         public virtual void setOptionsAsJson(JObject json) {
