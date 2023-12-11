@@ -69,7 +69,8 @@ namespace ClassTranscribeServer.Controllers
                 PlaylistIdentifier = p.PlaylistIdentifier,
                 PublishStatus = p.PublishStatus,
                 ListCheckedAt = p.ListCheckedAt,
-                ListUpdatedAt = p.ListUpdatedAt
+                ListUpdatedAt = p.ListUpdatedAt,
+                Options = p.Options
             }).ToList().FirstOrDefault();
             return playlist;
         }
@@ -106,7 +107,8 @@ namespace ClassTranscribeServer.Controllers
                 PlaylistIdentifier = p.PlaylistIdentifier,
                 PublishStatus = p.PublishStatus,
                 ListCheckedAt = p.ListCheckedAt,
-                ListUpdatedAt = p.ListUpdatedAt
+                ListUpdatedAt = p.ListUpdatedAt,
+                Options = p.Options
             }).ToList();
             return playlists;
         }
@@ -144,6 +146,7 @@ namespace ClassTranscribeServer.Controllers
                 PublishStatus = p.PublishStatus,
                 ListCheckedAt = p.ListCheckedAt,
                 ListUpdatedAt = p.ListUpdatedAt,
+                Options = p.Options,
                 Medias = p.Medias.Where(m => m.Video != null).Select(m => new MediaDTO
                 {
                     Id = m.Id,
@@ -156,12 +159,13 @@ namespace ClassTranscribeServer.Controllers
                     SourceType = m.SourceType,
                     Duration = m.Video?.Duration,
                     PublishStatus = m.PublishStatus,
+                    Options = m.Options,
                     Video = new VideoDTO
                     {
                         Id = m.Video.Id,
                         Video1Path = m.Video.ProcessedVideo1?.Path != null ? m.Video.ProcessedVideo1.Path : m.Video.Video1?.Path,
                         Video2Path = m.Video.ProcessedVideo2?.Path != null ? m.Video.ProcessedVideo2.Path : m.Video.Video2?.Path,
-                        ASLPath = m.Video.ASLVideo?.Path,
+                        ASLPath = m.Video.ProcessedASLVideo.Path != null ? m.Video.ProcessedASLVideo.Path : m.Video.ASLVideo?.Path,
                         TaskLog = m.Video.TaskLog
                     },
                     Transcriptions = m.Video.Transcriptions.Select(t => new TranscriptionDTO
@@ -238,13 +242,16 @@ namespace ClassTranscribeServer.Controllers
                     SourceType = m.SourceType,
                     Duration = m.Video?.Duration,
                     PublishStatus = m.PublishStatus,
+                    Options = m.Options,
                     SceneDetectReady = m.Video != null && m.Video.HasSceneObjectData(),
                     Ready = m.Video == null ? false : "NoError" == m.Video.TranscriptionStatus ,
                     Video = m.Video == null ? null : new VideoDTO
                     {
                         Id = m.Video.Id,
                         Video1Path = m.Video.Video1?.Path,
-                        Video2Path = m.Video.Video2?.Path
+                        Video2Path = m.Video.Video2?.Path,
+                        ASLPath = m.Video.ProcessedASLVideo.Path != null ? m.Video.ProcessedASLVideo.Path : m.Video.ASLVideo?.Path,
+                        TaskLog = m.Video.TaskLog
                     },
                     Transcriptions = m.Video == null ? null : m.Video.Transcriptions.Select(t => new TranscriptionDTO
                     {
@@ -268,7 +275,8 @@ namespace ClassTranscribeServer.Controllers
                 PlaylistIdentifier = p.PlaylistIdentifier,
                 PublishStatus = p.PublishStatus,
                 ListUpdatedAt = p.ListUpdatedAt,
-                ListCheckedAt = p.ListCheckedAt
+                ListCheckedAt = p.ListCheckedAt,
+                Options = p.Options
             };
         }
        
@@ -298,7 +306,10 @@ namespace ClassTranscribeServer.Controllers
                 return new ChallengeResult();
             }
             var p = await _context.Playlists.FindAsync(playlist.Id);
+
             p.Name = playlist.Name;
+            p.Options = playlist.Options;
+            p.PublishStatus = playlist.PublishStatus;
 
             try
             {
@@ -476,6 +487,7 @@ namespace ClassTranscribeServer.Controllers
         public string PlaylistIdentifier { get; set; }
         public List<MediaDTO> Medias { get; set; }
         public JObject JsonMetadata { get; set; }
+        public JObject Options { get; set; }
         public PublishStatus PublishStatus { get; set; }
 #nullable enable
         public DateTime? ListUpdatedAt {get; set; }
@@ -502,6 +514,7 @@ namespace ClassTranscribeServer.Controllers
 
         public TimeSpan? Duration { get; set; }
         public WatchHistory WatchHistory { get; set; }
+        public JObject Options { get; set; }
     }
 
     public class MediaSearchDTO

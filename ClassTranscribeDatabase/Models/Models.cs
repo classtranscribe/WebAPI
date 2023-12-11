@@ -239,7 +239,8 @@ namespace ClassTranscribeDatabase.Models
         [IgnoreDataMember]
         public virtual Offering Offering { get; set; }
         [Required]
-        public JObject JsonMetadata { get; set; } = new JObject();
+        public JObject JsonMetadata { get; set; } = new JObject(); // for serverside use
+        public JObject Options { get; set; } = new JObject();
         public int Index { get; set; }
         public Visibility Visibility { get; set; }
         public PublishStatus PublishStatus { get; set; }
@@ -268,6 +269,8 @@ namespace ClassTranscribeDatabase.Models
         public virtual List<WatchHistory> WatchHistories { get; set; }
         public Visibility Visibility { get; set; }
         public PublishStatus PublishStatus { get; set; }
+
+        public JObject Options {get; set;} = new JObject();
     }
 
     public class Transcription : Entity
