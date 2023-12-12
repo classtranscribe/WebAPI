@@ -99,6 +99,7 @@ namespace UnitTests.ClassTranscribeServer.ControllerTests
                     Name = "foo",
                     Index = 0,
                     PublishStatus = PublishStatus.Published,
+                    Options = "{\"a\":\"b\"}",
                     Medias = new List<Media>()
                     {
                         new Media()
@@ -106,6 +107,7 @@ namespace UnitTests.ClassTranscribeServer.ControllerTests
                             Id = "media_foo",
                             SourceType = SourceType.Local,
                             PublishStatus = PublishStatus.NotPublished,
+                            Options = "{\"c\":\"d\"}",
                             Video = new Video()
                             {
                                 Transcriptions = new List<Transcription>(),
@@ -120,6 +122,7 @@ namespace UnitTests.ClassTranscribeServer.ControllerTests
                     SourceType = SourceType.Local,
                     Name = "bar",
                     PublishStatus = PublishStatus.NotPublished,
+                    Options="{}"
                 },
                 new Playlist
                 {
@@ -155,6 +158,7 @@ namespace UnitTests.ClassTranscribeServer.ControllerTests
             Assert.Equal(playlists[0].Id, result.Value.ElementAt(0).Id);
             Assert.Equal(playlists[0].SourceType, result.Value.ElementAt(0).SourceType);
             Assert.Equal(playlists[0].Name, result.Value.ElementAt(0).Name);
+            Assert.Equal(playlists[0].Options, result.Value.ElementAt(0).Options.ToString(Newtonsoft.Json.Formatting.None));
             Assert.Equal(playlists[0].Index, result.Value.ElementAt(0).Index);
             Assert.Equal(playlists[0].PublishStatus, result.Value.ElementAt(0).PublishStatus);
             Assert.Equal(playlists[0].Medias[0].Id, result.Value.ElementAt(0).Medias[0].Id);
@@ -212,14 +216,18 @@ namespace UnitTests.ClassTranscribeServer.ControllerTests
                 {
                     new Media {
                         Id = "media_foo",
+                        Name="fooy",
+                        UniqueMediaIdentifier="123",
                         SourceType = SourceType.Local,
                         PublishStatus = PublishStatus.NotPublished,
+                        Options = "{}",
                         Video = new Video {
                             Duration = TimeSpan.FromSeconds(13),
                             Transcriptions = new List<Transcription>(),
                         },
                     }
-                }
+                },
+                Options = "{}"
             };
             var watch = new WatchHistory
             {
@@ -262,7 +270,8 @@ namespace UnitTests.ClassTranscribeServer.ControllerTests
                 OfferingId = offeringId,
                 SourceType = SourceType.Local,
                 Name = "foo",
-                Index = 0
+                Index = 0,
+                Options = "{}"
             };
 
             _context.Offerings.Add(new Offering { Id = offeringId });

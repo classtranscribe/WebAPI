@@ -4,6 +4,7 @@ using ClassTranscribeServer.Utils;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion.Internal;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
 using System;
@@ -69,7 +70,8 @@ namespace ClassTranscribeServer.Controllers
                 PlaylistIdentifier = p.PlaylistIdentifier,
                 PublishStatus = p.PublishStatus,
                 ListCheckedAt = p.ListCheckedAt,
-                ListUpdatedAt = p.ListUpdatedAt
+                ListUpdatedAt = p.ListUpdatedAt,
+                Options = p.getOptionsAsJson()
             }).ToList().FirstOrDefault();
             return playlist;
         }
@@ -106,7 +108,8 @@ namespace ClassTranscribeServer.Controllers
                 PlaylistIdentifier = p.PlaylistIdentifier,
                 PublishStatus = p.PublishStatus,
                 ListCheckedAt = p.ListCheckedAt,
-                ListUpdatedAt = p.ListUpdatedAt
+                ListUpdatedAt = p.ListUpdatedAt,
+                Options = p.getOptionsAsJson()
             }).ToList();
             return playlists;
         }
@@ -144,6 +147,7 @@ namespace ClassTranscribeServer.Controllers
                 PublishStatus = p.PublishStatus,
                 ListCheckedAt = p.ListCheckedAt,
                 ListUpdatedAt = p.ListUpdatedAt,
+                Options = p.getOptionsAsJson(),
                 Medias = p.Medias.Where(m => m.Video != null).Select(m => new MediaDTO
                 {
                     Id = m.Id,
@@ -156,12 +160,13 @@ namespace ClassTranscribeServer.Controllers
                     SourceType = m.SourceType,
                     Duration = m.Video?.Duration,
                     PublishStatus = m.PublishStatus,
+                    Options = m.getOptionsAsJson(),
                     Video = new VideoDTO
                     {
                         Id = m.Video.Id,
                         Video1Path = m.Video.ProcessedVideo1?.Path != null ? m.Video.ProcessedVideo1.Path : m.Video.Video1?.Path,
                         Video2Path = m.Video.ProcessedVideo2?.Path != null ? m.Video.ProcessedVideo2.Path : m.Video.Video2?.Path,
-                        ASLPath = m.Video.ASLVideo?.Path,
+                        ASLPath = m.Video.ProcessedASLVideo?.Path != null ? m.Video.ProcessedASLVideo.Path : m.Video.ASLVideo?.Path,
                         TaskLog = m.Video.TaskLog
                     },
                     Transcriptions = m.Video.Transcriptions.Select(t => new TranscriptionDTO
@@ -227,6 +232,14 @@ namespace ClassTranscribeServer.Controllers
             // user is null for unit tests
             var partialWatchHistories = user !=null ? await _context.WatchHistories.Where(w => w.ApplicationUserId == user.Id && mediaIds.Contains(w.MediaId)).ToListAsync() : null;
             // In memory transformation into DTO resut
+
+            var ignore = new MediaDTO()
+            {
+
+            };
+
+
+
             List<MediaDTO> mediasDTO = mediaList.Select(m => new MediaDTO
                 {
                     Id = m.Id,
@@ -238,13 +251,16 @@ namespace ClassTranscribeServer.Controllers
                     SourceType = m.SourceType,
                     Duration = m.Video?.Duration,
                     PublishStatus = m.PublishStatus,
+                    Options = m.getOptionsAsJson(),
                     SceneDetectReady = m.Video != null && m.Video.HasSceneObjectData(),
                     Ready = m.Video == null ? false : "NoError" == m.Video.TranscriptionStatus ,
                     Video = m.Video == null ? null : new VideoDTO
                     {
                         Id = m.Video.Id,
                         Video1Path = m.Video.Video1?.Path,
-                        Video2Path = m.Video.Video2?.Path
+                        Video2Path = m.Video.Video2?.Path,
+                        ASLPath = m.Video.ProcessedASLVideo?.Path != null ? m.Video.ProcessedASLVideo.Path : m.Video.ASLVideo?.Path,
+                        TaskLog = m.Video.TaskLog
                     },
                     Transcriptions = m.Video == null ? null : m.Video.Transcriptions.Select(t => new TranscriptionDTO
                     {
@@ -268,10 +284,55 @@ namespace ClassTranscribeServer.Controllers
                 PlaylistIdentifier = p.PlaylistIdentifier,
                 PublishStatus = p.PublishStatus,
                 ListUpdatedAt = p.ListUpdatedAt,
-                ListCheckedAt = p.ListCheckedAt
+                ListCheckedAt = p.ListCheckedAt,
+                Options = p.getOptionsAsJson()
             };
         }
        
+       // PUT: api/Playlists/Option
+        [HttpPut("Option/{id}")]
+        [Authorize]
+        public async Task<IActionResult> PutPlaylistOptions(string id, JObject options)
+        {
+            if ( id == null || options == null )
+            {
+                return BadRequest();
+            }
+            var p = await _context.Playlists.FindAsync(id);
+            var offering = await _context.Offerings.FindAsync(p.OfferingId);
+
+            var authorizationResult = await _authorizationService.AuthorizeAsync(this.User, offering, Globals.POLICY_UPDATE_OFFERING);
+            if (!authorizationResult.Succeeded)
+            {
+                if (User.Identity.IsAuthenticated)
+                {
+                    return new ForbidResult();
+                }
+
+                return new ChallengeResult();
+            }
+            
+            p.setOptionsAsJson(options);
+           
+            try
+            {
+                await _context.SaveChangesAsync();
+                _wakeDownloader.UpdatePlaylist(p.Id);
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!PlaylistExists(id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+
+            return NoContent();
+        }
         
         // PUT: api/Playlists/5
         [HttpPut("{id}")]
@@ -298,7 +359,10 @@ namespace ClassTranscribeServer.Controllers
                 return new ChallengeResult();
             }
             var p = await _context.Playlists.FindAsync(playlist.Id);
+
             p.Name = playlist.Name;
+            p.Options = playlist.Options;
+            p.PublishStatus = playlist.PublishStatus;
 
             try
             {
@@ -476,6 +540,7 @@ namespace ClassTranscribeServer.Controllers
         public string PlaylistIdentifier { get; set; }
         public List<MediaDTO> Medias { get; set; }
         public JObject JsonMetadata { get; set; }
+        public JObject Options { get; set; }
         public PublishStatus PublishStatus { get; set; }
 #nullable enable
         public DateTime? ListUpdatedAt {get; set; }
@@ -502,6 +567,7 @@ namespace ClassTranscribeServer.Controllers
 
         public TimeSpan? Duration { get; set; }
         public WatchHistory WatchHistory { get; set; }
+        public JObject Options { get; set; }
     }
 
     public class MediaSearchDTO
