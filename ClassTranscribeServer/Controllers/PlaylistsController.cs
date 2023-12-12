@@ -337,16 +337,16 @@ namespace ClassTranscribeServer.Controllers
         // PUT: api/Playlists/5
         [HttpPut("{id}")]
         [Authorize]
-        public async Task<IActionResult> PutPlaylist(string id, Playlist playlist)
+        public async Task<IActionResult> PutPlaylist(string id, PlaylistUpdateDTO playlist)
         {
             if (playlist == null || playlist.Id == null || id != playlist.Id || playlist.OfferingId == null)
             {
-                return BadRequest();
+                return BadRequest("Validation checks");
             }
             var offering = await _context.Offerings.FindAsync(playlist.OfferingId);
             if (offering == null)
             {
-                return BadRequest();
+                return BadRequest("No such offering");
             }
             var authorizationResult = await _authorizationService.AuthorizeAsync(this.User, offering, Globals.POLICY_UPDATE_OFFERING);
             if (!authorizationResult.Succeeded)
@@ -361,7 +361,7 @@ namespace ClassTranscribeServer.Controllers
             var p = await _context.Playlists.FindAsync(playlist.Id);
 
             p.Name = playlist.Name;
-            p.Options = playlist.Options;
+            p.setOptionsAsJson(playlist.Options);
             p.PublishStatus = playlist.PublishStatus;
 
             try
@@ -528,7 +528,13 @@ namespace ClassTranscribeServer.Controllers
         public String SourceLabel { get; set; } // where did this transcription originate?
         public string Language { get; set; }
     }
-
+    public class PlaylistUpdateDTO {
+        public string Id { get; set; }
+        public string OfferingId { get; set; }
+        public string Name { get; set; }
+        public JObject Options { get; set; }
+        public PublishStatus PublishStatus { get; set; }
+    }
     public class PlaylistDTO
     {
         public string Id { get; set; }

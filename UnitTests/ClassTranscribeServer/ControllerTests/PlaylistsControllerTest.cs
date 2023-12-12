@@ -2,6 +2,7 @@ using ClassTranscribeDatabase.Models;
 using ClassTranscribeServer;
 using ClassTranscribeServer.Controllers;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -277,39 +278,45 @@ namespace UnitTests.ClassTranscribeServer.ControllerTests
             _context.Offerings.Add(new Offering { Id = offeringId });
             _context.Playlists.Add(playlist);
             _context.SaveChanges();
-
-            playlist.SourceType = SourceType.Kaltura;
-            playlist.Name = "bar";
-            playlist.Index = 13;
-
-            var result = await _controller.PutPlaylist(playlist.Id, playlist);
+            var update = new PlaylistUpdateDTO 
+            {
+                Id = playlist.Id,
+                OfferingId = playlist.OfferingId,
+                Name = "bart",
+                Options = JObject.Parse("{\"a\":\"b\"}"),
+                PublishStatus = PublishStatus.NotPublished
+            };
+            var result = await _controller.PutPlaylist(playlist.Id, update);
             Assert.IsType<NoContentResult>(result);
 
             var updatedPlaylist = _context.Playlists.Find(playlist.Id);
-            Assert.Equal(playlist, updatedPlaylist);
+            Assert.Equal(update.Name, updatedPlaylist.Name);
+            Assert.Equal(update.PublishStatus, updatedPlaylist.PublishStatus);
+            Assert.Equal(update.Options, updatedPlaylist.getOptionsAsJson());
+            Assert.Equal(playlist.SourceType, updatedPlaylist.SourceType);
         }
 
         [Fact]
         public async Task Put_Playlist_Fail()
         {
-            var result = await _controller.PutPlaylist("none", new Playlist());
-            Assert.IsType<BadRequestResult>(result);
+            var result = await _controller.PutPlaylist("none", new PlaylistUpdateDTO());
+            Assert.IsType<BadRequestObjectResult>(result);
 
-            result = await _controller.PutPlaylist(null, new Playlist());
-            Assert.IsType<BadRequestResult>(result);
+            result = await _controller.PutPlaylist(null, new PlaylistUpdateDTO());
+            Assert.IsType<BadRequestObjectResult>(result);
 
             result = await _controller.PutPlaylist("none", null);
-            Assert.IsType<BadRequestResult>(result);
+            Assert.IsType<BadRequestObjectResult>(result);
 
             result = await _controller.PutPlaylist(null, null);
-            Assert.IsType<BadRequestResult>(result);
+            Assert.IsType<BadRequestObjectResult>(result);
 
             var playlistId = "playlist";
             _context.Playlists.Add(new Playlist { Id = playlistId, OfferingId = "none" });
             _context.SaveChanges();
 
-            result = await _controller.PutPlaylist(playlistId, new Playlist { Id = playlistId, OfferingId = "hiya" });
-            Assert.IsType<BadRequestResult>(result);
+            result = await _controller.PutPlaylist(playlistId, new PlaylistUpdateDTO { Id = playlistId, OfferingId = "hiya" });
+            Assert.IsType<BadRequestObjectResult>(result);
         }
 
         [Fact]
