@@ -166,7 +166,7 @@ namespace ClassTranscribeServer.Controllers
                         Id = m.Video.Id,
                         Video1Path = m.Video.ProcessedVideo1?.Path != null ? m.Video.ProcessedVideo1.Path : m.Video.Video1?.Path,
                         Video2Path = m.Video.ProcessedVideo2?.Path != null ? m.Video.ProcessedVideo2.Path : m.Video.Video2?.Path,
-                        ASLPath = m.Video.ProcessedASLVideo.Path != null ? m.Video.ProcessedASLVideo.Path : m.Video.ASLVideo?.Path,
+                        ASLPath = m.Video.ProcessedASLVideo?.Path != null ? m.Video.ProcessedASLVideo.Path : m.Video.ASLVideo?.Path,
                         TaskLog = m.Video.TaskLog
                     },
                     Transcriptions = m.Video.Transcriptions.Select(t => new TranscriptionDTO
@@ -232,6 +232,14 @@ namespace ClassTranscribeServer.Controllers
             // user is null for unit tests
             var partialWatchHistories = user !=null ? await _context.WatchHistories.Where(w => w.ApplicationUserId == user.Id && mediaIds.Contains(w.MediaId)).ToListAsync() : null;
             // In memory transformation into DTO resut
+
+            var ignore = new MediaDTO()
+            {
+
+            };
+
+
+
             List<MediaDTO> mediasDTO = mediaList.Select(m => new MediaDTO
                 {
                     Id = m.Id,
@@ -251,7 +259,7 @@ namespace ClassTranscribeServer.Controllers
                         Id = m.Video.Id,
                         Video1Path = m.Video.Video1?.Path,
                         Video2Path = m.Video.Video2?.Path,
-                        ASLPath = m.Video.ProcessedASLVideo.Path != null ? m.Video.ProcessedASLVideo.Path : m.Video.ASLVideo?.Path,
+                        ASLPath = m.Video.ProcessedASLVideo?.Path != null ? m.Video.ProcessedASLVideo.Path : m.Video.ASLVideo?.Path,
                         TaskLog = m.Video.TaskLog
                     },
                     Transcriptions = m.Video == null ? null : m.Video.Transcriptions.Select(t => new TranscriptionDTO
