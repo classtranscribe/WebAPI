@@ -99,7 +99,7 @@ namespace UnitTests.ClassTranscribeServer.ControllerTests
                     Name = "foo",
                     Index = 0,
                     PublishStatus = PublishStatus.Published,
-                    Options = "{'a':'b'}",
+                    Options = "{\"a\":\"b\"}",
                     Medias = new List<Media>()
                     {
                         new Media()
@@ -107,7 +107,7 @@ namespace UnitTests.ClassTranscribeServer.ControllerTests
                             Id = "media_foo",
                             SourceType = SourceType.Local,
                             PublishStatus = PublishStatus.NotPublished,
-                            Options = "{'c':'d'}",
+                            Options = "{\"c\":\"d\"}",
                             Video = new Video()
                             {
                                 Transcriptions = new List<Transcription>(),
@@ -158,7 +158,7 @@ namespace UnitTests.ClassTranscribeServer.ControllerTests
             Assert.Equal(playlists[0].Id, result.Value.ElementAt(0).Id);
             Assert.Equal(playlists[0].SourceType, result.Value.ElementAt(0).SourceType);
             Assert.Equal(playlists[0].Name, result.Value.ElementAt(0).Name);
-            Assert.Equal(playlists[0].Options.ToString(), result.Value.ElementAt(0).Options.ToString());
+            Assert.Equal(playlists[0].Options, result.Value.ElementAt(0).Options.ToString(Newtonsoft.Json.Formatting.None));
             Assert.Equal(playlists[0].Index, result.Value.ElementAt(0).Index);
             Assert.Equal(playlists[0].PublishStatus, result.Value.ElementAt(0).PublishStatus);
             Assert.Equal(playlists[0].Medias[0].Id, result.Value.ElementAt(0).Medias[0].Id);

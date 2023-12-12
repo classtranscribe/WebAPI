@@ -286,7 +286,7 @@ namespace ClassTranscribeDatabase.Models
         }
         
         public virtual void setOptionsAsJson(JObject json) {
-            this.Options = json.ToString();
+            this.Options = json.ToString(Newtonsoft.Json.Formatting.None);
         }
     }
 
