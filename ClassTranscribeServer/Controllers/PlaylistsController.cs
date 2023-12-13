@@ -131,11 +131,18 @@ namespace ClassTranscribeServer.Controllers
             {
                 return Unauthorized(new { Reason = "Insufficient Permission", AccessType = offering.AccessType });
             }
-            var temp = await _context.Playlists
+
+            var playLists = await _context.Playlists
                 .Where(p => p.OfferingId == offeringId)
                 .OrderBy(p => p.Index)
                 .ThenBy(p => p.CreatedAt).ToListAsync();
-            var playlists = temp.Select(p => new PlaylistDTO
+
+            var hideRoomVideos = new Dictionary<string,bool>(); 
+            foreach (var p in playLists) {
+                var restrict = (bool?) p.getOptionsAsJson()[ "restrictRoomStream"] ?? false;
+                hideRoomVideos.Add(p.Id, restrict);
+            };
+            var playlistDTOs = playLists.Select(p => new PlaylistDTO
             {
                 Id = p.Id,
                 CreatedAt = p.CreatedAt,
@@ -165,7 +172,7 @@ namespace ClassTranscribeServer.Controllers
                     {
                         Id = m.Video.Id,
                         Video1Path = m.Video.ProcessedVideo1?.Path != null ? m.Video.ProcessedVideo1.Path : m.Video.Video1?.Path,
-                        Video2Path = m.Video.ProcessedVideo2?.Path != null ? m.Video.ProcessedVideo2.Path : m.Video.Video2?.Path,
+                        Video2Path = hideRoomVideos[p.Id] ?  null : ( m.Video.ProcessedVideo2?.Path != null ? m.Video.ProcessedVideo2.Path : m.Video.Video2?.Path),
                         ASLPath = m.Video.ProcessedASLVideo?.Path != null ? m.Video.ProcessedASLVideo.Path : m.Video.ASLVideo?.Path,
                         TaskLog = m.Video.TaskLog
                     },
@@ -182,7 +189,7 @@ namespace ClassTranscribeServer.Controllers
                     }).ToList()
                 }).ToList()
             }).ToList();
-            return playlists;
+            return playlistDTOs;
         }
 
         [HttpGet("SearchForMedia/{offeringId}/{query}")]
@@ -233,13 +240,9 @@ namespace ClassTranscribeServer.Controllers
             var partialWatchHistories = user !=null ? await _context.WatchHistories.Where(w => w.ApplicationUserId == user.Id && mediaIds.Contains(w.MediaId)).ToListAsync() : null;
             // In memory transformation into DTO resut
 
-            var ignore = new MediaDTO()
-            {
-
-            };
-
-
-
+            var hideRoomVideos = new Dictionary<string,bool>(); 
+            var restrict = (bool?) p.getOptionsAsJson()[ "restrictRoomStream"] ?? false;
+            
             List<MediaDTO> mediasDTO = mediaList.Select(m => new MediaDTO
                 {
                     Id = m.Id,
@@ -255,10 +258,10 @@ namespace ClassTranscribeServer.Controllers
                     SceneDetectReady = m.Video != null && m.Video.HasSceneObjectData(),
                     Ready = m.Video == null ? false : "NoError" == m.Video.TranscriptionStatus ,
                     Video = m.Video == null ? null : new VideoDTO
-                    {
+                   {
                         Id = m.Video.Id,
-                        Video1Path = m.Video.Video1?.Path,
-                        Video2Path = m.Video.Video2?.Path,
+                        Video1Path = m.Video.ProcessedVideo1?.Path != null ? m.Video.ProcessedVideo1.Path : m.Video.Video1?.Path,
+                        Video2Path = restrict ?  null : ( m.Video.ProcessedVideo2?.Path != null ? m.Video.ProcessedVideo2.Path : m.Video.Video2?.Path),
                         ASLPath = m.Video.ProcessedASLVideo?.Path != null ? m.Video.ProcessedASLVideo.Path : m.Video.ASLVideo?.Path,
                         TaskLog = m.Video.TaskLog
                     },
