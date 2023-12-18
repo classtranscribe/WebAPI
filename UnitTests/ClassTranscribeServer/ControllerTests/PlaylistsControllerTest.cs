@@ -2,6 +2,7 @@ using ClassTranscribeDatabase.Models;
 using ClassTranscribeServer;
 using ClassTranscribeServer.Controllers;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -99,6 +100,7 @@ namespace UnitTests.ClassTranscribeServer.ControllerTests
                     Name = "foo",
                     Index = 0,
                     PublishStatus = PublishStatus.Published,
+                    Options = "{\"a\":\"b\"}",
                     Medias = new List<Media>()
                     {
                         new Media()
@@ -106,6 +108,7 @@ namespace UnitTests.ClassTranscribeServer.ControllerTests
                             Id = "media_foo",
                             SourceType = SourceType.Local,
                             PublishStatus = PublishStatus.NotPublished,
+                            Options = "{\"c\":\"d\"}",
                             Video = new Video()
                             {
                                 Transcriptions = new List<Transcription>(),
@@ -120,6 +123,7 @@ namespace UnitTests.ClassTranscribeServer.ControllerTests
                     SourceType = SourceType.Local,
                     Name = "bar",
                     PublishStatus = PublishStatus.NotPublished,
+                    Options="{}"
                 },
                 new Playlist
                 {
@@ -155,6 +159,7 @@ namespace UnitTests.ClassTranscribeServer.ControllerTests
             Assert.Equal(playlists[0].Id, result.Value.ElementAt(0).Id);
             Assert.Equal(playlists[0].SourceType, result.Value.ElementAt(0).SourceType);
             Assert.Equal(playlists[0].Name, result.Value.ElementAt(0).Name);
+            Assert.Equal(playlists[0].Options, result.Value.ElementAt(0).Options.ToString(Newtonsoft.Json.Formatting.None));
             Assert.Equal(playlists[0].Index, result.Value.ElementAt(0).Index);
             Assert.Equal(playlists[0].PublishStatus, result.Value.ElementAt(0).PublishStatus);
             Assert.Equal(playlists[0].Medias[0].Id, result.Value.ElementAt(0).Medias[0].Id);
@@ -212,14 +217,18 @@ namespace UnitTests.ClassTranscribeServer.ControllerTests
                 {
                     new Media {
                         Id = "media_foo",
+                        Name="fooy",
+                        UniqueMediaIdentifier="123",
                         SourceType = SourceType.Local,
                         PublishStatus = PublishStatus.NotPublished,
+                        Options = "{}",
                         Video = new Video {
                             Duration = TimeSpan.FromSeconds(13),
                             Transcriptions = new List<Transcription>(),
                         },
                     }
-                }
+                },
+                Options = "{}"
             };
             var watch = new WatchHistory
             {
@@ -262,45 +271,52 @@ namespace UnitTests.ClassTranscribeServer.ControllerTests
                 OfferingId = offeringId,
                 SourceType = SourceType.Local,
                 Name = "foo",
-                Index = 0
+                Index = 0,
+                Options = "{}"
             };
 
             _context.Offerings.Add(new Offering { Id = offeringId });
             _context.Playlists.Add(playlist);
             _context.SaveChanges();
-
-            playlist.SourceType = SourceType.Kaltura;
-            playlist.Name = "bar";
-            playlist.Index = 13;
-
-            var result = await _controller.PutPlaylist(playlist.Id, playlist);
+            var update = new PlaylistUpdateDTO 
+            {
+                Id = playlist.Id,
+                OfferingId = playlist.OfferingId,
+                Name = "bart",
+                Options = JObject.Parse("{\"a\":\"b\"}"),
+                PublishStatus = PublishStatus.NotPublished
+            };
+            var result = await _controller.PutPlaylist(playlist.Id, update);
             Assert.IsType<NoContentResult>(result);
 
             var updatedPlaylist = _context.Playlists.Find(playlist.Id);
-            Assert.Equal(playlist, updatedPlaylist);
+            Assert.Equal(update.Name, updatedPlaylist.Name);
+            Assert.Equal(update.PublishStatus, updatedPlaylist.PublishStatus);
+            Assert.Equal(update.Options, updatedPlaylist.getOptionsAsJson());
+            Assert.Equal(playlist.SourceType, updatedPlaylist.SourceType);
         }
 
         [Fact]
         public async Task Put_Playlist_Fail()
         {
-            var result = await _controller.PutPlaylist("none", new Playlist());
-            Assert.IsType<BadRequestResult>(result);
+            var result = await _controller.PutPlaylist("none", new PlaylistUpdateDTO());
+            Assert.IsType<BadRequestObjectResult>(result);
 
-            result = await _controller.PutPlaylist(null, new Playlist());
-            Assert.IsType<BadRequestResult>(result);
+            result = await _controller.PutPlaylist(null, new PlaylistUpdateDTO());
+            Assert.IsType<BadRequestObjectResult>(result);
 
             result = await _controller.PutPlaylist("none", null);
-            Assert.IsType<BadRequestResult>(result);
+            Assert.IsType<BadRequestObjectResult>(result);
 
             result = await _controller.PutPlaylist(null, null);
-            Assert.IsType<BadRequestResult>(result);
+            Assert.IsType<BadRequestObjectResult>(result);
 
             var playlistId = "playlist";
             _context.Playlists.Add(new Playlist { Id = playlistId, OfferingId = "none" });
             _context.SaveChanges();
 
-            result = await _controller.PutPlaylist(playlistId, new Playlist { Id = playlistId, OfferingId = "hiya" });
-            Assert.IsType<BadRequestResult>(result);
+            result = await _controller.PutPlaylist(playlistId, new PlaylistUpdateDTO { Id = playlistId, OfferingId = "hiya" });
+            Assert.IsType<BadRequestObjectResult>(result);
         }
 
         [Fact]

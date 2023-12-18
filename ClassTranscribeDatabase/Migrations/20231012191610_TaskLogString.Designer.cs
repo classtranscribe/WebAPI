@@ -3,15 +3,17 @@ using System;
 using ClassTranscribeDatabase;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace ClassTranscribeDatabase.Migrations
 {
     [DbContext(typeof(CTDbContext))]
-    partial class CTDbContextModelSnapshot : ModelSnapshot
+    [Migration("20231012191610_TaskLogString")]
+    partial class TaskLogString
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -739,9 +741,6 @@ namespace ClassTranscribeDatabase.Migrations
                     b.Property<string>("Name")
                         .HasColumnType("text");
 
-                    b.Property<string>("Options")
-                        .HasColumnType("text");
-
                     b.Property<string>("PlaylistId")
                         .HasColumnType("text");
 
@@ -922,9 +921,6 @@ namespace ClassTranscribeDatabase.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("OfferingId")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Options")
                         .HasColumnType("text");
 
                     b.Property<string>("PlaylistIdentifier")

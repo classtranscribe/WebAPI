@@ -7,6 +7,7 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
 using static ClassTranscribeDatabase.CommonUtils;
 
@@ -145,9 +146,23 @@ namespace TaskEngine.Tasks
 
         public async Task<Video> DownloadKalturaVideo(string subdir, Media media)
         {
+            string? swapInfo = media.getOptionsAsJson()?.GetValue("swapStreams")?.ToString();
+            GetLogger().LogInformation($"DownloadKalturaVideo ({media.Id}): swap streams: {swapInfo}");
+            bool swapStreams = Boolean.Parse( media.getOptionsAsJson().GetValue("swapStreams").ToString());
+            string? video2Url = null;
+            string video1Url = media.JsonMetadata["downloadUrl"].ToString();
+            try {
+                video2Url = media.JsonMetadata["child"]["downloadUrl"].ToString();
+                if(video2Url.Length>0 && swapStreams) {
+                    string temp = video1Url;
+                    video1Url = video2Url;
+                    video2Url = temp;
+                }
+            } catch (Exception) { };
+
             var mediaResponse = await _rpcClient.PythonServerClient.DownloadKalturaVideoRPCAsync(new CTGrpc.MediaRequest
             {
-                VideoUrl = media.JsonMetadata["downloadUrl"].ToString()
+                VideoUrl = video1Url
             });
 
             Video video;
@@ -163,13 +178,13 @@ namespace TaskEngine.Tasks
 
                         var childMediaR = await _rpcClient.PythonServerClient.DownloadKalturaVideoRPCAsync(new CTGrpc.MediaRequest
                         {
-                            VideoUrl = media.JsonMetadata["child"]["downloadUrl"].ToString()
+                            VideoUrl = video2Url
                         });
                         if(FileRecord.IsValidFile(childMediaR.FilePath)) {
                             video.Video2 =  await FileRecord.GetNewFileRecordAsync(childMediaR.FilePath, childMediaR.Ext, subdir);
                         }
                     }
-                } catch(Exception  ignored) {
+                } catch(Exception ignored) {
                     GetLogger().LogInformation(ignored, $"Couldnt download second video for {media.Id}");
                 }
             }

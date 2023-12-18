@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Runtime.Serialization;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace ClassTranscribeDatabase.Models
@@ -239,7 +240,16 @@ namespace ClassTranscribeDatabase.Models
         [IgnoreDataMember]
         public virtual Offering Offering { get; set; }
         [Required]
-        public JObject JsonMetadata { get; set; } = new JObject();
+        public JObject JsonMetadata { get; set; } = new JObject(); // for serverside use
+        public string Options { get; set; } = "";
+        
+        public virtual JObject getOptionsAsJson() {
+            return String.IsNullOrEmpty(this.Options) ? new JObject() : JObject.Parse(this.Options);
+        }
+        
+        public virtual void setOptionsAsJson(JObject json) {
+            this.Options = json.ToString();
+        }
         public int Index { get; set; }
         public Visibility Visibility { get; set; }
         public PublishStatus PublishStatus { get; set; }
@@ -268,7 +278,18 @@ namespace ClassTranscribeDatabase.Models
         public virtual List<WatchHistory> WatchHistories { get; set; }
         public Visibility Visibility { get; set; }
         public PublishStatus PublishStatus { get; set; }
+        
+        public string Options { get; set; } = "";
+        
+        public virtual JObject getOptionsAsJson() {
+            return String.IsNullOrEmpty(this.Options) ? new JObject() :  JObject.Parse(this.Options);
+        }
+        
+        public virtual void setOptionsAsJson(JObject json) {
+            this.Options = json.ToString(Newtonsoft.Json.Formatting.None);
+        }
     }
+
 
     public class Transcription : Entity
     {
@@ -319,6 +340,15 @@ namespace ClassTranscribeDatabase.Models
         public string AudioId { get; set; }
         public virtual FileRecord Audio { get; set; }
 
+        [ForeignKey("ASLVideo")]
+        public string ASLVideoId { get; set; }
+        public virtual FileRecord ASLVideo { get; set; }
+
+        [ForeignKey("ProcessedASLVideo")]
+        public string ProcessedASLVideoId { get; set; }
+        public virtual FileRecord ProcessedASLVideo { get; set; }
+
+        public string TaskLog { get; set; }
         public string Description { get; set; }
         public virtual List<Media> Medias { get; set; }
         public string TranscriptionStatus { get; set; }
