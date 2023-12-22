@@ -1,0 +1,264 @@
+MOCK_RECOGNITION = MOCK
+
+# Consider this a guide for the environment variables required to deploy ClassTranscribe
+# Make a copy of this file and rename to - ".env" and place in Deployment/
+# ALL VARIABLES HAVE TO BE SET UNLESS MENTIONED OTHERWISE
+
+TRAEFIK_HTTP_PORT=8000
+TRAEFIK_HTTPS_PORT=8443
+
+DATA=../../../../pyapi/devruntime/docker_data
+
+LTI_SHARED_SECRET=ltisecret
+MEDIA_WORKER_SHARED_SECRET=mediasecret
+
+PERIODIC_CHECK_MINUTES=300
+# ----------------------------------------------------------------------
+# DATA DIRECTORY
+# ----------------------------------------------------------------------
+# Description: The path to store all data of classtranscribe
+# Instruction: Substitute with path passed an argument to create_directories.sh (For more info, check readme.md)
+# Example:
+# DATA=/classtranscribe_data
+# ----------------------------------------------------------------------
+
+
+# ----------------------------------------------------------------------
+# HOST_NAME
+# ----------------------------------------------------------------------
+# Description: The host name for where the website will be hosted
+# Instruction: Subsititute with the host name.
+# Example:
+# HOST_NAME=my.classtranscribe.com
+# ----------------------------------------------------------------------
+HOST_NAME=localhost
+
+
+# ----------------------------------------------------------------------
+# ADMIN CONFIGURATION
+# ----------------------------------------------------------------------
+# Description: These are used as the credentials for the following services - portainer, db, pgadmin, rabbitmq, traefik, letsencrypt
+# Instruction: Subsititute with a valid email address and a strong password
+# Protip: To generate password on bash run, "openssl rand -base64 16"
+# Example:
+# ADMIN_USER_ID=my_emailid@example.com
+# ADMIN_PASSWORD=MyVeryStrongPassword123
+ADMIN_USER_ID=mahipal2@illinois.edu
+ADMIN_PASSWORD=Test123
+
+
+# ----------------------------------------------------------------------
+# TEST ACCOUNT 
+# ----------------------------------------------------------------------
+# Description: This property is to enable a testuser for local development only.
+# CAUTION: DO NOT ENABLE ON A PRODUCTION SERVER.
+# Instruction: Subsititute with true or false
+# Example:
+# TEST_SIGN_IN=false
+TEST_SIGN_IN=true
+
+
+# ----------------------------------------------------------------------
+# JWT CONFIGURATION
+# ----------------------------------------------------------------------
+# Description: This is used to generate authentication cookies by the api server.
+# Instruction: Substitute with a long random string.
+# Protip: To generate string on bash run, "openssl rand -base64 32"
+# Example:
+# JWT_KEY=cl9rdcPxDA6I9ARxJPlNYaZF7Xae7mgS7iqibI48xYQ=
+JWT_KEY=hd0TnCmI7C4VUymKlQ6hLovlxN1QcgXM9jfReqXEP+A=
+
+
+# ----------------------------------------------------------------------
+# AUTH0 CONFIGURATION
+# ----------------------------------------------------------------------
+# Description: Auth0 is used as the authentication middleware for ClassTranscribe.
+# Instructions: 
+# Step 1. Create a tenant on Auth0
+# Step 2. Set up the Connections on your Auth0 tenant (For more info, search google for "Auth0 Connections")
+# Step 3. Create a Single Page Application on the Auth0 tenant.# 
+# Step 4. On auth0 fill in the following fields (If HOST_NAME used above is my.classtranscribe.com)
+#   a. Allowed Callback URLs - https://my.classtranscribe.com,https://my.classtranscribe.com/login
+#   b. Allowed Logout URLs - https://my.classtranscribe.com
+#   c. Allowed Web Origins - https://my.classtranscribe.com
+#   d. Allowed Origins(CORS) - https://my.classtranscribe.com
+# Step 5. Save Changes
+# Step 6. Subsititute with the auth0 domain and client Id generated.
+# Example:
+# AUTH0_CLIENT_ID=laksjfdsahfjkhfkjhsdhffj
+# AUTH0_DOMAIN=something.auth0.com
+AUTH0_CLIENT_ID=changeme
+AUTH0_DOMAIN=changeme
+
+# ----------------------------------------------------------------------
+# CILOGON CONFIGURATION
+# ----------------------------------------------------------------------
+CILOGON_CLIENT_ID=cilogon:/client_id/0
+CILOGON_CLIENT_SECRET=changeme
+CILOGON_DOMAIN=cilogon.org
+
+# ----------------------------------------------------------------------
+# PORTAINER CONFIGURATION
+# ----------------------------------------------------------------------
+# Description: To set the password for the portainer dashboard it must be passed to portainer as a hash.
+# Instruction: 1. Run the following command below, (Substitute <ADMIN_PASSWORD> with the password generated above)
+# "docker run --rm httpd:2.4-alpine htpasswd -nbB admin '<ADMIN_PASSWORD>' | cut -d ":" -f 2"
+# 2. Substitute generated string below.
+# (For more info, refer https://portainer.readthedocs.io/en/stable/configuration.html)
+# Example: If ADMIN_PASSWORD is Test123, generated hash is $2y$05$KRCr38aM/Avz8fXMDPN3aetQSCql.H5fMXzMcdyX7XNw5HauB20ay
+# PORTAINER_PASSWORD=$2y$05$KRCr38aM/Avz8fXMDPN3aetQSCql.H5fMXzMcdyX7XNw5HauB20ay
+PORTAINER_PASSWORD=$$2y$$05$$KRCr38aM/Avz8fXMDPN3aetQSCql.H5fMXzMcdyX7XNw5HauB20ay
+
+
+# ----------------------------------------------------------------------
+# TRAEFIK CONFIGURATION (Modify if deployed on server)
+# ----------------------------------------------------------------------
+# Traefik is the reverse proxy used for routing, more info - https://docs.traefik.io/
+# Description: TRAEFIK_IPFILTER accepts / refuses requests based on the client IP.
+# For more info - https://docs.traefik.io/v2.0/middlewares/ipwhitelist/
+# Instruction: Subsititute with required ipwhitelist
+# Example:
+# TRAEFIK_IPFILTER=123.123.0.0/12, 141.142.0.0/16, 0.0.0.0/0
+TRAEFIK_IPFILTER=123.123.0.0/12, 141.142.0.0/16, 0.0.0.0/0
+
+# Description: Traefik could generate SSL certificates for additional host names.
+# Instruction: Specify up to 2 additional hosts to generate SSL certificates for.
+# Eg. TRAEFIK_ADDITIONAL_HOST1=my.classtranscribe.org
+# Eg. TRAEFIK_ADDITIONAL_HOST2=my.classtranscribe.net
+TRAEFIK_ADDITIONAL_HOST1=
+TRAEFIK_ADDITIONAL_HOST2=
+
+
+# ----------------------------------------------------------------------
+# AZURE APPLICATION INSIGHTS CONFIGURATION
+# ----------------------------------------------------------------------
+# Description: Azure Application Insights allows reporting of all exceptions to Azure.
+# Instruction: Create an Azure Application Insights service on Azure (For more info, google "Azure Application Insights")
+# And, substitute below with the application insights key (aka Instruentation Key)
+# Example: 
+# APPLICATION_INSIGHTS_KEY=6f7a5ee2-0811-4e3a-beaa-498af35d6ea2
+APPLICATION_INSIGHTS_KEY=0
+
+
+# ----------------------------------------------------------------------
+# SLACK WEBHOOK CONFIGURATION
+# ----------------------------------------------------------------------
+# Description: To enable logging and monitoring messages to slack.
+# Instruction: Create an incoming webhook on Slack, (For more info, https://api.slack.com/messaging/webhooks)
+# Subsititute the url below, also substitute in dem_conf.yml
+# Example:
+# SLACK_WEBHOOK_URL=https://hooks.slack.com/services/abcdef/ghijkl/lkdsjfldskfksldljf
+SLACK_WEBHOOK_URL=https://hooks.slack.com/services/changeme
+
+
+# ----------------------------------------------------------------------
+# Task Engine Configuration
+# ----------------------------------------------------------------------
+#  Task Engine uses various media providers, their respective API keys need to be configured
+
+# Youtube
+# Description: To enable Youtube Integration
+# Instruction: Generate a youtube api key and subsititute below. (For more info, https://developers.google.com/youtube/registering_an_application)
+# Eg. YOUTUBE_API_KEY=AIzaSyDKnpdznYOFxm_IRnrclGh4oSdQloZsdfsdo
+YOUTUBE_API_KEY=changeme
+
+# Azure
+# Description: ClassTranscribe uses Azure Cognitive Services to produce transcriptions, these require azure subscription keys
+# Instruction: Generate and subsititute with subscription keys and regions, (For more info, https://azure.microsoft.com/en-us/services/cognitive-services/speech-to-text/)
+# Multiple keys can be used, use a comma as separator between key and region and semi-colon to add multiple.
+# Example:
+AZURE_SUBSCRIPTION_KEYS=changeme,northcentralus
+
+# Kaltura 
+# Description: To enable a Katura/Mediaspace integration
+# Instruction: Contact Mediaspace admin to obtain the partner_id, token_id and app_token.
+# Example:
+
+KALTURA_PARTNER_ID=1329972
+KALTURA_TOKEN_ID=changeme
+KALTURA_APP_TOKEN=changeme
+
+
+# Box 
+# Description: To enable a Box integration
+# Instruction: Contact Box admin to get client_id and client_secret
+# Example:
+# BOX_CLIENT_ID=jsdksdfhsdkfhskjdhfskjfhd
+# BOX_CLIENT_SECRET=jlksdjfksjlsljslkfjlksjlkdsflk
+BOX_CLIENT_ID=
+BOX_CLIENT_SECRET=
+
+# ----------------------------------------------------------------------
+# FRONTEND CONFIGURATION (Optional)
+# ----------------------------------------------------------------------
+# Description: Frontend typically points to the same host for the api service, if we need to change this explicitly setting this is required
+# Instruction: Subsititute with alternate endpoint
+# Example:
+# REACT_APP_TESTING_BASE_URL=https://my.classtranscribe2.com
+REACT_APP_TESTING_BASE_URL=
+# Description: Setting this variable will trigger a hard reload on the uesr's device, whenever a new commit is made to the branch
+# Instruction: Subsititute with an endpoint like below
+# Example:
+# REACT_APP_FRONTEND_COMMIT_ENDPOINT=https://api.github.com/repos/classtranscribe/Frontend/commits/master
+REACT_APP_FRONTEND_COMMIT_ENDPOINT=https://api.github.com/repos/classtranscribe/Frontend/commits/master
+
+# ----------------------------------------------------------------------
+# RABBITMQ CONFIGURATION (Optional)
+# ----------------------------------------------------------------------
+# Description: RabbitMQ Prefetch count sets the number of jobs rabbitmq can process in parallel.
+# Instruction: Subsititute with an integer, default value is 10 if undefined
+# Example:
+# RABBITMQ_PREFETCH_COUNT=10
+#no longer used RABBITMQ_PREFETCH_COUNT=10
+
+# New
+# Max number of threads used by video processing
+JOB_MAX_THREADS=1
+
+MAX_CONCURRENT_VIDEO_TASKS=1
+MAX_CONCURRENT_SYNC_TASKS=1
+MAX_CONCURRENT_TRANSCRIPTIONS=1
+
+#single threaded OCR
+OMP_THREAD_LIMIT=1
+
+SCENE_DETECT_FPS=0.5
+SCENE_DETECT_USE_FACE=true
+SCENE_DETECT_USE_OCR=false
+
+#-------TRAEFIK-----------
+TRAEFIK_HTTPS_OPTIONS=TLS
+# Always use https, traffic to http is redirected to https
+TRAEFIK_HTTP_REDIRECT=Redirect.EntryPoint:https
+TRAEFIK_ACME_ENABLE=false
+
+#-------API-----------
+ALLOWED_HOSTS=*
+JWT_EXPIRE_DAYS=30
+ASPNETCORE_URLS=http://+:80
+DEV_ENV=OUTSIDEDOCKER
+NODE_RPC_SERVER=localhost:50052
+PYTHON_RPC_SERVER=localhost:50051
+RabbitMQServer=localhost
+#-------POSTGRES-----------
+# Fixed server name, db name and data storage locations
+POSTGRES_SERVER_NAME=localhost
+POSTGRES_SERVER_PORT=5433
+PGDATA=/var/lib/postgresql/data/pgdata
+POSTGRES_DB=ct2019db
+#-------RPCSERVER-----------
+DATA_DIRECTORY=/data
+#TMPDIR=/data/temp
+#-------NGINX-----------
+NGINX_HTTP_PORT=80
+NGINX_HTTPS_PORT=443
+#VAR=
+#-------FRONTEND-----------
+NODE_PATH=src
+#-------PGADMIN-----------
+SCRIPT_NAME=/pgadmin
+
+#-------ELASTIC SEARCH-------
+ES_CONNECTION_ADDR=http://localhost:9200
+ES_INDEX_TIME_TO_LIVE=2880
+

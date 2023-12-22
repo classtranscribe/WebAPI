@@ -13,6 +13,7 @@
         public string JWT_KEY { get; set; }
         public string ALLOWED_HOSTS { get; set; }
         public string POSTGRES_SERVER_NAME { get; set; }
+        public string POSTGRES_SERVER_PORT { get; set; } = "5432";
         public string POSTGRES_DB { get; set; }
 
         public string ADMIN_USER_ID { get; set; }
