@@ -32,7 +32,7 @@ namespace TaskEngine.Tasks
 
         protected override Task OnConsume(string videoId, TaskParameters taskParameters, ClientActiveTasks cleanup)
         {
-            registerTask(cleanup, videoId);
+            RegisterTask(cleanup, videoId);
             
             throw new Exception("ConvertVideoToWavTask No longer used. Videoid= " + videoId);
         }

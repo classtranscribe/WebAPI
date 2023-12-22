@@ -14,104 +14,130 @@ namespace ClassTranscribeServer
         //Todo: Fix field capitalization in here and QueueAwakerTask.cs
         public void UpdateAllPlaylists()
         {
-            JObject msg = new JObject();
-            msg.Add("Type", TaskType.DownloadAllPlaylists.ToString());
+            JObject msg = new JObject
+            {
+                { "Type", TaskType.DownloadAllPlaylists.ToString() }
+            };
             Wake(msg);
         }
 
         public virtual void UpdatePlaylist(string playlistId)
         {
-            JObject msg = new JObject();
-            msg.Add("Type", TaskType.DownloadPlaylistInfo.ToString());
-            msg.Add("PlaylistId", playlistId);
+            JObject msg = new JObject
+            {
+                { "Type", TaskType.DownloadPlaylistInfo.ToString() },
+                { "PlaylistId", playlistId }
+            };
             Wake(msg);
         }
 
         public virtual void UpdateVTTFile(string transcriptionId)
         {
-            JObject msg = new JObject();
-            msg.Add("Type", TaskType.GenerateVTTFile.ToString());
-            msg.Add("TranscriptionId", transcriptionId);
+            JObject msg = new JObject
+            {
+                { "Type", TaskType.GenerateVTTFile.ToString() },
+                { "TranscriptionId", transcriptionId }
+            };
             Wake(msg);
         }
 
         public void UpdateOffering(string offeringId)
         {
-            JObject msg = new JObject();
-            msg.Add("Type", TaskType.UpdateOffering.ToString());
-            msg.Add("offeringId", offeringId);
+            JObject msg = new JObject
+            {
+                { "Type", TaskType.UpdateOffering.ToString() },
+                { "offeringId", offeringId }
+            };
             Wake(msg);
         }
 
         public void PeriodicCheck()
         {
-            JObject msg = new JObject();
-            msg.Add("Type", TaskType.PeriodicCheck.ToString());
+            JObject msg = new JObject
+            {
+                { "Type", TaskType.PeriodicCheck.ToString() }
+            };
             Wake(msg);
         }
 
         public void GenerateScenes(string mediaId)
         {
-            JObject msg = new JObject();
-            msg.Add("Type", TaskType.SceneDetection.ToString());
-            msg.Add("mediaId", mediaId);
+            JObject msg = new JObject
+            {
+                { "Type", TaskType.SceneDetection.ToString() },
+                { "mediaId", mediaId }
+            };
             Wake(msg);
         }
 
         public void CreateBoxToken(string authCode)
         {
-            JObject msg = new JObject();
-            msg.Add("Type", TaskType.CreateBoxToken.ToString());
-            msg.Add("authCode", authCode);
+            JObject msg = new JObject
+            {
+                { "Type", TaskType.CreateBoxToken.ToString() },
+                { "authCode", authCode }
+            };
             Wake(msg);
         }
 
         public void DownloadMedia(string mediaId)
         {
-            JObject msg = new JObject();
-            msg.Add("Type", TaskType.DownloadMedia.ToString());
-            msg.Add("mediaId", mediaId);
+            JObject msg = new JObject
+            {
+                { "Type", TaskType.DownloadMedia.ToString() },
+                { "mediaId", mediaId }
+            };
             Wake(msg);
         }
 
         public void ConvertMedia(string videoId)
         {
-            JObject msg = new JObject();
-            msg.Add("Type", TaskType.ConvertMedia.ToString());
-            msg.Add("videoId", videoId);
+            JObject msg = new JObject
+            {
+                { "Type", TaskType.ConvertMedia.ToString() },
+                { "videoId", videoId }
+            };
             Wake(msg);
         }
 
         public void TranscribeVideo(string videoOrMediaId, bool deleteExisting)
         {
-            JObject msg = new JObject();
-            msg.Add("Type", TaskType.TranscribeVideo.ToString());
-            msg.Add("videoOrMediaId", videoOrMediaId);
-            msg.Add("DeleteExisting", deleteExisting);
+            JObject msg = new JObject
+            {
+                { "Type", TaskType.TranscribeVideo.ToString() },
+                { "videoOrMediaId", videoOrMediaId },
+                { "DeleteExisting", deleteExisting }
+            };
             Wake(msg);
         }
         public virtual void SceneDetection(string videoMediaPlaylistId, bool deleteExisting)
         {
-            JObject msg = new JObject();
-            msg.Add("Type", TaskType.SceneDetection.ToString());
-            msg.Add("videoMediaPlaylistId", videoMediaPlaylistId);
-            msg.Add("DeleteExisting", deleteExisting);
+            JObject msg = new JObject
+            {
+                { "Type", TaskType.SceneDetection.ToString() },
+                { "videoMediaPlaylistId", videoMediaPlaylistId },
+                { "DeleteExisting", deleteExisting }
+            };
             Wake(msg);
         }
 
         public virtual void DescribeVideo(string videoMediaPlaylistId, bool deleteExisting) {
-            JObject msg = new JObject();
-            msg.Add("Type", TaskType.DescribeVideo.ToString());
-            msg.Add("videoMediaPlaylistId", videoMediaPlaylistId);
-            msg.Add("DeleteExisting", deleteExisting);
+            JObject msg = new JObject
+            {
+                { "Type", TaskType.DescribeVideo.ToString() },
+                { "videoMediaPlaylistId", videoMediaPlaylistId },
+                { "DeleteExisting", deleteExisting }
+            };
             Wake(msg);
         }
 
         public void UpdateASLVideo(string sourceId)
         {
-            JObject msg = new JObject();
-            msg.Add("Type", TaskType.PythonCrawler.ToString());
-            msg.Add("SourceId", sourceId);
+            JObject msg = new JObject
+            {
+                { "Type", TaskType.PythonCrawler.ToString() },
+                { "SourceId", sourceId }
+            };
             Wake(msg);
         }
 
@@ -123,9 +149,11 @@ namespace ClassTranscribeServer
 
         public void ReTranscribePlaylist(string playlistId)
         {
-            JObject msg = new JObject();
-            msg.Add("Type", TaskType.ReTranscribePlaylist.ToString());
-            msg.Add("PlaylistId", playlistId);
+            JObject msg = new JObject
+            {
+                { "Type", TaskType.ReTranscribePlaylist.ToString() },
+                { "PlaylistId", playlistId }
+            };
             Wake(msg);
         }
     }

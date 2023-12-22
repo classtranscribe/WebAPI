@@ -95,7 +95,7 @@ namespace TaskEngine.Tasks
         /// <returns></returns>
         protected async override Task OnConsume(string videoId, TaskParameters taskParameters, ClientActiveTasks cleanup)
         {
-            registerTask(cleanup, videoId); // may throw AlreadyInProgress exception
+            RegisterTask(cleanup, videoId); // may throw AlreadyInProgress exception
             if (Globals.appSettings.MOCK_RECOGNITION == "MOCK")
             {
                 buildMockCaptions(videoId);

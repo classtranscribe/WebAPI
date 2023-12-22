@@ -10,7 +10,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using static ClassTranscribeDatabase.CommonUtils;
 
-#pragma warning disable CA2007
+// #pragma warning disable CA2007
 // https://learn.microsoft.com/en-us/dotnet/fundamentals/code-analysis/quality-rules/ca2007
 // We are okay awaiting on a task in the same thread
 
@@ -31,10 +31,10 @@ namespace TaskEngine.Tasks
         private readonly UpdateBoxTokenTask _updateBoxTokenTask;
         private readonly BuildElasticIndexTask _buildElasticIndexTask;
         private readonly CleanUpElasticIndexTask _cleanUpElasticIndexTask;
-        private readonly ExampleTask _exampleTask;
+        // private readonly ExampleTask _exampleTask;
         private readonly SlackLogger _slackLogger;
         private readonly DescribeVideoTask _describeVideoTask;
-        private readonly DescribeImageTask _describeImageTask;
+        // private readonly DescribeImageTask _describeImageTask;
         public QueueAwakerTask() { }
 
         public QueueAwakerTask(RabbitMQConnection rabbitMQ, DownloadPlaylistInfoTask downloadPlaylistInfoTask,
@@ -43,7 +43,8 @@ namespace TaskEngine.Tasks
             GenerateVTTFileTask generateVTTFileTask, SceneDetectionTask sceneDetectionTask,
             CreateBoxTokenTask createBoxTokenTask, UpdateBoxTokenTask updateBoxTokenTask, PythonCrawlerTask pythonCrawlerTask, 
             BuildElasticIndexTask buildElasticIndexTask, CleanUpElasticIndexTask cleanUpElasticIndexTask,
-            ExampleTask exampleTask,DescribeVideoTask describeVideoTask,DescribeImageTask describeImageTask,
+            
+            DescribeVideoTask describeVideoTask,// DescribeImageTask describeImageTask,ExampleTask exampleTask,
             ILogger<QueueAwakerTask> logger, SlackLogger slackLogger)
             : base(rabbitMQ, TaskType.QueueAwaker, logger)
         {
@@ -60,8 +61,8 @@ namespace TaskEngine.Tasks
             _buildElasticIndexTask = buildElasticIndexTask;
             _cleanUpElasticIndexTask = cleanUpElasticIndexTask;
             _describeVideoTask = describeVideoTask;
-            _describeImageTask = describeImageTask;
-            _exampleTask = exampleTask;
+            // _describeImageTask = describeImageTask;
+            // _exampleTask = exampleTask;
             _slackLogger = slackLogger;
         }
 
@@ -289,192 +290,192 @@ namespace TaskEngine.Tasks
 
         protected async override Task OnConsume(JObject jObject, TaskParameters taskParameters, ClientActiveTasks cleanup)
         {
-         
-            using (var _context = CTDbContext.CreateDbContext())
+
+            using var _context = CTDbContext.CreateDbContext();
+            var type = jObject["Type"].ToString();
+
+            if (type == TaskType.PeriodicCheck.ToString())
             {
-                var type = jObject["Type"].ToString();
+                await _slackLogger.PostMessageAsync("Periodic Check.");
+                RegisterTask(cleanup, "PeriodicCheck");
+                _buildElasticIndexTask.Publish("");
+                _cleanUpElasticIndexTask.Publish("");
+                //_exampleTask.Publish("");
 
-                if (type == TaskType.PeriodicCheck.ToString())
+                await DownloadAllPlaylists();
+                await PendingJobs();
+
+            }
+            else if (type == TaskType.DownloadAllPlaylists.ToString())
+            {
+                await DownloadAllPlaylists();
+            }
+            else if (type == TaskType.DownloadPlaylistInfo.ToString())
+            {
+                var playlistId = jObject["PlaylistId"].ToString();
+                var playlist = await _context.Playlists.FindAsync(playlistId);
+                _downloadPlaylistInfoTask.Publish(playlist.Id);
+            }
+            else if (type == TaskType.GenerateVTTFile.ToString())
+            {
+                var transcriptionId = jObject["TranscriptionId"].ToString();
+                var transcription = await _context.Transcriptions.FindAsync(transcriptionId);
+                _generateVTTFileTask.Publish(transcription.Id);
+            }
+
+            else if (type == TaskType.CreateBoxToken.ToString())
+            {
+                var authCode = jObject["authCode"].ToString();
+                _createBoxTokenTask.Publish(authCode);
+            }
+            else if (type == TaskType.DownloadMedia.ToString())
+            {
+                var mediaId = jObject["mediaId"].ToString();
+                var media = await _context.Medias.FindAsync(mediaId);
+                _downloadMediaTask.Publish(media.Id);
+            }
+            //else if (type == TaskType.ConvertMedia.ToString())
+            //{
+            //    var videoId = jObject["videoId"].ToString();
+            //    var video = await _context.Videos.FindAsync(videoId);
+            //    _convertVideoToWavTask.Publish(video.Id);
+            //}
+            else if (type == TaskType.SceneDetection.ToString())
+            {
+                var id = jObject["videoMediaPlaylistId"].ToString();
+                bool deleteExisting = jObject["DeleteExisting"]?.Value<bool>() ?? false;
+                GetLogger().LogInformation($"{type}:{id}");
+                var videos = await _context.Videos.Where(v => v.Id == id).ToListAsync();
+                if (videos.Count == 0)
                 {
-                    await _slackLogger.PostMessageAsync("Periodic Check.");
-                    registerTask(cleanup, "PeriodicCheck");
-                    _buildElasticIndexTask.Publish("");
-                    _cleanUpElasticIndexTask.Publish("");
-                    //_exampleTask.Publish("");
-
-                    await DownloadAllPlaylists();
-                    await PendingJobs();
-                    
+                    videos = await _context.Medias.Where(m => (m.PlaylistId == id) || (m.Id == id)).Select(m => m.Video).ToListAsync();
                 }
-                else if (type == TaskType.DownloadAllPlaylists.ToString())
+                foreach (var video in videos)
                 {
-                    await DownloadAllPlaylists();
-                }
-                else if (type == TaskType.DownloadPlaylistInfo.ToString())
-                {
-                    var playlistId = jObject["PlaylistId"].ToString();
-                    var playlist = await _context.Playlists.FindAsync(playlistId);
-                    _downloadPlaylistInfoTask.Publish(playlist.Id);
-                }
-                else if (type == TaskType.GenerateVTTFile.ToString())
-                {
-                    var transcriptionId = jObject["TranscriptionId"].ToString();
-                    var transcription = await _context.Transcriptions.FindAsync(transcriptionId);
-                    _generateVTTFileTask.Publish(transcription.Id);
-                }
-                
-                else if (type == TaskType.CreateBoxToken.ToString())
-                {
-                    var authCode = jObject["authCode"].ToString();
-                    _createBoxTokenTask.Publish(authCode);
-                }
-                else if (type == TaskType.DownloadMedia.ToString())
-                {
-                    var mediaId = jObject["mediaId"].ToString();
-                    var media = await _context.Medias.FindAsync(mediaId);
-                    _downloadMediaTask.Publish(media.Id);
-                }
-                //else if (type == TaskType.ConvertMedia.ToString())
-                //{
-                //    var videoId = jObject["videoId"].ToString();
-                //    var video = await _context.Videos.FindAsync(videoId);
-                //    _convertVideoToWavTask.Publish(video.Id);
-                //}
-                else if(type==TaskType.SceneDetection.ToString())
-                {
-                    var id = jObject["videoMediaPlaylistId"].ToString();
-                    bool deleteExisting = jObject["DeleteExisting"]?.Value<bool>() ?? false;
-                    GetLogger().LogInformation($"{type}:{id}");
-                    var videos = await _context.Videos.Where(v=>v.Id ==id).ToListAsync();
-                    if (videos.Count == 0)
-                    {
-                        videos = await _context.Medias.Where(m => (m.PlaylistId == id) || (m.Id == id)).Select(m => m.Video).ToListAsync();
-                    }
-                    foreach (var video in videos)
-                    {
-                        if (deleteExisting)
-                        {
-                            GetLogger().LogInformation($"{id}:Removing SceneDetection for video ({video.Id})");
-
-                            video.SceneData.RemoveAll();
-                            
-                            await _context.SaveChangesAsync();
-                        }
-                        _sceneDetectionTask.Publish(video.Id);
-
-                    }
-
-                } else if(type==TaskType.DescribeVideo.ToString())
-                {
-                    var id = jObject["videoMediaPlaylistId"].ToString();
-                    bool deleteExisting = jObject["DeleteExisting"]?.Value<bool>() ?? false;
-                    GetLogger().LogInformation($"{type}:{id}");
-                    var videos = await _context.Videos.Where(v=>v.Id ==id).ToListAsync();
-                    if (videos.Count == 0)
-                    {
-                        videos = await _context.Medias.Where(m => (m.PlaylistId == id) || (m.Id == id)).Select(m => m.Video).ToListAsync();
-                    }
-                    foreach (var video in videos)
-                    {
-                        if (deleteExisting)
-                        {
-                            GetLogger().LogInformation($"{id}:Removing Descriptions for video ({video.Id})");
-
-                            var transcriptions = await _context.Transcriptions.Where( t =>(t.VideoId == video.Id && t.SourceInternalRef =="Local-SceneDescription")).ToListAsync();
-                            foreach(var t in transcriptions) {
-                                _context.RemoveRange(t.Captions);
-                            }
-                            _context.RemoveRange(transcriptions);
-                            await _context.SaveChangesAsync();
-                        }
-                        _describeVideoTask.Publish(video.Id);
-                    }
-
-                }
-                else if (type == TaskType.PythonCrawler.ToString())
-                {
-                    var sourceId = jObject["SourceId"].ToString();
-                    _pythonCrawlerTask.Publish(sourceId);
-                }
-                else if (type == TaskType.TranscribeVideo.ToString())
-                {
-                    var id = jObject["videoOrMediaId"].ToString();
-                    
-
-                    GetLogger().LogInformation($"{type}:{id}");
-                    var video = await _context.Videos.FindAsync(id);
-                    if(video == null)
-                    {
-                        var media = await _context.Medias.FindAsync(id);
-                        if( media != null)
-                        {
-                            GetLogger().LogInformation($"{id}: media Found. videoID=({media.VideoId})");
-                            video = media.Video;
-                        }
-                    }
-                    if( video == null)
-                    {
-                        GetLogger().LogInformation($"No video found for video/mediaId ({id})");
-                        return;
-
-                     }
-                    //TODO: These properties should not be literal strings
-                    bool deleteExisting = jObject["DeleteExisting"]?.Value<bool>() ?? false;
                     if (deleteExisting)
                     {
-                        GetLogger().LogInformation($"{id}:Removing Transcriptions for video ({video.Id})");
-                        
-                        var transcriptions = video.Transcriptions;
-                        _context.Transcriptions.RemoveRange(transcriptions);
-                        video.TranscriptionStatus = "";
-                        // Could also remove LastSuccessTime and reset attempts
-                        
+                        GetLogger().LogInformation($"{id}:Removing SceneDetection for video ({video.Id})");
+
+                        video.SceneData.RemoveAll();
+
                         await _context.SaveChangesAsync();
                     }
-                    _transcriptionTask.Publish(video.Id);
-                }  
-                else if (type == TaskType.UpdateOffering.ToString())
-                {
-                    var offeringId = jObject["offeringId"].ToString();
-                    (await _context.Playlists.Where(o => o.OfferingId == offeringId).ToListAsync())
-                        .ForEach(p => _downloadPlaylistInfoTask.Publish(p.Id));
+                    _sceneDetectionTask.Publish(video.Id);
+
                 }
-                else if (type == TaskType.ReTranscribePlaylist.ToString())
+
+            }
+            else if (type == TaskType.DescribeVideo.ToString())
+            {
+                var id = jObject["videoMediaPlaylistId"].ToString();
+                bool deleteExisting = jObject["DeleteExisting"]?.Value<bool>() ?? false;
+                GetLogger().LogInformation($"{type}:{id}");
+                var videos = await _context.Videos.Where(v => v.Id == id).ToListAsync();
+                if (videos.Count == 0)
                 {
-                    var playlistId = jObject["PlaylistId"].ToString();
-
-                    // Get all videos 
-                    var videos = await _context.Playlists.Where(p => p.Id == playlistId)
-                        .SelectMany(p => p.Medias)
-                        .Where(e=> e!=null)
-                        .Select(m => m.Video)
-                        .ToListAsync();
-                    // Delete all captions. This caused a null pointer exception because some elements were null
-                    // the above line and this line now have null filters
-                    var captions =  videos.SelectMany(v => v.Transcriptions)
-                        .Where(e => e != null)
-                        .SelectMany(t => t.Captions).ToList();
-
-                    _context.Captions.RemoveRange(captions);
-                    // TODO/TOREVIEW: No need to create in captions. Their IDs should be sufficient
-
-                    // Delete all Transcriptions
-                    var transcriptions = videos.SelectMany(v => v.Transcriptions).Where(e => e != null).ToList();
-                    _context.Transcriptions.RemoveRange(transcriptions);
-
-                    videos.ForEach(v =>
+                    videos = await _context.Medias.Where(m => (m.PlaylistId == id) || (m.Id == id)).Select(m => m.Video).ToListAsync();
+                }
+                foreach (var video in videos)
+                {
+                    if (deleteExisting)
                     {
-                        v.TranscribingAttempts = 0;
-                        v.TranscriptionStatus = null;
-                    });
+                        GetLogger().LogInformation($"{id}:Removing Descriptions for video ({video.Id})");
+
+                        var transcriptions = await _context.Transcriptions.Where(t => (t.VideoId == video.Id && t.SourceInternalRef == "Local-SceneDescription")).ToListAsync();
+                        foreach (var t in transcriptions)
+                        {
+                            _context.RemoveRange(t.Captions);
+                        }
+                        _context.RemoveRange(transcriptions);
+                        await _context.SaveChangesAsync();
+                    }
+                    _describeVideoTask.Publish(video.Id);
+                }
+
+            }
+            else if (type == TaskType.PythonCrawler.ToString())
+            {
+                var sourceId = jObject["SourceId"].ToString();
+                _pythonCrawlerTask.Publish(sourceId);
+            }
+            else if (type == TaskType.TranscribeVideo.ToString())
+            {
+                var id = jObject["videoOrMediaId"].ToString();
+
+
+                GetLogger().LogInformation($"{type}:{id}");
+                var video = await _context.Videos.FindAsync(id);
+                if (video == null)
+                {
+                    var media = await _context.Medias.FindAsync(id);
+                    if (media != null)
+                    {
+                        GetLogger().LogInformation($"{id}: media Found. videoID=({media.VideoId})");
+                        video = media.Video;
+                    }
+                }
+                if (video == null)
+                {
+                    GetLogger().LogInformation($"No video found for video/mediaId ({id})");
+                    return;
+
+                }
+                //TODO: These properties should not be literal strings
+                bool deleteExisting = jObject["DeleteExisting"]?.Value<bool>() ?? false;
+                if (deleteExisting)
+                {
+                    GetLogger().LogInformation($"{id}:Removing Transcriptions for video ({video.Id})");
+
+                    var transcriptions = video.Transcriptions;
+                    _context.Transcriptions.RemoveRange(transcriptions);
+                    video.TranscriptionStatus = "";
+                    // Could also remove LastSuccessTime and reset attempts
 
                     await _context.SaveChangesAsync();
-
-                    videos.ForEach(v =>
-                    {
-                        _transcriptionTask.Publish(v.Id);
-                    });
                 }
+                _transcriptionTask.Publish(video.Id);
+            }
+            else if (type == TaskType.UpdateOffering.ToString())
+            {
+                var offeringId = jObject["offeringId"].ToString();
+                (await _context.Playlists.Where(o => o.OfferingId == offeringId).ToListAsync())
+                    .ForEach(p => _downloadPlaylistInfoTask.Publish(p.Id));
+            }
+            else if (type == TaskType.ReTranscribePlaylist.ToString())
+            {
+                var playlistId = jObject["PlaylistId"].ToString();
+
+                // Get all videos 
+                var videos = await _context.Playlists.Where(p => p.Id == playlistId)
+                    .SelectMany(p => p.Medias)
+                    .Where(e => e != null)
+                    .Select(m => m.Video)
+                    .ToListAsync();
+                // Delete all captions. This caused a null pointer exception because some elements were null
+                // the above line and this line now have null filters
+                var captions = videos.SelectMany(v => v.Transcriptions)
+                    .Where(e => e != null)
+                    .SelectMany(t => t.Captions).ToList();
+
+                _context.Captions.RemoveRange(captions);
+                // TODO/TOREVIEW: No need to create in captions. Their IDs should be sufficient
+
+                // Delete all Transcriptions
+                var transcriptions = videos.SelectMany(v => v.Transcriptions).Where(e => e != null).ToList();
+                _context.Transcriptions.RemoveRange(transcriptions);
+
+                videos.ForEach(v =>
+                {
+                    v.TranscribingAttempts = 0;
+                    v.TranscriptionStatus = null;
+                });
+
+                await _context.SaveChangesAsync();
+
+                videos.ForEach(v =>
+                {
+                    _transcriptionTask.Publish(v.Id);
+                });
             }
         }
     }

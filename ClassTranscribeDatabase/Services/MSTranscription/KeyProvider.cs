@@ -23,14 +23,14 @@ namespace ClassTranscribeDatabase.Services.MSTranscription
     /// </summary>
     public class KeyProvider
     {
-        private AppSettings _appSettings;
-        private List<Key> Keys;
-        private HashSet<string> CurrentVideoIds;
+        private readonly AppSettings _appSettings;
+        private readonly List<Key> Keys;
+        private readonly HashSet<string> CurrentVideoIds;
 
         public KeyProvider(AppSettings appSettings)
         {
             _appSettings = appSettings;
-            string subscriptionKeys = _appSettings.AZURE_SUBSCRIPTION_KEYS;
+            string subscriptionKeys = _appSettings.AZURE_SUBSCRIPTION_KEYS ?? "";
             Keys = new List<Key>();
             CurrentVideoIds = new HashSet<string>();
 

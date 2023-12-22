@@ -146,6 +146,8 @@ namespace ClassTranscribeDatabase.Models
                 case Playlist _: return ResourceType.Playlist;
                 case Media _: return ResourceType.Media;
                 case EPub _: return ResourceType.EPub;
+                default:
+                    break;
             }
             throw new InvalidOperationException("Invalid Type passed" + this);
         }
@@ -537,7 +539,7 @@ namespace ClassTranscribeDatabase.Models
         public string? Text {get; set;}
 
         
-        public void setFromJSON(JToken? o) {
+        public void SetFromJSON(JToken? o) {
             if(o == null) {
                 Text = null;
                 return;
@@ -545,14 +547,14 @@ namespace ClassTranscribeDatabase.Models
             Text = o.ToString(Newtonsoft.Json.Formatting.None);
         }
        
-        public JToken? getAsJSON() { 
+        public JToken? GetAsJSON() { 
             if( string.IsNullOrEmpty(Text)) {
                 return null;
             }
             return JToken.Parse(Text);
         }
 
-        public JArray? getAsJArray()
+        public JArray? GetAsJArray()
         {
             if (string.IsNullOrEmpty(Text))
             {

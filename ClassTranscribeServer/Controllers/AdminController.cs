@@ -251,7 +251,7 @@ namespace ClassTranscribeServer.Controllers
                 } else {
                     JToken olddata = video.SceneData;
                     TextData data = new TextData();
-                    data.setFromJSON(olddata);
+                    data.SetFromJSON(olddata);
                     _context.TextData.Add(data);
                     video.SceneObjectDataId = data.Id;
                     System.Diagnostics.Trace.Assert(!string.IsNullOrEmpty(data.Id)); 

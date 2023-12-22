@@ -122,7 +122,7 @@ namespace ClassTranscribeDatabase.Models
                 else
                 {
                     caption = tempCaption.Substring(0, index);
-                    tempCaption = tempCaption.Substring(index);
+                    tempCaption = tempCaption[index..];
                     tempCaption = tempCaption.Trim();
                 }
                 curEnd = curBegin.Add(new TimeSpan(0, 0, 0, 0, newDuration));
@@ -147,8 +147,8 @@ namespace ClassTranscribeDatabase.Models
                     End = curEnd,
                     Text = tempCaption
                 });
-                curBegin = curEnd;
-                curDuration = End.Subtract(curBegin);
+                // curBegin = curEnd;
+                // curDuration = End.Subtract(curBegin);
             }
             return captions;
         }
@@ -211,7 +211,7 @@ namespace ClassTranscribeDatabase.Models
         // 
         public static string GenerateDXFPString(List<Caption> captions, string language)
         {
-            string now = DateTime.UtcNow.ToString("o", System.Globalization.CultureInfo.InvariantCulture);
+            // string now = DateTime.UtcNow.ToString("o", System.Globalization.CultureInfo.InvariantCulture);
             string header = @"
 <?xml version=""1.0"" encoding=""utf-8""?>
 <tt xml:lang=""en"" xmlns=""http://www.w3.org/ns/ttml""

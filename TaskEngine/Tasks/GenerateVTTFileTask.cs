@@ -25,7 +25,7 @@ namespace TaskEngine.Tasks
         }
         protected async override Task OnConsume(string transcriptionId, TaskParameters taskParameters, ClientActiveTasks cleanup)
         {
-            registerTask(cleanup, transcriptionId); // may throw AlreadyInProgress exception
+            RegisterTask(cleanup, transcriptionId); // may throw AlreadyInProgress exception
             
             GetLogger().LogInformation($"Creating VTT & SRT files for ({transcriptionId})");
 

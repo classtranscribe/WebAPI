@@ -10,7 +10,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using static ClassTranscribeDatabase.CommonUtils;
 
-#pragma warning disable CA2007
+// #pragma warning disable CA2007
 // https://learn.microsoft.com/en-us/dotnet/fundamentals/code-analysis/quality-rules/ca2007
 // We are okay awaiting on a task in the same thread
 
@@ -42,7 +42,7 @@ namespace TaskEngine.Tasks
 
         protected override async Task OnConsume(string mediaId, TaskParameters taskParameters, ClientActiveTasks cleanup)
         {
-            registerTask(cleanup,mediaId); // may throw AlreadyInProgress exception
+            RegisterTask(cleanup,mediaId); // may throw AlreadyInProgress exception
 
             Media media;
             string subdir;
@@ -184,7 +184,9 @@ namespace TaskEngine.Tasks
         public async Task<Video> DownloadEchoVideo(string subdir, Media media)
         {
             Video video = new Video();
-            bool video1Success = false, video2Success = false;
+#pragma warning disable IDE0059 // Unnecessary assignment of a value
+            bool video1Success = false, video2Success = false; // Keep these - occasionally useful for debugging
+#pragma warning restore IDE0059 // Unnecessary assignment of a value
 
             var mediaResponse = await _rpcClient.PythonServerClient.DownloadEchoVideoRPCAsync(new CTGrpc.MediaRequest
             {
