@@ -44,7 +44,7 @@ namespace TaskEngine.Tasks
 
         protected override async Task OnConsume(string playlistId, TaskParameters taskParameters, ClientActiveTasks cleanup)
         {
-            registerTask(cleanup, playlistId); // may throw AlreadyInProgress exception
+            RegisterTask(cleanup, playlistId); // may throw AlreadyInProgress exception
             using (var _context = CTDbContext.CreateDbContext())
             {
                 var playlist = await _context.Playlists.FindAsync(playlistId);

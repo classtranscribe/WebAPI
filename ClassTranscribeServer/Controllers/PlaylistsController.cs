@@ -91,7 +91,7 @@ namespace ClassTranscribeServer.Controllers
             var authorizationResult = await _authorizationService.AuthorizeAsync(this.User, offering, Globals.POLICY_READ_OFFERING);
             if (!authorizationResult.Succeeded)
             {
-                return Unauthorized(new { Reason = "Insufficient Permission", AccessType = offering.AccessType });
+                return Unauthorized(new { Reason = "Insufficient Permission", offering.AccessType });
             }
             var temp = await _context.Playlists
                 .Where(p => p.OfferingId == offeringId)
@@ -129,7 +129,7 @@ namespace ClassTranscribeServer.Controllers
             var authorizationResult = await _authorizationService.AuthorizeAsync(this.User, offering, Globals.POLICY_READ_OFFERING);
             if (!authorizationResult.Succeeded)
             {
-                return Unauthorized(new { Reason = "Insufficient Permission", AccessType = offering.AccessType });
+                return Unauthorized(new { Reason = "Insufficient Permission", offering.AccessType });
             }
 
             var playLists = await _context.Playlists
@@ -163,7 +163,7 @@ namespace ClassTranscribeServer.Controllers
                     JsonMetadata = m.JsonMetadata,
                     CreatedAt = m.CreatedAt,
                     SceneDetectReady = m.Video.HasSceneObjectData(),
-                    Ready = m.Video == null ? false : "NoError" == m.Video.TranscriptionStatus ,
+                    Ready = m.Video != null && "NoError" == m.Video.TranscriptionStatus ,
                     SourceType = m.SourceType,
                     Duration = m.Video?.Duration,
                     PublishStatus = m.PublishStatus,
@@ -179,8 +179,8 @@ namespace ClassTranscribeServer.Controllers
                     Transcriptions = m.Video.Transcriptions.Select(t => new TranscriptionDTO
                     {
                         Id = t.Id,
-                        Path = t.File != null ? t.File.Path : null,
-                        SrtPath = t.SrtFile != null ? t.SrtFile.Path : null,
+                        Path = t.File?.Path,
+                        SrtPath = t.SrtFile?.Path,
                         Language = t.Language,
                         Label = t.Label,
                         SourceLabel = t.SourceLabel,
@@ -256,7 +256,7 @@ namespace ClassTranscribeServer.Controllers
                     PublishStatus = m.PublishStatus,
                     Options = m.getOptionsAsJson(),
                     SceneDetectReady = m.Video != null && m.Video.HasSceneObjectData(),
-                    Ready = m.Video == null ? false : "NoError" == m.Video.TranscriptionStatus ,
+                    Ready = m.Video != null && "NoError" == m.Video.TranscriptionStatus ,
                     Video = m.Video == null ? null : new VideoDTO
                    {
                         Id = m.Video.Id,
@@ -265,11 +265,11 @@ namespace ClassTranscribeServer.Controllers
                         ASLPath = m.Video.ProcessedASLVideo?.Path != null ? m.Video.ProcessedASLVideo.Path : m.Video.ASLVideo?.Path,
                         TaskLog = m.Video.TaskLog
                     },
-                    Transcriptions = m.Video == null ? null : m.Video.Transcriptions.Select(t => new TranscriptionDTO
+                    Transcriptions = m.Video?.Transcriptions.Select(t => new TranscriptionDTO
                     {
                         Id = t.Id,
-                        Path = t.File != null ? t.File.Path : null,
-                        SrtPath = t.SrtFile != null ? t.SrtFile.Path : null,
+                        Path = t.File?.Path,
+                        SrtPath = t.SrtFile?.Path,
                         Language = t.Language
                     }).ToList(),
                     WatchHistory = user != null ? partialWatchHistories.Where(w => w.MediaId == m.Id).FirstOrDefault() :null
@@ -500,7 +500,7 @@ namespace ClassTranscribeServer.Controllers
             }
             _context.Playlists.UpdateRange(playlists);
             await _context.SaveChangesAsync();
-            return RedirectToAction("GetPlaylists", new { offeringId = offeringId });
+            return RedirectToAction("GetPlaylists", new { offeringId });
         }
 
         private bool PlaylistExists(string id)

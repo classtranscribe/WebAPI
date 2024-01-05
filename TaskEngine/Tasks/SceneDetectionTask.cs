@@ -31,7 +31,7 @@ namespace TaskEngine.Tasks
         /// Beware: It is possible to start another scene task while the first one is still running</summary>
         protected async override Task OnConsume(string videoId, TaskParameters taskParameters, ClientActiveTasks cleanup)
         {
-            registerTask(cleanup, videoId); // may throw AlreadyInProgress exception
+            RegisterTask(cleanup, videoId); // may throw AlreadyInProgress exception
             GetLogger().LogInformation($"SceneDetection({videoId}): Consuming Task");
             var filepath = "";
 

@@ -69,7 +69,7 @@ namespace ClassTranscribeServer.Controllers
         }
         private void createDescriptionsIfNone(Video v, TextData scenedata)
         {
-            JArray scenes = scenedata.getAsJSON()["Scenes"] as JArray;
+            JArray scenes = scenedata.GetAsJSON()["Scenes"] as JArray;
             if (scenes == null || v == null || v.Id == null)
             {
                 return;
@@ -141,7 +141,7 @@ namespace ClassTranscribeServer.Controllers
              Video video = await _context.Videos.FindAsync(videoId);
              if(video.HasSceneObjectData()) {
                 TextData data = await _context.TextData.FindAsync(video.SceneObjectDataId);
-                return data.getAsJSON();
+                return data.GetAsJSON();
              }
              // old version - 
              return video.SceneData;
@@ -205,7 +205,7 @@ namespace ClassTranscribeServer.Controllers
              Video video = await _context.Videos.FindAsync(videoId);
              if(video.HasGlossaryData()) {
                 TextData data = await _context.TextData.FindAsync(video.GlossaryDataId);
-                return data.getAsJSON();
+                return data.GetAsJSON();
              }
              // old version - 
              return video.Glossary;
@@ -240,7 +240,7 @@ namespace ClassTranscribeServer.Controllers
              Video video = await _context.Videos.FindAsync(videoId);
              if(video.HasGlossaryTimestamp()) {
                 TextData data = await _context.TextData.FindAsync(video.GlossaryTimestampId);
-                return data.getAsJSON();
+                return data.GetAsJSON();
              }
              // old version - 
              return NotFound();

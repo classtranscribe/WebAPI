@@ -14,6 +14,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		.editorconfig = .editorconfig
 		.gitignore = .gitignore
 		ct.proto = ct.proto
+		LocalEnvironmentVariables.txt = LocalEnvironmentVariables.txt
 		vs_appsettings.json = vs_appsettings.json
 		world_universities_and_domains.json = world_universities_and_domains.json
 	EndProjectSection
@@ -22,7 +23,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DevExperiments", "DevExperi
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UnitTests", "UnitTests\UnitTests.csproj", "{E944DD15-8FC0-481D-8B79-ACC0D092296E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestAzureCognitiveServices", "TestAzureCognitiveServices\TestAzureCognitiveServices.csproj", "{DA560288-98FC-4233-8CD5-252F8570CBFB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestAzureCognitiveServices", "TestAzureCognitiveServices\TestAzureCognitiveServices.csproj", "{DA560288-98FC-4233-8CD5-252F8570CBFB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

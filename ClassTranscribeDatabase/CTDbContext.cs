@@ -74,12 +74,13 @@ namespace ClassTranscribeDatabase
             // TODO: Max MaxPoolSize and port should be configurable
 
             var configurations = CTDbContext.GetConfigurations();
-            return "Server=" + configurations["POSTGRES_SERVER_NAME"]
-                + ";Port=5432"
-                + ";Database=" + configurations["POSTGRES_DB"]
-                + ";User Id=" + configurations["ADMIN_USER_ID"]
-                + ";Password=" + configurations["ADMIN_PASSWORD"]
-                + ";MaxPoolSize=1000;";
+            string conn = $"Server={configurations["POSTGRES_SERVER_NAME"]};"
+                + $"Port={configurations["POSTGRES_SERVER_PORT"] ?? "5432"};"
+                + $"Database={configurations["POSTGRES_DB"]};"
+                + $"User Id={configurations["ADMIN_USER_ID"]};"
+                + $"Password={configurations["ADMIN_PASSWORD"]};"
+                + $"MaxPoolSize={configurations["POSTGRES_CLIENT_MAX_POOL_SIZE"] ?? "1000"};";
+            return conn;
         }
 
         /// <summary>
@@ -112,21 +113,67 @@ namespace ClassTranscribeDatabase
         /// <returns> The configurations </returns>
         public static IConfiguration GetConfigurations()
         {
+            var basedir = System.IO.Directory.GetCurrentDirectory();
+
+            if (String.IsNullOrEmpty(Environment.GetEnvironmentVariable("POSTGRES_DB")))
+            {
+                LoadEnvFileIfExists($"{basedir}/../../../LocalEnvironmentVariables.txt");
+            }
+
             var configuration = new ConfigurationBuilder().AddEnvironmentVariables().Build();
 
             if (configuration.GetValue<string>("DEV_ENV", "NULL") != "DOCKER")
             {
-                string path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
                 string appSettingsFileName = "vs_appsettings.json";
+                string path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
 
                 if (File.Exists(path + Path.DirectorySeparatorChar + appSettingsFileName))
                 {
                     return new ConfigurationBuilder().SetBasePath(path).AddJsonFile(appSettingsFileName).Build();
-                }
+                } 
+              
             }
 
             return configuration;
         }
+        public static string DropQuotes(string s)
+        {
+            char first = s.Length < 2 ? 'a': s[0];
+            if (! "\"'".Contains(first))
+            {
+                return s;
+            }
+            char last = s[^1];
+            if(first == last)
+            {
+                return s[1..^1].Replace($"\\{first}", first.ToString());
+            }
+            return s;
+        }
+        public static bool LoadEnvFileIfExists(string filePath)
+        {
+            if (!File.Exists(filePath)) {
+                Console.WriteLine($"Env file {filePath} not found - ignoring");
+                return false;
+            }
+            var count = 0;
+            foreach (var line in File.ReadAllLines(filePath))
+            {
+                if (!line.Contains("=") || line.TrimStart().StartsWith("#"))
+                    continue;
+
+                var parts = line.Split( '=', 2);
+                var key = parts[0].Trim();
+                var val = DropQuotes( parts[1].Trim());
+                //Console.WriteLine($"{key}:{val.Length} chars");
+
+                Environment.SetEnvironmentVariable(key,val);
+                count += 1;
+            }
+            Console.WriteLine($"{count} environment variables set using {filePath}");
+            return true;
+        }
+
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             optionsBuilder.UseNpgsql(ConnectionStringBuilder());
@@ -268,7 +315,7 @@ namespace ClassTranscribeDatabase
             return base.SaveChanges(acceptAllChangesOnSuccess);
         }
 
-        public override Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = default(CancellationToken))
+        public override Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = default)
         {
             OnBeforeSaving();
             return base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);

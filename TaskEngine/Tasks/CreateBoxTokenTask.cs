@@ -22,7 +22,7 @@ namespace TaskEngine.Tasks
 
         protected async override Task OnConsume(string authCode, TaskParameters taskParameters, ClientActiveTasks cleanup)
         {
-            registerTask(cleanup, "CreateAccessTokenAsync");
+            RegisterTask(cleanup, "CreateAccessTokenAsync");
             await _box.CreateAccessTokenAsync(authCode);
         }
     }
