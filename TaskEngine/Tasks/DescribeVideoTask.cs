@@ -49,7 +49,7 @@ namespace TaskEngine.Tasks
 
             const string SIR = "ClassTranscribe/Scene-Describe"; // todo move into Model e.g. CaptionConstants
 #pragma warning disable CS8632 // The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
-            Transcription? transcription = video.Transcriptions.Where(t => t.SourceInternalRef == SIR).FirstOrDefault();
+            Transcription? transcription = video.Transcriptions.Where(t => t.SourceInternalRef == SIR).OrderByDescending(t=>t.CreatedAt).FirstOrDefault();
 #pragma warning restore CS8632 // The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
             if (transcription == null)
             {
@@ -116,7 +116,7 @@ namespace TaskEngine.Tasks
                 sceneIndex++; // todo rewrite as map with index?                
             }
 
-            GetLogger().LogInformation($"Describe Video {videoId}: ${newCaptions.Count} new captions to create");
+            GetLogger().LogInformation($"Describe Video {videoId}: {newCaptions.Count} new captions to create");
             if (newCaptions.Any())
             {
                 _context.AddRange(newCaptions);
