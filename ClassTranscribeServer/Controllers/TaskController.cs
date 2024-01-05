@@ -87,13 +87,23 @@ namespace ClassTranscribeServer.Controllers
             int index = 0;
             foreach (JObject scene in scenes)
             {
+                StringBuilder sb = new StringBuilder();
+                var again = false;
+                foreach (string phrase in scene["phrases"])
+                {
+                    sb.Append(again ? '\n' : '\"' );
+                    sb.Append(phrase);
+                    again = true;
+                }
+                sb.Append('\"');
+                
                 var c = new Caption
                 {
                     Index = index++,
                     Begin = TimeSpan.Parse(scene["start"].ToString()),
                     End = TimeSpan.Parse(scene["end"].ToString()),
                     CaptionType = CaptionType.AudioDescription,
-                    Text = scene["phrases"]?.ToString()
+                    Text = sb.ToString()
                 };
                 
                 captions.Add(c);

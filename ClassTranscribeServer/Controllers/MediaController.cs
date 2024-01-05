@@ -57,10 +57,10 @@ namespace ClassTranscribeServer.Controllers
 
                 return new ChallengeResult();
             }
-
+            var playlist = await _context.Playlists.FindAsync(media.PlaylistId);
             //unused var v = await _context.Videos.FindAsync(media.VideoId);
             var user = await _userUtils.GetUser(User);
-
+            var restrict = (bool?) playlist.getOptionsAsJson()[ "restrictRoomStream"] ?? false;
             var mediaDTO = new MediaDTO
             {
                 Id = media.Id,
@@ -71,6 +71,7 @@ namespace ClassTranscribeServer.Controllers
                 SourceType = media.SourceType,
                 Duration = media.Video.Duration,
                 PublishStatus = media.PublishStatus,
+                Options = media.getOptionsAsJson(),
                 Transcriptions = media.Video.Transcriptions
                 .Select(t => new TranscriptionDTO
                 {
@@ -84,7 +85,7 @@ namespace ClassTranscribeServer.Controllers
                 {
                     Id = media.Video.Id, 
                     Video1Path = media.Video.ProcessedVideo1?.Path != null ? media.Video.ProcessedVideo1.Path : media.Video.Video1?.Path,
-                    Video2Path = media.Video.ProcessedVideo2?.Path != null ? media.Video.ProcessedVideo2.Path : media.Video.Video2?.Path,
+                    Video2Path = restrict ? null: media.Video.ProcessedVideo2?.Path != null ? media.Video.ProcessedVideo2.Path : media.Video.Video2?.Path,
                     ASLPath = media.Video.ASLVideo?.Path,
                     TaskLog = media.Video.TaskLog
                 },
@@ -158,6 +159,44 @@ namespace ClassTranscribeServer.Controllers
             return NoContent();
         }
 
+// PUT: api/Media/5
+        [HttpPut("Option/{id}/{option}/{type}/{value}")]
+        [Authorize]
+        public async Task<IActionResult> PutMediaOption(string id, string option, string type,string value)
+        {
+            if(id == null) return BadRequest("id not specified");
+            if(type == null || ! "|int|bool|string|".Contains($"|{type}|")) {
+                return BadRequest("type must be int|bool|string");
+            }
+            if(value == null) return BadRequest("value not specified");
+
+            Media media = await _context.Medias.FindAsync(id);
+            JObject theOptions = media.getOptionsAsJson();
+            if (media == null)
+            {
+                return NotFound();
+            }
+            if(type == "int") {
+                try {
+                    theOptions[option] = Int32.Parse(value);
+                } catch (FormatException) {
+                    return BadRequest($"Unable to parse '{value}' as int");
+                }
+            } else if(type == "bool") {
+                try {
+                    theOptions[option] = Boolean.Parse(value);
+                } catch (FormatException) {
+                    return BadRequest($"Unable to parse '{value}' as bool");
+                }
+            } else if(type == "string") {
+                    theOptions[option] = value;
+            } else {
+                return BadRequest("Invalid type");// should never happen
+            }
+            media.setOptionsAsJson(theOptions);
+            await _context.SaveChangesAsync();
+            return NoContent();
+        }
 
         // POST: api/ASLVideo
         [DisableRequestSizeLimit]
@@ -200,7 +239,9 @@ namespace ClassTranscribeServer.Controllers
             var subdir = CommonUtils.ToCourseOfferingSubDirectory(_context, media);
 
             var filerecord = await FileRecord.GetNewFileRecordAsync(filePath, Path.GetExtension(filePath), subdir);
-            video.ASLVideo = filerecord;
+            await _context.FileRecords.AddAsync(filerecord);
+            await _context.SaveChangesAsync();
+            video.ASLVideoId = filerecord.Id;
             await _context.SaveChangesAsync();
             return Ok();
         }

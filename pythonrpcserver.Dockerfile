@@ -4,7 +4,7 @@
 
 #FROM python:3.10.8-slim-buster - Failed to install scipy/numpy
 #FROM python:3.9.15-slim-buster - failed to install scipy/numpy
-FROM python:3.8.15-slim-buster
+FROM --platform=linux/amd64 python:3.8.15-slim-buster
 
 RUN apt-get update
 RUN apt-get install -y curl gcc g++ make libglib2.0-0 libsm6 libxext6 libxrender-dev ffmpeg
@@ -29,7 +29,9 @@ ENV OMP_THREAD_LIMIT=1
 
 WORKDIR /PythonRpcServer
 
+
 COPY ./PythonRpcServer/requirements.txt requirements.txt
+RUN pip install --no-cache-dir --upgrade pip
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY ct.proto ct.proto
@@ -43,7 +45,7 @@ COPY ./PythonRpcServer .
 ARG PYTUBE_VERSION=""
 RUN if [ "${PYTUBE_VERSION}" != "" ]; then curl -L https://github.com/pytube/pytube/archive/refs/tags/v${PYTUBE_VERSION}.tar.gz -o pytube.tar.gz && pip install --no-cache-dir --force-reinstall pytube.tar.gz && rm pytube.tar.gz; fi
 
-RUN python -m nltk.downloader stopwords brown
+# RUN python -m nltk.downloader stopwords brown
 
 
 # Nice:Very low priority but not lowest priority (18 out of 19)
