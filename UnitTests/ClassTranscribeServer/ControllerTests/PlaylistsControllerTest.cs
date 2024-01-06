@@ -292,7 +292,7 @@ namespace UnitTests.ClassTranscribeServer.ControllerTests
             var updatedPlaylist = _context.Playlists.Find(playlist.Id);
             Assert.Equal(update.Name, updatedPlaylist.Name);
             Assert.Equal(update.PublishStatus, updatedPlaylist.PublishStatus);
-            Assert.Equal(update.Options, updatedPlaylist.getOptionsAsJson());
+            Assert.Equal(update.Options, updatedPlaylist.GetOptionsAsJson());
             Assert.Equal(playlist.SourceType, updatedPlaylist.SourceType);
         }
 
@@ -322,36 +322,42 @@ namespace UnitTests.ClassTranscribeServer.ControllerTests
         [Fact]
         public async Task Post_Playlist_Success()
         {
-            var playlist = new Playlist
+            var playlist = new NewPlaylistDTO
             {
                 OfferingId = "offering",
                 SourceType = SourceType.Local,
                 Name = "foo",
-                Index = 0
+                JsonMetadata = JObject.Parse("{'JM':'XY'}"),
+                Options =JObject.Parse("{'OptionA':'A'}")
             };
 
             _context.Offerings.Add(new Offering { Id = playlist.OfferingId });
 
             var result = await _controller.PostPlaylist(playlist);
-            Assert.IsType<CreatedAtActionResult>(result.Result);
+            // Assert.IsType<ActionResult>(result);
 
-            var newPlaylist = _context.Playlists.Find(playlist.Id);
-            Assert.Equal(playlist, newPlaylist);
+            var newPlaylist = _context.Playlists.Find(result.Value.Id);
+            Assert.Equal(playlist.Name, newPlaylist.Name);
             Assert.Equal(PublishStatus.Published, playlist.PublishStatus);
-            Assert.Equal(Visibility.Visible, playlist.Visibility);
+            Assert.Equal(Visibility.Visible, newPlaylist.Visibility);
+            Assert.Equal(SourceType.Local, newPlaylist.SourceType);
+            Assert.Equal(playlist.OfferingId, newPlaylist.OfferingId);
+            Assert.Contains("OptionA", newPlaylist.Options);
+            Assert.Contains("XY", newPlaylist.JsonMetadata.ToString());
+
         }
 
         [Fact]
         public async Task Post_Playlist_Fail()
         {
             var result = await _controller.PostPlaylist(null);
-            Assert.IsType<BadRequestResult>(result.Result);
+            Assert.IsType<BadRequestObjectResult>(result.Result);
 
-            result = await _controller.PostPlaylist(new Playlist());
-            Assert.IsType<BadRequestResult>(result.Result);
+            result = await _controller.PostPlaylist(new NewPlaylistDTO());
+            Assert.IsType<BadRequestObjectResult>(result.Result);
 
-            result = await _controller.PostPlaylist(new Playlist() { OfferingId = "none" });
-            Assert.IsType<BadRequestResult>(result.Result);
+            result = await _controller.PostPlaylist(new NewPlaylistDTO() { OfferingId = "none" });
+            Assert.IsType<BadRequestObjectResult>(result.Result);
         }
 
         [Fact]

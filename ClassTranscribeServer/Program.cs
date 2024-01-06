@@ -23,7 +23,7 @@ namespace ClassTranscribeServer
 
             string viewSQL = Environment.GetEnvironmentVariable("LogEntityFrameworkSQL") ?? "false";
 
-            if( viewSQL.Trim().ToLower() != "true") {
+            if( viewSQL.Trim().ToUpperInvariant() != "TRUE") {
                 
                 v.ConfigureLogging((context, logging) => {
                     logging.AddFilter("Microsoft.EntityFrameworkCore.Database.Command", LogLevel.Warning);
