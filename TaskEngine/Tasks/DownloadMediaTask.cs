@@ -146,9 +146,9 @@ namespace TaskEngine.Tasks
 
         public async Task<Video> DownloadKalturaVideo(string subdir, Media media)
         {
-            string? swapInfo = media.getOptionsAsJson()?.GetValue("swapStreams")?.ToString();
+            string? swapInfo = media.GetOptionsAsJson()?.GetValue("swapStreams")?.ToString();
             GetLogger().LogInformation($"DownloadKalturaVideo ({media.Id}): swap streams: {swapInfo}");
-            bool swapStreams = Boolean.Parse( media.getOptionsAsJson().GetValue("swapStreams").ToString());
+            bool swapStreams = Boolean.Parse( media.GetOptionsAsJson().GetValue("swapStreams").ToString());
             string? video2Url = null;
             string video1Url = media.JsonMetadata["downloadUrl"].ToString();
             try {

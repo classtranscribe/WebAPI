@@ -71,7 +71,7 @@ namespace ClassTranscribeServer.Controllers
                 PublishStatus = p.PublishStatus,
                 ListCheckedAt = p.ListCheckedAt,
                 ListUpdatedAt = p.ListUpdatedAt,
-                Options = p.getOptionsAsJson()
+                Options = p.GetOptionsAsJson()
             }).ToList().FirstOrDefault();
             return playlist;
         }
@@ -109,7 +109,7 @@ namespace ClassTranscribeServer.Controllers
                 PublishStatus = p.PublishStatus,
                 ListCheckedAt = p.ListCheckedAt,
                 ListUpdatedAt = p.ListUpdatedAt,
-                Options = p.getOptionsAsJson()
+                Options = p.GetOptionsAsJson()
             }).ToList();
             return playlists;
         }
@@ -139,7 +139,7 @@ namespace ClassTranscribeServer.Controllers
 
             var hideRoomVideos = new Dictionary<string,bool>(); 
             foreach (var p in playLists) {
-                var restrict = (bool?) p.getOptionsAsJson()[ "restrictRoomStream"] ?? false;
+                var restrict = (bool?) p.GetOptionsAsJson()[ "restrictRoomStream"] ?? false;
                 hideRoomVideos.Add(p.Id, restrict);
             };
             var playlistDTOs = playLists.Select(p => new PlaylistDTO
@@ -154,7 +154,7 @@ namespace ClassTranscribeServer.Controllers
                 PublishStatus = p.PublishStatus,
                 ListCheckedAt = p.ListCheckedAt,
                 ListUpdatedAt = p.ListUpdatedAt,
-                Options = p.getOptionsAsJson(),
+                Options = p.GetOptionsAsJson(),
                 Medias = p.Medias.Where(m => m.Video != null).Select(m => new MediaDTO
                 {
                     Id = m.Id,
@@ -167,7 +167,7 @@ namespace ClassTranscribeServer.Controllers
                     SourceType = m.SourceType,
                     Duration = m.Video?.Duration,
                     PublishStatus = m.PublishStatus,
-                    Options = m.getOptionsAsJson(),
+                    Options = m.GetOptionsAsJson(),
                     Video = new VideoDTO
                     {
                         Id = m.Video.Id,
@@ -241,7 +241,7 @@ namespace ClassTranscribeServer.Controllers
             // In memory transformation into DTO resut
 
             var hideRoomVideos = new Dictionary<string,bool>(); 
-            var restrict = (bool?) p.getOptionsAsJson()[ "restrictRoomStream"] ?? false;
+            var restrict = (bool?) p.GetOptionsAsJson()[ "restrictRoomStream"] ?? false;
             
             List<MediaDTO> mediasDTO = mediaList.Select(m => new MediaDTO
                 {
@@ -254,7 +254,7 @@ namespace ClassTranscribeServer.Controllers
                     SourceType = m.SourceType,
                     Duration = m.Video?.Duration,
                     PublishStatus = m.PublishStatus,
-                    Options = m.getOptionsAsJson(),
+                    Options = m.GetOptionsAsJson(),
                     SceneDetectReady = m.Video != null && m.Video.HasSceneObjectData(),
                     Ready = m.Video != null && "NoError" == m.Video.TranscriptionStatus ,
                     Video = m.Video == null ? null : new VideoDTO
@@ -288,7 +288,7 @@ namespace ClassTranscribeServer.Controllers
                 PublishStatus = p.PublishStatus,
                 ListUpdatedAt = p.ListUpdatedAt,
                 ListCheckedAt = p.ListCheckedAt,
-                Options = p.getOptionsAsJson()
+                Options = p.GetOptionsAsJson()
             };
         }
        
@@ -315,7 +315,7 @@ namespace ClassTranscribeServer.Controllers
                 return new ChallengeResult();
             }
             
-            p.setOptionsAsJson(options);
+            p.SetOptionsAsJson(options);
            
             try
             {
@@ -364,7 +364,7 @@ namespace ClassTranscribeServer.Controllers
             var p = await _context.Playlists.FindAsync(playlist.Id);
 
             p.Name = playlist.Name;
-            p.setOptionsAsJson(playlist.Options);
+            p.SetOptionsAsJson(playlist.Options);
             p.PublishStatus = playlist.PublishStatus;
 
             try
@@ -390,18 +390,19 @@ namespace ClassTranscribeServer.Controllers
         // POST: api/Playlists
         [HttpPost]
         [Authorize]
-        public async Task<ActionResult<Playlist>> PostPlaylist(Playlist playlist)
+        public async Task<ActionResult<PlaylistDTO>> PostPlaylist(NewPlaylistDTO playlist)
         {
+            
             if (playlist == null || playlist.OfferingId == null)
             {
-                return BadRequest();
+                return BadRequest("Playlist missing or OfferingId missing");
             }
 
             var offering = await _context.Offerings.FindAsync(playlist.OfferingId);
 
             if (offering == null)
             {
-                return BadRequest();
+                return BadRequest("No such offering");
             }
 
             var authorizationResult = await _authorizationService.AuthorizeAsync(this.User, offering, Globals.POLICY_UPDATE_OFFERING);
@@ -410,28 +411,28 @@ namespace ClassTranscribeServer.Controllers
             {
                 if (User.Identity.IsAuthenticated)
                 {
-                    return new ForbidResult();
+                    return new ForbidResult("Not authenticated");
                 }
 
-                return new ChallengeResult();
+                return new ChallengeResult("Not authorized for this offering");
             }
-
+           
             if (playlist.PlaylistIdentifier != null && playlist.PlaylistIdentifier.Length > 0)
             {
                 playlist.PlaylistIdentifier = playlist.PlaylistIdentifier.Trim();
             }
-
+            var p = playlist.ToPlaylist();
             // If playlists are deleted the Count != Max Index, so use the max index (still not perfect, what if 2 playlists are created at the same time)
             if (offering.Playlists != null && offering.Playlists.Count > 0)
             {
-                playlist.Index = 1 + offering.Playlists.Max(p => p.Index);
+                p.Index = 1 + offering.Playlists.Max(pl => pl.Index);
             }
 
-            _context.Playlists.Add(playlist);
+            _context.Playlists.Add(p);
             await _context.SaveChangesAsync();
-            _wakeDownloader.UpdatePlaylist(playlist.Id);
+            _wakeDownloader.UpdatePlaylist(p.Id);
 
-            return CreatedAtAction("GetPlaylist", new { id = playlist.Id }, playlist);
+            return await GetPlaylist(p.Id);
         }
 
         // DELETE: api/Playlists/5
@@ -537,6 +538,30 @@ namespace ClassTranscribeServer.Controllers
         public string Name { get; set; }
         public JObject Options { get; set; }
         public PublishStatus PublishStatus { get; set; }
+    }
+
+    public class NewPlaylistDTO
+    {
+        public string OfferingId { get; set; }
+        public string Name { get; set; }
+        public SourceType SourceType { get; set; }
+        public string PlaylistIdentifier { get; set; }
+        public JObject JsonMetadata { get; set; }
+        public JObject Options { get; set; }
+        public PublishStatus PublishStatus { get; set; }
+
+        public Playlist ToPlaylist()
+        {
+            return new Playlist
+            {
+                OfferingId = OfferingId,
+                Name = Name,
+                PublishStatus = PublishStatus,
+                SourceType = SourceType,
+                JsonMetadata = JsonMetadata,
+                Options = Options.ToString(Newtonsoft.Json.Formatting.None)
+            };
+        }
     }
     public class PlaylistDTO
     {

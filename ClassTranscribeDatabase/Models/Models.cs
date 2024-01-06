@@ -245,12 +245,12 @@ namespace ClassTranscribeDatabase.Models
         public JObject JsonMetadata { get; set; } = new JObject(); // for serverside use
         public string Options { get; set; } = "";
         
-        public virtual JObject getOptionsAsJson() {
+        public virtual JObject GetOptionsAsJson() {
             return String.IsNullOrEmpty(this.Options) ? new JObject() : JObject.Parse(this.Options);
         }
         
-        public virtual void setOptionsAsJson(JObject json) {
-            this.Options = json.ToString();
+        public virtual void SetOptionsAsJson(JObject json) {
+            this.Options = json.ToString(Newtonsoft.Json.Formatting.None);
         }
         public int Index { get; set; }
         public Visibility Visibility { get; set; }
@@ -283,11 +283,11 @@ namespace ClassTranscribeDatabase.Models
         
         public string Options { get; set; } = "";
         
-        public virtual JObject getOptionsAsJson() {
+        public virtual JObject GetOptionsAsJson() {
             return String.IsNullOrEmpty(this.Options) ? new JObject() :  JObject.Parse(this.Options);
         }
         
-        public virtual void setOptionsAsJson(JObject json) {
+        public virtual void SetOptionsAsJson(JObject json) {
             this.Options = json.ToString(Newtonsoft.Json.Formatting.None);
         }
     }
