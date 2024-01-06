@@ -38,7 +38,7 @@ namespace TaskEngine.Tasks
         }
         protected async override Task OnConsume(string example, TaskParameters taskParameters, ClientActiveTasks cleanup)
         {
-            registerTask(cleanup, "BuildElasticIndexTask"); // may throw AlreadyInProgress exception
+            RegisterTask(cleanup, "BuildElasticIndexTask"); // may throw AlreadyInProgress exception
             GetLogger().LogInformation("BuildElasticIndexTask Starting");
 
 

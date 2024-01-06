@@ -6,7 +6,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using static ClassTranscribeDatabase.CommonUtils;
 
-#pragma warning disable CA2007
+// #pragma warning disable CA2007
 // https://learn.microsoft.com/en-us/dotnet/fundamentals/code-analysis/quality-rules/ca2007
 // We are okay awaiting on a task in the same thread
 
@@ -16,35 +16,35 @@ namespace TaskEngine
     [SuppressMessage("Microsoft.Performance", "CA1812:MarkMembersAsStatic")] // This class is never directly instantiated
     public abstract class RabbitMQTask<T>
     {
-        private RabbitMQConnection _rabbitMQ { get; set; }
-        private string _queueName;
-        private readonly ILogger _logger;
+        private RabbitMQConnection RabbitMQ { get; set; }
+        private readonly string QueueName;
+        private readonly ILogger Logger;
 
         // All access to _inProgress and _unregisterLater should be locked using _inProgress
         // We keep track of all active tasks for this process
         // Note  during message consumption there is a another ClientActiveTasks object which tracks
         // the task currently running for that message
-        private static Dictionary<string, ClientActiveTasks> _inProgress = new Dictionary<string, ClientActiveTasks>();
+        private static readonly Dictionary<string, ClientActiveTasks> _inProgress = new Dictionary<string, ClientActiveTasks>();
        
 
         public RabbitMQTask() { }
 
         public RabbitMQTask(RabbitMQConnection rabbitMQ, TaskType taskType, ILogger logger)
         {
-            _rabbitMQ = rabbitMQ;
-            _queueName = taskType.ToString();
-            _logger = logger;
+            RabbitMQ = rabbitMQ;
+            QueueName = taskType.ToString();
+            Logger = logger;
             lock (_inProgress)
             {
-                if (!_inProgress.ContainsKey(_queueName))
+                if (!_inProgress.ContainsKey(QueueName))
                 {
-                    _inProgress.Add(_queueName, new ClientActiveTasks());
+                    _inProgress.Add(QueueName, new ClientActiveTasks());
                 }
             }
         }
         public void PurgeQueue()
         {
-            _rabbitMQ.PurgeQueue(_queueName);
+            RabbitMQ.PurgeQueue(QueueName);
         }
 
         public void Publish(T data, TaskParameters taskParameters = null)
@@ -55,12 +55,12 @@ namespace TaskEngine
                 {
                     taskParameters = new TaskParameters();
                 }
-                _logger.LogInformation($"Publish Task ({_queueName}). data=({data})");
-                _rabbitMQ.PublishTask(_queueName, data, taskParameters);
+                Logger.LogInformation($"Publish Task ({QueueName}). data=({data})");
+                RabbitMQ.PublishTask(QueueName, data, taskParameters);
             }
             catch (Exception e)
             {
-                _logger.LogError(e, $"Error Publishing Task to {_queueName} !");
+                Logger.LogError(e, $"Error Publishing Task to {QueueName} !");
             }
         }
 
@@ -77,10 +77,10 @@ namespace TaskEngine
                 foreach(object id in cleanup)
                 
                 {
-                    bool removed = _inProgress[_queueName].Remove(id);
+                    bool removed = _inProgress[QueueName].Remove(id);
                     if(!removed)
                     {
-                        _logger.LogError($"_inProgress Q {_queueName} failed to remove '{id}'");
+                        Logger.LogError($"_inProgress Q {QueueName} failed to remove '{id}'");
                     }
 
                 }
@@ -96,11 +96,13 @@ namespace TaskEngine
             }
             try
             {
-                _rabbitMQ.ConsumeTask<T>(_queueName, OnConsume, PostConsumeCleanup, concurrency);
+                RabbitMQ.ConsumeTask<T>(QueueName, OnConsume, PostConsumeCleanup, concurrency);
             }
+#pragma warning disable CA1031 // Do not catch general exception types
             catch (Exception e)
+#pragma warning restore CA1031 // Do not catch general exception types
             {
-                _logger.LogError(e, "RabbitMQTask Consume()->ConsumeTask Error Occured on Queue {0}", _queueName);
+                Logger.LogError(e, "RabbitMQTask Consume()->ConsumeTask Error Occured on Queue {0}", QueueName);
             }
         }
 
@@ -108,7 +110,7 @@ namespace TaskEngine
         /// Throws InProgressException if this task is already running
         /// </summary>
         /// <param name="keyId"></param>
-        public void registerTask(HashSet<object> cleanup, Object keyId)
+        public void RegisterTask(HashSet<object> cleanup, Object keyId)
         {
             if (cleanup == null || keyId == null)
             {
@@ -121,16 +123,16 @@ namespace TaskEngine
                 if (cleanup.Contains(keyId))
                 {
                     // This is a programming error the same message may not register the same key twice
-                    throw new Exception($"Cleanup set may not already contain key ({keyId.ToString()})");
+                    throw new Exception($"Cleanup set may not already contain key ({keyId})");
                 }
                 // Now check that globally there is no other task working on the same id
                 // This may happen rarely. The purpose of registerTask is to immediately stop (by throwing an exception) if we discover we are late to the party.
-                alreadyRunning = !_inProgress[_queueName].Add(keyId);
+                alreadyRunning = !_inProgress[QueueName].Add(keyId);
             }
             if (alreadyRunning)
             {
-                _logger.LogError("{0} for {1} Task already running, so skipping this request and throwing exception", _queueName, keyId);
-                throw new InProgressException($"{ _queueName} for {keyId} Task already running, so skipping this request");
+                Logger.LogError("{0} for {1} Task already running, so skipping this request and throwing exception", QueueName, keyId);
+                throw new InProgressException($"{ QueueName} for {keyId} Task already running, so skipping this request");
             }
 
             cleanup.Add(keyId);
@@ -144,13 +146,13 @@ namespace TaskEngine
         {
             lock (_inProgress)
             {
-                return new ClientActiveTasks(_inProgress[_queueName]);
+                return new ClientActiveTasks(_inProgress[QueueName]);
             }
         }
 
         protected ILogger GetLogger()
         {
-            return _logger;
+            return Logger;
         }
     }
     [Serializable]

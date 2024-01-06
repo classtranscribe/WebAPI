@@ -147,6 +147,8 @@ namespace ClassTranscribeDatabase.Models
                 case Playlist _: return ResourceType.Playlist;
                 case Media _: return ResourceType.Media;
                 case EPub _: return ResourceType.EPub;
+                default:
+                    break;
             }
             throw new InvalidOperationException("Invalid Type passed" + this);
         }
@@ -243,12 +245,12 @@ namespace ClassTranscribeDatabase.Models
         public JObject JsonMetadata { get; set; } = new JObject(); // for serverside use
         public string Options { get; set; } = "";
         
-        public virtual JObject getOptionsAsJson() {
+        public virtual JObject GetOptionsAsJson() {
             return String.IsNullOrEmpty(this.Options) ? new JObject() : JObject.Parse(this.Options);
         }
         
-        public virtual void setOptionsAsJson(JObject json) {
-            this.Options = json.ToString();
+        public virtual void SetOptionsAsJson(JObject json) {
+            this.Options = json.ToString(Newtonsoft.Json.Formatting.None);
         }
         public int Index { get; set; }
         public Visibility Visibility { get; set; }
@@ -281,11 +283,11 @@ namespace ClassTranscribeDatabase.Models
         
         public string Options { get; set; } = "";
         
-        public virtual JObject getOptionsAsJson() {
+        public virtual JObject GetOptionsAsJson() {
             return String.IsNullOrEmpty(this.Options) ? new JObject() :  JObject.Parse(this.Options);
         }
         
-        public virtual void setOptionsAsJson(JObject json) {
+        public virtual void SetOptionsAsJson(JObject json) {
             this.Options = json.ToString(Newtonsoft.Json.Formatting.None);
         }
     }
@@ -558,7 +560,7 @@ namespace ClassTranscribeDatabase.Models
         public string? Text {get; set;}
 
         
-        public void setFromJSON(JToken? o) {
+        public void SetFromJSON(JToken? o) {
             if(o == null) {
                 Text = null;
                 return;
@@ -566,14 +568,14 @@ namespace ClassTranscribeDatabase.Models
             Text = o.ToString(Newtonsoft.Json.Formatting.None);
         }
        
-        public JToken? getAsJSON() { 
+        public JToken? GetAsJSON() { 
             if( string.IsNullOrEmpty(Text)) {
                 return null;
             }
             return JToken.Parse(Text);
         }
 
-        public JArray? getAsJArray()
+        public JArray? GetAsJArray()
         {
             if (string.IsNullOrEmpty(Text))
             {

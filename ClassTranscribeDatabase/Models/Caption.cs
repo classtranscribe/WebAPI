@@ -13,11 +13,18 @@ namespace ClassTranscribeDatabase.Models
         TextCaption = 0,
         AudioDescription = 1
     }
+
+    public static class CaptionConstants {
+        public const string PlaceHolderText = "...Processing...";
+
+    }
     /// <summary>
     /// Each line of caption is stored as a row in the database.
     /// </summary>
     public class Caption : Entity
     {
+        
+        public bool HasPlaceHolderText() { return this.Text == CaptionConstants.PlaceHolderText; }
         public int Index { get; set; }
         public TimeSpan Begin { get; set; }
         public TimeSpan End { get; set; }
@@ -115,7 +122,7 @@ namespace ClassTranscribeDatabase.Models
                 else
                 {
                     caption = tempCaption.Substring(0, index);
-                    tempCaption = tempCaption.Substring(index);
+                    tempCaption = tempCaption[index..];
                     tempCaption = tempCaption.Trim();
                 }
                 curEnd = curBegin.Add(new TimeSpan(0, 0, 0, 0, newDuration));
@@ -140,8 +147,8 @@ namespace ClassTranscribeDatabase.Models
                     End = curEnd,
                     Text = tempCaption
                 });
-                curBegin = curEnd;
-                curDuration = End.Subtract(curBegin);
+                // curBegin = curEnd;
+                // curDuration = End.Subtract(curBegin);
             }
             return captions;
         }
@@ -204,7 +211,7 @@ namespace ClassTranscribeDatabase.Models
         // 
         public static string GenerateDXFPString(List<Caption> captions, string language)
         {
-            string now = DateTime.UtcNow.ToString("o", System.Globalization.CultureInfo.InvariantCulture);
+            // string now = DateTime.UtcNow.ToString("o", System.Globalization.CultureInfo.InvariantCulture);
             string header = @"
 <?xml version=""1.0"" encoding=""utf-8""?>
 <tt xml:lang=""en"" xmlns=""http://www.w3.org/ns/ttml""

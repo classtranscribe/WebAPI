@@ -31,7 +31,7 @@ namespace TaskEngine.Tasks
         }
         protected async override Task OnConsume(string videoId, TaskParameters taskParameters, ClientActiveTasks cleanup)
         {   
-            registerTask(cleanup,videoId); // may throw AlreadyInProgress exception
+            RegisterTask(cleanup,videoId); // may throw AlreadyInProgress exception
             Video video;
             bool videoUpdated = false;
             string subdir;

@@ -42,7 +42,11 @@ namespace TaskEngine
                     builder.AddConsole();
                     builder.AddFilter<Microsoft.Extensions.Logging.ApplicationInsights.ApplicationInsightsLoggerProvider>
                              ("", LogLevel.Warning);
-                    builder.AddApplicationInsights(configuration.GetValue<string>("APPLICATION_INSIGHTS_KEY"));
+                    string insightKey = configuration.GetValue<string>("APPLICATION_INSIGHTS_KEY");
+                    if (!String.IsNullOrEmpty(insightKey) && insightKey.Trim().Length>1)
+                    {
+                        builder.AddApplicationInsights(insightKey);
+                    }
                 })
                 .AddOptions()
                 .Configure<AppSettings>(configuration)
@@ -60,6 +64,8 @@ namespace TaskEngine
                 .AddSingleton<MSTranscriptionService>()
                 .AddSingleton<SceneDetectionTask>()
                 .AddSingleton<PythonCrawlerTask>()
+                .AddSingleton<DescribeVideoTask>()
+                .AddSingleton<DescribeImageTask>()
                 .AddSingleton<UpdateBoxTokenTask>()
                 .AddSingleton<CreateBoxTokenTask>()
                 .AddSingleton<BuildElasticIndexTask>()
@@ -94,9 +100,11 @@ namespace TaskEngine
 
             // Active queues managed by C# (concurrency > 0) are now purged after the queue is created and before messages are processed
 
-            ushort concurrent_videotasks = toUInt16(Globals.appSettings.MAX_CONCURRENT_VIDEO_TASKS, NO_CONCURRENCY);
-            ushort concurrent_synctasks = toUInt16(Globals.appSettings.MAX_CONCURRENT_SYNC_TASKS, MIN_CONCURRENCY);
-            ushort concurrent_transcriptions = toUInt16(Globals.appSettings.MAX_CONCURRENT_TRANSCRIPTIONS, MIN_CONCURRENCY);
+            ushort concurrent_videotasks = ToUInt16(Globals.appSettings.MAX_CONCURRENT_VIDEO_TASKS, NO_CONCURRENCY);
+            ushort concurrent_synctasks = ToUInt16(Globals.appSettings.MAX_CONCURRENT_SYNC_TASKS, MIN_CONCURRENCY);
+            ushort concurrent_transcriptions = ToUInt16(Globals.appSettings.MAX_CONCURRENT_TRANSCRIPTIONS, MIN_CONCURRENCY);
+            ushort concurrent_describe_images = 1;
+            ushort concurrent_describe_videos = 1;
 
 
             // Create and start consuming from all queues. If concurrency >=1 the queues are purged
@@ -116,7 +124,12 @@ namespace TaskEngine
             // Video Processing Related
             _logger.LogInformation($"Creating ProcessVideoTask consumer. Concurrency={concurrent_videotasks} ");
             serviceProvider.GetService<ProcessVideoTask>().Consume(concurrent_videotasks);
-            
+            // Descriptions
+            serviceProvider.GetService<DescribeVideoTask>().Consume(concurrent_describe_videos);
+            serviceProvider.GetService<DescribeImageTask>().Consume(concurrent_describe_images);
+
+
+
             // SceneDetection now handled by native Python
             //    See https://github.com/classtranscribe/pyapi
             serviceProvider.GetService<SceneDetectionTask>().Consume(DISABLED_TASK);
@@ -182,7 +195,7 @@ namespace TaskEngine
             _logger.LogError(e, "Unhandled Exception Caught");
         }
 
-        private static ushort toUInt16(String val, ushort defaultVal)
+        private static ushort ToUInt16(String val, ushort defaultVal)
         {
             // ConvertToUInt16(String, int base) is not the droid you are looking for 
             if (val != null && val.Length > 0)

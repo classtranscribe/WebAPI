@@ -69,7 +69,7 @@ namespace ClassTranscribeServer.Controllers
         }
         private void createDescriptionsIfNone(Video v, TextData scenedata)
         {
-            JArray scenes = scenedata.getAsJSON()["Scenes"] as JArray;
+            JArray scenes = scenedata.GetAsJSON()["Scenes"] as JArray;
             if (scenes == null || v == null || v.Id == null)
             {
                 return;
@@ -141,7 +141,7 @@ namespace ClassTranscribeServer.Controllers
              Video video = await _context.Videos.FindAsync(videoId);
              if(video.HasSceneObjectData()) {
                 TextData data = await _context.TextData.FindAsync(video.SceneObjectDataId);
-                return data.getAsJSON();
+                return data.GetAsJSON();
              }
              // old version - 
              return video.SceneData;
@@ -157,6 +157,8 @@ namespace ClassTranscribeServer.Controllers
         //Future: [Authorize(Roles = Globals.ROLE_MEDIA_WORKER + "," + Globals.ROLE_ADMIN)]
         public async Task<ActionResult> UpdatePhraseHints(string videoId, PhraseHintsDTO phraseHintsDTO)
         {
+            if (videoId == null || phraseHintsDTO == null) return BadRequest("Missing parameters");
+
             Video video = await _context.Videos.FindAsync(videoId);
             string hints = phraseHintsDTO.PhraseHints ?? "";
                        
@@ -181,6 +183,8 @@ namespace ClassTranscribeServer.Controllers
         //Future: [Authorize(Roles = Globals.ROLE_MEDIA_WORKER + "," + Globals.ROLE_ADMIN)]
         public async Task<ActionResult> UpdateGlossary(string videoId, JObject glossary)
         {
+            if (videoId == null || glossary == null) return BadRequest("Missing parameters");
+
             string glossaryAsString = glossary.ToString(0);
             Video video = await _context.Videos.FindAsync(videoId);
             if(video.HasGlossaryData())
@@ -205,7 +209,7 @@ namespace ClassTranscribeServer.Controllers
              Video video = await _context.Videos.FindAsync(videoId);
              if(video.HasGlossaryData()) {
                 TextData data = await _context.TextData.FindAsync(video.GlossaryDataId);
-                return data.getAsJSON();
+                return data.GetAsJSON();
              }
              // old version - 
              return video.Glossary;
@@ -216,6 +220,7 @@ namespace ClassTranscribeServer.Controllers
         //Future: [Authorize(Roles = Globals.ROLE_MEDIA_WORKER + "," + Globals.ROLE_ADMIN)]
         public async Task<ActionResult> UpdateGlossaryTimestamp(string videoId, JObject glossaryTimestamp)
         {
+            if (videoId == null || glossaryTimestamp == null) return BadRequest("Missing parameters");
             string glossaryTimestampAsString = glossaryTimestamp.ToString(0);
             Video video = await _context.Videos.FindAsync(videoId);
             if(video.HasGlossaryTimestamp())
@@ -240,7 +245,7 @@ namespace ClassTranscribeServer.Controllers
              Video video = await _context.Videos.FindAsync(videoId);
              if(video.HasGlossaryTimestamp()) {
                 TextData data = await _context.TextData.FindAsync(video.GlossaryTimestampId);
-                return data.getAsJSON();
+                return data.GetAsJSON();
              }
              // old version - 
              return NotFound();

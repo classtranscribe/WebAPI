@@ -135,6 +135,15 @@ namespace ClassTranscribeServer.Controllers
             return Ok();
         }
 
+        [HttpPost("DescribeVideo")]
+        [Authorize(Roles = Globals.ROLE_ADMIN)]
+        public ActionResult DescribeVideo(string playlistMediaVideoId, bool deleteExisting)
+        {
+            _wakeDownloader.DescribeVideo(playlistMediaVideoId, deleteExisting);
+            return Ok();
+        }
+
+
         /// <summary>
         /// Requests a re-download of missing media
         /// </summary>
@@ -242,7 +251,7 @@ namespace ClassTranscribeServer.Controllers
                 } else {
                     JToken olddata = video.SceneData;
                     TextData data = new TextData();
-                    data.setFromJSON(olddata);
+                    data.SetFromJSON(olddata);
                     _context.TextData.Add(data);
                     video.SceneObjectDataId = data.Id;
                     System.Diagnostics.Trace.Assert(!string.IsNullOrEmpty(data.Id)); 

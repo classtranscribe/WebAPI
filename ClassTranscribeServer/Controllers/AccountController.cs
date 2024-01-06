@@ -152,6 +152,7 @@ namespace ClassTranscribeServer.Controllers
         [HttpPost]
         public async Task<ActionResult<LoggedInDTO>> MediaWorkerSignIn(MediaWorkerLoginDTO accessDTO)
         {
+            if (accessDTO == null) return BadRequest("Missing parameter");
             try
             {
                 string access = accessDTO.Access;

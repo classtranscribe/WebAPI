@@ -34,7 +34,11 @@ namespace ClassTranscribeDatabase
             BuildElasticIndex = 16,
             ExampleTask = 17,
             CleanUpElasticIndex = 18,
-            PythonCrawler = 19 
+            PythonCrawler = 19,
+
+            DescribeVideo = 20,
+            DescribeImage = 21
+
         }
 
         public class Languages

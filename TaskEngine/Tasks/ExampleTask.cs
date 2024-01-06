@@ -24,7 +24,7 @@ namespace TaskEngine.Tasks
         }
         protected async override Task OnConsume(string example, TaskParameters taskParameters, ClientActiveTasks cleanup)
         {
-            registerTask(cleanup, "ExampleTask"); // may throw AlreadyInProgress exception
+            RegisterTask(cleanup, "ExampleTask"); // may throw AlreadyInProgress exception
             GetLogger().LogInformation("Example Task Starting");
             int captionCount = 0;
             int transcriptionCount = 0;

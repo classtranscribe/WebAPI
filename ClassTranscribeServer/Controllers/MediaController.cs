@@ -60,7 +60,7 @@ namespace ClassTranscribeServer.Controllers
             var playlist = await _context.Playlists.FindAsync(media.PlaylistId);
             //unused var v = await _context.Videos.FindAsync(media.VideoId);
             var user = await _userUtils.GetUser(User);
-            var restrict = (bool?) playlist.getOptionsAsJson()[ "restrictRoomStream"] ?? false;
+            var restrict = (bool?) playlist.GetOptionsAsJson()[ "restrictRoomStream"] ?? false;
             var mediaDTO = new MediaDTO
             {
                 Id = media.Id,
@@ -71,7 +71,7 @@ namespace ClassTranscribeServer.Controllers
                 SourceType = media.SourceType,
                 Duration = media.Video.Duration,
                 PublishStatus = media.PublishStatus,
-                Options = media.getOptionsAsJson(),
+                Options = media.GetOptionsAsJson(),
                 Transcriptions = media.Video.Transcriptions
                 .Select(t => new TranscriptionDTO
                 {
@@ -171,7 +171,7 @@ namespace ClassTranscribeServer.Controllers
             if(value == null) return BadRequest("value not specified");
 
             Media media = await _context.Medias.FindAsync(id);
-            JObject theOptions = media.getOptionsAsJson();
+            JObject theOptions = media.GetOptionsAsJson();
             if (media == null)
             {
                 return NotFound();
@@ -193,7 +193,7 @@ namespace ClassTranscribeServer.Controllers
             } else {
                 return BadRequest("Invalid type");// should never happen
             }
-            media.setOptionsAsJson(theOptions);
+            media.SetOptionsAsJson(theOptions);
             await _context.SaveChangesAsync();
             return NoContent();
         }
