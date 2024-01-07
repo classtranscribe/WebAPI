@@ -1,0 +1,104 @@
+name: Platform
+
+# This will run when: Dockerfile-aspnet-platform' are changed
+#
+# To be able to push to dockerhub, this execpts the following
+# secrets to be set in the project:
+# - DOCKERHUB_USERNAME : username that can push to the org
+# - DOCKERHUB_PASSWORD : password asscoaited with the username
+on:
+  push:
+    paths:
+      - 'Dockerfile-aspnet-platform'
+      - '.github/workflows/aspnet-platform.yml'
+      
+    branches:
+      - main
+      - staging
+      - expt
+
+  pull_request:
+      paths:
+      - 'Dockerfile-aspnet-platform'
+      - '.github/workflows/aspnet-platform.yml'
+  # Trigger the workflow on release activity
+  
+  release:
+    # Only use the types keyword to narrow down the activity types that will trigger your workflow.
+    types:
+      - published
+      - edited
+      - created
+
+# Certain actions will only run when this is the main repo.
+env:
+  MAIN_REPO: classtranscribe/WebAPI
+  DOCKERHUB_ORG: classtranscribe
+
+jobs:
+  docker:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+      matrix:
+        name:
+          - ct-aspnet-platform
+        include:
+          - name: ct-aspnet-platform
+            FOLDER: .
+            IMAGE: ct-aspnet-platform
+
+    steps:
+      - uses: actions/checkout@v2
+
+      # calculate some variables that are used later
+      - name: github branch
+        run: |
+          if [ "${{ github.event.release.target_commitish }}" != "" ]; then
+            BRANCH="${{ github.event.release.target_commitish }}"
+          else
+            BRANCH=${GITHUB_REF##*/}
+          fi
+          echo "GITHUB_BRANCH=${BRANCH}" >> $GITHUB_ENV
+          
+          echo "VERSION=$BRANCH" >> $GITHUB_ENV
+          echo "TAGS=$BRANCH" >> $GITHUB_ENV
+          
+
+      # build the docker image, this will always run to make sure
+      # the Dockerfile still works.
+      - name: Build image
+        uses: elgohr/Publish-Docker-Github-Action@2.22
+        env:
+          BRANCH: ${{ env.GITHUB_BRANCH }}
+          VERSION: ${{ env.VERSION }}
+          BUILDNUMBER: ${{ github.run_number }}
+          GITSHA1: ${{ github.sha  }}
+        with:
+          registry: docker.pkg.github.com
+          name: ${{ github.repository_owner }}/${{ github.event.repository.name }}/${{ matrix.IMAGE }}
+          dockerfile: Dockerfile-aspnet-platform
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+          context: ${{ matrix.FOLDER }}
+          tags: "${{ env.TAGS }}"
+          buildargs: BRANCH,VERSION,BUILDNUMBER,GITSHA1
+          no_push: true
+
+      # this will publish to dockerhub
+      - name: Publish to Docker Hub
+        if: github.event_name != 'pull_request' && github.repository == env.MAIN_REPO
+        uses: elgohr/Publish-Docker-Github-Action@2.22
+        env:
+          BRANCH: ${{ env.GITHUB_BRANCH }}
+          VERSION: ${{ env.VERSION }}
+          BUILDNUMBER: ${{ github.run_number }}
+          GITSHA1: ${{ github.sha  }}
+        with:
+          name: ${{ env.DOCKERHUB_ORG }}/${{ matrix.IMAGE }}
+          dockerfile: Dockerfile-aspnet-platform
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+          context: ${{ matrix.FOLDER }}
+          tags: "${{ env.TAGS }}"
+          buildargs: BRANCH,VERSION,BUILDNUMBER,GITSHA1
