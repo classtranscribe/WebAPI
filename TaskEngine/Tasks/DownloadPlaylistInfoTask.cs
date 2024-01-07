@@ -318,7 +318,7 @@ namespace TaskEngine.Tasks
                             PlaylistId = playlist.Id,
                             UniqueMediaIdentifier = file.Id,
                             JsonMetadata = JObject.FromObject(file),
-                            CreatedAt = file.CreatedAt ?? DateTime.Now,
+                            CreatedAt = file.CreatedAt?.DateTime ?? DateTime.Now,
                             Index = index
                         });
                         index ++;

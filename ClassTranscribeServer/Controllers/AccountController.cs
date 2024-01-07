@@ -1,4 +1,5 @@
-﻿using ClassTranscribeDatabase;
+﻿using Azure.Core;
+using ClassTranscribeDatabase;
 using ClassTranscribeDatabase.Models;
 using ClassTranscribeServer.Utils;
 using Microsoft.AspNetCore.Authorization;
@@ -324,7 +325,6 @@ namespace ClassTranscribeServer.Controllers
                 claims.Add(new Claim(ClaimTypes.Role, role));
             }
 
-
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Globals.appSettings.JWT_KEY));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
             var expires = DateTime.Now.AddDays(Convert.ToDouble(Globals.appSettings.JWT_EXPIRE_DAYS));
@@ -364,11 +364,29 @@ namespace ClassTranscribeServer.Controllers
             string cilogonClientToken = HttpUtility.UrlEncode(authCode);
 
             // Get id_token from authorization code.
-            var client = new RestClient($"{cilogonDomain}oauth2/token");
-            var request = new RestRequest(Method.POST);
+            // var client = new RestClient($"{cilogonDomain}oauth2/token");
+            // var request = new RestRequest(Method.Post);
+            // add header and params
+            // RestResponse response = client.Execute(request);
+
+            // https://restsharp.dev/usage.html#simple-factory
+
+            var clientOptions = new RestClientOptions
+            {
+                BaseUrl = new Uri(cilogonDomain)
+            };
+            var client = new RestClient(clientOptions,null,null, true /*Enable simple factory */);
+            var request = new RestRequest("oauth2/token");
+            // Todo: Are these even required?
+            // https://restsharp.dev/usage.html#get-or-post
+            // Put or Post ...  Also, the request will be sent as application/x-www-form-urlencoded.
+
+            // In both cases, name and value will automatically be url - encoded.
             request.AddHeader("content-type", "application/x-www-form-urlencoded");
             request.AddParameter("application/x-www-form-urlencoded", $"grant_type=authorization_code&client_id={cilogonClientId}&client_secret={cilogonClientSecret}&code={cilogonClientToken}&redirect_uri={callbackURL}", ParameterType.RequestBody);
-            IRestResponse response = client.Execute(request);
+            
+            RestResponse response = await client.ExecutePostAsync(request); // may throw exception
+
             var id_token = HttpUtility.UrlEncode(JObject.Parse(response.Content)["id_token"].ToString());
 
             return await ValidateIdToken(cilogonDomain, cilogonClientId, id_token);            

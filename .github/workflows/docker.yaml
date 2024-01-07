@@ -40,12 +40,14 @@ jobs:
             FOLDER: "."
             DOCKERFILE: API.Dockerfile
             IMAGE: api
-            PLATFORM: "linux/amd64,linux/arm64"
+            PLATFORM: "linux/amd64"
+            # ASP 8.0 crashes during project restore for linux/arm64
           - name: taskengine
             FOLDER: "."
             DOCKERFILE: TaskEngine.Dockerfile
             IMAGE: taskengine
-            PLATFORM: "linux/amd64,linux/arm64"
+            PLATFORM: "linux/amd64"
+            # ASP 8.0 crashes during project restore for linux/arm64
           - name: pythonrpcserver
             FOLDER: "."
             DOCKERFILE: pythonrpcserver.Dockerfile

@@ -170,13 +170,15 @@ namespace ClassTranscribeDatabase.Services
             var consumer = new EventingBasicConsumer(Channel);
             consumer.Received += async (model, ea) =>
             {
+                
                     // This object exists so that we can wrap all OnConsumes with a try-finally here
                     // And during the finally block remove the task from the set of active tasks
                     // At this level of the code we don't have the specific task information
                     // Instead the specific task my register a task by calling register
                     ClientActiveTasks clientCleanup = new ClientActiveTasks();
 
-                var taskObject = CommonUtils.BytesToMessage<TaskObject<T>>(ea.Body);
+                var bytes = ea.Body.ToArray();
+                var taskObject = CommonUtils.BytesToMessage<TaskObject<T>>(bytes);
                 Logger.LogInformation(" [x] {0} Received {1}", queueName, taskObject.ToString());
                     // TODO: Update JobStatus table here (started timestamp)
                     try
