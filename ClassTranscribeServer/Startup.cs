@@ -87,7 +87,8 @@ namespace ClassTranscribeServer
                     };
                 });
 
-            services.AddMvc().AddNewtonsoftJson().SetCompatibilityVersion(CompatibilityVersion.Version_3_0);
+            services.AddMvc().AddNewtonsoftJson(); 
+            // obselete: .SetCompatibilityVersion(CompatibilityVersion.Version_3_0);
             services.Configure<FormOptions>(x =>
             {
                 x.ValueLengthLimit = int.MaxValue;

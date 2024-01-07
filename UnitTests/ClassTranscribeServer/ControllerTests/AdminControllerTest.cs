@@ -31,12 +31,13 @@ namespace UnitTests.ClassTranscribeServer.ControllerTests
             var courses = new List<Course> {
                 new Course { Id = "001" },
                 new Course { Id = "002" },
-                new Course { FilePath = "aaa" },
-                new Course { FilePath = "bbb" },
+                new Course { Id = "003", FilePath = "aaa" },
+
+                new Course { Id = "004", FilePath = "bbb" },
             };
             var courseOfferings = new List<CourseOffering> {
-                new CourseOffering { CourseId = "001" },
-                new CourseOffering { FilePath = "ccc" },
+                new CourseOffering { Id = "co001", CourseId = "001", OfferingId= "Oid3" },
+                new CourseOffering { Id = "co002", CourseId = "002", FilePath = "ccc", OfferingId = "Oid4" },
             };
             _context.Courses.AddRange(courses);
             _context.CourseOfferings.AddRange(courseOfferings);
@@ -54,13 +55,18 @@ namespace UnitTests.ClassTranscribeServer.ControllerTests
 
             // only course offerings with valid CourseId fields should be processed
             var newCourse = new Course { };
-            var newCo = new CourseOffering { CourseId = "002" };
+            var newCo = new CourseOffering { CourseId = "002" , OfferingId = "cc0"};
+            var newOff0 = new Offering { Id = "cc0" };
+            var newOff1 = new Offering { Id = "cc1" };
+            var newOff2 = new Offering { Id = "cc2" };
+            _context.Offerings.AddRange(newOff0, newOff1, newOff2);
             _context.Courses.Add(newCourse);
             _context.CourseOfferings.AddRange(
-                new CourseOffering { CourseId = null },
-                new CourseOffering { CourseId = "non-existing" },
+                new CourseOffering { CourseId = "blah", OfferingId = "cc1" },
+                new CourseOffering { CourseId = "non-existing" , OfferingId = "cc2" },
                 newCo
             );
+
             _context.SaveChanges();
 
             result = await _controller.GenerateFilePaths();
