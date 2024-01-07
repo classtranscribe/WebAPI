@@ -34,7 +34,7 @@ namespace UnitTests.ClassTranscribeDatabase
         public async Task Set_File_Path_Success()
         {
             var c = new Course { Id = "001", CreatedAt = DateTime.Parse("01/02/03") };
-            var co = new CourseOffering { CourseId = c.Id };
+            var co = new CourseOffering { Id = "002", CourseId = c.Id, OfferingId = "oid3" };
             _context.Courses.Add(c);
             _context.CourseOfferings.Add(co);
             await _context.SaveChangesAsync();
@@ -57,7 +57,7 @@ namespace UnitTests.ClassTranscribeDatabase
             await imageFile.CopyToAsync(stream2);
 
             var c = new Course { Id = "001" };
-            var co = new CourseOffering { CourseId = c.Id, FilePath="a/../../b" };
+            var co = new CourseOffering { Id = "002", CourseId = c.Id, FilePath = "a/../../b", OfferingId="o1" };
             _context.Courses.Add(c);
             _context.CourseOfferings.Add(co);
             await _context.SaveChangesAsync();
@@ -90,7 +90,7 @@ namespace UnitTests.ClassTranscribeDatabase
         public async Task Get_New_File_Record_Success()
         {
             var c = new Course { Id = "001", CreatedAt = DateTime.Parse("01/02/03") };
-            var co = new CourseOffering { CourseId = c.Id };
+            var co = new CourseOffering { Id = "002", CourseId = c.Id , OfferingId= "Oid2"};
             _context.Courses.Add(c);
             _context.CourseOfferings.Add(co);
             await FileRecord.SetFilePath(_context, c);

@@ -10,6 +10,7 @@ using System.IO;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+using static System.AppContext;
 
 namespace ClassTranscribeDatabase
 {
@@ -59,7 +60,7 @@ namespace ClassTranscribeDatabase
         public DbSet<Message> Messages { get; set; }
         public DbSet<TaskItem> TaskItems { get; set; }
         public DbSet<Image> Images { get; set; }
-        public DbSet<Glossary> Glossaries { get; set; } 
+        public DbSet<Glossary> Glossaries { get; set; }
         public DbSet<ASLVideo> ASLVideos { get; set; }
         public DbSet<ASLVideoGlossaryMap> ASLVideoGlossaryMaps { get; set; }
         public DbSet<TextData> TextData { get; set; }
@@ -122,7 +123,10 @@ namespace ClassTranscribeDatabase
 
             var configuration = new ConfigurationBuilder().AddEnvironmentVariables().Build();
 
-            if (configuration.GetValue<string>("DEV_ENV", "NULL") != "DOCKER")
+            // configuration.GetValue<string>("DEV_ENV", "NULL") != "DOCKER")
+
+            var dev = Environment.GetEnvironmentVariable("DEV_ENV");
+            if (String.IsNullOrEmpty(dev) && "DOCKER" != dev)
             {
                 string appSettingsFileName = "vs_appsettings.json";
                 string path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
@@ -130,21 +134,20 @@ namespace ClassTranscribeDatabase
                 if (File.Exists(path + Path.DirectorySeparatorChar + appSettingsFileName))
                 {
                     return new ConfigurationBuilder().SetBasePath(path).AddJsonFile(appSettingsFileName).Build();
-                } 
-              
+                }
             }
 
             return configuration;
         }
         public static string DropQuotes(string s)
         {
-            char first = s.Length < 2 ? 'a': s[0];
-            if (! "\"'".Contains(first))
+            char first = s.Length < 2 ? 'a' : s[0];
+            if (!"\"'".Contains(first))
             {
                 return s;
             }
             char last = s[^1];
-            if(first == last)
+            if (first == last)
             {
                 return s[1..^1].Replace($"\\{first}", first.ToString());
             }
@@ -162,12 +165,12 @@ namespace ClassTranscribeDatabase
                 if (!line.Contains("=") || line.TrimStart().StartsWith("#"))
                     continue;
 
-                var parts = line.Split( '=', 2);
+                var parts = line.Split('=', 2);
                 var key = parts[0].Trim();
-                var val = DropQuotes( parts[1].Trim());
+                var val = DropQuotes(parts[1].Trim());
                 //Console.WriteLine($"{key}:{val.Length} chars");
 
-                Environment.SetEnvironmentVariable(key,val);
+                Environment.SetEnvironmentVariable(key, val);
                 count += 1;
             }
             Console.WriteLine($"{count} environment variables set using {filePath}");
@@ -177,6 +180,8 @@ namespace ClassTranscribeDatabase
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             optionsBuilder.UseNpgsql(ConnectionStringBuilder());
+            AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+
         }
 
         public CTDbContext() { }

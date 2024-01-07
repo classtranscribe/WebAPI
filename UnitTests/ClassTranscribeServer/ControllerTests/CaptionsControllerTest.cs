@@ -357,12 +357,14 @@ namespace UnitTests.ClassTranscribeServer.ControllerTests
                 }
 
             };
-
-            var offering = new CourseOffering { Id = "2123000"};
+            var course = new Course { Id = "cid1" };
+            var offering = new Offering { Id = "oid8" };
+            var CourseOffering = new CourseOffering { Id = "2123000", CourseId = "cid1", OfferingId = "oid8"};
             var playlist = new Playlist { Id = "2456" , OfferingId = offering.Id, Name = "Playlist 1"};
             var media = new Media { Id = "2678", PlaylistId = playlist.Id , VideoId = video.Id, Name = "Media 1"};
-            
-            _context.CourseOfferings.Add(offering);
+            _context.Courses.Add(course);
+            _context.Offerings.Add(offering);
+            _context.CourseOfferings.Add(CourseOffering);
             _context.Playlists.Add(playlist);
             _context.Medias.Add(media);
             _context.Videos.Add(video);

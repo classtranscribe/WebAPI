@@ -1,4 +1,7 @@
-FROM mcr.microsoft.com/dotnet/core/sdk:3.1.201-bionic as build
+FROM mcr.microsoft.com/dotnet/sdk:8.0.100-1-bookworm-slim as build
+# See https://mcr.microsoft.com/en-us/product/dotnet/sdk/tags
+# 7.0.404-1 as build
+# FROM mcr.microsoft.com/dotnet/core/sdk:3.1.201-bionic as build
 
 WORKDIR /
 RUN git clone https://github.com/eficode/wait-for.git
@@ -17,13 +20,9 @@ COPY ./TaskEngine ./TaskEngine
 WORKDIR /src/TaskEngine
 RUN dotnet publish TaskEngine.csproj -c Release -o /app --no-restore
 
-FROM mcr.microsoft.com/dotnet/core/runtime:3.1.3-bionic as publish_base
-RUN apt-get update
-RUN apt-get install -y build-essential
-RUN apt-get install -y libasound2 
-RUN apt-get install -y wget libssl1.0.0
-RUN apt-get -q update
-RUN apt-get -qy install netcat
+FROM mcr.microsoft.com/dotnet/aspnet:8.0-bookworm-slim as publish_base
+# FROM mcr.microsoft.com/dotnet/core/runtime:3.1.3-bionic as publish_base
+RUN apt-get update && apt-get install -y build-essential libasound2 wget netcat-traditional && apt-get -q update
 
 FROM publish_base as publish
 WORKDIR /
