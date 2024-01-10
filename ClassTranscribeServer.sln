@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.28902.138
+# Visual Studio Version 17
+VisualStudioVersion = 17.8.34330.188
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ClassTranscribeServer", "ClassTranscribeServer\ClassTranscribeServer.csproj", "{E4C52518-A6B4-42B0-8A02-DC1BFBE9CD89}"
 EndProject
@@ -24,6 +24,8 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UnitTests", "UnitTests\UnitTests.csproj", "{E944DD15-8FC0-481D-8B79-ACC0D092296E}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestAzureCognitiveServices", "TestAzureCognitiveServices\TestAzureCognitiveServices.csproj", "{DA560288-98FC-4233-8CD5-252F8570CBFB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestRemoteLLM", "TestRemoteLLM\TestRemoteLLM.csproj", "{9D9DB7A1-DBDA-49DF-9D31-D39846BABE30}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -55,6 +57,10 @@ Global
 		{DA560288-98FC-4233-8CD5-252F8570CBFB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DA560288-98FC-4233-8CD5-252F8570CBFB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DA560288-98FC-4233-8CD5-252F8570CBFB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9D9DB7A1-DBDA-49DF-9D31-D39846BABE30}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9D9DB7A1-DBDA-49DF-9D31-D39846BABE30}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9D9DB7A1-DBDA-49DF-9D31-D39846BABE30}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9D9DB7A1-DBDA-49DF-9D31-D39846BABE30}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
