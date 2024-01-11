@@ -127,7 +127,7 @@ namespace TaskEngine.Tasks
             var info = new ProcessStartInfo()
             { 
                 FileName = useShell.Length > 0 ? useShell : llavaExec,
-                Arguments = useShell.Length > 0 ? $"{llavaExec} -c \"{args}\"" : args, // "--threads 12 --help", // ",
+                Arguments = useShell.Length > 0 ? $"-c \"{llavaExec} {args}\"" : args, // "--threads 12 --help", // ",
                 RedirectStandardInput = true,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
