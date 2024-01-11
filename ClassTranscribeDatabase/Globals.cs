@@ -87,6 +87,7 @@
         public string LLAVA_PROMPT { get; set; } = "### User: I am blind and listening to a university lecture video. What is in this image, that has been extracted from the lecture video? Be concise. Do your best to describe only the technical content of the image that is relevant to learning. Do not add opinions about the image.\n### Assistant:";
 
         public string LLAVA_LOG_STREAMS { get; set; } = "out,err";
+        public string LLAVA_USESHELL { get; set; } = "";
 
     }
 

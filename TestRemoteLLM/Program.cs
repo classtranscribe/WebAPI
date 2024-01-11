@@ -4,7 +4,6 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Diagnostics;
 using System.Text;
-using Microsoft.AspNetCore.Routing.Constraints;
 
 internal class Program
 {
@@ -17,7 +16,7 @@ internal class Program
         /* llamafile --temp 0   --image ~/Pictures/lemurs.jpg   -m llava-v1.5-7b-Q4_K.gguf   --mmproj llava-v1.5-7b-mmproj-Q4_0.gguf   -e -p '### User: What do you see?\n### Assistant: ' \
   --silent-prompt 2>/dev/null */
 
-        var execFile = "./llava-v1.5-7b-q4.llamafile";
+        var execFile = "./llava-v1.5-7b-q4.llamafile.exe";
         var execPath = "E:/downloads/" + execFile;
 
         if (!File.Exists(execPath)) { Console.WriteLine($"Invalid exec path:<{execPath}>"); return ""; }
@@ -30,6 +29,7 @@ internal class Program
         var prompt = "### User: What do you see in this image?\n### Assistant:"; // add single quotes and -p
         // See https://learn.microsoft.com/en-us/dotnet/api/system.diagnostics.processstartinfo.redirectstandardoutput?view=net-8.0
         var processArgs = $"{llamaOptions}  --image {imagePath} --escape -p \"{prompt}\"";  //
+
         var info = new ProcessStartInfo()
         { //  --escape = Process prompt escapes sequences (\n, \r, \t, \', \", \\)
             FileName = execPath,

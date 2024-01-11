@@ -12,6 +12,7 @@ using System.Text;
 // using SkiaSharp;
 using System.IO;
 using System.Diagnostics;
+using Microsoft.IdentityModel.Tokens;
 
 
 
@@ -99,6 +100,7 @@ namespace TaskEngine.Tasks
             if (!File.Exists(imagePath)) { GetLogger().LogError($"DescribeImage. Image file <{imagePath}> does not exist - nothing to do."); return ""; }
             var llavaExec = Globals.appSettings.LLAVA_PATH; //  "/llava/llava-v1.5-7b-q4.llamafile"
             var prompt = Globals.appSettings.LLAVA_PROMPT;
+            var useShell = Globals.appSettings.LLAVA_USESHELL.Trim();
             var cpuCount = Math.Max(1, Environment.ProcessorCount / 2); // don't want hyperthreading  (we are memory bandwidth bound)- and this may report logical not physical cores
                                                                         // besides we dont want monopolize the server
             var llavaArguments = Globals.appSettings.LLAVA_ARGS;
@@ -121,11 +123,11 @@ namespace TaskEngine.Tasks
             if (args.Contains("{") || args.Contains("}") ) {
                 throw new Exception("Argument still has a curly brace - unprocessed placeholder? Only {cpuCount|prompt|imagePath} are supported." + args + ". Check LLAVA_ARGS");
             }
-
+            
             var info = new ProcessStartInfo()
-            { //  --escape = Process prompt escapes sequences (\n, \r, \t, \', \", \\)
-                FileName = llavaExec,
-                Arguments = args, // "--threads 12 --help", // ",
+            { 
+                FileName = useShell.Length > 0 ? llavaExec: useShell,
+                Arguments = useShell.Length > 0 ? $"{llavaExec} -c \"{args}\"" : args, // "--threads 12 --help", // ",
                 RedirectStandardInput = true,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
