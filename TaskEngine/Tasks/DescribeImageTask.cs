@@ -59,7 +59,7 @@ namespace TaskEngine.Tasks
             {
                 GetLogger().LogError(ex, ex.Message);
             }
-            GetLogger().LogInformation($"{captionId}: <{imageFile}> <{ocrtext}>");
+            GetLogger().LogInformation($"{captionId}: <{imageFile}> <{ocrtext.Length}>");
             try
             {
                 using var _context = CTDbContext.CreateDbContext();
@@ -119,7 +119,7 @@ namespace TaskEngine.Tasks
             }
             var imagePathEscape = imagePath.Replace("\"", "\\\"");
             var promptEscape = prompt.Replace("\"", "\\\"").Replace("\\n", "\\\\n");
-            var args = llavaArguments.Replace("{cpuCount}", $"{cpuCount}").Replace("{prompt}", promptEscape).Replace("{imagePath}", $"{imagePathEscape}");
+            var args = llavaArguments.Replace("{cpuCount}", $"{cpuCount}").Replace("{prompt}", promptEscape).Replace("{imagePath}", imagePathEscape);
             if (args.Contains("{") || args.Contains("}") ) {
                 throw new Exception("Argument still has a curly brace - unprocessed placeholder? Only {cpuCount|prompt|imagePath} are supported." + args + ". Check LLAVA_ARGS");
             }
@@ -145,14 +145,14 @@ namespace TaskEngine.Tasks
             var logError = Globals.appSettings.LLAVA_LOG_STREAMS.Contains("err");
 
             p.ErrorDataReceived += new DataReceivedEventHandler((src, e) => { errorBuilder.AppendLine(e.Data);
-                if (logOutput) GetLogger().LogInformation($"Describe {imagePath} err:${e.Data}");
+                if (logOutput) GetLogger().LogInformation($"Describe {imagePath} err:{e.Data}");
             });
             p.OutputDataReceived += new DataReceivedEventHandler((src, e) =>{ outputBuilder.AppendLine(e.Data);
-                if (logError) GetLogger().LogInformation($"Describe {imagePath} out:${e.Data}");
+                if (logError) GetLogger().LogInformation($"Describe {imagePath} out:{e.Data}");
             });
 
             var startTime = DateTime.Now;
-            GetLogger().LogInformation($"LLAVA Process starting {startTime}");
+            GetLogger().LogInformation($"LLAVA Process starting {startTime}\nExec={info.FileName}\n{info.Arguments}\n");
 
            
             p.Start();
@@ -163,11 +163,11 @@ namespace TaskEngine.Tasks
             GetLogger().LogInformation(p.StartInfo.Arguments);
 
             await p.WaitForExitAsync();
+            var processTime = 0; // test: p.TotalProcessorTime;
             var output = outputBuilder.ToString();
             var error = errorBuilder.ToString();
 
             var endTime = DateTime.Now;
-            var processTime = p.TotalProcessorTime;
             GetLogger().LogInformation($"Description complete ({output.Length} characters). ProcessorTime: {processTime} seconds for {endTime-startTime} wallclock seconds");
 
 
