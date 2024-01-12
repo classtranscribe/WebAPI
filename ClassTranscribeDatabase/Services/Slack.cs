@@ -24,7 +24,7 @@ namespace ClassTranscribeDatabase.Services
             _logger = logger;
 
             // ignore
-            string url = _appSettings.SLACK_WEBHOOK_URL.Trim();
+            string url = _appSettings.SLACK_WEBHOOK_URL?.Trim()??"";
             if (url.Length > 0 && !url.Contains("<ADD WEBHOOK URL HERE>"))
             {
                 _uri = new Uri(url);

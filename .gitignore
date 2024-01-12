@@ -119,3 +119,4 @@ PythonRpcServer/ct_pb2.py
 /old--dot.env
 /docker-compose.yml
 /PythonRpcServer/corpus_count.json
+DevExperiments/LocalEnvironmentVariables.txt
