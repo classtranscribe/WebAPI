@@ -20,11 +20,12 @@ namespace DevExperiments
                 {
                     builder.AddConsole();
                     builder.AddFilter<Microsoft.Extensions.Logging.ApplicationInsights.ApplicationInsightsLoggerProvider>
-                             ("", LogLevel.Warning);
-                    builder.AddApplicationInsights(configuration.GetValue<string>("APPLICATION_INSIGHTS_KEY"));
+                              ("", LogLevel.Warning);
+                    //builder.AddApplicationInsights(configuration.GetValue<string>("APPLICATION_INSIGHTS_KEY"));
                 })
                 .AddOptions()
                 .Configure<AppSettings>(configuration)
+                //.AddDbContext<CTDbContext>(options => options.UseNpgsql(CTDbContext.ConnectionStringBuilder()))
                 .AddDbContext<CTDbContext>(options => options.UseLazyLoadingProxies().UseNpgsql(CTDbContext.ConnectionStringBuilder()))
                 .AddScoped<SlackLogger>()
                 .AddSingleton<MSTranscriptionService>()
