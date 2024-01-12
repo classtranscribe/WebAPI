@@ -174,6 +174,10 @@ namespace TaskEngine.Tasks
             p.Close();
             p.Dispose();
             GetLogger().LogInformation($"{imagePath} - Returning. Description:<<{output}>>");
+            if(output.Length == 0)
+            {
+                throw new Exception($"{imagePath} - Ignoring empty description");
+            }
             return output;
         }
     }
