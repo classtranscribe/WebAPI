@@ -22,7 +22,21 @@ RUN dotnet publish TaskEngine.csproj -c Release -o /app --no-restore
 
 FROM mcr.microsoft.com/dotnet/aspnet:8.0-bookworm-slim as publish_base
 # FROM mcr.microsoft.com/dotnet/core/runtime:3.1.3-bionic as publish_base
-RUN apt-get update && apt-get install -y build-essential libasound2 wget netcat-traditional && apt-get -q update
+# Install prerequisites for Azure Speech Services: build-essential libssl-dev ca-certificates libasound2 wget
+# See https://docs.microsoft.com/en-us/azure/cognitive-services/speech-service/quickstarts/setup-platform
+
+RUN apt-get update && apt-get install -y  build-essential libssl-dev ca-certificates libasound2 wget && \
+apt-get install -y netcat-traditional && apt-get -q update
+
+# Microsoft 8.0 issue: https://github.com/Azure-Samples/cognitive-services-speech-sdk/issues/2204
+# This  will install OpenSSL 1.1.1 because it is needed by the Speech SDK.
+RUN \
+wget http://security.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2.20_amd64.deb && \
+wget http://security.ubuntu.com/ubuntu/pool/main/o/openssl/libssl-dev_1.1.1f-1ubuntu2.20_amd64.deb && \
+dpkg -i libssl1.1_1.1.1f-1ubuntu2.20_amd64.deb && \
+dpkg -i libssl-dev_1.1.1f-1ubuntu2.20_amd64.deb && \
+rm libssl1.1_1.1.1f-1ubuntu2.20_amd64.deb libssl-dev_1.1.1f-1ubuntu2.20_amd64.deb
+
 
 FROM publish_base as publish
 WORKDIR /
