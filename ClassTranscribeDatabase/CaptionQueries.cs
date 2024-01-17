@@ -21,11 +21,11 @@ namespace ClassTranscribeDatabase
         /// Get the captions for a given videoId
         /// </summary>
         /// <param name="language">Language of the captions to fetch.</param>
-        public async Task<List<Caption>> GetCaptionsAsync(string videoId, string language = "en-US")
+        public async Task<List<Caption>> GetCaptionsAsync(string videoId, string language = "en-US", string sourceInternalRef)
         {
             try
             {
-                var transcriptionId = _context.Transcriptions.Where(t => t.Language == language && t.VideoId == videoId
+                var transcriptionId = _context.Transcriptions.Where(t => t.Language == language && t.VideoId == videoId && t.SourceInternalRef== sourceInternalRef 
                 && t.TranscriptionType == TranscriptionType.Caption).First().Id;
                 return await GetCaptionsAsync(transcriptionId);
             }
