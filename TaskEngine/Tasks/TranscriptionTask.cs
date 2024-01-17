@@ -167,7 +167,7 @@ namespace TaskEngine.Tasks
 
                     foreach (string language in allLanguages)
                     {
-                        var existing = await _captionQueries.GetCaptionsAsync(video.Id, language,SOURCEINTERNALREF);
+                        var existing = await _captionQueries.GetCaptionsAsync(video.Id, SOURCEINTERNALREF, language);
                         captionsMap[language] = existing;
 
                         startAfterMap[language] = TimeSpan.Zero; 

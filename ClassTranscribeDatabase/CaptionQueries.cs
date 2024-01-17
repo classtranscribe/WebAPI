@@ -21,7 +21,7 @@ namespace ClassTranscribeDatabase
         /// Get the captions for a given videoId
         /// </summary>
         /// <param name="language">Language of the captions to fetch.</param>
-        public async Task<List<Caption>> GetCaptionsAsync(string videoId, string language = "en-US", string sourceInternalRef)
+        public async Task<List<Caption>> GetCaptionsAsync(string videoId, string sourceInternalRef, string language) // = "en-US"
         {
             try
             {
