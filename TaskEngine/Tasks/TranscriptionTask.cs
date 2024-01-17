@@ -100,7 +100,9 @@ namespace TaskEngine.Tasks
             {
                 buildMockCaptions(videoId);
             }
-
+            const string SOURCEINTERNALREF= "ClassTranscribe/Azure"; // Do not change me; this is a key inside the database
+            // to indicate the source of the captions was this code
+                        
 
             using (var _context = CTDbContext.CreateDbContext())
             {
@@ -165,10 +167,10 @@ namespace TaskEngine.Tasks
 
                     foreach (string language in allLanguages)
                     {
-                        var existing = await _captionQueries.GetCaptionsAsync(video.Id, language);
+                        var existing = await _captionQueries.GetCaptionsAsync(video.Id, SOURCEINTERNALREF, language);
                         captionsMap[language] = existing;
 
-                        startAfterMap[language] = TimeSpan.Zero;
+                        startAfterMap[language] = TimeSpan.Zero; 
                         if (existing.Any())
                         {
                             TimeSpan lastCaptionTime = existing.Select(c => c.End).Max();
@@ -196,10 +198,9 @@ namespace TaskEngine.Tasks
                     {
                         var theLanguage = captionsInLanguage.Key;
                         var theCaptions = captionsInLanguage.Value;
-
-                        if (theCaptions.Any())
+                        if (theCaptions.Count>0)
                         {
-                            var t = _context.Transcriptions.SingleOrDefault(t => t.VideoId == video.Id && t.Language == theLanguage);
+                            var t = _context.Transcriptions.SingleOrDefault(t => t.VideoId == video.Id && t.SourceInternalRef == SOURCEINTERNALREF && t.Language == theLanguage && t.TranscriptionType == TranscriptionType.Caption);
                             GetLogger().LogInformation($"Find Existing Transcriptions null={t == null}");
                             // Did we get the default or an existing Transcription entity?
                             if (t == null)
@@ -211,7 +212,7 @@ namespace TaskEngine.Tasks
                                     Language = theLanguage,
                                     VideoId = video.Id,
                                     Label = $"{theLanguage} (ClassTranscribe)",
-                                    SourceInternalRef = "ClassTranscribe/Azure",
+                                    SourceInternalRef = SOURCEINTERNALREF, // 
                                     SourceLabel = "ClassTranscribe (Azure" + (phraseHints.Length>0 ?" with phrase hints)" : ")")
                                 };
                                 _context.Add(t);
