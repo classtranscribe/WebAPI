@@ -104,8 +104,9 @@ namespace ClassTranscribeServer.Controllers
                 SourceType = ResourceType.Media,
                 SourceId = mediaId
             };
-
-            var captions = await _captionQueries.GetCaptionsAsync(media.VideoId, epub.Language);
+            const string SOURCEINTERNALREF= "ClassTranscribe/Azure"; // Do not change me; this is a key inside the database
+            // to indicate the source of the captions was this code
+            var captions = await _captionQueries.GetCaptionsAsync(media.VideoId, SOURCEINTERNALREF, epub.Language);
             _logger.LogInformation($"GetEpubData({mediaId}) - returning combined SceneData");
 
             return GetSceneData(sceneArray, captions);
