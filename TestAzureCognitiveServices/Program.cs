@@ -143,7 +143,7 @@ namespace TestAzureCognitiveServices
         }
 
         async static Task<string> useAzureTranslationAsync() {
-            var defaultKeys = "hexvalue,northcentralus";
+            var defaultKeys = "996885bc424b4fda9df983c404e7309c,westus";
             Console.WriteLine($"Environment variable AZURE_SUBSCRIPTION_KEYS=key,region;...");
             var keys = System.Environment.GetEnvironmentVariable("AZURE_SUBSCRIPTION_KEYS") ?? defaultKeys;
             
@@ -162,6 +162,7 @@ namespace TestAzureCognitiveServices
 
             SpeechTranslationConfig speechConfig = SpeechTranslationConfig.FromSubscription(key, region);
             speechConfig.RequestWordLevelTimestamps();
+            speechConfig.SetProperty(PropertyId.Speech_LogFilename, "Logfile.txt");
 
             speechConfig.SpeechRecognitionLanguage = "en-US";
 

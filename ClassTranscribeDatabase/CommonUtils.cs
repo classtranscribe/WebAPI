@@ -1,4 +1,5 @@
 ﻿﻿using ClassTranscribeDatabase.Models;
+using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
@@ -6,6 +7,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 
 
 namespace ClassTranscribeDatabase
@@ -165,17 +167,29 @@ namespace ClassTranscribeDatabase
             return name;
         }
         public static string ToCourseOfferingSubDirectory(CTDbContext ctx, Entity entity) {
-            #nullable enable
-            String? path = GetRelatedCourseOfferingFilePath(ctx, entity);
-            
-            if( !string.IsNullOrEmpty(path ) ) {
-                return path;
+#nullable enable
+            try
+            {
+                String? path = GetRelatedCourseOfferingFilePath(ctx, entity);
+
+                if (!string.IsNullOrEmpty(path))
+                {
+                    return path;
+                }
+            } catch (Exception ignored)
+            {
+                Console.WriteLine(ignored);
             }
             #nullable disable
             return "/data/"; //legacy, pre 2022, default = everything is stored in the same directory
+            // we could still get here if something in the model has been deleted.
         }
-        #nullable enable
-        public static string? GetRelatedCourseOfferingFilePath(CTDbContext ctx, Entity entity)
+#nullable enable
+        public static string GetRelatedCourseOfferingFilePath(CTDbContext ctx, Entity entity)
+        {
+            return GetRelatedCourseOfferingFilePathAsync(ctx, entity).GetAwaiter().GetResult();
+        }
+        public static async Task<string?> GetRelatedCourseOfferingFilePathAsync(CTDbContext ctx, Entity entity)
         {
             // the only thing that we can trust exists on the given the entity Id
             // Drop recursion... this may reduce the number of SQL calls
@@ -186,40 +200,61 @@ namespace ClassTranscribeDatabase
             switch (entity)
             {
                 case CourseOffering co:
-                    return ctx.CourseOfferings.Where(co2 => co2.Id == co.Id).OrderBy(co=>co.CreatedAt).FirstOrDefault()?.FilePath;
+                    return co.FilePath;
                     
                 case Course c:
-                    return ctx.CourseOfferings.Where(c2 => c2.CourseId == c.Id)
-                        .OrderBy(co=>co.CreatedAt).FirstOrDefault()?.FilePath;
+                    return (await ctx.CourseOfferings.OrderBy(co => co.CreatedAt).FirstOrDefaultAsync(co=>co.CourseId == c.Id))?.FilePath;
 
                 case Media m:
-                    return ctx.Medias.FirstOrDefault(m2=>m2.Id == m.Id ).Playlist.Offering
-                        .CourseOfferings.OrderBy(co=>co.CreatedAt).FirstOrDefault()?.FilePath;
+                    return await playlistIdToFilePath(ctx, m.PlaylistId);
 
                 case Offering o:
-                    return ctx.CourseOfferings.Where(co2 => co2.OfferingId == o.Id)
-                        .OrderBy(co=>co.CreatedAt).FirstOrDefault()?.FilePath;
+                    return (await ctx.CourseOfferings.OrderBy(co=>co.CreatedAt).FirstOrDefaultAsync(co2 => co2.OfferingId == o.Id))?.FilePath;
 
                 case Playlist p:
-                    return ctx.Playlists.FirstOrDefault(p2=>p2.Id == p.Id ).Offering
-                        .CourseOfferings.OrderBy(co=>co.CreatedAt).FirstOrDefault()?.FilePath;
-  
+                    return await playlistIdToFilePath(ctx, p.Id);
+
                 case Transcription t:
-                    return ctx.Transcriptions.FirstOrDefault(t2=>t2.Id == t.Id)?.Video
-                        .Medias.OrderBy(co=>co.CreatedAt).FirstOrDefault()
-                        ?.Playlist.Offering
-                        .CourseOfferings.OrderBy(co=>co.CreatedAt).FirstOrDefault()?.FilePath;
+                    {
+                        var playlistId = (await ctx.Transcriptions.Include(t => t.Video).ThenInclude(v => v.Medias).FirstOrDefaultAsync(t2 => t2.Id == t.Id))
+                            ?.Video.Medias.OrderBy(co => co.CreatedAt).Select(m => m.PlaylistId).FirstOrDefault();
+                        return await playlistIdToFilePath(ctx, playlistId);
+                    }
+                    // return ctx.Transcriptions.FirstOrDefault(t2=>t2.Id == t.Id)?.Video
+                    //    .Medias.OrderBy(co=>co.CreatedAt).FirstOrDefault()
+                    //    ?.Playlist.Offering
+                    //    .CourseOfferings.OrderBy(co=>co.CreatedAt).FirstOrDefault()?.FilePath;
                     
                 case Video v:
-                    return ctx.Medias.OrderBy(co=>co.CreatedAt).FirstOrDefault(m2=>m2.VideoId == v.Id )
-                        .Playlist.Offering
-                        .CourseOfferings.OrderBy(co=>co.CreatedAt).FirstOrDefault()?.FilePath;
+                    {
+                        var playlistId = (await ctx.Medias.OrderBy(co => co.CreatedAt).FirstOrDefaultAsync(m => m.VideoId == v.Id))?.PlaylistId;
+                        return await playlistIdToFilePath(ctx, playlistId);
+                    }
+                    // return ctx.Medias.OrderBy(co=>co.CreatedAt).FirstOrDefault(m2=>m2.VideoId == v.Id )
+                    //    .Playlist.Offering
+                    //    .CourseOfferings.OrderBy(co=>co.CreatedAt).FirstOrDefault()?.FilePath;
 
                 default:
                     throw new InvalidOperationException($"GetRelatedCourseOffering not implemented for type {entity.GetType()} (Object ID: {entity.Id})");
             }
             
         }
-        #nullable disable
+
+        private async static Task<string?> playlistIdToFilePath(CTDbContext ctx, string? playlistId)
+        {
+            if (string.IsNullOrEmpty(playlistId)) return "";
+
+            var playlist = (await ctx.Playlists.Include(p => p.Offering).FirstOrDefaultAsync(p => p.Id == playlistId));
+            var offeringId = playlist?.Offering?.Id ?? "";
+            return offeringId.Length >0 ?  await offeringIdToFilePath(ctx, offeringId) : "";
+        }
+        private async static Task<string?> offeringIdToFilePath(CTDbContext ctx, string? offeringId)
+        {
+            if (string.IsNullOrEmpty(offeringId)) return "";
+
+            var courseoffering = (await ctx.CourseOfferings.OrderBy(co => co.CreatedAt).FirstOrDefaultAsync(co => co.OfferingId == offeringId));
+            return courseoffering?.FilePath ?? "";
+        }
+#nullable disable
     }
 }
