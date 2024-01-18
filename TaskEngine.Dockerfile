@@ -1,14 +1,14 @@
-FROM mcr.microsoft.com/dotnet/sdk:8.0.100-1-bookworm-slim as build
+FROM mcr.microsoft.com/dotnet/sdk:8.0-bookworm-slim as build
 # See https://mcr.microsoft.com/en-us/product/dotnet/sdk/tags
-# 7.0.404-1 as build
-# FROM mcr.microsoft.com/dotnet/core/sdk:3.1.201-bionic as build
+#See more comments in API.Dockerfile
 
 WORKDIR /
 RUN git clone https://github.com/eficode/wait-for.git
 
 WORKDIR /src
 COPY ./ClassTranscribeDatabase/ClassTranscribeDatabase.csproj ./ClassTranscribeDatabase/ClassTranscribeDatabase.csproj
-RUN dotnet restore ./ClassTranscribeDatabase/ClassTranscribeDatabase.csproj
+# --verbosity normal|diagnostic
+RUN dotnet restore --verbosity diagnostic ./ClassTranscribeDatabase/ClassTranscribeDatabase.csproj
 
 COPY ./TaskEngine/TaskEngine.csproj ./TaskEngine/TaskEngine.csproj
 RUN dotnet restore ./TaskEngine/TaskEngine.csproj
@@ -20,8 +20,8 @@ COPY ./TaskEngine ./TaskEngine
 WORKDIR /src/TaskEngine
 RUN dotnet publish TaskEngine.csproj -c Release -o /app --no-restore
 
-FROM mcr.microsoft.com/dotnet/aspnet:8.0-bookworm-slim as publish_base
-# FROM mcr.microsoft.com/dotnet/core/runtime:3.1.3-bionic as publish_base
+FROM mcr.microsoft.com/dotnet/aspnet:8.0-bookworm-slim-amd64 as publish_base
+# force AMD64 build here: the ssl1.1.1 workaround below assumes amd64
 # Install prerequisites for Azure Speech Services: build-essential libssl-dev ca-certificates libasound2 wget
 # See https://docs.microsoft.com/en-us/azure/cognitive-services/speech-service/quickstarts/setup-platform
 
