@@ -1,14 +1,34 @@
-FROM mcr.microsoft.com/dotnet/sdk:8.0.100-1-bookworm-slim as build
+# Also remove platform from docker-compose.override.yml for api and taskengine
+# Uncomment build context in docker-compose.override.yml for api and taskengine
+
+# e.g.,
+#   taskengine:
+#    image: classtranscribe/taskengine:staging
+#    #xx platform: linux/amd64 # Nope - Causes SDK "dotnet restore" to hang on M1 Mac
+#    build:
+#      context: ../../WebAPI
+#      target: publish
+#      dockerfile: ./TaskEngine.Dockerfile
+#
+
+
+#FROM mcr.microsoft.com/dotnet/sdk:8.0-bookworm-slim-amd64 as build
+FROM mcr.microsoft.com/dotnet/sdk:8.0-bookworm-slim as build
 # See https://mcr.microsoft.com/en-us/product/dotnet/sdk/tags
 
-# FROM mcr.microsoft.com/dotnet/core/sdk:3.1.201-bionic as build
+# Running the AMD64 version is of the SDK is broken
+# https://github.com/dotnet/dotnet-docker/discussions/4285
+# https://github.com/NuGet/Home/issues/13062
+
 RUN apt-get -q update && apt-get -qy install git
 WORKDIR /
 RUN git clone https://github.com/eficode/wait-for.git
 
 WORKDIR /src
 COPY ./ClassTranscribeDatabase/ClassTranscribeDatabase.csproj ./ClassTranscribeDatabase/ClassTranscribeDatabase.csproj
-RUN dotnet restore ./ClassTranscribeDatabase/ClassTranscribeDatabase.csproj
+# Did not help ENV DOTNET_NUGET_SIGNATURE_VERIFICATION=false
+# Add --verbosity normal|diagnostic
+RUN dotnet restore --verbosity diagnostic  ./ClassTranscribeDatabase/ClassTranscribeDatabase.csproj
 
 COPY ./ClassTranscribeServer/ClassTranscribeServer.csproj ./ClassTranscribeServer/ClassTranscribeServer.csproj
 RUN dotnet restore ./ClassTranscribeServer/ClassTranscribeServer.csproj
