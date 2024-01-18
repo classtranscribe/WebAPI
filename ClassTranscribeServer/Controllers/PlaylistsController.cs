@@ -559,6 +559,7 @@ namespace ClassTranscribeServer.Controllers
                 PublishStatus = PublishStatus,
                 SourceType = SourceType,
                 JsonMetadata = JsonMetadata,
+                PlaylistIdentifier = PlaylistIdentifier,
                 Options = Options.ToString(Newtonsoft.Json.Formatting.None)
             };
         }
