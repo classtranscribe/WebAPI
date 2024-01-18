@@ -8,3 +8,5 @@
 **/charts
 **/bin
 **/obj
+*Dockerfile
+*cproj
