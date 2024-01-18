@@ -143,7 +143,7 @@ namespace TestAzureCognitiveServices
         }
 
         async static Task<string> useAzureTranslationAsync() {
-            var defaultKeys = "996885bc424b4fda9df983c404e7309c,westus";
+            var defaultKeys = "916885bc424b4fda9df983c404e7309c,westus";
             Console.WriteLine($"Environment variable AZURE_SUBSCRIPTION_KEYS=key,region;...");
             var keys = System.Environment.GetEnvironmentVariable("AZURE_SUBSCRIPTION_KEYS") ?? defaultKeys;
             
