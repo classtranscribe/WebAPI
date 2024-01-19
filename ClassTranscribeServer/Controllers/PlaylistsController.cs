@@ -133,6 +133,13 @@ namespace ClassTranscribeServer.Controllers
             }
 
             var playLists = await _context.Playlists
+                .Include(p=>p.Medias).ThenInclude(m=>m.Video).ThenInclude(v=>v.Transcriptions)
+                .Include(p=>p.Medias).ThenInclude(m=>m.Video).ThenInclude(v=>v.ProcessedVideo1)
+                .Include(p=>p.Medias).ThenInclude(m=>m.Video).ThenInclude(v=>v.ProcessedVideo2)
+                .Include(p=>p.Medias).ThenInclude(m=>m.Video).ThenInclude(v=>v.Video1)
+                .Include(p=>p.Medias).ThenInclude(m=>m.Video).ThenInclude(v=>v.Video2)
+                .Include(p=>p.Medias).ThenInclude(m=>m.Video).ThenInclude(v=>v.ASLVideo)
+                
                 .Where(p => p.OfferingId == offeringId)
                 .OrderBy(p => p.Index)
                 .ThenBy(p => p.CreatedAt).ToListAsync();
@@ -216,6 +223,8 @@ namespace ClassTranscribeServer.Controllers
         public async Task<ActionResult<PlaylistDTO>> GetPlaylist(string id)
         {
             var p = await _context.Playlists.FindAsync(id);
+            // Media are explicitly loaded below, so LoadAsync is not needed
+
             var user = await _userUtils.GetUser(User);
             if (p == null)
             {

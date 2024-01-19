@@ -40,7 +40,9 @@ namespace ClassTranscribeServer.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<MediaDTO>> GetMedia(string id)
         {
-            var media = await _context.Medias.FindAsync(id);
+            var media = await _context.Medias.
+                Include(m => m.Video).ThenInclude(v => v.Transcriptions).
+                Where(m => m.Id == id).FirstAsync();
 
             if (media == null)
             {
