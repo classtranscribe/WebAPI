@@ -42,7 +42,7 @@ namespace ClassTranscribeServer.Controllers
         {
             var media = await _context.Medias.
                 Include(m => m.Video).ThenInclude(v => v.Transcriptions).
-                Where(m => m.Id == id).FirstAsync();
+                Where(m => m.Id == id).FirstOrDefaultAsync();
 
             if (media == null)
             {
