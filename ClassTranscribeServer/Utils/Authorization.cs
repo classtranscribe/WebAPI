@@ -84,7 +84,9 @@ namespace ClassTranscribeServer.Authorization
             }
             else if (offering != null && offering.AccessType == AccessTypes.UniversityOnly && user != null)
             {
-                var universityId = await _ctDbContext.CourseOfferings.Where(co => co.OfferingId == offering.Id)
+                var universityId = await _ctDbContext.CourseOfferings
+                    .Include(co=>co.Course).ThenInclude(c=>c.Department)
+                    .Where(co => co.OfferingId == offering.Id)
                     .Select(c => c.Course.Department.UniversityId).FirstAsync();
                 if (user.UniversityId == universityId)
                 {

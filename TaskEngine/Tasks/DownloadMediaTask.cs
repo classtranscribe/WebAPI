@@ -52,7 +52,7 @@ namespace TaskEngine.Tasks
                 media = await _context.Medias.Where(m => m.Id == mediaId)
                     .Include(m => m.Playlist).FirstAsync();
                 GetLogger().LogInformation($"Downloading media id=({media.Id}), UniqueMediaIdentifier={media.UniqueMediaIdentifier}");
-                subdir = ToCourseOfferingSubDirectory(_context, media); // e.g. "/data/2203-abcd"
+                subdir = ToCourseOfferingSubDirectory(_context, media.Playlist); // e.g. "/data/2203-abcd"
             }
             Video video = new Video();
             switch (media.SourceType)
@@ -72,7 +72,14 @@ namespace TaskEngine.Tasks
 
             using (var _context = CTDbContext.CreateDbContext())
             {
-                var latestMedia = await _context.Medias.FindAsync(media.Id);
+                var latestMedia = await _context.Medias
+                    .Include(m=>m.Video).ThenInclude(v=>v.Video2)
+                    .Include(m=>m.Video).ThenInclude(v=>v.Video1)
+                    .FirstOrDefaultAsync(m => m.Id==media.Id); // Find does not support Include
+                if(latestMedia == null) { // should never happen...
+                    GetLogger().LogInformation($"Media ({media.Id}): latestMedia == null !?");
+                    return;
+                }
                 GetLogger().LogInformation($"Media ({media.Id}): latestMedia.Video == null is {latestMedia.Video == null}");
 
                 // Don't add video if there are already videos for the given media.
