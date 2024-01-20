@@ -38,7 +38,7 @@ namespace TaskEngine.Tasks
             _captionQueries = captionQueries;
 
         }
-        private async void buildMockCaptions(string videoId)
+        private async Task buildMockCaptions(string videoId)
         {
             GetLogger().LogInformation($"Building Mock Captions for video {videoId}");
 

@@ -1,12 +1,14 @@
-﻿using ClassTranscribeDatabase;
-using ClassTranscribeDatabase.Models;
-using ClassTranscribeDatabase.Services;using Microsoft.Extensions.Logging;
-using Newtonsoft.Json.Linq;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
+using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json.Linq;
+using ClassTranscribeDatabase;
+using ClassTranscribeDatabase.Models;
+using ClassTranscribeDatabase.Services;
 using static ClassTranscribeDatabase.CommonUtils;
 
 
@@ -35,13 +37,14 @@ namespace TaskEngine.Tasks
 
             using var _context = CTDbContext.CreateDbContext();
             Video video = await _context.Videos.FindAsync(videoId);
-
+            
             if (!video.HasSceneObjectData())
             {
                 GetLogger().LogInformation($"Describe Video {videoId}: Early return - no scene data to process");
                 return;
             }
             TextData td = await _context.TextData.FindAsync(video.SceneObjectDataId);
+            await _context.Transcriptions.Where(t => t.VideoId == videoId).LoadAsync();            
 
             JObject sceneData = td.GetAsJSON() as JObject;
             JArray scenes = sceneData["Scenes"] as JArray;

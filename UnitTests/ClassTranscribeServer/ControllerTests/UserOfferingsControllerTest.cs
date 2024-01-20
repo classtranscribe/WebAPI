@@ -348,7 +348,7 @@ namespace UnitTests.ClassTranscribeServer.ControllerTests
             }
         }
 
-        private async void AddUserOfferingsOneToOne(string offeringId, List<string> ids, List<string> roles) {
+        private async Task AddUserOfferingsOneToOne(string offeringId, List<string> ids, List<string> roles) {
             Assert.Equal(ids.Count(), roles.Count());
             for (var i = 0; i < ids.Count(); i++)
             {
@@ -362,7 +362,7 @@ namespace UnitTests.ClassTranscribeServer.ControllerTests
             }
         }
 
-        private async void AddUserOfferingsOneToMany(string offeringId, string id, List<string> roles) {
+        private async Task AddUserOfferingsOneToMany(string offeringId, string id, List<string> roles) {
             for (var i = 0; i < roles.Count(); i++)
             {
                 var postResult = await _controller.PostUserOffering(new UserOfferingDTO
