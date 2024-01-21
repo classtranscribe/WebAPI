@@ -98,7 +98,7 @@ namespace TaskEngine.Tasks
             RegisterTask(cleanup, videoId); // may throw AlreadyInProgress exception
             if (Globals.appSettings.MOCK_RECOGNITION == "MOCK")
             {
-                buildMockCaptions(videoId);
+                await buildMockCaptions(videoId);
             }
             const string SOURCEINTERNALREF= "ClassTranscribe/Azure"; // Do not change me; this is a key inside the database
             // to indicate the source of the captions was this code
@@ -117,7 +117,22 @@ namespace TaskEngine.Tasks
                     GetLogger().LogInformation($"{videoId}:Skipping Transcribing of- already complete");
                     return;
                 }
+                var medias = await  _context.Medias.Include(m=>m.Playlist).Where(m=>m.VideoId == videoId && m.Playlist != null).ToListAsync();
+                if(medias.Count == 0) {
+                    GetLogger().LogInformation($"{videoId}:Skipping Transcribing - no media / playlist cares about this video");
+                    return;
+                }
                 
+                string doAzure = "";
+
+                foreach(var media in medias) {
+                    doAzure += media.GetOptionsAsJson().GetValue("doAzureCaptions")?.ToString() ?? "1";
+                }
+                if(! doAzure.Contains("1")) {
+                    GetLogger().LogInformation($"{videoId}:Skipping Transcribing - no one requested Azure transcription");
+                    return;
+                }
+           
                 // video.PhraseHint is deprecated
                 GetLogger().LogInformation($"{videoId}: Has new Phrase Hints: {video.HasPhraseHints()}");
 
@@ -234,8 +249,6 @@ namespace TaskEngine.Tasks
 
                     GetLogger().LogInformation($"{videoId}: Saving captions Code={result.ErrorCode}. LastSuccessTime={result.LastSuccessTime}"); 
                     await _context.SaveChangesAsync();
-                    // we now do the scene detection first because we want to complete the OCR and phrase list
-                    //Not any more xxx_sceneDetectionTask.xxxPublish(video.Id);
                     video.Transcriptions.ForEach(t => _generateVTTFileTask.Publish(t.Id));
                      
                 }
