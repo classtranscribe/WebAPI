@@ -167,7 +167,7 @@ namespace ClassTranscribeDatabase
             return name;
         }
         public static string ToCourseOfferingSubDirectory(CTDbContext ctx, Entity entity) {
-#nullable enable
+            #nullable enable
             try
             {
                 String? path = GetRelatedCourseOfferingFilePath(ctx, entity);
@@ -185,11 +185,11 @@ namespace ClassTranscribeDatabase
             // we could still get here if something in the model has been deleted.
         }
 #nullable enable
-        public static string GetRelatedCourseOfferingFilePath(CTDbContext ctx, Entity entity)
+        private static string? GetRelatedCourseOfferingFilePath(CTDbContext ctx, Entity entity)
         {
             return GetRelatedCourseOfferingFilePathAsync(ctx, entity).GetAwaiter().GetResult();
         }
-        public static async Task<string?> GetRelatedCourseOfferingFilePathAsync(CTDbContext ctx, Entity entity)
+        private static async Task<string?> GetRelatedCourseOfferingFilePathAsync(CTDbContext ctx, Entity entity)
         {
             // the only thing that we can trust exists on the given the entity Id
             // Drop recursion... this may reduce the number of SQL calls
