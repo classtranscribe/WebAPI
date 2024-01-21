@@ -16,7 +16,9 @@ namespace ClassTranscribeDatabase.Services
         private readonly Encoding _encoding = new UTF8Encoding();
         private readonly ILogger _logger;
         AppSettings _appSettings;
-
+        private static string truncate(string s, int maxLength=120) {
+            return s == null ? "<null>" :  s.Length < maxLength -3 ? s : s.Substring(0, maxLength-3) + "...";
+        }
 
         public SlackLogger(IOptions<AppSettings> appSettings, ILogger<SlackLogger> logger)
         {
@@ -25,7 +27,7 @@ namespace ClassTranscribeDatabase.Services
 
             // ignore
             string url = _appSettings.SLACK_WEBHOOK_URL?.Trim()??"";
-            if (url.Length > 0 && !url.Contains("<ADD WEBHOOK URL HERE>"))
+            if (url.Length != 0 && url != "<ADD WEBHOOK URL HERE>" && url != "changeme")
             {
                 _uri = new Uri(url);
             }
@@ -97,7 +99,7 @@ namespace ClassTranscribeDatabase.Services
             catch(Exception ex)
             {
                
-                Console.WriteLine($"EXCEPTION SENDING SLACK MESSAGE TO '{ _uri.OriginalString }' : {ex.GetType().ToString()} : {ex.Message}");
+                Console.WriteLine($"EXCEPTION SENDING SLACK MESSAGE TO '{ _uri.OriginalString }' : {ex.GetType().ToString()} : {truncate(ex.Message)}");
             }
         }
     }
