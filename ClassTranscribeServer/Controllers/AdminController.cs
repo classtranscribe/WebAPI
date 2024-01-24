@@ -348,6 +348,36 @@ namespace ClassTranscribeServer.Controllers
             return numGenerated;
         }
 
+        [HttpGet("MediaModel/{mediaOrVideoId}")]
+        [Authorize(Roles = Globals.ROLE_ADMIN)]
+        public async Task<ActionResult<object>> GetObject(string objectId) {
+            Course c = await _context.Courses.FindAsync(objectId);
+            if(c != null) return c;
+
+            Offering o = await _context.Offerings.FindAsync(objectId);
+            if(o != null) return o;
+
+            Playlist p = await _context.Playlists.FindAsync(objectId);
+            if(p != null) return p;
+
+            Media m = await _context.Medias.FindAsync(objectId);
+            if(m != null) return m;
+
+            Video v = await _context.Videos.FindAsync(objectId);
+            if(v != null) return v;
+
+            Transcription t = await _context.Transcriptions.FindAsync(objectId);
+            if(t != null) return t;
+
+            Caption cap = await _context.Captions.FindAsync(objectId);
+            if(cap != null) return cap;
+
+            EPub epub = await _context.EPubs.FindAsync(objectId);
+            if(epub != null) return epub;
+            
+            return NotFound();
+        }
+
         public class BuildVersionDTO
         {
             public string Commit { get; set; }
