@@ -38,11 +38,20 @@ namespace ClassTranscribeServer.Controllers
             List<Offering> offerings = await _context.Offerings.ToListAsync();
 
             // Only include offerings that have existing media items and are published
-            return offerings
-                .FindAll(o => o.Playlists != null && o.Playlists.SelectMany(m => m.Medias).Any() && o.PublishStatus == PublishStatus.Published)
+            // Removed filter, as it may be a performance hog
+            //     .FindAll(o => o.Playlists != null && o.Playlists.SelectMany(m => m.Medias).Any() && o.PublishStatus == PublishStatus.Published)
+            
+            try {
+            var result= offerings
+                .FindAll(o => o.Playlists != null && o.PublishStatus == PublishStatus.Published)
                 .OrderBy(o => o.Term.StartDate)
                 .Select(o => GetOfferingDTO(o))
                 .ToList();
+                return result;
+            } catch( System.Exception ex) {
+                _logger.LogError(ex,$"GetOfferingsByStudent exception: {ex.Message}");
+                throw;
+            }
         }
 
         // GET: api/Offerings/ByInstructor/{userId}

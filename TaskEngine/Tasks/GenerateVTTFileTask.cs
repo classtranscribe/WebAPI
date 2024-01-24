@@ -27,7 +27,9 @@ namespace TaskEngine.Tasks
         {
             RegisterTask(cleanup, transcriptionId); // may throw AlreadyInProgress exception
             
-            GetLogger().LogInformation($"Creating VTT & SRT files for ({transcriptionId})");
+            GetLogger().LogInformation($"Creating VTT & SRT files for ({transcriptionId}) - nope");
+            return;
+
 
             using (var _context = CTDbContext.CreateDbContext())
             {
