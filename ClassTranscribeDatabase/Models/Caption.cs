@@ -190,6 +190,44 @@ namespace ClassTranscribeDatabase.Models
             return vttFile;
         }
 
+    public static string GenerateParagraphsString(List<Caption> captions)
+        {
+            StringBuilder content = new StringBuilder("", 100 * captions.Count);
+            var paraLength = 0;
+            var desiredParaLengthEnd= 400;
+            var desiredParaLengthPeriod= 500;
+            var desiredParaLengthForce= 600;
+            var lastAppended = "";
+            foreach (Caption caption in captions)
+            {
+                var text = caption.Text.Replace("\n", " ").Replace("  ", " ").Trim();
+                
+                content.Append(text);
+                paraLength += text.Length;
+                var newParagraph = ( paraLength >= desiredParaLengthForce) 
+                    || (text.Contains(".") && paraLength>= desiredParaLengthPeriod)
+                    || (text.EndsWith(".") && paraLength >= desiredParaLengthEnd);
+                if(newParagraph)
+                {
+                    lastAppended = "\n\n";
+                    paraLength = 0;
+                }
+                else
+                {
+                    lastAppended = " ";
+                }
+                content.Append(lastAppended);
+            }
+            content.Remove(content.Length-lastAppended.Length, lastAppended.Length);
+            content.Append("\n");
+            return content.ToString();
+        }
+
+        /// <summary>
+        /// Generate a webVTT file from a list of captions.
+        /// </summary>
+        /// <returns>The path of the generated vtt file</returns>
+        ///
     public static string GenerateWebVTTString(List<Caption> captions, string language)
         {
             string now = DateTime.UtcNow.ToString("o", System.Globalization.CultureInfo.InvariantCulture);

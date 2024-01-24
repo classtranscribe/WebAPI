@@ -40,6 +40,34 @@ namespace ClassTranscribeServer.Controllers
             return await _captionQueries.GetCaptionsAsync(TranscriptionId);
         }
 
+        // GET: api/TranscriptionFile/srt/123
+        [HttpGet("TranscriptionFile/{TranscriptionId}/{Format}")]
+        public async Task<ActionResult<string>> GetTranscriptionFile(string TranscriptionId,string Format)
+        {
+            using (var _context = CTDbContext.CreateDbContext())
+            {
+                var transcription = await _context.Transcriptions.FindAsync(TranscriptionId);
+                if (transcription == null)
+                {
+                    return NotFound();
+                }
+                var captionQueries = new CaptionQueries(_context);
+            
+                var captions = await captionQueries.GetCaptionsAsync(TranscriptionId);
+                
+                switch(Format) {
+                    case "vtt":
+                        return Caption.GenerateWebVTTString(captions, transcription.Language);
+                    case "srt":
+                        return Caption.GenerateSrtString(captions);
+                    case "txt":
+                        return Caption.GenerateParagraphsString(captions);
+                    default:
+                        return BadRequest("Invalid format");
+                }
+            }
+        }
+
         // GET: api/Captions
         [HttpGet]
         public async Task<ActionResult<Caption>> GetCaption(string transcriptionId, int index)
