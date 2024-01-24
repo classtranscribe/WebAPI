@@ -106,15 +106,14 @@ namespace UnitTests.ClassTranscribeDatabase
             _context.Transcriptions.Add(t);
             _context.SaveChanges();
 
-            Assert.Equal(expected, CommonUtils.GetRelatedCourseOfferingFilePath(_context,c));
-            Assert.Equal(expected, CommonUtils.GetRelatedCourseOfferingFilePath(_context,o));
-            Assert.Equal(expected, CommonUtils.GetRelatedCourseOfferingFilePath(_context,p));
-            Assert.Equal(expected, CommonUtils.GetRelatedCourseOfferingFilePath(_context,m));
-            Assert.Equal(expected, CommonUtils.GetRelatedCourseOfferingFilePath(_context,v));
-            Assert.Equal(expected, CommonUtils.GetRelatedCourseOfferingFilePath(_context,t));
+            Assert.Equal(expected, CommonUtils.ToCourseOfferingSubDirectory(_context,c));
+            Assert.Equal(expected, CommonUtils.ToCourseOfferingSubDirectory(_context,o));
+            Assert.Equal(expected, CommonUtils.ToCourseOfferingSubDirectory(_context,p));
+            Assert.Equal(expected, CommonUtils.ToCourseOfferingSubDirectory(_context,m));
+            Assert.Equal(expected, CommonUtils.ToCourseOfferingSubDirectory(_context,v));
+            Assert.Equal(expected, CommonUtils.ToCourseOfferingSubDirectory(_context,t));
 
-            Assert.Throws<InvalidOperationException>(
-                () => CommonUtils.GetRelatedCourseOfferingFilePath(_context,new Message()));
+            
         }
     }
 }

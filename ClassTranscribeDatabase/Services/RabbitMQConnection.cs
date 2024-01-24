@@ -227,7 +227,8 @@ namespace ClassTranscribeDatabase.Services
                 catch (Exception e)
                 {
                     Logger.LogError(e, "Error purging queue {0}", queueName);
-                    throw e;
+                    throw ; // throw implicitly to preserve stack trace
+                    // see https://learn.microsoft.com/en-us/dotnet/fundamentals/code-analysis/quality-rules/ca2200
                 }
 
             }

@@ -49,11 +49,12 @@ random.seed(os.urandom(8))
 # See random.seed - in this file
 
 
-def getTmpFile():
+def getTmpFile(subdir="pythonrpc"):
+    os.mkdir(os.path.join(DATA_DIRECTORY, subdir), exist_ok=True)
     while True:
         # A key space of 34^12 should be sufficient for us...
         filenameSize = 12
-        candidate = os.path.join(DATA_DIRECTORY, getRandomString(filenameSize))
+        candidate = os.path.join(DATA_DIRECTORY, subdir, "tmp_"+getRandomString(filenameSize))
         if not os.path.exists(candidate):
             return candidate
         # We wil never print this, and if we do, no-one will read it.

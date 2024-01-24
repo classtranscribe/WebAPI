@@ -62,7 +62,18 @@ class KalturaProvider(MediaProvider):
     def __init__(self):
         self.client, self.ks = self.getClient(
             KALTURA_PARTNER_ID, KALTURA_TOKEN_ID, KATLURA_APP_TOKEN)
-
+    def sanitize(self, s):
+        result = str(s)
+        if KALTURA_TOKEN_ID:
+            result = result.replace(KALTURA_TOKEN_ID,"*TOKEN*")
+        if KATLURA_APP_TOKEN:
+            result = result.replace(KATLURA_APP_TOKEN,"*APP*")
+        return result
+    
+    def truncate(self, s,maxLength=120):
+        if len(s) > maxLength-3:
+            return s[0:maxLength-3] + '...'
+        return s
     # Returns the Kaltura SDK client. Only used internally by constructor
     def getClient(self, partnerId, tokenId, appToken):
         config = KalturaConfiguration(partnerId)
@@ -262,7 +273,7 @@ class KalturaProvider(MediaProvider):
             raise InvalidPlaylistInfoException(
                 "Error during Channel/Playlist processing " + str(e))
         end_time = perf_counter()
-        print(f"getPlaylistItems({request}) returning '{result}'. Processing ({end_time-start_time:.2f}) seconds.")
+        print(f"getPlaylistItems({request}) returning '{self.truncate(self.sanitize(result))}'. Processing ({end_time-start_time:.2f}) seconds.")
         return result
 
     # Main entry point - overrides stub in MediaProvider super class
@@ -275,7 +286,7 @@ class KalturaProvider(MediaProvider):
             
             result =  self.downloadLecture(videoUrl)
             end_time = perf_counter()
-            print(f"getMedia({request}) returning '{result}'. Processing ({end_time-start_time:.2f}) seconds.")
+            print(f"getMedia({request}) returning '{self.truncate(self.sanitize(result))}'. Processing ({end_time-start_time:.2f}) seconds.")
 
             return result
         except Exception as e:

@@ -51,7 +51,7 @@ namespace ClassTranscribeDatabase
                     string ignore = "57P03"; // "57P03: the database system is starting up";
 
                     if (! ex.Message.Contains(ignore) ){
-                        throw ex;
+                        throw; // throw implicitly to preserve stack trace
                     }
                 }
                 _logger.LogError($"Attempt {attempt} of {maxAttempts}. Cannot connect to Database");
