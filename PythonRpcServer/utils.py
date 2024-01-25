@@ -50,7 +50,7 @@ random.seed(os.urandom(8))
 
 
 def getTmpFile(subdir="pythonrpc"):
-    os.mkdir(os.path.join(DATA_DIRECTORY, subdir), exist_ok=True)
+    os.makedirs(os.path.join(DATA_DIRECTORY, subdir), exist_ok=True)
     while True:
         # A key space of 34^12 should be sufficient for us...
         filenameSize = 12
