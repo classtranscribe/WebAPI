@@ -31,57 +31,57 @@ namespace TaskEngine.Tasks
             return;
 
 
-            using (var _context = CTDbContext.CreateDbContext())
-            {
-                var transcription = await _context.Transcriptions.FindAsync(transcriptionId);
-                string subdir = ToCourseOfferingSubDirectory(_context, transcription);
-                CaptionQueries captionQueries = new CaptionQueries(_context);
-                var captions = await captionQueries.GetCaptionsAsync(transcription.Id);
+//             using (var _context = CTDbContext.CreateDbContext())
+//             {
+//                 var transcription = await _context.Transcriptions.FindAsync(transcriptionId);
+//                 string subdir = ToCourseOfferingSubDirectory(_context, transcription);
+//                 CaptionQueries captionQueries = new CaptionQueries(_context);
+//                 var captions = await captionQueries.GetCaptionsAsync(transcription.Id);
 
-                var vttfile = await FileRecord.GetNewFileRecordAsync(Caption.GenerateWebVTTFile(captions, transcription.Language), ".vtt", subdir);
+//                 var vttfile = await FileRecord.GetNewFileRecordAsync(Caption.GenerateWebVTTFile(captions, transcription.Language), ".vtt", subdir);
 
-#nullable enable
-                FileRecord? existingVtt = await _context.FileRecords.FindAsync(transcription.FileId);
-#nullable disable
+// #nullable enable
+//                 FileRecord? existingVtt = await _context.FileRecords.FindAsync(transcription.FileId);
+// #nullable disable
 
-                if (existingVtt is null)
-                {
-                    GetLogger().LogInformation($"{transcriptionId}: Creating new vtt file {vttfile.FileName}"); 
-                    await _context.FileRecords.AddAsync(vttfile);
-                    transcription.File = vttfile;
-                    _context.Entry(transcription).State = EntityState.Modified;
-                }
-                else
-                {   
-                    GetLogger().LogInformation($"{transcriptionId}: replacing existing vtt file contents {existingVtt.FileName}");              
-                    existingVtt.ReplaceWith(vttfile);
-                    _context.Entry(existingVtt).State = EntityState.Modified;
-                }
+//                 if (existingVtt is null)
+//                 {
+//                     GetLogger().LogInformation($"{transcriptionId}: Creating new vtt file {vttfile.FileName}"); 
+//                     await _context.FileRecords.AddAsync(vttfile);
+//                     transcription.File = vttfile;
+//                     _context.Entry(transcription).State = EntityState.Modified;
+//                 }
+//                 else
+//                 {   
+//                     GetLogger().LogInformation($"{transcriptionId}: replacing existing vtt file contents {existingVtt.FileName}");              
+//                     existingVtt.ReplaceWith(vttfile);
+//                     _context.Entry(existingVtt).State = EntityState.Modified;
+//                 }
 
-                var srtfile = await FileRecord.GetNewFileRecordAsync(Caption.GenerateSrtFile(captions), ".srt", subdir);
+//                 var srtfile = await FileRecord.GetNewFileRecordAsync(Caption.GenerateSrtFile(captions), ".srt", subdir);
 
-#nullable enable
-                FileRecord? existingSrt = await _context.FileRecords.FindAsync(transcription.SrtFileId);
-#nullable disable
+// #nullable enable
+//                 FileRecord? existingSrt = await _context.FileRecords.FindAsync(transcription.SrtFileId);
+// #nullable disable
 
-                if (existingSrt is null)
-                {
-                    GetLogger().LogInformation($"{transcriptionId}: Creating new srt file {srtfile.FileName}"); 
+//                 if (existingSrt is null)
+//                 {
+//                     GetLogger().LogInformation($"{transcriptionId}: Creating new srt file {srtfile.FileName}"); 
 
-                    await _context.FileRecords.AddAsync(srtfile);
-                    transcription.SrtFile = srtfile;
-                    _context.Entry(transcription).State = EntityState.Modified;
-                }
-                else
-                {
-                    GetLogger().LogInformation($"{transcriptionId}: replacing existing srt file contents {existingSrt.FileName}");              
-                    existingSrt.ReplaceWith(srtfile);
-                    _context.Entry(existingSrt).State = EntityState.Modified;
-                }
+//                     await _context.FileRecords.AddAsync(srtfile);
+//                     transcription.SrtFile = srtfile;
+//                     _context.Entry(transcription).State = EntityState.Modified;
+//                 }
+//                 else
+//                 {
+//                     GetLogger().LogInformation($"{transcriptionId}: replacing existing srt file contents {existingSrt.FileName}");              
+//                     existingSrt.ReplaceWith(srtfile);
+//                     _context.Entry(existingSrt).State = EntityState.Modified;
+//                 }
 
-                await _context.SaveChangesAsync();
-                GetLogger().LogInformation($"{transcriptionId}: Database updated");   
-            }
+//                 await _context.SaveChangesAsync();
+//                 GetLogger().LogInformation($"{transcriptionId}: Database updated");   
+//             }
         }
     }
 }

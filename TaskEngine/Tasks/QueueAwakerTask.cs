@@ -23,7 +23,7 @@ namespace TaskEngine.Tasks
         private readonly DownloadMediaTask _downloadMediaTask;
         // private readonly ConvertVideoToWavTask _convertVideoToWavTask;
         private readonly TranscriptionTask _transcriptionTask;
-        private readonly GenerateVTTFileTask _generateVTTFileTask;
+        // nope private readonly GenerateVTTFileTask _generateVTTFileTask;
         private readonly ProcessVideoTask _processVideoTask;
         private readonly SceneDetectionTask _sceneDetectionTask;
         private readonly PythonCrawlerTask _pythonCrawlerTask; 
@@ -40,7 +40,8 @@ namespace TaskEngine.Tasks
         public QueueAwakerTask(RabbitMQConnection rabbitMQ, DownloadPlaylistInfoTask downloadPlaylistInfoTask,
             DownloadMediaTask downloadMediaTask,
             TranscriptionTask transcriptionTask, ProcessVideoTask processVideoTask,
-            GenerateVTTFileTask generateVTTFileTask, SceneDetectionTask sceneDetectionTask,
+            // GenerateVTTFileTask generateVTTFileTask, 
+            SceneDetectionTask sceneDetectionTask,
             CreateBoxTokenTask createBoxTokenTask, UpdateBoxTokenTask updateBoxTokenTask, PythonCrawlerTask pythonCrawlerTask, 
             BuildElasticIndexTask buildElasticIndexTask, CleanUpElasticIndexTask cleanUpElasticIndexTask,
             
@@ -52,7 +53,7 @@ namespace TaskEngine.Tasks
             _downloadMediaTask = downloadMediaTask;
             //_convertVideoToWavTask = convertVideoToWavTask;
             _transcriptionTask = transcriptionTask;
-            _generateVTTFileTask = generateVTTFileTask;
+            // _generateVTTFileTask = generateVTTFileTask;
             _processVideoTask = processVideoTask;
             _sceneDetectionTask = sceneDetectionTask;
             _pythonCrawlerTask = pythonCrawlerTask; 
@@ -147,7 +148,7 @@ namespace TaskEngine.Tasks
             _updateBoxTokenTask.Publish("");
 
             //We will use these outside of the DB scope
-            List<String> todoVTTs ;
+            // List<String> todoVTTs ;
             List<String> todoProcessVideos;
             List<String> todoTranscriptions;
             List<String> todoDownloads;
@@ -183,7 +184,7 @@ namespace TaskEngine.Tasks
 
                 // Completed Transcriptions which haven't generated vtt files
                 // TODO: Should also check dates too
-                GetLogger().LogInformation($"Finding incomplete VTTs, Transcriptions and Downloads from before {tooRecentCutoff}, minutesCutOff=({minutesCutOff})");
+                GetLogger().LogInformation($"Finding incomplete Transcriptions and Downloads from before {tooRecentCutoff}, minutesCutOff=({minutesCutOff})");
 
 
                 // Todo Could also check for secondary video too
@@ -192,10 +193,11 @@ namespace TaskEngine.Tasks
                    v=>(v.Duration == null && ! String.IsNullOrEmpty(v.Video1Id))
                    ).OrderByDescending(t => t.CreatedAt).Take(maxProcessVideos).Select(e => e.Id).ToListAsync();
 
-                var maxVTTs = 400;
-                todoVTTs = await context.Transcriptions.AsNoTracking().Where(
-                    t => t.Captions.Count > 0 && t.File == null && t.CreatedAt < tooRecentCutoff
-                    ).OrderByDescending(t => t.CreatedAt).Take(maxVTTs).Select(e => e.Id).ToListAsync();
+                // We no longer create vtt files
+                // var maxVTTs = 400;
+                // todoVTTs = await context.Transcriptions.AsNoTracking().Where(
+                //     t => t.Captions.Count > 0 && t.File == null && t.CreatedAt < tooRecentCutoff
+                //     ).OrderByDescending(t => t.CreatedAt).Take(maxVTTs).Select(e => e.Id).ToListAsync();
 
                 var maxSceneDetection = 400;
                 todoSceneDetection = await context.Videos.AsNoTracking().Where( 
@@ -219,14 +221,13 @@ namespace TaskEngine.Tasks
             // However some of these may already be in progress
             // So don't queue theses
 
-            GetLogger().LogInformation($"Found {todoProcessVideos.Count},{todoVTTs.Count},{todoTranscriptions.Count},{todoDownloads.Count} counts before filtering");
+            GetLogger().LogInformation($"Found todoProcessVideos={todoProcessVideos.Count},todoTranscriptions={todoTranscriptions.Count},todoDownloads={todoDownloads.Count} counts before filtering");
             ClientActiveTasks currentProcessVideos = _processVideoTask.GetCurrentTasks();
             todoProcessVideos.RemoveAll(e => currentProcessVideos.Contains(e));
 
 
-            ClientActiveTasks currentVTTs = _generateVTTFileTask.GetCurrentTasks();
-            todoVTTs.RemoveAll(e => currentVTTs.Contains(e));
-
+            // ClientActiveTasks currentVTTs = _generateVTTFileTask.GetCurrentTasks();
+            // todoVTTs.RemoveAll(e => currentVTTs.Contains(e));
             
             ClientActiveTasks currentSceneDetection = _sceneDetectionTask.GetCurrentTasks();
             todoSceneDetection.RemoveAll(e => currentSceneDetection.Contains(e));
@@ -237,8 +238,8 @@ namespace TaskEngine.Tasks
             ClientActiveTasks currentDownloads = _transcriptionTask.GetCurrentTasks();
             todoDownloads.RemoveAll(e => currentDownloads.Contains(e));
 
-            GetLogger().LogInformation($"Current In progress  {currentProcessVideos.Count},{currentVTTs.Count},{currentTranscription.Count},{currentDownloads.Count} counts after filtering");
-            GetLogger().LogInformation($"Found {todoProcessVideos.Count},{todoVTTs.Count},{todoTranscriptions.Count},{todoDownloads.Count} counts after filtering");
+            GetLogger().LogInformation($"Current In progress  todoProcessVideos={currentProcessVideos.Count},currentTranscription={currentTranscription.Count},currentDownloads={currentDownloads.Count} counts after filtering");
+            GetLogger().LogInformation($"Found todoProcessVideos={todoProcessVideos.Count},todoTranscriptions={todoTranscriptions.Count},todoDownloads={todoDownloads.Count} counts after filtering");
 
 
             // Now we have a list of new things we want to do
@@ -251,9 +252,8 @@ namespace TaskEngine.Tasks
             GetLogger().LogInformation($"Publishing SceneDetects ({String.Join(",", todoSceneDetection)})");
             todoSceneDetection.ForEach(t => _sceneDetectionTask.Publish(t));
 
-            GetLogger().LogInformation($"Publishing todoVTTs ({String.Join(",", todoVTTs)})");
-
-            todoVTTs.ForEach(t => _generateVTTFileTask.Publish(t));
+            // GetLogger().LogInformation($"Publishing todoVTTs ({String.Join(",", todoVTTs)})");
+            // todoVTTs.ForEach(t => _generateVTTFileTask.Publish(t));
 
             GetLogger().LogInformation($"Publishing todoTranscriptions ({String.Join(",", todoTranscriptions)})");
 
@@ -316,14 +316,16 @@ namespace TaskEngine.Tasks
                 var playlist = await _context.Playlists.FindAsync(playlistId);
                 _downloadPlaylistInfoTask.Publish(playlist.Id);
             }
-            else if (type == TaskType.GenerateVTTFile.ToString())
-            {
-                var transcriptionId = jObject["TranscriptionId"].ToString();
-                var transcription = await _context.Transcriptions.FindAsync(transcriptionId);
-                _generateVTTFileTask.Publish(transcription.Id);
-            }
+            else 
+            // if (type == TaskType.GenerateVTTFile.ToString())
+            // {
+            //     var transcriptionId = jObject["TranscriptionId"].ToString();
+            //     var transcription = await _context.Transcriptions.FindAsync(transcriptionId);
+            //     _generateVTTFileTask.Publish(transcription.Id);
+            // }
 
-            else if (type == TaskType.CreateBoxToken.ToString())
+            // else
+             if (type == TaskType.CreateBoxToken.ToString())
             {
                 var authCode = jObject["authCode"].ToString();
                 _createBoxTokenTask.Publish(authCode);
