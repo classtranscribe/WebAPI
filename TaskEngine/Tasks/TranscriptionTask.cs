@@ -25,16 +25,17 @@ namespace TaskEngine.Tasks
     {
        
         private readonly MSTranscriptionService _msTranscriptionService;
-        private readonly GenerateVTTFileTask _generateVTTFileTask;
+        // nope private readonly GenerateVTTFileTask _generateVTTFileTask;
         private readonly CaptionQueries _captionQueries;
 
 
         public TranscriptionTask(RabbitMQConnection rabbitMQ, MSTranscriptionService msTranscriptionService,
-            GenerateVTTFileTask generateVTTFileTask, ILogger<TranscriptionTask> logger, CaptionQueries captionQueries)
+            // GenerateVTTFileTask generateVTTFileTask, 
+            ILogger<TranscriptionTask> logger, CaptionQueries captionQueries)
             : base(rabbitMQ, TaskType.TranscribeVideo, logger)
         {
             _msTranscriptionService = msTranscriptionService;
-            _generateVTTFileTask = generateVTTFileTask;
+            // nope _generateVTTFileTask = generateVTTFileTask;
             _captionQueries = captionQueries;
 
         }
@@ -249,7 +250,7 @@ namespace TaskEngine.Tasks
 
                     GetLogger().LogInformation($"{videoId}: Saving captions Code={result.ErrorCode}. LastSuccessTime={result.LastSuccessTime}"); 
                     await _context.SaveChangesAsync();
-                    video.Transcriptions.ForEach(t => _generateVTTFileTask.Publish(t.Id));
+                   // nope, no vtt files  video.Transcriptions.ForEach(t => _generateVTTFileTask.Publish(t.Id));
                      
                 }
                 catch (Exception ex)

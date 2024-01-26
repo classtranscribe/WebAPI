@@ -42,11 +42,14 @@ namespace TaskEngine
                     builder.AddConsole();
                     builder.AddFilter<Microsoft.Extensions.Logging.ApplicationInsights.ApplicationInsightsLoggerProvider>
                              ("", LogLevel.Warning);
-                    string insightKey = configuration.GetValue<string>("APPLICATION_INSIGHTS_KEY");
-                    if (!String.IsNullOrEmpty(insightKey) && insightKey.Trim().Length>1)
-                    {
-                        builder.AddApplicationInsights(insightKey);
-                    }
+                    // If we use A.I. in the future -
+                    // Use the AddApplicationInsights() overload which accepts Action<TelemetryConfiguration> and set TelemetryConfiguration.ConnectionString. See https://github.com/microsoft/ApplicationInsights-dotnet/issues/2560 for more details.
+                    
+                    // string insightKey = configuration.GetValue<string>("APPLICATION_INSIGHTS_KEY");
+                    // if (!String.IsNullOrEmpty(insightKey) && insightKey.Trim().Length>1)
+                    // {
+                    //     builder.AddApplicationInsights(insightKey);
+                    // }
                 })
                 .AddOptions()
                 .Configure<AppSettings>(configuration)
@@ -58,7 +61,7 @@ namespace TaskEngine
                 .AddSingleton<ConvertVideoToWavTask>()
                 .AddSingleton<TranscriptionTask>()
                 .AddSingleton<QueueAwakerTask>()
-                .AddSingleton<GenerateVTTFileTask>()
+                // .AddSingleton<GenerateVTTFileTask>()
                 .AddSingleton<RpcClient>()
                 .AddSingleton<ProcessVideoTask>()
                 .AddSingleton<MSTranscriptionService>()
@@ -116,10 +119,11 @@ namespace TaskEngine
             serviceProvider.GetService<DownloadMediaTask>().Consume(concurrent_synctasks);
 
             // Transcription Related
-            _logger.LogInformation($"Creating TranscriptionTask & GenerateVTTFileTask consumers. Concurrency={concurrent_transcriptions} ");
+            _logger.LogInformation($"Creating TranscriptionTask consumers. Concurrency={concurrent_transcriptions} ");
 
             serviceProvider.GetService<TranscriptionTask>().Consume(concurrent_transcriptions);
-            serviceProvider.GetService<GenerateVTTFileTask>().Consume(concurrent_transcriptions);
+
+            // no more! - serviceProvider.GetService<GenerateVTTFileTask>().Consume(concurrent_transcriptions);
 
             // Video Processing Related
             _logger.LogInformation($"Creating ProcessVideoTask consumer. Concurrency={concurrent_videotasks} ");
