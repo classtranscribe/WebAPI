@@ -191,8 +191,8 @@ namespace ClassTranscribeDatabase.Services.MSTranscription
 
                             if (verboseLogging)
                             {
-                                _logger.LogInformation($"{logId}: Begin={begin.Minutes}:{begin.Seconds},{begin.Milliseconds}", begin);
-                                _logger.LogInformation($"{logId}: End={end.Minutes}:{end.Seconds},{end.Milliseconds}");
+                                _logger.LogInformation($"{logId}: Begin={begin.Minutes}:{begin.Seconds}.{begin.Milliseconds}", begin);
+                                _logger.LogInformation($"{logId}: End={end.Minutes}:{end.Seconds}.{end.Milliseconds}");
                             }
                             // TODO/TOREVIEW:
                             // ToCaptionEntitiesWithWordTiming vs ToCaptionEntitiesInterpolate
@@ -243,7 +243,8 @@ namespace ClassTranscribeDatabase.Services.MSTranscription
                         }
                         else if (e.Result.Reason == ResultReason.NoMatch)
                         {
-                            _logger.LogInformation($"{logId}: NOMATCH: Speech could not be recognized.");
+                             TimeSpan begin = (new TimeSpan(e.Result.OffsetInTicks)).Add(restartOffset);
+                            _logger.LogInformation($"{logId}: NOMATCH: ({begin.Minutes}:{begin.Seconds}) Speech could not be recognized.");
                         }
                     };
 

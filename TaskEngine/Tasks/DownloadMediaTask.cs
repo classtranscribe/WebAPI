@@ -134,17 +134,45 @@ namespace TaskEngine.Tasks
                     await newVideo.DeleteVideoAsync(_context);
                     return false;
                 }
-                GetLogger().LogInformation($"Media ({mediaId}): media.Video == null is {media.Video == null}");
+                GetLogger().LogInformation($"Media ({mediaId}): existing media.Video {media.Video != null}");
+                GetLogger().LogInformation($"Media ({mediaId}): media.Video?.Video1.Id={media.Video?.Video1.Id} ...Video2.Id={media.Video?.Video2.Id} ");
+                
+                GetLogger().LogInformation($"Media ({mediaId}): downloaded: newVideo.Video1={newVideo.Video1} ...Video2={newVideo.Video2} ");
+                GetLogger().LogInformation($"Media ({mediaId}): downloaded: newVideo.Video1.Hash={newVideo.Video1?.Hash} ...Hash2={newVideo.Video2?.Hash} ");
 
-                // Don't add video if there are already videos for the given media.
+                // 
                 if(newVideo.Id != null) {
                     GetLogger().LogError($"Media ({mediaId}): Huh? newVideo should not have an Id yet - that's my job!");
-                }
-                if (media.Video != null)
-                {
-                    GetLogger().LogInformation($"Media ({mediaId}): Surprise - media already has video set (race condition?)- no further processing required.Discarding new files");
-                    await newVideo.DeleteVideoAsync(_context);
                     return false;
+                }
+
+                if (media.VideoId != null)
+                {
+                    // Normally a DownloadMediaTask is only triggered if the video is null.
+                    // So this code is run when a manual DownloadMediaTask is requested again
+                    var changed = false;
+                    var v = media.Video;
+                    GetLogger().LogInformation($"Media ({mediaId}): Media already has video with video1Id <{media.VideoId}> Cherrypicking new files");
+                    var pickVideo2 = newVideo.Video2 != null && (v.Video2Id == null || newVideo.Video2.Hash != v.Video2.Hash);
+                    GetLogger().LogInformation($"Media ({mediaId}):pickVideo2={pickVideo2}");
+
+                    if( newVideo.Video2 != null && (v.Video2Id == null || newVideo.Video2.Hash != v.Video2.Hash)){
+                        _context.FileRecords.Add(newVideo.Video2);
+                        _context.SaveChanges(); // now v2 has an Id, so we can use below
+                        v.Video2 = newVideo.Video2;
+                        newVideo.Video2 = null;
+                        changed = true;
+                    }
+                    if(newVideo.ASLVideo != null  && ( v.ASLVideoId == null || newVideo.ASLVideo.Hash != v.ASLVideo.Hash)) {
+                        _context.FileRecords.Add(newVideo.ASLVideo);
+                        _context.SaveChanges(); // now v2 has an Id, so we can use below
+                        v.ASLVideo = newVideo.ASLVideo;
+                        newVideo.ASLVideo = null;
+                        changed = true;
+                    }
+                    if(changed) _context.SaveChanges();
+                    await newVideo.DeleteVideoAsync(_context);
+                    return changed;
                 }
                 // Time to find out what we have in the database
                 // Important idea: the newVideo and its filerecords are not yet part of the database.
@@ -155,7 +183,7 @@ namespace TaskEngine.Tasks
                 var existingPrimaryVideo = existingPrimaryVideos?.FirstOrDefault(); // If non null we expect 0 or 1
 
                 GetLogger().LogInformation($"Media ({mediaId}): {matchingFiles.Count} FileRecord hash match found");
-                GetLogger().LogInformation($"Media ({mediaId}): {existingPrimaryVideos?.Count ?? 0} existing Videos found");
+                GetLogger().LogInformation($"Media ({mediaId}): {existingPrimaryVideos?.Count ?? 0} existing Primary Videos found");
 
                 // cherrypick case (see comment below)
                 if (existingPrimaryVideo != null)
@@ -240,48 +268,67 @@ namespace TaskEngine.Tasks
                     string temp = video1Url;
                     video1Url = video2Url;
                     video2Url = temp;
+                    GetLogger().LogInformation($"DownloadKalturaVideo ({media.Id}): swapped streams to 1:<{video1Url}> and 2:<{video2Url}>");
                 }
             }
             catch (Exception) { };
-
+            GetLogger().LogInformation($"DownloadKalturaVideo ({media.Id}): Requesting download of video1 ({video1Url})");
             var mediaResponse = await _rpcClient.PythonServerClient.DownloadKalturaVideoRPCAsync(new CTGrpc.MediaRequest
             {
                 VideoUrl = video1Url
             });
+            GetLogger().LogInformation($"DownloadKalturaVideo ({media.Id}): Video1 downloaded to ({mediaResponse.FilePath})");
 
             Video video;
-            if (FileRecord.IsValidFile(mediaResponse.FilePath))
+            // Sanity Check if the downloaded file is valid has at least a few bytes.
+            var isValid = FileRecord.IsValidFile(mediaResponse.FilePath);
+            GetLogger().LogInformation($"DownloadKalturaVideo ({media.Id}): video1 is valid: {isValid}");
+            if (isValid)
             {
+                GetLogger().LogInformation($"DownloadKalturaVideo ({media.Id}): GetNewFileRecordAsync");
+                var video1record = await FileRecord.GetNewFileRecordAsync(mediaResponse.FilePath, mediaResponse.Ext, subdir);
+                GetLogger().LogInformation($"DownloadKalturaVideo ({media.Id}): {video1record}");
                 video = new Video
                 {
-                    Video1 = await FileRecord.GetNewFileRecordAsync(mediaResponse.FilePath, mediaResponse.Ext, subdir)
+                    Video1 = video1record
                 };
                 try
                 {
-                    if (media.JsonMetadata["child"] != null && media.JsonMetadata["child"]["downloadUrl"] != null)
+                    if (video2Url != null)
                     {
-                        GetLogger().LogInformation($"Media ({media.Id}): Downloading child video");
+                        GetLogger().LogInformation($"Media ({media.Id}): Downloading second video ({video2Url})");
 
-                        var childMediaR = await _rpcClient.PythonServerClient.DownloadKalturaVideoRPCAsync(new CTGrpc.MediaRequest
+                        var secondMediaR = await _rpcClient.PythonServerClient.DownloadKalturaVideoRPCAsync(new CTGrpc.MediaRequest
                         {
-                            VideoUrl = video2Url
+                            VideoUrl = video2Url //might be swapped
                         });
-                        if (FileRecord.IsValidFile(childMediaR.FilePath))
+                        GetLogger().LogInformation($"DownloadKalturaVideo ({media.Id}): Video2 downloaded to ({secondMediaR.FilePath})");
+                        
+                        // Sanity Check if the downloaded file is valid has at least a few bytes.
+            
+                        var video2Valid = FileRecord.IsValidFile(secondMediaR.FilePath);
+                        GetLogger().LogInformation($"Media ({media.Id}): Second video downloaded ({secondMediaR.FilePath}) is valid: {video2Valid}");
+                        if (video2Valid)
                         {
-                            video.Video2 = await FileRecord.GetNewFileRecordAsync(childMediaR.FilePath, childMediaR.Ext, subdir);
-                        }
+                            var video2record = await FileRecord.GetNewFileRecordAsync(secondMediaR.FilePath, secondMediaR.Ext, subdir);
+                            GetLogger().LogInformation($"Media ({media.Id}): Second video record {video2record} ");
+                            video.Video2 = video2record;
+                        } 
+                    } else {
+                        GetLogger().LogInformation($"Media ({media.Id}): No second video to download");
                     }
                 }
                 catch (Exception ignored)
                 {
-                    GetLogger().LogInformation(ignored, $"Couldnt download second video for {media.Id}");
+                    GetLogger().LogError(ignored, $"Media ({media.Id}): Exception {ignored}");
                 }
             }
             else
             {
+                GetLogger().LogInformation($"DownloadKalturaVideo ({media.Id}): first downloaded file ({mediaResponse.FilePath}) was not valid>");
                 throw new Exception("DownloadKalturaVideo Failed + " + media.Id);
             }
-
+            GetLogger().LogInformation($"Media ({media.Id}): DownloadKalturaVideo done Video1={video.Video1?.Id} Video2={video.Video2?.Id}");
             return video;
         }
 

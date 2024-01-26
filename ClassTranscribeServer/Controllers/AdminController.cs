@@ -70,51 +70,55 @@ namespace ClassTranscribeServer.Controllers
         /// <summary> 
         ///  Regenerate one Caption (vtt, srt) file of the given Transcription
         /// </summary>
-        [HttpPost("UpdateVTTFile")]
-        [Authorize(Roles = Globals.ROLE_ADMIN)]
-        public ActionResult UpdateVTTFile(string transcriptionId)
-        {
-            _logger.LogInformation($"Enqueueing {transcriptionId} caption regeneration");
-            _wakeDownloader.UpdateVTTFile(transcriptionId);
-            return Ok();
-        }
+        /// will be deleted soon - We now generate vtt files dynamically.
+        // [HttpPost("UpdateVTTFile")]
+        // [Authorize(Roles = Globals.ROLE_ADMIN)]
+        // public ActionResult UpdateVTTFile(string transcriptionId)
+        // {
+        //     _logger.LogInformation($"Enqueueing {transcriptionId} caption regeneration");
+        //     _wakeDownloader.UpdateVTTFile(transcriptionId);
+        //     return Ok();
+        // }
 
         /// <summary> 
         ///  Regenerate all Caption (vtt, srt) files of the given course offering
         /// </summary>
-        [HttpPost("UpdateVTTFilesInCourseOffering")]
-        [Authorize(Roles = Globals.ROLE_ADMIN)]
-        public async Task<ActionResult> UpdateVTTFilesInCourseOffering(string offeringId = null)
-        {
+        /// Will be deleted soon - we no longer store vtt files
+        // [HttpPost("UpdateVTTFilesInCourseOffering")]
+        // [Authorize(Roles = Globals.ROLE_ADMIN)]
+        // public async Task<ActionResult> UpdateVTTFilesInCourseOffering(string offeringId = null)
+        // {
 
-            var playlistIds = await _context.Playlists.Where(p => p.OfferingId == offeringId).Select(p => p.Id).ToListAsync();
-            _logger.LogInformation($"UpdateVTTFilesinPlaylist(${offeringId}): Found {playlistIds.Count} playlists");
+        //     var playlistIds = await _context.Playlists.Where(p => p.OfferingId == offeringId).Select(p => p.Id).ToListAsync();
+        //     _logger.LogInformation($"UpdateVTTFilesinPlaylist(${offeringId}): Found {playlistIds.Count} playlists");
 
-            var videoIds = await _context.Medias.Where(m => playlistIds.Contains(m.PlaylistId)).Select(m => m.VideoId).ToListAsync();
-            _logger.LogInformation($"UpdateVTTFilesinPlaylist(): Found {videoIds.Count} videos");
-            var transcriptionIds = await _context.Transcriptions.Where(t => videoIds.Contains(t.VideoId)).Select(t => t.Id).ToListAsync();
-            _logger.LogInformation($"UpdateVTTFilesinPlaylist(): Found {transcriptionIds.Count} vtt transcriptions to regenerate");
-            foreach (var t in transcriptionIds)
-            {
-                _wakeDownloader.UpdateVTTFile(t);
-            }
-            return Ok($"Requested {transcriptionIds.Count} Transcriptions to be regenerated from {videoIds.Count} videos in {playlistIds.Count} playlists");
-        }
+        //     var videoIds = await _context.Medias.Where(m => playlistIds.Contains(m.PlaylistId)).Select(m => m.VideoId).ToListAsync();
+        //     _logger.LogInformation($"UpdateVTTFilesinPlaylist(): Found {videoIds.Count} videos");
+        //     var transcriptionIds = await _context.Transcriptions.Where(t => videoIds.Contains(t.VideoId)).Select(t => t.Id).ToListAsync();
+        //     _logger.LogInformation($"UpdateVTTFilesinPlaylist(): Found {transcriptionIds.Count} vtt transcriptions to regenerate");
+        //     foreach (var t in transcriptionIds)
+        //     {
+        //         _wakeDownloader.UpdateVTTFile(t);
+        //     }
+        //     return Ok($"Requested {transcriptionIds.Count} Transcriptions to be regenerated from {videoIds.Count} videos in {playlistIds.Count} playlists");
+        // }
+        
         /// <summary> 
         ///  Regenerate all Caption (vtt, srt) files of all transcriptions
         /// </summary>
-        [HttpPost("UpdateAllVTTFiles")]
-        [Authorize(Roles = Globals.ROLE_ADMIN)]
-        public async Task<ActionResult> UpdateAllVTTFiles()
-        {
-            var transcriptionIds = await _context.Transcriptions.Select(t => t.Id).ToListAsync();
-            _logger.LogInformation($"UpdateAllVTTFiles: Enqueueing {transcriptionIds.Count} vtt transcriptions to regenerate");
-            foreach (var t in transcriptionIds)
-            {
-                _wakeDownloader.UpdateVTTFile(t);
-            }
-            return Ok();
-        }
+        /// will be deleted soon - we no longer store vtt files
+        // [HttpPost("UpdateAllVTTFiles")]
+        // [Authorize(Roles = Globals.ROLE_ADMIN)]
+        // public async Task<ActionResult> UpdateAllVTTFiles()
+        // {
+        //     var transcriptionIds = await _context.Transcriptions.Select(t => t.Id).ToListAsync();
+        //     _logger.LogInformation($"UpdateAllVTTFiles: Enqueueing {transcriptionIds.Count} vtt transcriptions to regenerate");
+        //     foreach (var t in transcriptionIds)
+        //     {
+        //         _wakeDownloader.UpdateVTTFile(t);
+        //     }
+        //     return Ok();
+        // }
 
 
         /// <summary> 
