@@ -47,7 +47,19 @@ namespace TaskEngine.Tasks
             RegisterTask(cleanup, playlistId); // may throw AlreadyInProgress exception
             using (var _context = CTDbContext.CreateDbContext())
             {
-                var playlist = await _context.Playlists.FindAsync(playlistId);
+                
+                var playlist = await _context.Playlists.Include(p=>p.Offering).Where(p=> p.Id == playlistId).FirstOrDefaultAsync();
+                if (playlist == null)
+                {
+                    GetLogger().LogError($"Playlist {playlistId} not found");
+                    return;
+                }
+                if(playlist.Offering == null || playlist.Offering.CourseName == null)
+                {
+                    GetLogger().LogError($"Playlist {playlistId} has no associated offering ");
+                    return;
+                }
+                GetLogger().LogInformation($"Playlist {playlistId}:<{playlist.Name}>/{playlist.Offering.CourseName}: type=({playlist.SourceType}) unique=({playlist.PlaylistIdentifier})");
                 int index = 0;
                 try {
                     index = 1 + await _context.Medias.Where(m=> m.PlaylistId == playlist.Id).Select(m => m.Index).MaxAsync();
@@ -82,6 +94,7 @@ namespace TaskEngine.Tasks
                     playlist.ListUpdatedAt = playlist.ListCheckedAt;
                 }
                 await _context.SaveChangesAsync();
+                GetLogger().LogInformation($"Playlist {playlistId}: Task Complete");
                 
             }
         }
