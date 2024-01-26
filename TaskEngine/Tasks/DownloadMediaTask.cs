@@ -135,10 +135,10 @@ namespace TaskEngine.Tasks
                     return false;
                 }
                 GetLogger().LogInformation($"Media ({mediaId}): existing media.Video {media.Video != null}");
-                GetLogger().LogInformation($"Media ({mediaId}): media.Video?.Video1.Id={media.Video?.Video1.Id} ...Video2.Id={media.Video?.Video2.Id} ");
+                GetLogger().LogInformation($"Media ({mediaId}): media.Video?.Video1.Id={media.Video?.Video1?.Id ?? "none"} ...Video2.Id={media.Video?.Video2?.Id ?? "none"}");
                 
-                GetLogger().LogInformation($"Media ({mediaId}): downloaded: newVideo.Video1={newVideo.Video1} ...Video2={newVideo.Video2} ");
-                GetLogger().LogInformation($"Media ({mediaId}): downloaded: newVideo.Video1.Hash={newVideo.Video1?.Hash} ...Hash2={newVideo.Video2?.Hash} ");
+                GetLogger().LogInformation($"Media ({mediaId}): downloaded: newVideo.Video1={newVideo?.Video1.PrivatePath ?? "none"} ...Video2={newVideo?.Video2?.PrivatePath ?? "none"}");
+                GetLogger().LogInformation($"Media ({mediaId}): downloaded: newVideo.Video1.Hash={newVideo.Video1?.Hash ?? "none"} ...Hash2={newVideo.Video2?.Hash ?? "none"} ");
 
                 // 
                 if(newVideo.Id != null) {
