@@ -198,18 +198,19 @@ namespace TaskEngine.Tasks
                 // todoVTTs = await context.Transcriptions.AsNoTracking().Where(
                 //     t => t.Captions.Count > 0 && t.File == null && t.CreatedAt < tooRecentCutoff
                 //     ).OrderByDescending(t => t.CreatedAt).Take(maxVTTs).Select(e => e.Id).ToListAsync();
+                var last3Months = DateTime.Now.AddMonths(-3);
 
                 var maxSceneDetection = 400;
                 todoSceneDetection = await context.Videos.AsNoTracking().Where( 
                     v=> (v.PhraseHintsDataId== null) && v.PhraseHints == null &&
-                        v.Medias.Any() && v.CreatedAt < tooRecentCutoff
+                        v.Medias.Any() && v.CreatedAt < tooRecentCutoff && v.CreatedAt > last3Months
                     ).OrderByDescending(t => t.CreatedAt).Take(maxSceneDetection).Select(e => e.Id).ToListAsync();
 
                 var maxTranscriptions = 40;
                 todoTranscriptions = await context.Videos.AsNoTracking().Where( 
                         v=> (v.PhraseHintsDataId != null || v.PhraseHints != null) &&
                         v.TranscribingAttempts < 41 && v.TranscriptionStatus != "NoError" && 
-                        v.Medias.Any() && v.CreatedAt < tooRecentCutoff
+                        v.Medias.Any() && v.CreatedAt < tooRecentCutoff  && v.CreatedAt > last3Months
                     ).OrderByDescending(t => t.CreatedAt).Take(maxTranscriptions).Select(e => e.Id).ToListAsync();
 
                 // Medias for which no videos have downloaded
