@@ -53,6 +53,8 @@
         public string BUILDNUMBER { get; set; }
         public string ES_CONNECTION_ADDR { get; set; }
 
+        public string INITIAL_TASKENGINE_PAUSE_MINUTES { get; set; } = "2";
+
         // We let the message expire - which is likely if the server is overloaded- the periodic check will rediscover things to do later
         // The suggested value is PERIODIC_CHECK_EVERY_MINUTES -5
         // i.e we assume that the periodic check takes no more than 5 minutes to enqueue a task

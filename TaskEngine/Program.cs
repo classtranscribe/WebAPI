@@ -69,7 +69,7 @@ namespace TaskEngine
                 .AddSingleton<PythonCrawlerTask>()
                 .AddSingleton<DescribeVideoTask>()
                 .AddSingleton<DescribeImageTask>()
-                .AddSingleton<UpdateBoxTokenTask>()
+               // .AddSingleton<UpdateBoxTokenTask>()
                 .AddSingleton<CreateBoxTokenTask>()
                 .AddSingleton<BuildElasticIndexTask>()
                 .AddSingleton<ExampleTask>()
@@ -141,8 +141,8 @@ namespace TaskEngine
             // We dont want concurrency for these tasks
             _logger.LogInformation("Creating QueueAwakerTask and Box token tasks consumers.");
             serviceProvider.GetService<QueueAwakerTask>().Consume(NO_CONCURRENCY); //TODO TOREVIEW: NO_CONCURRENCY?
-            serviceProvider.GetService<UpdateBoxTokenTask>().Consume(NO_CONCURRENCY);
-            serviceProvider.GetService<CreateBoxTokenTask>().Consume(NO_CONCURRENCY);
+            // does nothing at the moment serviceProvider.GetService<UpdateBoxTokenTask>().Consume(NO_CONCURRENCY);
+            serviceProvider.GetService<CreateBoxTokenTask>().Consume(NO_CONCURRENCY); // calls _box.CreateAccessTokenAsync(authCode);
 
             // Elastic Search index should be built after TranscriptionTask
             serviceProvider.GetService<BuildElasticIndexTask>().Consume(NO_CONCURRENCY);
@@ -170,11 +170,12 @@ namespace TaskEngine
             QueueAwakerTask queueAwakerTask = serviceProvider.GetService<QueueAwakerTask>();
 
             int periodicCheck = Math.Max(1,Convert.ToInt32(Globals.appSettings.PERIODIC_CHECK_EVERY_MINUTES));
-            
+            int initialPauseMinutes = Math.Max(1, Convert.ToInt32(Globals.appSettings.INITIAL_TASKENGINE_PAUSE_MINUTES));
+
             _logger.LogInformation("Periodic Check Every {0} minutes", periodicCheck);
             var timeInterval = new TimeSpan(0, periodicCheck, 0);
             
-            var initialPauseInterval = new TimeSpan(0, 2, 0);
+            var initialPauseInterval = new TimeSpan(0, initialPauseMinutes, 0);
             _logger.LogInformation("Pausing {0} minutes before first periodicCheck", initialPauseInterval);
 
             Thread.Sleep(initialPauseInterval);
