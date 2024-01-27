@@ -1,12 +1,17 @@
-﻿using Box.V2;
-using Box.V2.Auth;
-using Box.V2.Config;
-using ClassTranscribeDatabase.Models;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
-using System;
+﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Threading;
+
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+
+using Box.V2;
+using Box.V2.Auth;
+using Box.V2.Config;
+
+using ClassTranscribeDatabase.Models;
+
 
 namespace ClassTranscribeDatabase.Services
 {
@@ -14,6 +19,10 @@ namespace ClassTranscribeDatabase.Services
     {
         private readonly SlackLogger _slack;
         private readonly ILogger _logger;
+        private BoxClient? _boxClient;
+        private DateTimeOffset _lastRefreshed = DateTimeOffset.MinValue;
+        private SemaphoreSlim _RefreshSemaphore = new SemaphoreSlim(1, 1); // async-safe mutex to ensure only one thread is refreshing the token at a time
+
         public BoxAPI(ILogger<BoxAPI> logger, SlackLogger slack)
         {
             _logger = logger;
@@ -30,6 +39,7 @@ namespace ClassTranscribeDatabase.Services
             // This implementation is overly chatty with the database, but we rarely create access tokens so it is not a problem
             using (var _context = CTDbContext.CreateDbContext())
             {
+
                 if (!await _context.Dictionaries.Where(d => d.Key == CommonUtils.BOX_ACCESS_TOKEN).AnyAsync())
                 {
                     _context.Dictionaries.Add(new Dictionary
@@ -47,13 +57,15 @@ namespace ClassTranscribeDatabase.Services
                     await _context.SaveChangesAsync();
                 }
 
-                
+
                 var accessToken = _context.Dictionaries.Where(d => d.Key == CommonUtils.BOX_ACCESS_TOKEN).First();
                 var refreshToken = _context.Dictionaries.Where(d => d.Key == CommonUtils.BOX_REFRESH_TOKEN).First();
                 var config = new BoxConfig(Globals.appSettings.BOX_CLIENT_ID, Globals.appSettings.BOX_CLIENT_SECRET, new Uri("http://locahost"));
-                var client = new Box.V2.BoxClient(config);
-                var auth = await client.Auth.AuthenticateAsync(authCode);
-                _logger.LogInformation("Created Box Tokens");
+                var tmpClient = new Box.V2.BoxClient(config);
+                var auth = await tmpClient.Auth.AuthenticateAsync(authCode);
+
+                _logger.LogInformation($"Created Box Tokens Access:({auth.AccessToken.Substring(0, 5)}) Refresh({auth.RefreshToken.Substring(0, 5)})");
+
                 accessToken.Value = auth.AccessToken;
                 refreshToken.Value = auth.RefreshToken;
                 await _context.SaveChangesAsync();
@@ -62,31 +74,37 @@ namespace ClassTranscribeDatabase.Services
         /// <summary>
         ///  Updates the accessToken and refreshToken. These keys must already exist in the Dictionary table.
         /// </summary>
-        public async Task RefreshAccessTokenAsync()
+        private async Task<BoxClient> RefreshAccessTokenAsync()
         {
+            // Only one thread should call this at a time (see semaphore in GetBoxClientAsync)
             try
             {
+                _logger.LogInformation($"RefreshAccessTokenAsync: Starting");
                 using (var _context = CTDbContext.CreateDbContext())
                 {
                     var accessToken = await _context.Dictionaries.Where(d => d.Key == CommonUtils.BOX_ACCESS_TOKEN).FirstAsync();
                     var refreshToken = await _context.Dictionaries.Where(d => d.Key == CommonUtils.BOX_REFRESH_TOKEN).FirstAsync();
                     var config = new BoxConfig(Globals.appSettings.BOX_CLIENT_ID, Globals.appSettings.BOX_CLIENT_SECRET, new Uri("http://locahost"));
-                    var auth = new OAuthSession(accessToken.Value, refreshToken.Value, 3600, "bearer");
-                    var client = new BoxClient(config, auth);
-                    /// Try to refresh the access token
-                    auth = await client.Auth.RefreshAccessTokenAsync(auth.AccessToken);
+                    var initialAuth = new OAuthSession(accessToken.Value, refreshToken.Value, 3600, "bearer");
+                    var initialClient = new BoxClient(config, initialAuth);
+                    /// Refresh the access token
+                    var auth = await initialClient.Auth.RefreshAccessTokenAsync(initialAuth.AccessToken);
                     /// Create the client again
-                    client = new BoxClient(config, auth);
-                    _logger.LogInformation("Refreshed Tokens");
+                    _logger.LogInformation($"RefreshAccessTokenAsync: New Access Token ({auth.AccessToken.Substring(0, 5)}), New Refresh Token ({auth.RefreshToken.Substring(0, 5)})");
+
                     accessToken.Value = auth.AccessToken;
                     refreshToken.Value = auth.RefreshToken;
+                    _lastRefreshed = DateTimeOffset.Now;
                     await _context.SaveChangesAsync();
+                    _logger.LogInformation($"RefreshAccessTokenAsync: Creating New Box Client");
+                    var client = new BoxClient(config, auth);
+                    return client;
                 }
             }
             catch (Box.V2.Exceptions.BoxSessionInvalidatedException e)
             {
-                _logger.LogError(e, "Box Token Failure.");
-                await _slack.PostErrorAsync(e, "Box Token Failure.");
+                _logger.LogError(e, "RefreshAccessTokenAsync: Box Token Failure.");
+                await _slack.PostErrorAsync(e, "RefreshAccessTokenAsync: Box Token Failure.");
                 throw;
             }
         }
@@ -95,18 +113,32 @@ namespace ClassTranscribeDatabase.Services
         /// </summary>
         public async Task<BoxClient> GetBoxClientAsync()
         {
-            // Todo RefreshAccessTokenAsync could return this information for us; and avoid another trip to the database
-            await RefreshAccessTokenAsync();
-            BoxClient boxClient;
-            using (var _context = CTDbContext.CreateDbContext())
+            try
             {
-                var accessToken = await _context.Dictionaries.Where(d => d.Key == CommonUtils.BOX_ACCESS_TOKEN).FirstAsync();
-                var refreshToken = await _context.Dictionaries.Where(d => d.Key == CommonUtils.BOX_REFRESH_TOKEN).FirstAsync();
-                var config = new BoxConfig(Globals.appSettings.BOX_CLIENT_ID, Globals.appSettings.BOX_CLIENT_SECRET, new Uri("http://locahost"));
-                var auth = new OAuthSession(accessToken.Value, refreshToken.Value, 3600, "bearer");
-                boxClient = new Box.V2.BoxClient(config, auth);
+                await _RefreshSemaphore.WaitAsync(); // // critical section : implementation of an async-safe mutex
+                var MAX_AGE_MINUTES = 50;
+                var remain = DateTimeOffset.Now.Subtract(_lastRefreshed).TotalMinutes;
+                _logger.LogInformation($"GetBoxClientAsync: {remain} minutes since last refresh. Max age {MAX_AGE_MINUTES}.");
+                if (_boxClient != null && remain < MAX_AGE_MINUTES)
+                {
+                    return _boxClient;
+                }
+                _boxClient = await RefreshAccessTokenAsync();
+                _logger.LogInformation($"GetBoxClientAsync: _boxClient updated");
             }
-            return boxClient;
+            catch (Exception e)
+            {
+                _logger.LogError(e, "GetBoxClientAsync: Box Refresh Failure.");
+                throw;
+            }
+            finally
+            {
+                _logger.LogInformation($"GetBoxClientAsync: Releasing Semaphore and returning");
+                _RefreshSemaphore.Release(1);
+            }
+
+            return _boxClient;
         }
+
     }
 }
