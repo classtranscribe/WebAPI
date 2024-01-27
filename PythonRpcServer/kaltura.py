@@ -16,7 +16,7 @@ DATA_DIR = os.getenv('DATA_DIRECTORY')
 KALTURA_PARTNER_ID = int(os.getenv('KALTURA_PARTNER_ID', default=0))
 KALTURA_TOKEN_ID = os.getenv('KALTURA_TOKEN_ID', default=None)
 KATLURA_APP_TOKEN = os.getenv('KALTURA_APP_TOKEN', default=None)
-
+KALTURA_TIMEOUT= int( os.getenv('KALTURA_TIMEOUT', default=30))
 
 # Examples of Playlists URLs the user is likely to see-
 # Playlist 1_eilnj5er is Angrave's short set of example vidos
@@ -181,7 +181,7 @@ class KalturaProvider(MediaProvider):
         return self.getSensibleMediaInfos(res)
 
     def downloadLecture(self, url):
-        filePath, extension = download_file(url)
+        filePath, extension = download_file(url, timeout=KALTURA_TIMEOUT)
         return filePath, extension
 
     #Exxpects
