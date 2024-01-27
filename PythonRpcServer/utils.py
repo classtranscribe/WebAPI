@@ -87,12 +87,12 @@ def extension_from_magic_bytes(filepath):
 # Filepath and cookies may be specified
 # Returns a two tuple, [filepath,  extension]
 # An appropriate Extension is guessed based on the mimetype in the 'content-type' response header
-def download_file(url, filepath=None, cookies=None):
+def download_file(url, filepath=None, cookies=None, timeout=60):
     # NOTE the stream=True parameter below
     if not filepath:
         filepath = getTmpFile()
     extension = None
-    with requests.get(url, stream=True, allow_redirects=True, cookies=cookies) as r:
+    with requests.get(url, stream=True, allow_redirects=True, cookies=cookies, timeout=timeout) as r:
         
         
         r.raise_for_status()
