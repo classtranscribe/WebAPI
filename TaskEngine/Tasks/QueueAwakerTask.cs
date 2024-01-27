@@ -28,7 +28,7 @@ namespace TaskEngine.Tasks
         private readonly SceneDetectionTask _sceneDetectionTask;
         private readonly PythonCrawlerTask _pythonCrawlerTask; 
         private readonly CreateBoxTokenTask _createBoxTokenTask;
-        private readonly UpdateBoxTokenTask _updateBoxTokenTask;
+        // private readonly UpdateBoxTokenTask _updateBoxTokenTask;
         private readonly BuildElasticIndexTask _buildElasticIndexTask;
         private readonly CleanUpElasticIndexTask _cleanUpElasticIndexTask;
         // private readonly ExampleTask _exampleTask;
@@ -42,7 +42,8 @@ namespace TaskEngine.Tasks
             TranscriptionTask transcriptionTask, ProcessVideoTask processVideoTask,
             // GenerateVTTFileTask generateVTTFileTask, 
             SceneDetectionTask sceneDetectionTask,
-            CreateBoxTokenTask createBoxTokenTask, UpdateBoxTokenTask updateBoxTokenTask, PythonCrawlerTask pythonCrawlerTask, 
+            CreateBoxTokenTask createBoxTokenTask,// UpdateBoxTokenTask updateBoxTokenTask,
+             PythonCrawlerTask pythonCrawlerTask, 
             BuildElasticIndexTask buildElasticIndexTask, CleanUpElasticIndexTask cleanUpElasticIndexTask,
             
             DescribeVideoTask describeVideoTask,// DescribeImageTask describeImageTask,ExampleTask exampleTask,
@@ -58,7 +59,7 @@ namespace TaskEngine.Tasks
             _sceneDetectionTask = sceneDetectionTask;
             _pythonCrawlerTask = pythonCrawlerTask; 
             _createBoxTokenTask = createBoxTokenTask;
-            _updateBoxTokenTask = updateBoxTokenTask;
+            // _updateBoxTokenTask = updateBoxTokenTask;
             _buildElasticIndexTask = buildElasticIndexTask;
             _cleanUpElasticIndexTask = cleanUpElasticIndexTask;
             _describeVideoTask = describeVideoTask;
@@ -145,7 +146,7 @@ namespace TaskEngine.Tasks
 
            
             // Update Box Token every few hours
-            _updateBoxTokenTask.Publish("");
+            // _updateBoxTokenTask.Publish("");
 
             //We will use these outside of the DB scope
             // List<String> todoVTTs ;

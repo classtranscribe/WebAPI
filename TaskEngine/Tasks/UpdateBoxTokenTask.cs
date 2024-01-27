@@ -8,6 +8,8 @@ using static ClassTranscribeDatabase.CommonUtils;
 // https://learn.microsoft.com/en-us/dotnet/fundamentals/code-analysis/quality-rules/ca2007
 // We are okay awaiting on a task in the same thread
 
+
+// !!! May be removed in the future
 namespace TaskEngine.Tasks
 {
     [SuppressMessage("Microsoft.Performance", "CA1812:MarkMembersAsStatic")] // This class is never directly instantiated
