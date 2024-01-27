@@ -66,7 +66,7 @@ namespace TaskEngine.Tasks
                 } catch(Exception) {
                     // ignored (e.g. no media). Tried DefaultIfEmpty but that threw an Entity Framework runtime error; hence this slightly clunky exception implementation
                 }
-                GetLogger().LogInformation($"Playlist {playlistId}: Starting index = {index}");
+                GetLogger().LogInformation($"Playlist {playlistId}: Starting index={index}, SourceType={playlist.SourceType}");
                 List<Media> medias = new List<Media>();
                 switch (playlist.SourceType)
                 {
@@ -105,6 +105,7 @@ namespace TaskEngine.Tasks
             CTGrpc.JsonString jsonString = null;
             try
             {
+                GetLogger().LogError($"playlist=({playlist.Id}):GetKalturaChannelEntriesRPCAsync({playlist.PlaylistIdentifier}) - rpc starting");
                 jsonString = await _rpcClient.PythonServerClient.GetKalturaChannelEntriesRPCAsync(new CTGrpc.PlaylistRequest
                 {
                     Url = playlist.PlaylistIdentifier
@@ -121,6 +122,8 @@ namespace TaskEngine.Tasks
                     GetLogger().LogError($"playlist=({playlist.Id}):{e.Message}");
                 }
                 return newMedia;
+            } finally {
+                GetLogger().LogError($"playlist=({playlist.Id}):GetKalturaChannelEntriesRPCAsync({playlist.PlaylistIdentifier}) - rpc complete");
             }
             JArray jArray = JArray.Parse(jsonString.Json);
 
