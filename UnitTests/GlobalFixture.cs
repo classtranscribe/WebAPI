@@ -37,7 +37,7 @@ namespace UnitTests
             Directory.CreateDirectory(_testDataDirectory);
 
             var mockWake = new Mock<WakeDownloader>(MockBehavior.Strict, null);
-            mockWake.Setup(wake => wake.UpdateVTTFile(It.IsAny<string>()));
+            // mockWake.Setup(wake => wake.UpdateVTTFile(It.IsAny<string>()));
             mockWake.Setup(wake => wake.UpdatePlaylist(It.IsAny<string>()));
             mockWake.Setup(wake => wake.SceneDetection(It.IsAny<string>(), It.IsAny<bool>()));
 

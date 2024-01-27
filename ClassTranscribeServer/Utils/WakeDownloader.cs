@@ -31,15 +31,15 @@ namespace ClassTranscribeServer
             Wake(msg);
         }
 
-        public virtual void UpdateVTTFile(string transcriptionId)
-        {
-            JObject msg = new JObject
-            {
-                { "Type", TaskType.GenerateVTTFile.ToString() },
-                { "TranscriptionId", transcriptionId }
-            };
-            Wake(msg);
-        }
+        // public virtual void UpdateVTTFile(string transcriptionId)
+        // {
+        //     JObject msg = new JObject
+        //     {
+        //         { "Type", TaskType.GenerateVTTFile.ToString() },
+        //         { "TranscriptionId", transcriptionId }
+        //     };
+        //     Wake(msg);
+        // }
 
         public void UpdateOffering(string offeringId)
         {
