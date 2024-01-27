@@ -19,7 +19,7 @@ namespace TaskEngine
 
         private readonly CTDbContext context;
         private readonly CreateBoxTokenTask _createBoxTokenTask;
-        private readonly UpdateBoxTokenTask _updateBoxTokenTask;
+        // private readonly UpdateBoxTokenTask _updateBoxTokenTask;
         private readonly SceneDetectionTask _sceneDetectionTask;
         private readonly PythonCrawlerTask _pythonCrawlerTask;
         private readonly ProcessVideoTask _processVideoTask;
@@ -32,7 +32,7 @@ namespace TaskEngine
         private readonly QueueAwakerTask _queueAwakerTask;
         private readonly CleanUpElasticIndexTask _cleanUpElasticIndexTask;
 
-        public TempCode(CTDbContext c, CreateBoxTokenTask createBoxTokenTask, UpdateBoxTokenTask updateBoxTokenTask,
+        public TempCode(CTDbContext c, CreateBoxTokenTask createBoxTokenTask, //UpdateBoxTokenTask updateBoxTokenTask,
             SceneDetectionTask ePubGeneratorTask, ProcessVideoTask processVideoTask,
             TranscriptionTask transcriptionTask, ConvertVideoToWavTask convertVideoToWavTask, DownloadMediaTask downloadMediaTask,
             DownloadPlaylistInfoTask downloadPlaylistInfoTask, QueueAwakerTask queueAwakerTask,
@@ -41,7 +41,7 @@ namespace TaskEngine
         {
             context = c;
             _createBoxTokenTask = createBoxTokenTask;
-            _updateBoxTokenTask = updateBoxTokenTask;
+            // _updateBoxTokenTask = updateBoxTokenTask;
             _sceneDetectionTask = ePubGeneratorTask;
             _processVideoTask = processVideoTask;
             // _generateVTTFileTask = generateVTTFileTask;
