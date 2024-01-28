@@ -26,6 +26,10 @@
 
         public string RABBITMQ_PORT { get; set; } = "5672";
 
+        public string RABBITMQ_AUTOMATIC_RECOVERY = "true";
+        public string RABBITMQ_HEARTBEAT_SECONDS = "60";
+        
+
         // RABBITMQ_PREFETCH_COUNT has been replaced with these CONCURRENT LIMITS-
         //no longer used g RABBITMQ_PREFETCH_COUNT { get; set; } // No longer used; can be deleted in next cleanup
         public string MAX_CONCURRENT_TRANSCRIPTIONS { get; set; }
