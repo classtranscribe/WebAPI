@@ -105,7 +105,7 @@ namespace TaskEngine.Tasks
             CTGrpc.JsonString jsonString = null;
             try
             {
-                GetLogger().LogError($"playlist=({playlist.Id}):GetKalturaChannelEntriesRPCAsync({playlist.PlaylistIdentifier}) - rpc starting");
+                GetLogger().LogInformation($"playlist=({playlist.Id}):GetKalturaChannelEntriesRPCAsync({playlist.PlaylistIdentifier}) - rpc starting");
                 jsonString = await _rpcClient.PythonServerClient.GetKalturaChannelEntriesRPCAsync(new CTGrpc.PlaylistRequest
                 {
                     Url = playlist.PlaylistIdentifier
@@ -123,7 +123,7 @@ namespace TaskEngine.Tasks
                 }
                 return newMedia;
             } finally {
-                GetLogger().LogError($"playlist=({playlist.Id}):GetKalturaChannelEntriesRPCAsync({playlist.PlaylistIdentifier}) - rpc complete");
+                GetLogger().LogInformation($"playlist=({playlist.Id}):GetKalturaChannelEntriesRPCAsync({playlist.PlaylistIdentifier}) - rpc complete");
             }
             JArray jArray = JArray.Parse(jsonString.Json);
 
