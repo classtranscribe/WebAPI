@@ -108,7 +108,7 @@ namespace ClassTranscribeServer.Controllers
             };
             _context.Captions.Add(newCaption);
             await _context.SaveChangesAsync();
-            _wakeDownloader.UpdateVTTFile(oldCaption.TranscriptionId);
+            // nope _wakeDownloader.UpdateVTTFile(oldCaption.TranscriptionId);
             return newCaption;
         }
 
@@ -337,7 +337,7 @@ namespace ClassTranscribeServer.Controllers
             await _context.Captions.AddRangeAsync(captions);
             await _context.SaveChangesAsync();
 
-            _wakeDownloader.UpdateVTTFile(transcription.Id);
+            //nope _wakeDownloader.UpdateVTTFile(transcription.Id);
 
             return captions;
         }
