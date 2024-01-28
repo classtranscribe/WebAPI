@@ -178,18 +178,20 @@ namespace TaskEngine
             var initialPauseInterval = new TimeSpan(0, initialPauseMinutes, 0);
             _logger.LogInformation("Pausing {0} minutes before first periodicCheck", initialPauseInterval);
 
-            Thread.Sleep(initialPauseInterval);
-
+            // Thread.Sleep(initialPauseInterval);
+            Task.Delay(initialPauseInterval).Wait();
             // Check for new tasks every "timeInterval".
             // The periodic check will discover all undone tasks
             // TODO/REVIEW: However some tasks also publish the next items
             while (true)
             {
+                
                 queueAwakerTask.Publish(new JObject
                 {
                     { "Type", TaskType.PeriodicCheck.ToString() }
                 });
-                Thread.Sleep(timeInterval);
+                // Thread.Sleep(timeInterval);
+                Task.Delay(timeInterval).Wait();
             };
         }
 

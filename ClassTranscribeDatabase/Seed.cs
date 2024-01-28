@@ -58,7 +58,10 @@ namespace ClassTranscribeDatabase
                 if (attempt < maxAttempts)
                 {
                     _logger.LogInformation($"Sleeping for {retrySeconds} seconds");
-                    Thread.Sleep(1000 * retrySeconds);
+                    // Thread.Sleep(1000 * retrySeconds);
+                    
+                    Task.Delay(TimeSpan.fromSeconds(retrySeconds)).Wait();
+                    
                 }
                 else
                 {
