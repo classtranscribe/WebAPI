@@ -1,16 +1,20 @@
-﻿using ClassTranscribeDatabase;
-using ClassTranscribeDatabase.Services;
-using ClassTranscribeDatabase.Services.MSTranscription;
+﻿using System;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using System;
-using TaskEngine.Tasks;
-using System.Threading;
+
 using Newtonsoft.Json.Linq;
+
 using static ClassTranscribeDatabase.CommonUtils;
+using ClassTranscribeDatabase;
+using ClassTranscribeDatabase.Services;
+using ClassTranscribeDatabase.Services.MSTranscription;
+
+using TaskEngine.Tasks;
 
 namespace TaskEngine
 {

@@ -1,12 +1,14 @@
-﻿using ClassTranscribeDatabase.Models;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Threading;
+using System.Threading.Tasks;
+
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+
+using ClassTranscribeDatabase.Models;
 
 namespace ClassTranscribeDatabase
 {
@@ -60,7 +62,7 @@ namespace ClassTranscribeDatabase
                     _logger.LogInformation($"Sleeping for {retrySeconds} seconds");
                     // Thread.Sleep(1000 * retrySeconds);
                     
-                    Task.Delay(TimeSpan.fromSeconds(retrySeconds)).Wait();
+                    Task.Delay(TimeSpan.FromSeconds(retrySeconds)).Wait();
                     
                 }
                 else

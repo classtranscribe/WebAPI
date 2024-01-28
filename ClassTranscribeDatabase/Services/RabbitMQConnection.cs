@@ -63,7 +63,7 @@ namespace ClassTranscribeDatabase.Services
                 return;
             }
             var recovery = Convert.ToBoolean(Globals.appSettings.RABBITMQ_AUTOMATIC_RECOVERY);
-            var heartbeat = Convert.ToUInt32(Globals.appSettings.RABBITMQ_HEARTBEAT_SECONDS)
+            var heartbeat = Convert.ToUInt32(Globals.appSettings.RABBITMQ_HEARTBEAT_SECONDS);
             Logger.LogInformation($"Creating RabbitMQ connection recovery:{recovery} heartbeat:{heartbeat}");
             var factory = new ConnectionFactory()
             {
@@ -72,8 +72,8 @@ namespace ClassTranscribeDatabase.Services
                 UserName = Globals.appSettings.ADMIN_USER_ID,
                 Password = Globals.appSettings.ADMIN_PASSWORD,
                 Port = Convert.ToUInt16(Globals.appSettings.RABBITMQ_PORT), // 5672
-                AutomaticRecoveryEnabled = recovery
-                RequestedHeartbeat = TimeSpan.fromSeconds( heartbeat)
+                AutomaticRecoveryEnabled = recovery,
+                RequestedHeartbeat = TimeSpan.FromSeconds(heartbeat)
             };
             // A developer may still want to checkout old code which uses the old env branch
             // so just complain loudly for now
