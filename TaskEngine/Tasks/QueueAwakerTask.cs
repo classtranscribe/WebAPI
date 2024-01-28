@@ -280,9 +280,8 @@ namespace TaskEngine.Tasks
             {
                 _downloadPlaylistInfoTask.PurgeQueue();
 
-                var period = DateTime.Now.AddMonths(-6);
-                //TODO/TOREVIEW: Suggest Term.EndDate < Today plus 2 weeks (but let's check the semester dates in the DB and document this in the frontend)
-                playlists = await _context.Offerings.Where(o => o.Term.StartDate >= period).SelectMany(o => o.Playlists).Select(p => p.Id).ToListAsync();
+                var cutOffDate = DateTimeOffset.Now.AddDays(14);
+                playlists = await _context.Offerings.Where(o => o.Term.EndDate < cutOffDate).SelectMany(o => o.Playlists).OrderByDescending(p => p.CreatedAt).Select(p => p.Id).ToListAsync();
             }
             GetLogger().LogInformation($"DownloadAllPlaylists(); _downloadPlaylistInfoTask publishing {playlists.Count} tasks");
             playlists.ForEach(p => _downloadPlaylistInfoTask.Publish(p));
