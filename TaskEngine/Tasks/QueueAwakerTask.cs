@@ -280,8 +280,8 @@ namespace TaskEngine.Tasks
             {
                 _downloadPlaylistInfoTask.PurgeQueue();
 
-                var cutOffDate = DateTimeOffset.Now.AddDays(14);
-                playlists = await _context.Offerings.Where(o => o.Term.EndDate < cutOffDate).SelectMany(o => o.Playlists).OrderByDescending(p => p.CreatedAt).Select(p => p.Id).ToListAsync();
+                var cutOffDate = DateTimeOffset.Now.AddDays(-14);
+                playlists = await _context.Offerings.Where(o => o.Term.EndDate > cutOffDate).SelectMany(o => o.Playlists).OrderByDescending(p => p.CreatedAt).Select(p => p.Id).ToListAsync();
             }
             GetLogger().LogInformation($"DownloadAllPlaylists(); _downloadPlaylistInfoTask publishing {playlists.Count} tasks");
             playlists.ForEach(p => _downloadPlaylistInfoTask.Publish(p));
