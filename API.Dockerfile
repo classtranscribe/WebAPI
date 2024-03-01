@@ -28,6 +28,7 @@ WORKDIR /src
 COPY ./ClassTranscribeDatabase/ClassTranscribeDatabase.csproj ./ClassTranscribeDatabase/ClassTranscribeDatabase.csproj
 # Did not help ENV DOTNET_NUGET_SIGNATURE_VERIFICATION=false
 # Add --verbosity normal|diagnostic
+RUN dotnet  --list-sdks 
 RUN dotnet restore --verbosity diagnostic  ./ClassTranscribeDatabase/ClassTranscribeDatabase.csproj
 
 COPY ./ClassTranscribeServer/ClassTranscribeServer.csproj ./ClassTranscribeServer/ClassTranscribeServer.csproj
