@@ -383,6 +383,11 @@ namespace ClassTranscribeDatabase.Models
 
         public bool HasSceneObjectData() {return ! string.IsNullOrEmpty(SceneObjectDataId);} 
 
+
+        public bool HasFlashDetectionData() { return !string.IsNullOrEmpty(FlashDetectionDataId); }
+
+        public string FlashDetectionDataId { get; set; }
+
         [Required]
         public JObject JsonMetadata { get; set; } = new JObject();
         [Required]
