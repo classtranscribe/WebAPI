@@ -460,6 +460,14 @@ namespace ClassTranscribeDatabase.Models
                         context.TextData.Remove(data);
                     }
                 }
+                if(HasFlashDetectionData())
+                {
+                    TextData data = await context.TextData.FindAsync(FlashDetectionDataId);
+                    if(data != null)
+                    {
+                        context.TextData.Remove(data);
+                    }
+                }
                 if (HasGlossaryData())
                 {
                     TextData data= await context.TextData.FindAsync(GlossaryDataId);
