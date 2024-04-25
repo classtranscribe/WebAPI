@@ -3,7 +3,7 @@
 
 2. Install dotnet-ef 3.1.4 by running
 ```
-dotnet tool install --global dotnet-ef --version 3.1.4
+dotnet tool install --global dotnet-ef --version 8.0.4
 ``` 
 
 3. Go to the ClassTranscribeDatabase directory
