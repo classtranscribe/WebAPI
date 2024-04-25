@@ -526,6 +526,7 @@ namespace ClassTranscribeServer.Controllers
         public string Video2Path { get; set; }
         public string ASLPath { get; set; }
         public String TaskLog { get; set; }
+        public string FlashData { get; set; }
     }
 
     public class TranscriptionDTO
@@ -540,7 +541,7 @@ namespace ClassTranscribeServer.Controllers
 
         public String SourceLabel { get; set; } // where did this transcription originate?
         public string Language { get; set; }
-    }
+    } 
     public class PlaylistUpdateDTO {
         public string Id { get; set; }
         public string OfferingId { get; set; }

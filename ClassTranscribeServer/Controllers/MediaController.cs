@@ -80,16 +80,20 @@ namespace ClassTranscribeServer.Controllers
                     Id = t.Id,
                     Path = t.File != null ? t.File.Path : null,
                     Language = t.Language,
-                    TranscriptionType = (int) t.TranscriptionType,
-                    Label = String.IsNullOrWhiteSpace( t.Label ) ? "" : t.Label
+                    TranscriptionType = (int)t.TranscriptionType,
+                    Label = String.IsNullOrWhiteSpace(t.Label) ? "" : t.Label
                 }).ToList(),
                 Video = new VideoDTO
                 {
-                    Id = media.Video.Id, 
+                    Id = media.Video.Id,
                     Video1Path = media.Video.ProcessedVideo1?.Path != null ? media.Video.ProcessedVideo1.Path : media.Video.Video1?.Path,
-                    Video2Path = restrict ? null: media.Video.ProcessedVideo2?.Path != null ? media.Video.ProcessedVideo2.Path : media.Video.Video2?.Path,
+                    Video2Path = restrict ? null : media.Video.ProcessedVideo2?.Path != null ? media.Video.ProcessedVideo2.Path : media.Video.Video2?.Path,
                     ASLPath = media.Video.ASLVideo?.Path,
-                    TaskLog = media.Video.TaskLog
+                    TaskLog = media.Video.TaskLog,
+                    FlashData = media.Video.HasFlashDetectionData()
+                        ? (await _context.TextData.FindAsync(media.Video.FlashDetectionDataId)).Text : null                    
+            
+                    
                 },
                 WatchHistory = user != null ? media.WatchHistories.Where(w => w.ApplicationUserId == user.Id).FirstOrDefault() : null
             };
