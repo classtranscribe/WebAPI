@@ -15,7 +15,7 @@ decorator==5.1.1
 ffmpy==0.3.1
 grpcio==1.60.0
 grpcio-tools==1.60.0
-idna==3.6
+idna==3.7
 KalturaApiClient==19.3.0
 lxml==5.1.0
 parso==0.8.3
