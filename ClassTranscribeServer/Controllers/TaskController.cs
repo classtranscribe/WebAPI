@@ -67,6 +67,40 @@ namespace ClassTranscribeServer.Controllers
             await _context.SaveChangesAsync();
             return Ok();
         }
+
+        [HttpPost("UpdateFlashData")]
+        [DisableRequestSizeLimit]
+        //Future: [Authorize(Roles = Globals.ROLE_MEDIA_WORKER + "," + Globals.ROLE_ADMIN)]
+        public async Task<ActionResult> UpdateFlashData(string videoId,  JObject flashData)
+        {
+            // TODO: actually implement this
+            // do this stuff =>
+            // get media id, find mediaAsync, set mediacontroller option 'flashwarning' to 3 (detected flash) or 1 (detected no flash)
+            // no need to actually do anything
+            // database fields: flashdetectionstatus, flashdetection dataid, flashdetection hasrun
+
+            // string sceneAsString = scene.ToString(0);
+            // Video video = await _context.Videos.FindAsync(videoId);
+            // var existingScenes = video.HasSceneObjectData();
+
+
+            // TextData data;
+            // if (existingScenes)
+            // {
+            //     data = await _context.TextData.FindAsync(video.SceneObjectDataId);
+            //     data.Text = sceneAsString;
+            // } else
+            // {
+            //     data = new TextData() { Text = sceneAsString };
+            //     _context.TextData.Add(data);
+            //     video.SceneObjectDataId = data.Id;
+            //     Trace.Assert(!string.IsNullOrEmpty(data.Id));
+            // }
+
+            // createDescriptionsIfNone(video, data);
+            // await _context.SaveChangesAsync();
+            return Ok();
+        }
         private void createDescriptionsIfNone(Video v, TextData scenedata)
         {
             JArray scenes = scenedata.GetAsJSON()["Scenes"] as JArray;
