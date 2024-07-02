@@ -63,6 +63,8 @@ namespace ClassTranscribeServer.Controllers
                 Trace.Assert(!string.IsNullOrEmpty(data.Id));
             }
 
+            _l
+
             createDescriptionsIfNone(video, data);
             await _context.SaveChangesAsync();
             return Ok();
@@ -80,25 +82,25 @@ namespace ClassTranscribeServer.Controllers
             // database fields: flashdetectionstatus, flashdetection dataid, flashdetection hasrun
 
             // string sceneAsString = scene.ToString(0);
-            // Video video = await _context.Videos.FindAsync(videoId);
-            // var existingScenes = video.HasSceneObjectData();
+            Video video = await _context.Videos.FindAsync(videoId);
+            var existingFlashes = video.HasFlashDetectionData();
 
-
-            // TextData data;
-            // if (existingScenes)
-            // {
-            //     data = await _context.TextData.FindAsync(video.SceneObjectDataId);
-            //     data.Text = sceneAsString;
-            // } else
-            // {
-            //     data = new TextData() { Text = sceneAsString };
-            //     _context.TextData.Add(data);
-            //     video.SceneObjectDataId = data.Id;
-            //     Trace.Assert(!string.IsNullOrEmpty(data.Id));
-            // }
-
-            // createDescriptionsIfNone(video, data);
-            // await _context.SaveChangesAsync();
+            flashString = flashData.ToString(0);
+            TextData data;
+            if (existingFlashes)
+            {
+                data = await _context.TextData.FindAsync(video.FlashDetectionDataId);
+                data.Text = flashString;
+            } else
+            {
+                data = new TextData() { Text = flashString };
+                _context.TextData.Add(data);
+                video.FlashDetectionDataId = data.Id;
+                Trace.Assert(!string.IsNullOrEmpty(data.Id));
+            }
+            _logger.LogInformation($"{videoId}'s data is {data}");
+            // createFlashsIfNone(video, data);
+            await _context.SaveChangesAsync();
             return Ok();
         }
         private void createDescriptionsIfNone(Video v, TextData scenedata)
