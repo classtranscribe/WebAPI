@@ -91,6 +91,7 @@ namespace TaskEngine
                 .AddSingleton<PythonCrawlerTask>()
                 .AddSingleton<DescribeVideoTask>()
                 .AddSingleton<DescribeImageTask>()
+                .AddSingleton<FlashDetectionTask>()
                // .AddSingleton<UpdateBoxTokenTask>()
                 .AddSingleton<CreateBoxTokenTask>()
                 .AddSingleton<BuildElasticIndexTask>()
@@ -189,6 +190,9 @@ namespace TaskEngine
             // SceneDetection now handled by native Python
             //    See https://github.com/classtranscribe/pyapi
             _serviceProvider.GetService<SceneDetectionTask>().Consume(DISABLED_TASK);
+
+            // FlashDetection handled by native Python as well
+            _serviceProvider.GetSeervice<FlashDetectionTask>().Consume(DISABLED_TASK);
 
             // We dont want concurrency for these tasks
             _logger.LogInformation("Creating QueueAwakerTask and Box token tasks consumers.");
