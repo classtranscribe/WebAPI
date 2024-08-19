@@ -97,7 +97,7 @@ class KalturaProvider(MediaProvider):
         # generate token hash from ks + appToken
         tokenHash = hashlib.sha256(result.ks.encode('ascii')+appToken.encode('ascii')).hexdigest()
         # start an app token session
-        result = client.appToken.startSession( tokenId, tokenHash, '', '', expiry)
+        result = client.appToken.startSession( tokenId, tokenHash, '', KalturaSessionType.ADMIN, expiry)
         client.setKs(result.ks)
         return client,result.ks
     # Returns dict of Media information for a specific media
