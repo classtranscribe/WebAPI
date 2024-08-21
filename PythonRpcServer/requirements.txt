@@ -27,7 +27,7 @@ requests-toolbelt==1.0.0
 six==1.16.0
 tqdm==4.66.1
 traitlets==4.3.3
-urllib3==2.1.0
+urllib3==2.2.2
 wcwidth==0.2.13
 
 # Not versioned
