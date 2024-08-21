@@ -7,7 +7,7 @@
 protobuf==4.25.2 
 
 #Floowing Updated to latest 2024-1-17:
-certifi==2023.11.17
+certifi==2024.7.4
 backcall==0.2.0
 chardet==5.2.0
 click==8.1.7
@@ -15,19 +15,19 @@ decorator==5.1.1
 ffmpy==0.3.1
 grpcio==1.60.0
 grpcio-tools==1.60.0
-idna==3.6
+idna==3.7
 KalturaApiClient==19.3.0
 lxml==5.1.0
 parso==0.8.3
 pexpect==4.9.0
 pickleshare==0.7.5
 ptyprocess==0.7.0
-requests==2.31.0
+requests==2.32.2
 requests-toolbelt==1.0.0
 six==1.16.0
-tqdm==4.66.1
+tqdm==4.66.3
 traitlets==4.3.3
-urllib3==2.1.0
+urllib3==2.2.2
 wcwidth==0.2.13
 
 # Not versioned
