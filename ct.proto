@@ -21,16 +21,16 @@ service PythonServer {
   rpc ComputeFileHash (FileHashRequest) returns (FileHashResponse) {}
   rpc GetMediaInfoRPC(File) returns (JsonString) {}
 
-  rpc CaptionRPC(CaptionRequest) returns (JsonString) {} 
+  rpc TranscribeAudioRPC (TranscriptionRequest) returns (JsonString) {}
 }
 
-message CaptionRequest {
-  string logId = 1;
-  string filePath = 2;
-  string phraseHints = 3;
-  string courseHints = 4;
-  string outputLanguages = 5;
+message TranscriptionRequest {
+  string filePath = 1;  // Path to the audio/video file to be transcribed
+  string model = 2;      // Whisper model to use (e.g., 'base-en', 'tiny-en')
+  string language = 3;  //  Language in audio.
+  string logId = 4; 
 }
+
 
 // The request message containing the user's name.
 message JsonString {
@@ -40,7 +40,6 @@ message JsonString {
 // The response message containing the greetings.
 message PlaylistRequest {
   string Url = 1;
-
   int32 stream = 2;  
   JsonString metadata = 3;
 }
