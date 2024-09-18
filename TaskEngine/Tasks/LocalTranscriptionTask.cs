@@ -93,81 +93,83 @@ namespace TaskEngine.Tasks
 
                     GetLogger().LogInformation($"{videoId}: Calling RecognitionWithVideoStreamAsync");
                     
-                    var request = new CTGrpc.CaptionRequest
+                    var request = new CTGrpc.TranscriptionRequest
                     {
                         LogId = videoId,
                         FilePath = video.Video1.VMPath,
-                        PhraseHints = phraseHints,
-                        CourseHints = "",
-                        OutputLanguages = "en"
+                        Model = "en",
+                        Language = "en"
+                        // PhraseHints = phraseHints,
+                        // CourseHints = "",
+                        // OutputLanguages = "en"
                     };
                     var jsonString = "";
                     try {
-                        jsonString = (await _rpcClient.PythonServerClient.CaptionRPCAsync(request)).Json;
+                        jsonString = (await _rpcClient.PythonServerClient.TranscribeAudioRPCAsync(request)).Json;
                      }
                     catch (RpcException e)
                     {
                         if (e.Status.StatusCode == StatusCode.InvalidArgument)
                         {
-                            GetLogger().LogError($"CaptionRPC=({videoId}):{e.Message}");
+                            GetLogger().LogError($"TranscribeAudioRPCAsync=({videoId}):{e.Message}");
                         }
                         return;
                     } finally {
-                        GetLogger().LogInformation($"{videoId} Caption - rpc complete");
+                        GetLogger().LogInformation($"{videoId} Transcribe - rpc complete");
                         TaskEngineGlobals.KeyProvider.ReleaseKey(key, video.Id);
                     }
-                    JArray jArray = JArray.Parse(jsonString);
+                    
+                    JObject jObject = JObject.Parse(jsonString);
+                    // JArray jArray = JArray.Parse(jsonString);
+                    var theLanguage = jObject["result"]["language"].ToString(Newtonsoft.Json.Formatting.None);
+                    var theCaptionsAsJson = jObject["transcription"];
 
-                    foreach (var captionsInLanguage in jArray)
-                    {
-                        var theLanguage = captionsInLanguage["Lang"].ToString(Newtonsoft.Json.Formatting.None);
-                        var theCaptionsAsJson = captionsInLanguage["Captions"];
-
-                        var theCaptions = new List<Caption>();
-                        int cueCount = 0;
-                        // Fix the next line of code
+                    var theCaptions = new List<Caption>();
+                    int cueCount = 0; 
                         
-                        foreach (var jsonCue in theCaptionsAsJson) {
-                            var caption = new Caption() {
-                                Index  = cueCount ++,
-                                Begin = TimeSpan.Parse(jsonCue["start"].ToString(Newtonsoft.Json.Formatting.None)),
-                                End = TimeSpan.Parse(jsonCue["end"].ToString(Newtonsoft.Json.Formatting.None)) ,
-                                Text = jsonCue["text"] .ToString(Newtonsoft.Json.Formatting.None)
-                            };
+                    foreach (var jsonCue in theCaptionsAsJson) {
+                        var caption = new Caption() {
+                            Index  = cueCount ++,
+                            Begin = TimeSpan.Parse(jsonCue["timestamps"]["from"].ToString(Newtonsoft.Json.Formatting.None)),
+                            End = TimeSpan.Parse(jsonCue["timestamps"]["to"].ToString(Newtonsoft.Json.Formatting.None)) ,
+                            Text = jsonCue["text"] .ToString(Newtonsoft.Json.Formatting.None)
+                        };
 
-                            theCaptions.Add(caption);
-                        }
-                        if (theCaptions.Count > 0)
+                        theCaptions.Add(caption);
+                    }
+                    if (theCaptions.Count > 0)
+                    {
+                        GetLogger().LogInformation($"{videoId}: Created {theCaptions.Count} captions objects"); 
+
+                        var t = _context.Transcriptions.SingleOrDefault(t => t.VideoId == video.Id && t.SourceInternalRef == SOURCEINTERNALREF && t.Language == theLanguage && t.TranscriptionType == TranscriptionType.Caption);
+                        GetLogger().LogInformation($"Find Existing Transcriptions null={t == null}");
+                        // Did we get the default or an existing Transcription entity?
+                        if (t == null)
                         {
-                            
-                            var t = _context.Transcriptions.SingleOrDefault(t => t.VideoId == video.Id && t.SourceInternalRef == SOURCEINTERNALREF && t.Language == theLanguage && t.TranscriptionType == TranscriptionType.Caption);
-                            GetLogger().LogInformation($"Find Existing Transcriptions null={t == null}");
-                            // Did we get the default or an existing Transcription entity?
-                            if (t == null)
+                            t = new Transcription()
                             {
-                                t = new Transcription()
-                                {
-                                    TranscriptionType = TranscriptionType.Caption,
-                                    Captions = theCaptions,
-                                    Language = theLanguage,
-                                    VideoId = video.Id,
-                                    Label = $"{theLanguage} (ClassTranscribe)",
-                                    SourceInternalRef = SOURCEINTERNALREF, // 
-                                    SourceLabel = "ClassTranscribe (Local" + (phraseHints.Length>0 ?" with phrase hints)" : ")")
-                                };
-                                _context.Add(t);
-                            }
-                            else
-                            {
-                                t.Captions.AddRange(theCaptions);
-                            }
+                                TranscriptionType = TranscriptionType.Caption,
+                                Captions = theCaptions,
+                                Language = theLanguage,
+                                VideoId = video.Id,
+                                Label = $"{theLanguage} (ClassTranscribe)",
+                                SourceInternalRef = SOURCEINTERNALREF, // 
+                                SourceLabel = "ClassTranscribe (Local" + (phraseHints.Length>0 ?" with phrase hints)" : ")")
+                                // Todo store the entire Whisper result here
+                            };
+                            _context.Add(t);
+                        }
+                        else
+                        {
+                            t.Captions.AddRange(theCaptions);
                         }
                     }
+                    
 
                     video.TranscriptionStatus = "NoError";
                     // video.JsonMetadata["LastSuccessfulTime"] = result.LastSuccessTime.ToString();
 
-                    // GetLogger().LogInformation($"{videoId}: Saving captions Code={result.ErrorCode}. LastSuccessTime={result.LastSuccessTime}"); 
+                    GetLogger().LogInformation($"{videoId}: Saving captions"); 
                     await _context.SaveChangesAsync();                     
                 }
                 catch (Exception ex)
