@@ -81,7 +81,8 @@ namespace TaskEngine
                 .AddSingleton<DownloadPlaylistInfoTask>()
                 .AddSingleton<DownloadMediaTask>()
                 .AddSingleton<ConvertVideoToWavTask>()
-                .AddSingleton<TranscriptionTask>()
+                .AddSingleton<LocalTranscriptionTask>()
+                .AddSingleton<AzureTranscriptionTask>()
                 .AddSingleton<QueueAwakerTask>()
                 // .AddSingleton<GenerateVTTFileTask>()
                 .AddSingleton<RpcClient>()
@@ -175,7 +176,7 @@ namespace TaskEngine
             // Transcription Related
             _logger.LogInformation($"Creating TranscriptionTask consumers. Concurrency={concurrent_transcriptions} ");
 
-            _serviceProvider.GetService<TranscriptionTask>().Consume(concurrent_transcriptions);
+            _serviceProvider.GetService<LocalTranscriptionTask>().Consume(concurrent_transcriptions);
 
             // no more! - _serviceProvider.GetService<GenerateVTTFileTask>().Consume(concurrent_transcriptions);
 

@@ -41,6 +41,15 @@ def LogWorker(logId, worker):
 
 
 class PythonServerServicer(ct_pb2_grpc.PythonServerServicer):
+    def CaptionRPC(self, request, context):
+        #See CaptionRequest
+        print( f"CaptionRPC({request.logId};{request.refId};{request.filePath};{request.phraseHints};{request.courseHints};{request.outputLanguages})")
+        kalturaprovider = KalturaProvider()
+        result = LogWorker(f"CaptionRPC({request.filePath})", lambda: kalturaprovider.getCaptions(request.refId))
+        return  ct_pb2.JsonString(json = result)
+
+
+
     def GetScenesRPC(self, request, context):
         raise NotImplementedError('Implementation now in pyapi')
 #        res = scenedetector.find_scenes(request.filePath)
