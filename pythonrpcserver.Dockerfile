@@ -17,9 +17,11 @@
         apt-get install -y curl gcc g++ make libglib2.0-0 libsm6 libxext6 libxrender-dev ffmpeg
     
     ENV OMP_THREAD_LIMIT=1
-    COPY --from=whisperbuild /whisper.cpp/main /usr/local/bin/whisper
-    COPY --from=whisperbuild /whisper.cpp/models/ggml-base.en.bin /usr/local/bin/models/ggml-base.en.bin
+
     WORKDIR /PythonRpcServer
+
+    COPY --from=whisperbuild /whisper.cpp/main /PythonRpcServer/main
+    COPY --from=whisperbuild /whisper.cpp/models /PythonRpcServer/models
     
     COPY ./PythonRpcServer/requirements.txt requirements.txt
     RUN pip install --no-cache-dir --upgrade pip && \
@@ -28,9 +30,7 @@
     COPY ct.proto ct.proto
     RUN python -m grpc_tools.protoc -I . --python_out=./ --grpc_python_out=./ ct.proto
     
-    COPY ./PythonRpcServer .
-    
+    COPY ./PythonRpcServer . 
+    COPY /sharedVolume /PythonRpcServer/sharedVolume
+
     CMD [ "nice", "-n", "18", "ionice", "-c", "2", "-n", "6", "python3", "-u", "/PythonRpcServer/server.py" ]
-    
-    
-    

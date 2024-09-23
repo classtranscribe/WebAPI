@@ -1,4 +1,4 @@
-from __future__ import print_function
+from __future__ import print_function   
 
 import ct_pb2
 import ct_pb2_grpc
@@ -41,12 +41,12 @@ def LogWorker(logId, worker):
 
 
 class PythonServerServicer(ct_pb2_grpc.PythonServerServicer):
-    def CaptionRPC(self, request, context):
-        #See CaptionRequest
-        print( f"CaptionRPC({request.logId};{request.refId};{request.filePath};{request.phraseHints};{request.courseHints};{request.outputLanguages})")
-        kalturaprovider = KalturaProvider()
-        result = LogWorker(f"CaptionRPC({request.filePath})", lambda: kalturaprovider.getCaptions(request.refId))
-        return  ct_pb2.JsonString(json = result)
+    def TranscribeAudioRPC(self, request, context):
+        file_path = request.file_path
+        model = request.model or 'base-en'  
+        transcription_result = transcribe.transcribe_audio(file_path)
+        json_result = json.dumps(transcription_result)
+        return ct_pb2.JsonString(json=json_result)
 
 
 
