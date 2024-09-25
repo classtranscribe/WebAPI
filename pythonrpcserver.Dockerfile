@@ -8,6 +8,8 @@
     WORKDIR /whisper.cpp
     RUN git clone https://github.com/ggerganov/whisper.cpp . && make
     RUN bash ./models/download-ggml-model.sh base.en
+    RUN bash ./models/download-ggml-model.sh tiny.en
+    RUN bash ./models/download-ggml-model.sh large-v3
     
 # ------------------------------
 # Stage 2: Setup Python RPC Server
@@ -18,7 +20,7 @@
     
     ENV OMP_THREAD_LIMIT=1
     COPY --from=whisperbuild /whisper.cpp/main /usr/local/bin/whisper
-    COPY --from=whisperbuild /whisper.cpp/models/ggml-base.en.bin /usr/local/bin/models/ggml-base.en.bin
+    COPY --from=whisperbuild /whisper.cpp/models /PythonRpcServer/models
     WORKDIR /PythonRpcServer
     
     COPY ./PythonRpcServer/requirements.txt requirements.txt
