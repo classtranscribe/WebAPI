@@ -130,8 +130,8 @@ namespace TaskEngine.Tasks
                     foreach (var jsonCue in theCaptionsAsJson) { 
                         var caption = new Caption() {
                             Index  = cueCount ++,
-                            Begin = TimeSpan.Parse(jsonCue["timestamps"]["from"].ToString(Newtonsoft.Json.Formatting.None).replace(",",".")),
-                            End = TimeSpan.Parse(jsonCue["timestamps"]["to"].ToString(Newtonsoft.Json.Formatting.None).replace(",",".")) ,
+                            Begin = TimeSpan.Parse(jsonCue["timestamps"]["from"].ToString(Newtonsoft.Json.Formatting.None).Replace(",",".")),
+                            End = TimeSpan.Parse(jsonCue["timestamps"]["to"].ToString(Newtonsoft.Json.Formatting.None).Replace(",",".")) ,
                             Text = jsonCue["text"] .ToString(Newtonsoft.Json.Formatting.None).Trim()
                         };
 
