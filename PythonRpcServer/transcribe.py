@@ -1,57 +1,55 @@
-import subprocess
 import os
+import subprocess
 import json
-import re
 
-def transcribe_audio_with_whisper(audio_file_path):
-    if not os.path.exists(audio_file_path):
-        raise FileNotFoundError(f"Audio file {audio_file_path} does not exist.")
+# Path to the Whisper executable inside the container
+WHISPER_EXECUTABLE = './main'  # Executable 'main' is assumed to be in the same directory as this script
+
+def transcribe_audio(media_filepath):
+    # Ensure the media file exists
+    if not os.path.exists(media_filepath):
+        raise FileNotFoundError(f"Media file not found: {media_filepath}")
+
+    # Path to the output JSON file that Whisper will generate
+    json_output_path = f"{media_filepath}.json"
     
-    command = [
-        "whisper",
-        audio_file_path,
-        "--model", "base.en",
-        "--output_format", "json"
+    # Command to run Whisper.cpp inside the container using the main executable
+    whisper_command = [
+        WHISPER_EXECUTABLE,                  # Path to Whisper executable
+        '-ojf',                              # Output as JSON file
+        '-f', media_filepath                 # Media file path
     ]
 
-    try:
-        result = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, check=True)
-
-        print("Whisper Output:")
-        print(result.stdout)
-
-        formatted_data = {"en": []}
-        
-        segments = result.stdout.strip().split('\n\n')
-        for segment in segments:
-            match = re.search(r'\[(\d+:\d+\.\d+)\s+-->\s+(\d+:\d+\.\d+)\]\s+(.*)', segment)
-            if match:
-                start_time = match.group(1)
-                end_time = match.group(2)
-                text = match.group(3).strip()
-
-                formatted_data["en"].append({
-                    "starttime": start_time,
-                    "endtime": end_time,
-                    "caption": text
-                })
-
-        return formatted_data
-
-    except subprocess.CalledProcessError as e:
-        print(f"Error during transcription: {e.stderr}")
-        return None
+    print("Running Whisper transcription inside the container...")
     
+    # Execute the Whisper command
+    result = subprocess.run(whisper_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+    # Handle command failure
+    if result.returncode != 0:
+        raise Exception(f"Whisper failed with error:\n{result.stderr.decode('utf-8')}")
+
+    # Check if the output JSON file was generated
+    if not os.path.exists(json_output_path):
+        raise FileNotFoundError(f"Expected JSON output file not found: {json_output_path}")
+
+    # Load the JSON transcription result
+    with open(json_output_path, 'r') as json_file:
+        transcription_result = json.load(json_file)
+    
+    # Delete the JSON file after reading it
+    os.remove(json_output_path)
+    print(f"Deleted the JSON file: {json_output_path}")
+
+    return transcription_result
+
+# Example usage
+if __name__ == '__main__':
+    # Example media file path inside the container (the actual path will depend on where the file is located)
+    audio_filepath = 'sharedVolume/recording0.wav'  # Update this path as needed
+    
+    try:
+        transcription_result = transcribe_audio(audio_filepath)
+        print("Transcription Result:", json.dumps(transcription_result, indent=4))
     except Exception as e:
-        print(f"An unexpected error occurred: {e}")
-        return None
-
-if __name__ == "__main__":
-    audio_file = "randomvoice_16kHz.wav"
-
-    transcription = transcribe_audio_with_whisper(audio_file)
-
-    if transcription:
-        print(json.dumps(transcription, indent=4))
-    else:
-        print("Transcription failed.")
+        print(f"Error: {str(e)}")
