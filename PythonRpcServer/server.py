@@ -41,6 +41,9 @@ def LogWorker(logId, worker):
 
 
 class PythonServerServicer(ct_pb2_grpc.PythonServerServicer):
+    # Transcribe it into a json string from the transcribe text
+    # Make it returns a json string
+    # change name to TranscribeRPC
     def CaptionRPC(self, request, context):
         #See CaptionRequest
         print( f"CaptionRPC({request.logId};{request.refId};{request.filePath};{request.phraseHints};{request.courseHints};{request.outputLanguages})")
