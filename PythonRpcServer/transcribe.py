@@ -8,7 +8,7 @@ MODEL = os.environ.get('WHISPER_MODEL','models/ggml-base.en.bin')
 
 def transcribe_audio(media_filepath):
 
-    if media_filepath == 'EXAMPLE_TRANSCRIBE_EXAMPLE_RESULT':
+    if media_filepath == 'TEST-transcribe_example_result':
         result_json_file = 'transcribe_example_result.json'
         with open(result_json_file, 'r') as json_file:
             transcription_result = json.load(json_file)
@@ -57,7 +57,11 @@ def transcribe_audio(media_filepath):
 # Example usage
 if __name__ == '__main__':
     # Example media file path inside the container (the actual path will depend on where the file is located)
-    audio_filepath = 'sharedVolume/recording0.wav'  # Update this path as needed
+    import sys
+    if len(sys.argv) > 1:
+        audio_filepath = sys.argv[1]
+    else:
+        audio_filepath = 'sharedVolume/recording0.wav'  # Update this path as needed
     
     try:
         transcription_result = transcribe_audio(audio_filepath)
