@@ -1,1 +1,0 @@
-{"text": " Hello? Hello? Hello?", "segments": [{"id": 0, "seek": 0, "start": 0.0, "end": 3.0, "text": " Hello? Hello? Hello?", "tokens": [50363, 18435, 30, 18435, 30, 18435, 30, 50513], "temperature": 0.0, "avg_logprob": -0.636968559688992, "compression_ratio": 1.1764705882352942, "no_speech_prob": 0.22877301275730133}], "language": "en"}

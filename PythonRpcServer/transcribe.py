@@ -3,21 +3,32 @@ import subprocess
 import json
 
 # Path to the Whisper executable inside the container
-WHISPER_EXECUTABLE = './main'  # Executable 'main' is assumed to be in the same directory as this script
+WHISPER_EXECUTABLE = os.environ.get('WHISPER_EXE','whisper')  # Executable 'main' is assumed to be in the same directory as this script
+MODEL = os.environ.get('WHISPER_MODEL','models/ggml-base.en.bin')
 
 def transcribe_audio(media_filepath):
+
+    if media_filepath == 'EXAMPLE_TRANSCRIBE_EXAMPLE_RESULT':
+        result_json_file = 'transcribe_example_result.json'
+        with open(result_json_file, 'r') as json_file:
+            transcription_result = json.load(json_file)
+        return transcription_result
+
     # Ensure the media file exists
     if not os.path.exists(media_filepath):
         raise FileNotFoundError(f"Media file not found: {media_filepath}")
 
     # Path to the output JSON file that Whisper will generate
     json_output_path = f"{media_filepath}.json"
-    
+    if os.path.exists(media_filepath):
+        os.remove(json_output_path)
+     
     # Command to run Whisper.cpp inside the container using the main executable
     whisper_command = [
         WHISPER_EXECUTABLE,                  # Path to Whisper executable
         '-ojf',                              # Output as JSON file
-        '-f', media_filepath                 # Media file path
+        '-f', media_filepath,                 # Media file path
+        '-m', MODEL
     ]
 
     print("Running Whisper transcription inside the container...")
