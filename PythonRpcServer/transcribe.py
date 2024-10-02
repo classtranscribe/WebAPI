@@ -9,7 +9,7 @@ MODEL = os.environ.get('WHISPER_MODEL','models/ggml-base.en.bin')
 def transcribe_audio(media_filepath):
 
     if media_filepath == 'TEST-transcribe_example_result':
-        result_json_file = 'transcribe_example_result.json'
+        result_json_file = 'transcribe_exampleffmp_result.json'
         with open(result_json_file, 'r') as json_file:
             transcription_result = json.load(json_file)
         return transcription_result
@@ -20,7 +20,7 @@ def transcribe_audio(media_filepath):
 
     # Path to the output JSON file that Whisper will generate
     json_output_path = f"{media_filepath}.json"
-    if os.path.exists(media_filepath):
+    if os.path.exists(json_output_path):
         os.remove(json_output_path)
      
     # Command to run Whisper.cpp inside the container using the main executable
