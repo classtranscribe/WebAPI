@@ -404,7 +404,7 @@ namespace TaskEngine.Tasks
             else if (type == TaskType.TranscribeVideo.ToString())
             {
                 var id = jObject["videoOrMediaId"].ToString();
-
+                
 
                 GetLogger().LogInformation($"{type}:{id}");
                 var video = await _context.Videos.FindAsync(id);

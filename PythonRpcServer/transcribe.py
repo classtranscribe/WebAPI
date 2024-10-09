@@ -38,8 +38,18 @@ def convert_video_to_wav(input_filepath, offset=None):
         print("Exception during conversion:" + str(e))
         raise e
 
-def transcribe_audio(media_filepath):
+def transcribe_audio(media_filepath, testing=False):
+    if testing:
+        json_output_path = f"/PythonRpcServer/transcribe_hellohellohello.wav.json"
+        with open(json_output_path, 'r') as json_file:
+            transcription_result = json.load(json_file)
+        
+        # Print the transcription result (testing purpose)
+        print("Transcription result:")
+        print(json.dumps(transcription_result, indent=4))
 
+        return transcription_result
+    
     if media_filepath == 'TEST-transcribe_example_result':
         result_json_file = 'transcribe_exampleffmp_result.json'
         with open(result_json_file, 'r') as json_file:
@@ -51,8 +61,10 @@ def transcribe_audio(media_filepath):
         raise FileNotFoundError(f"Media file not found: {media_filepath}")
 
     # convert video to wav if needed
+    wav_created = False  # Track if WAV was created
     if not media_filepath.endswith('.wav'):
         media_filepath, _ = convert_video_to_wav(media_filepath)
+        wav_created = True  # WAV file was created
 
 
     # Path to the output JSON file that Whisper will generate
@@ -87,26 +99,27 @@ def transcribe_audio(media_filepath):
         transcription_result = json.load(json_file)
     
     # Print the transcription result (testing purpose)
-    # print("Transcription result:")
-    # print(json.dumps(transcription_result, indent=4))
+    print("Transcription result:")
+    print(json.dumps(transcription_result, indent=4))
 
     # Delete the JSON file after reading it
     os.remove(json_output_path)
     print(f"Deleted the JSON file: {json_output_path}")
+
+    if wav_created:
+        try:
+            os.remove(media_filepath)
+            print(f"Deleted the WAV file: {media_filepath}")
+        except Exception as e:
+            print(f"Error deleting WAV file: {str(e)}")
 
     return transcription_result
 
 # Example usage
 if __name__ == '__main__':
     # Example media file path inside the container (the actual path will depend on where the file is located)
-    import sys
-    if len(sys.argv) > 1:
-        audio_filepath = sys.argv[1]
-    else:
-        audio_filepath = 'sharedVolume/recording0.wav'  # Update this path as needed
-    
-    try:
-        transcription_result = transcribe_audio(audio_filepath)
-        print("Transcription Result:", json.dumps(transcription_result, indent=4))
-    except Exception as e:
-        print(f"Error: {str(e)}")
+    json_output_path = f"/PythonRpcServer/transcribe_hellohellohello.wav.json"
+    with open(json_output_path, 'r') as json_file:
+        transcription_result = json.load(json_file)
+        
+    print("Transcription Result:", json.dumps(transcription_result, indent=4))

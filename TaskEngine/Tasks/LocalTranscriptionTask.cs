@@ -98,7 +98,8 @@ namespace TaskEngine.Tasks
                         LogId = videoId,
                         FilePath = video.Video1.VMPath,
                         Model = "en",
-                        Language = "en"
+                        Language = "en",
+                        Testing = true
                         // PhraseHints = phraseHints,
                         // CourseHints = "",
                         // OutputLanguages = "en"
