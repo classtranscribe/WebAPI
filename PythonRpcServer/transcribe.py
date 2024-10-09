@@ -123,3 +123,4 @@ if __name__ == '__main__':
         transcription_result = json.load(json_file)
         
     print("Transcription Result:", json.dumps(transcription_result, indent=4))
+    
