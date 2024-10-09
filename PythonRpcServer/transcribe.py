@@ -86,6 +86,10 @@ def transcribe_audio(media_filepath):
     with open(json_output_path, 'r') as json_file:
         transcription_result = json.load(json_file)
     
+    # Print the transcription result (testing purpose)
+    # print("Transcription result:")
+    # print(json.dumps(transcription_result, indent=4))
+
     # Delete the JSON file after reading it
     os.remove(json_output_path)
     print(f"Deleted the JSON file: {json_output_path}")
