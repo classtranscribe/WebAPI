@@ -22,7 +22,7 @@ namespace TaskEngine.Tasks
         private readonly DownloadPlaylistInfoTask _downloadPlaylistInfoTask;
         private readonly DownloadMediaTask _downloadMediaTask;
         // private readonly ConvertVideoToWavTask _convertVideoToWavTask;
-        private readonly TranscriptionTask _transcriptionTask;
+        private readonly LocalTranscriptionTask _transcriptionTask;
         // nope private readonly GenerateVTTFileTask _generateVTTFileTask;
         private readonly ProcessVideoTask _processVideoTask;
         private readonly SceneDetectionTask _sceneDetectionTask;
@@ -39,7 +39,7 @@ namespace TaskEngine.Tasks
 
         public QueueAwakerTask(RabbitMQConnection rabbitMQ, DownloadPlaylistInfoTask downloadPlaylistInfoTask,
             DownloadMediaTask downloadMediaTask,
-            TranscriptionTask transcriptionTask, ProcessVideoTask processVideoTask,
+            LocalTranscriptionTask transcriptionTask, ProcessVideoTask processVideoTask,
             // GenerateVTTFileTask generateVTTFileTask, 
             SceneDetectionTask sceneDetectionTask,
             CreateBoxTokenTask createBoxTokenTask,// UpdateBoxTokenTask updateBoxTokenTask,
@@ -404,7 +404,7 @@ namespace TaskEngine.Tasks
             else if (type == TaskType.TranscribeVideo.ToString())
             {
                 var id = jObject["videoOrMediaId"].ToString();
-
+                
 
                 GetLogger().LogInformation($"{type}:{id}");
                 var video = await _context.Videos.FindAsync(id);

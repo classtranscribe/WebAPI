@@ -21,7 +21,7 @@ namespace TaskEngine.Tasks
     /// This task produces the transcriptions for a Video item.
     /// </summary>
     [SuppressMessage("Microsoft.Performance", "CA1812:MarkMembersAsStatic")] // This class is never directly instantiated
-    class TranscriptionTask : RabbitMQTask<string>
+    class AzureTranscriptionTask : RabbitMQTask<string>
     {
        
         private readonly MSTranscriptionService _msTranscriptionService;
@@ -29,9 +29,9 @@ namespace TaskEngine.Tasks
         private readonly CaptionQueries _captionQueries;
 
 
-        public TranscriptionTask(RabbitMQConnection rabbitMQ, MSTranscriptionService msTranscriptionService,
+        public AzureTranscriptionTask(RabbitMQConnection rabbitMQ, MSTranscriptionService msTranscriptionService,
             // GenerateVTTFileTask generateVTTFileTask, 
-            ILogger<TranscriptionTask> logger, CaptionQueries captionQueries)
+            ILogger<AzureTranscriptionTask> logger, CaptionQueries captionQueries)
             : base(rabbitMQ, TaskType.TranscribeVideo, logger)
         {
             _msTranscriptionService = msTranscriptionService;

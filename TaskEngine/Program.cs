@@ -81,7 +81,8 @@ namespace TaskEngine
                 .AddSingleton<DownloadPlaylistInfoTask>()
                 .AddSingleton<DownloadMediaTask>()
                 .AddSingleton<ConvertVideoToWavTask>()
-                .AddSingleton<TranscriptionTask>()
+                .AddSingleton<LocalTranscriptionTask>()
+                .AddSingleton<AzureTranscriptionTask>()
                 .AddSingleton<QueueAwakerTask>()
                 // .AddSingleton<GenerateVTTFileTask>()
                 .AddSingleton<RpcClient>()
@@ -132,21 +133,37 @@ namespace TaskEngine
             _logger.LogInformation("Pausing {0} minutes before first periodicCheck", initialPauseInterval);
 
             // Thread.Sleep(initialPauseInterval);
-            Task.Delay(initialPauseInterval).Wait();
+            // Task.Delay(initialPauseInterval).Wait();
             // Check for new tasks every "timeInterval".
             // The periodic check will discover all undone tasks
             // TODO/REVIEW: However some tasks also publish the next items
             while (true)
             {
+                // try {
+                //     _logger.LogInformation("Periodic Check");
+                //     queueAwakerTask.Publish(new JObject
+                //     {
+                //         { "Type", TaskType.PeriodicCheck.ToString() }
+                //     });
+                // } catch (Exception e) {
+                //     _logger.LogError(e, "Error in Periodic Check");
+                // }
+
                 try {
-                    _logger.LogInformation("Periodic Check");
+                    var videoId = "ddceb720-a9d6-417d-b5ea-e94c6c0a86c6";
+                    _logger.LogInformation("Transcription Task Initiated");
                     queueAwakerTask.Publish(new JObject
                     {
-                        { "Type", TaskType.PeriodicCheck.ToString() }
+                        { "Type", TaskType.TranscribeVideo.ToString() },
+                        { "videoOrMediaId", videoId }
                     });
+
+                    _logger.LogInformation("Transcription Task Published Successfully");
                 } catch (Exception e) {
-                    _logger.LogError(e, "Error in Periodic Check");
+                    _logger.LogError(e, "Error in Transcription Task");
                 }
+
+
                 // Thread.Sleep(timeInterval);
                 Task.Delay(timeInterval).Wait();
                  _logger.LogInformation("Pausing {0} minutes before next periodicCheck", periodicCheck);
@@ -175,7 +192,7 @@ namespace TaskEngine
             // Transcription Related
             _logger.LogInformation($"Creating TranscriptionTask consumers. Concurrency={concurrent_transcriptions} ");
 
-            _serviceProvider.GetService<TranscriptionTask>().Consume(concurrent_transcriptions);
+            _serviceProvider.GetService<LocalTranscriptionTask>().Consume(concurrent_transcriptions);
 
             // no more! - _serviceProvider.GetService<GenerateVTTFileTask>().Consume(concurrent_transcriptions);
 

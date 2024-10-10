@@ -1,6 +1,8 @@
 FROM mcr.microsoft.com/dotnet/sdk:8.0-bookworm-slim as build
 # See https://mcr.microsoft.com/en-us/product/dotnet/sdk/tags
 #See more comments in API.Dockerfile
+# RUN ls
+RUN dotnet --list-sdks
 
 WORKDIR /
 RUN git clone https://github.com/eficode/wait-for.git
@@ -8,6 +10,8 @@ RUN git clone https://github.com/eficode/wait-for.git
 WORKDIR /src
 COPY ./ClassTranscribeDatabase/ClassTranscribeDatabase.csproj ./ClassTranscribeDatabase/ClassTranscribeDatabase.csproj
 # --verbosity normal|diagnostic
+
+
 RUN dotnet restore --verbosity diagnostic ./ClassTranscribeDatabase/ClassTranscribeDatabase.csproj
 
 COPY ./TaskEngine/TaskEngine.csproj ./TaskEngine/TaskEngine.csproj
