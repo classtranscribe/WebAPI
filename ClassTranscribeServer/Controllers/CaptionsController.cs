@@ -99,8 +99,8 @@ namespace ClassTranscribeServer.Controllers
             }
             Caption newCaption = new Caption
             {
-                Begin = oldCaption.Begin,
-                End = oldCaption.End,
+                Begin = modifiedCaption.Begin,
+                End = modifiedCaption.End,
                 Index = oldCaption.Index,
                 CaptionType = oldCaption.CaptionType,
                 Text = modifiedCaption.Text,
