@@ -31,6 +31,8 @@
     RUN python -m grpc_tools.protoc -I . --python_out=./ --grpc_python_out=./ ct.proto
     
     COPY ./PythonRpcServer .
+
+    RUN whisper -ojf -f transcribe_hellohellohello.wav
     
     CMD [ "nice", "-n", "18", "ionice", "-c", "2", "-n", "6", "python3", "-u", "/PythonRpcServer/server.py" ]
     

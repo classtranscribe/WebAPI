@@ -38,8 +38,18 @@ def convert_video_to_wav(input_filepath, offset=None):
         print("Exception during conversion:" + str(e))
         raise e
 
-def transcribe_audio(media_filepath):
+def transcribe_audio(media_filepath, testing=False):
+    if testing:
+        json_output_path = f"/PythonRpcServer/transcribe_hellohellohello.wav.json"
+        with open(json_output_path, 'r') as json_file:
+            transcription_result = json.load(json_file)
+        
+        # Print the transcription result (testing purpose)
+        print("Transcription result:")
+        print(json.dumps(transcription_result, indent=4))
 
+        return transcription_result
+    
     if media_filepath == 'TEST-transcribe_example_result':
         result_json_file = 'transcribe_exampleffmp_result.json'
         with open(result_json_file, 'r') as json_file:
@@ -88,11 +98,14 @@ def transcribe_audio(media_filepath):
     with open(json_output_path, 'r') as json_file:
         transcription_result = json.load(json_file)
     
+    # Print the transcription result (testing purpose)
+    print("Transcription result:")
+    print(json.dumps(transcription_result, indent=4))
+
     # Delete the JSON file after reading it
     os.remove(json_output_path)
     print(f"Deleted the JSON file: {json_output_path}")
 
-    # Delete the WAV file if it was created
     if wav_created:
         try:
             os.remove(media_filepath)
@@ -105,14 +118,9 @@ def transcribe_audio(media_filepath):
 # Example usage
 if __name__ == '__main__':
     # Example media file path inside the container (the actual path will depend on where the file is located)
-    import sys
-    if len(sys.argv) > 1:
-        audio_filepath = sys.argv[1]
-    else:
-        audio_filepath = 'sharedVolume/recording0.wav'  # Update this path as needed
+    json_output_path = f"/PythonRpcServer/transcribe_hellohellohello.wav.json"
+    with open(json_output_path, 'r') as json_file:
+        transcription_result = json.load(json_file)
+        
+    print("Transcription Result:", json.dumps(transcription_result, indent=4))
     
-    try:
-        transcription_result = transcribe_audio(audio_filepath)
-        print("Transcription Result:", json.dumps(transcription_result, indent=4))
-    except Exception as e:
-        print(f"Error: {str(e)}")

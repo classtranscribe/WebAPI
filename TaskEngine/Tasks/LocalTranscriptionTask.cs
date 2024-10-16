@@ -98,7 +98,8 @@ namespace TaskEngine.Tasks
                         LogId = videoId,
                         FilePath = video.Video1.VMPath,
                         Model = "en",
-                        Language = "en"
+                        Language = "en",
+                        Testing = true
                         // PhraseHints = phraseHints,
                         // CourseHints = "",
                         // OutputLanguages = "en"
@@ -128,11 +129,21 @@ namespace TaskEngine.Tasks
                     int cueCount = 0; 
                         
                     foreach (var jsonCue in theCaptionsAsJson) { 
+                        // var caption = new Caption() {
+                        //     Index  = cueCount ++,
+                        //     Begin = TimeSpan.Parse(jsonCue["timestamps"]["from"].ToString(Newtonsoft.Json.Formatting.None).Replace(",",".")),
+                        //     End = TimeSpan.Parse(jsonCue["timestamps"]["to"].ToString(Newtonsoft.Json.Formatting.None).Replace(",",".")) ,
+                        //     Text = jsonCue["text"] .ToString(Newtonsoft.Json.Formatting.None).Trim()
+                        // };
+                        var fromTimestamp = jsonCue["timestamps"]["from"].ToString().Replace(",", ".");
+                        var toTimestamp = jsonCue["timestamps"]["to"].ToString().Replace(",", ".");
+
+                        // Parse the timestamps directly
                         var caption = new Caption() {
-                            Index  = cueCount ++,
-                            Begin = TimeSpan.Parse(jsonCue["timestamps"]["from"].ToString(Newtonsoft.Json.Formatting.None).Replace(",",".")),
-                            End = TimeSpan.Parse(jsonCue["timestamps"]["to"].ToString(Newtonsoft.Json.Formatting.None).Replace(",",".")) ,
-                            Text = jsonCue["text"] .ToString(Newtonsoft.Json.Formatting.None).Trim()
+                            Index = cueCount++,
+                            Begin = TimeSpan.Parse(fromTimestamp), // Expecting "HH:mm:ss.fff"
+                            End = TimeSpan.Parse(toTimestamp),     // Expecting "HH:mm:ss.fff"
+                            Text = jsonCue["text"].ToString().Trim()
                         };
 
                         theCaptions.Add(caption);

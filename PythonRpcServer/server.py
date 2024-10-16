@@ -136,7 +136,7 @@ class PythonServerServicer(ct_pb2_grpc.PythonServerServicer):
             logging.info(f"Starting transcription for file: {request.filePath}")
             transcription_result = LogWorker(
                 f"TranscribeAudioRPC({request.filePath})",
-                lambda: transcribe_audio(request.filePath)
+                lambda: transcribe_audio(request.filePath, request.testing)
             )
             logging.info(f"Transcription completed successfully for: {request.filePath}")
             return ct_pb2.JsonString(json=json.dumps(transcription_result))

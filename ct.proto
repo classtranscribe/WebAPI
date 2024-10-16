@@ -29,6 +29,7 @@ message TranscriptionRequest {
   string model = 2;      // Whisper model to use (e.g., 'base-en', 'tiny-en')
   string language = 3;  //  Language in audio.
   string logId = 4; 
+  bool testing = 5;
 }
 
 
