@@ -139,29 +139,30 @@ namespace TaskEngine
             // TODO/REVIEW: However some tasks also publish the next items
             while (true)
             {
-                // try {
-                //     _logger.LogInformation("Periodic Check");
-                //     queueAwakerTask.Publish(new JObject
-                //     {
-                //         { "Type", TaskType.PeriodicCheck.ToString() }
-                //     });
-                // } catch (Exception e) {
-                //     _logger.LogError(e, "Error in Periodic Check");
-                // }
-
                 try {
-                    var videoId = "ddceb720-a9d6-417d-b5ea-e94c6c0a86c6";
-                    _logger.LogInformation("Transcription Task Initiated");
+                    _logger.LogInformation("Periodic Check");
                     queueAwakerTask.Publish(new JObject
                     {
-                        { "Type", TaskType.TranscribeVideo.ToString() },
-                        { "videoOrMediaId", videoId }
+                        { "Type", TaskType.PeriodicCheck.ToString() }
                     });
-
-                    _logger.LogInformation("Transcription Task Published Successfully");
                 } catch (Exception e) {
-                    _logger.LogError(e, "Error in Transcription Task");
+                    _logger.LogError(e, "Error in Periodic Check");
                 }
+
+                // Hacky testing...
+                // try {
+                //     var videoId = "ddceb720-a9d6-417d-b5ea-e94c6c0a86c6";
+                //     _logger.LogInformation("Transcription Task Initiated");
+                //     queueAwakerTask.Publish(new JObject
+                //     {
+                //         { "Type", TaskType.LocalTranscribeVideo.ToString() },
+                //         { "videoOrMediaId", videoId }
+                //     });
+
+                //     _logger.LogInformation("Transcription Task Published Successfully");
+                // } catch (Exception e) {
+                //     _logger.LogError(e, "Error in Transcription Task");
+                // }
 
 
                 // Thread.Sleep(timeInterval);
@@ -208,7 +209,7 @@ namespace TaskEngine
             _serviceProvider.GetService<SceneDetectionTask>().Consume(DISABLED_TASK);
 
             // We dont want concurrency for these tasks
-            _logger.LogInformation("Creating QueueAwakerTask and Box token tasks consumers.");
+            _logger.LogInformation("Creating QueueAwakerTask and Box token tasks consumers!");
             _serviceProvider.GetService<QueueAwakerTask>().Consume(NO_CONCURRENCY); //TODO TOREVIEW: NO_CONCURRENCY?
             // does nothing at the moment _serviceProvider.GetService<UpdateBoxTokenTask>().Consume(NO_CONCURRENCY);
             _serviceProvider.GetService<CreateBoxTokenTask>().Consume(NO_CONCURRENCY); // calls _box.CreateAccessTokenAsync(authCode);

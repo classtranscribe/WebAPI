@@ -401,7 +401,7 @@ namespace TaskEngine.Tasks
                 var sourceId = jObject["SourceId"].ToString();
                 _pythonCrawlerTask.Publish(sourceId);
             }
-            else if (type == TaskType.TranscribeVideo.ToString())
+            else if (type == TaskType.LocalTranscribeVideo.ToString())
             {
                 var id = jObject["videoOrMediaId"].ToString();
                 

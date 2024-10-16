@@ -152,7 +152,7 @@ def serve():
     # Until we can ensure no timeouts on remote services, the default here is set to a conservative low number
     # This is to ensure we can still make progress even if every python tasks tries to use all cpu cores.
     max_workers=int(os.getenv('NUM_PYTHON_WORKERS', 3))
-    print(f"max_workers={max_workers}")
+    print(f"max_workers={max_workers}. Starting up grpc server...")
 
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=max_workers))
     

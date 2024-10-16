@@ -36,7 +36,7 @@ namespace TaskEngine.Tasks
             RpcClient rpcClient,
             // GenerateVTTFileTask generateVTTFileTask, 
             ILogger<LocalTranscriptionTask> logger, CaptionQueries captionQueries)
-            : base(rabbitMQ, TaskType.TranscribeVideo, logger)
+            : base(rabbitMQ, TaskType.LocalTranscribeVideo, logger)
         {
             _rpcClient = rpcClient;
             _captionQueries = captionQueries;
@@ -90,8 +90,9 @@ namespace TaskEngine.Tasks
                 GetLogger().LogInformation($"{videoId}: Updated TranscribingAttempts = {video.TranscribingAttempts}");
                 try
                 {
+                    var mockWhisperResult = Globals.appSettings.MOCK_RECOGNITION == "MOCK";
 
-                    GetLogger().LogInformation($"{videoId}: Calling RecognitionWithVideoStreamAsync");
+                    GetLogger().LogInformation($"{videoId}: Calling RecognitionWithVideoStreamAsync( mock={mockWhisperResult})");
                     
                     var request = new CTGrpc.TranscriptionRequest
                     {
@@ -99,7 +100,7 @@ namespace TaskEngine.Tasks
                         FilePath = video.Video1.VMPath,
                         Model = "en",
                         Language = "en",
-                        Testing = true
+                        Testing = mockWhisperResult
                         // PhraseHints = phraseHints,
                         // CourseHints = "",
                         // OutputLanguages = "en"
@@ -161,7 +162,7 @@ namespace TaskEngine.Tasks
                             {
                                 TranscriptionType = TranscriptionType.Caption,
                                 Captions = theCaptions,
-                                Language = theLanguage,
+                                Language = "en-US" , /* Must be en-US for FrontEnd; Cant be just "en" */
                                 VideoId = video.Id,
                                 Label = $"{theLanguage} (ClassTranscribe)",
                                 SourceInternalRef = SOURCEINTERNALREF, // 
@@ -177,7 +178,7 @@ namespace TaskEngine.Tasks
                     }
                     
 
-                    video.TranscriptionStatus = "NoError";
+                    video.TranscriptionStatus = Video.TranscriptionStatusMessages.NOERROR;
                     // video.JsonMetadata["LastSuccessfulTime"] = result.LastSuccessTime.ToString();
 
                     GetLogger().LogInformation($"{videoId}: Saving captions"); 

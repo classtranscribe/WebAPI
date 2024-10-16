@@ -32,7 +32,7 @@ namespace TaskEngine.Tasks
         public AzureTranscriptionTask(RabbitMQConnection rabbitMQ, MSTranscriptionService msTranscriptionService,
             // GenerateVTTFileTask generateVTTFileTask, 
             ILogger<AzureTranscriptionTask> logger, CaptionQueries captionQueries)
-            : base(rabbitMQ, TaskType.TranscribeVideo, logger)
+            : base(rabbitMQ, TaskType.AzureTranscribeVideo, logger)
         {
             _msTranscriptionService = msTranscriptionService;
             // nope _generateVTTFileTask = generateVTTFileTask;
