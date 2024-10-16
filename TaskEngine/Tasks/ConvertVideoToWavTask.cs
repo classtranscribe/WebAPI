@@ -21,13 +21,13 @@ namespace TaskEngine.Tasks
     class ConvertVideoToWavTask : RabbitMQTask<string>
     {
         private readonly RpcClient _rpcClient;
-        private readonly TranscriptionTask _transcriptionTask;
+        private readonly LocalTranscriptionTask _localTranscriptionTask;
 
-        public ConvertVideoToWavTask(RabbitMQConnection rabbitMQ, RpcClient rpcClient, TranscriptionTask transcriptionTask, ILogger<ConvertVideoToWavTask> logger)
+        public ConvertVideoToWavTask(RabbitMQConnection rabbitMQ, RpcClient rpcClient, LocalTranscriptionTask localTranscriptionTask, ILogger<ConvertVideoToWavTask> logger)
             : base(rabbitMQ, TaskType.ConvertMedia, logger)
         {
             _rpcClient = rpcClient;
-            _transcriptionTask = transcriptionTask;
+            _localTranscriptionTask = localTranscriptionTask;
         }
 
         protected override Task OnConsume(string videoId, TaskParameters taskParameters, ClientActiveTasks cleanup)
@@ -72,11 +72,10 @@ namespace TaskEngine.Tasks
                         videoLatest.Audio = fileRecord;
                         await _context.SaveChangesAsync();
 
-
                         // If no transcriptions present, produce transcriptions.
                         if (!videoLatest.Transcriptions.Any())
                         {
-                            _transcriptionTask.Publish(videoLatest.Id);
+                            _localTranscriptionTask.Publish(videoLatest.Id);
                         }
                     }
                 }
