@@ -51,8 +51,10 @@ def transcribe_audio(media_filepath):
         raise FileNotFoundError(f"Media file not found: {media_filepath}")
 
     # convert video to wav if needed
+    wav_created = False  # Track if WAV was created
     if not media_filepath.endswith('.wav'):
         media_filepath, _ = convert_video_to_wav(media_filepath)
+        wav_created = True  # WAV file was created
 
 
     # Path to the output JSON file that Whisper will generate
@@ -89,6 +91,14 @@ def transcribe_audio(media_filepath):
     # Delete the JSON file after reading it
     os.remove(json_output_path)
     print(f"Deleted the JSON file: {json_output_path}")
+
+    # Delete the WAV file if it was created
+    if wav_created:
+        try:
+            os.remove(media_filepath)
+            print(f"Deleted the WAV file: {media_filepath}")
+        except Exception as e:
+            print(f"Error deleting WAV file: {str(e)}")
 
     return transcription_result
 
