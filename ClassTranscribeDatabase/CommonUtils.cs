@@ -23,7 +23,7 @@ namespace ClassTranscribeDatabase
             DownloadPlaylistInfo = 3,
             DownloadMedia = 4,
             ConvertMedia = 5,
-            TranscribeVideo = 6,
+            // TranscribeVideo = 6,
             ProcessVideo = 7,
             Aggregator = 8,
             GenerateVTTFile = 9,
@@ -39,7 +39,9 @@ namespace ClassTranscribeDatabase
             PythonCrawler = 19,
 
             DescribeVideo = 20,
-            DescribeImage = 21
+            DescribeImage = 21,
+            AzureTranscribeVideo = 22,
+            LocalTranscribeVideo = 23
 
         }
 

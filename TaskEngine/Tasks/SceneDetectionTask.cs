@@ -19,13 +19,13 @@ namespace TaskEngine.Tasks
     class SceneDetectionTask : RabbitMQTask<string>
     {
         private readonly RpcClient _rpcClient;
-        private readonly TranscriptionTask _transcriptionTask;
+        private readonly LocalTranscriptionTask _transcriptionTask;
 
-        public SceneDetectionTask(RabbitMQConnection rabbitMQ,TranscriptionTask transcriptionTask, RpcClient rpcClient, ILogger<SceneDetectionTask> logger)
+        public SceneDetectionTask(RabbitMQConnection rabbitMQ,LocalTranscriptionTask localTanscriptionTask, RpcClient rpcClient, ILogger<SceneDetectionTask> logger)
             : base(rabbitMQ, TaskType.SceneDetection, logger)
         {
             _rpcClient = rpcClient;
-            _transcriptionTask = transcriptionTask;
+            _transcriptionTask = localTanscriptionTask;
         }
         /// <summary>Extracts scene information for a video. 
         /// Beware: It is possible to start another scene task while the first one is still running</summary>
