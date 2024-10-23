@@ -23,6 +23,11 @@
     COPY --from=whisperbuild /whisper.cpp/models /PythonRpcServer/models
     WORKDIR /PythonRpcServer
     
+    # Don't copy any py files here, so that we don't need to re-run whisper
+    COPY ./PythonRpcServer/transcribe_hellohellohello.wav .
+    # The output of tis whisper run is used when we set MOCK_RECOGNITION=MOCK for quick testing
+    RUN whisper -ojf -f transcribe_hellohellohello.wav
+    
     COPY ./PythonRpcServer/requirements.txt requirements.txt
     RUN pip install --no-cache-dir --upgrade pip && \
         pip install --no-cache-dir -r requirements.txt
@@ -31,8 +36,7 @@
     RUN python -m grpc_tools.protoc -I . --python_out=./ --grpc_python_out=./ ct.proto
     
     COPY ./PythonRpcServer .
-# The output of this file is used when we set MOCK_RECOGNITION=MOCK for quick testing
-    RUN whisper -ojf -f transcribe_hellohellohello.wav
+    
     
     CMD [ "nice", "-n", "18", "ionice", "-c", "2", "-n", "6", "python3", "-u", "/PythonRpcServer/server.py" ]
     
