@@ -34,8 +34,11 @@ apt-get install -y netcat-traditional && apt-get -q update
 # Microsoft 8.0 issue: https://github.com/Azure-Samples/cognitive-services-speech-sdk/issues/2204
 # This  will install OpenSSL 1.1.1 because it is needed by the Speech SDK.
 # RUN ARCH=$(dpkg --print-architecture)
-COPY ./install-speech-hack-libssl1.sh /
-RUN /install-speech-hack-libssl1.sh
+# COPY ./install-speech-hack-libssl1.sh /
+# RUN wget /install-speech-hack-libssl1.sh
+
+RUN wget http://archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.0g-2ubuntu4_amd64.deb
+RUN dpkg -i libssl1.1_1.1.0g-2ubuntu4_amd64.deb
 
 
 FROM publish_base as publish

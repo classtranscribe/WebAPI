@@ -85,6 +85,38 @@ namespace ClassTranscribeServer.Controllers
         }
 
         // POST: api/Captions
+        // [HttpPost]
+        // public async Task<ActionResult<Caption>> PostCaption(Caption modifiedCaption)
+        // {
+        //     if (modifiedCaption == null || modifiedCaption.Id == null)
+        //     {
+        //         return BadRequest("modifiedCaption.Id not present");
+        //     }
+        //     Caption oldCaption = await _context.Captions.FindAsync(modifiedCaption.Id);
+        //     if (oldCaption == null)
+        //     {
+        //         return NotFound();
+        //     }
+        //     Console.WriteLine($"Old Caption - Begin: {oldCaption.Begin}, End: {oldCaption.End}, Index: {oldCaption.Index}, " +
+        //             $"CaptionType: {oldCaption.CaptionType}, Text: {oldCaption.Text}, TranscriptionId: {oldCaption.TranscriptionId}");
+        //     Caption newCaption = new Caption
+        //     {
+        //         Begin = modifiedCaption.Begin,
+        //         End = modifiedCaption.End,
+        //         Index = oldCaption.Index,
+        //         CaptionType = oldCaption.CaptionType,
+        //         Text = modifiedCaption.Text,
+        //         TranscriptionId = oldCaption.TranscriptionId
+        //     };
+
+        //     Console.WriteLine($"New Caption - Begin: {newCaption.Begin}, End: {newCaption.End}, Index: {newCaption.Index}, " +
+        //             $"CaptionType: {newCaption.CaptionType}, Text: {newCaption.Text}, TranscriptionId: {newCaption.TranscriptionId}");
+
+        //     _context.Captions.Add(newCaption);
+        //     await _context.SaveChangesAsync();
+        //     // nope _wakeDownloader.UpdateVTTFile(oldCaption.TranscriptionId);
+        //     return newCaption;
+        // }
         [HttpPost]
         public async Task<ActionResult<Caption>> PostCaption(Caption modifiedCaption)
         {
@@ -92,25 +124,34 @@ namespace ClassTranscribeServer.Controllers
             {
                 return BadRequest("modifiedCaption.Id not present");
             }
+
+            // Retrieve the old caption from the database
             Caption oldCaption = await _context.Captions.FindAsync(modifiedCaption.Id);
             if (oldCaption == null)
             {
                 return NotFound();
             }
-            Caption newCaption = new Caption
-            {
-                Begin = oldCaption.Begin,
-                End = oldCaption.End,
-                Index = oldCaption.Index,
-                CaptionType = oldCaption.CaptionType,
-                Text = modifiedCaption.Text,
-                TranscriptionId = oldCaption.TranscriptionId
-            };
-            _context.Captions.Add(newCaption);
+
+            // Log the old caption details
+            Console.WriteLine($"Old Caption - Begin: {oldCaption.Begin}, End: {oldCaption.End}, Index: {oldCaption.Index}, " +
+                    $"CaptionType: {oldCaption.CaptionType}, Text: {oldCaption.Text}, TranscriptionId: {oldCaption.TranscriptionId}");
+
+            // Update the old caption properties with the modified values
+            oldCaption.Begin = modifiedCaption.Begin;
+            oldCaption.End = modifiedCaption.End;
+            oldCaption.Text = modifiedCaption.Text;
+
+            // Optionally, log the new caption details
+            Console.WriteLine($"Updated Caption - Begin: {oldCaption.Begin}, End: {oldCaption.End}, " +
+                    $"CaptionType: {oldCaption.CaptionType}, Text: {oldCaption.Text}, TranscriptionId: {oldCaption.TranscriptionId}");
+
+            // Save the changes to the database
             await _context.SaveChangesAsync();
-            // nope _wakeDownloader.UpdateVTTFile(oldCaption.TranscriptionId);
-            return newCaption;
+
+            // Return the updated caption
+            return oldCaption;
         }
+
 
         // POST: api/Captions/UpVote
         [HttpPost("UpVote")]
