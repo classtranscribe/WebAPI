@@ -70,8 +70,8 @@ class YoutubeProvider(MediaProvider):
                 'force_generic_extractor': True,
             }
             medias = []
-            # Current time in YYYYMMDD format
-            now = datetime.datetime.now().strftime('%Y%m%d')
+            # Current time in iso date time format
+            now = datetime.datetime.now().isoformat()
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                 info_dict = ydl.extract_info(url, download=False)
                 for entry in info_dict.get( 'entries', []):
