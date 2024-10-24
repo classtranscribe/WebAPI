@@ -1,53 +1,44 @@
-
-# Total laptop build 626 seconds
-#FROM python:3.7-slim-buster
-
-#FROM python:3.10.8-slim-buster - Failed to install scipy/numpy
-#FROM python:3.9.15-slim-buster - failed to install scipy/numpy
-FROM --platform=linux/amd64 python:3.8.15-slim-buster
-
-RUN apt-get update
-RUN apt-get install -y curl gcc g++ make libglib2.0-0 libsm6 libxext6 libxrender-dev ffmpeg
-
-# Build stuff for tesseract
-# Based on https://medium.com/quantrium-tech/installing-tesseract-4-on-ubuntu-18-04-b6fcd0cbd78f
-#RUN apt-get install -y automake pkg-config libsdl-pango-dev libicu-dev libcairo2-dev bc libleptonica-dev
-#RUN  curl -L  https://github.com/tesseract-ocr/tesseract/archive/refs/tags/4.1.1.tar.gz  | tar xvz
-
-#WORKDIR /tesseract-4.1.1
-#RUN ./autogen.sh && ./configure && make -j && make install && ldconfig 
-# Slow! The above line takes 435 seconds on my laptop
-#RUN make training && make training-install
-# The above line takes 59 seconds on my laptop 
-
-# RUN curl -L -o tessdata/eng.traineddata https://github.com/tesseract-ocr/tessdata/raw/main/eng.traineddata
-# RUN curl -L -o tessdata/osd.traineddata https://github.com/tesseract-ocr/tessdata/raw/main/osd.traineddata
-
-# ENV TESSDATA_PREFIX=/tesseract-4.1.1/tessdata
-#Disable multi-threading
-ENV OMP_THREAD_LIMIT=1
-
-WORKDIR /PythonRpcServer
-
-
-COPY ./PythonRpcServer/requirements.txt requirements.txt
-RUN pip install --no-cache-dir --upgrade pip
-RUN pip install --no-cache-dir -r requirements.txt
-
-COPY ct.proto ct.proto
-RUN python -m grpc_tools.protoc -I . --python_out=./ --grpc_python_out=./ ct.proto
-
-COPY ./PythonRpcServer .
-
-# Old:Downloaded tgz from https://github.com/nficano/pytube and renamed to include version
-# New: Grab link directly from https://github.com/pytube/pytube/tags   (-L => follow redirect)
-# Uncomment to pull pytube tar.gz directly from github, if version unavailable on pypi (remember to comment out in PythonRpcServer/requirements.txt)
-ARG PYTUBE_VERSION=""
-RUN if [ "${PYTUBE_VERSION}" != "" ]; then curl -L https://github.com/pytube/pytube/archive/refs/tags/v${PYTUBE_VERSION}.tar.gz -o pytube.tar.gz && pip install --no-cache-dir --force-reinstall pytube.tar.gz && rm pytube.tar.gz; fi
-
-# RUN python -m nltk.downloader stopwords brown
-
-
-# Nice:Very low priority but not lowest priority (18 out of 19)
-#ionice: Best effort class but second lowest priory (6 out of 7)
-CMD [ "nice","-n","18", "ionice","-c","2","-n","6", "python3", "-u", "/PythonRpcServer/server.py" ]
+# # ------------------------------
+# # Stage 1: Build Whisper.cpp
+# # ------------------------------
+    FROM --platform=linux/amd64 python:3.8.15-slim-buster AS whisperbuild
+    RUN apt-get update && \
+        apt-get install -y curl gcc g++ make libglib2.0-0 libsm6 libxext6 libxrender-dev ffmpeg git
+    
+    WORKDIR /whisper.cpp
+    RUN git clone https://github.com/ggerganov/whisper.cpp . && make
+    RUN bash ./models/download-ggml-model.sh base.en
+    RUN bash ./models/download-ggml-model.sh tiny.en
+    RUN bash ./models/download-ggml-model.sh large-v3
+    
+# ------------------------------
+# Stage 2: Setup Python RPC Server
+# ------------------------------
+    FROM --platform=linux/amd64 python:3.8.15-slim-buster AS rpcserver
+    RUN apt-get update && \
+        apt-get install -y curl gcc g++ make libglib2.0-0 libsm6 libxext6 libxrender-dev ffmpeg
+    
+    ENV OMP_THREAD_LIMIT=1
+    COPY --from=whisperbuild /whisper.cpp/main /usr/local/bin/whisper
+    COPY --from=whisperbuild /whisper.cpp/models /PythonRpcServer/models
+    WORKDIR /PythonRpcServer
+    
+    # Don't copy any py files here, so that we don't need to re-run whisper
+    COPY ./PythonRpcServer/transcribe_hellohellohello.wav .
+    # The output of tis whisper run is used when we set MOCK_RECOGNITION=MOCK for quick testing
+    RUN whisper -ojf -f transcribe_hellohellohello.wav
+    
+    COPY ./PythonRpcServer/requirements.txt requirements.txt
+    RUN pip install --no-cache-dir --upgrade pip && \
+        pip install --no-cache-dir -r requirements.txt
+    
+    COPY ct.proto ct.proto
+    RUN python -m grpc_tools.protoc -I . --python_out=./ --grpc_python_out=./ ct.proto
+    
+    COPY ./PythonRpcServer .
+    
+    
+    CMD [ "nice", "-n", "18", "ionice", "-c", "2", "-n", "6", "python3", "-u", "/PythonRpcServer/server.py" ]
+    
+    
+    

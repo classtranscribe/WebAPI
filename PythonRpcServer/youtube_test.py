@@ -5,7 +5,7 @@ if  'DATA_DIRECTORY' not in os.environ:
 
 import youtube
 
-def test_youtube():
+def test_youtube1():
     print("Test 1/2: Download playlist")
     yt=youtube.YoutubeProvider()
     pl=yt.get_youtube_playlist('PLBgxzZMu3GpPb35BDIU5eeopR4MhBOZw_')
@@ -17,7 +17,9 @@ def test_youtube():
 
     assert 'STAT 385' in pl[0]['title']
 
+def test_youtube2():
     print("Test 2/2: Download video")
+    yt=youtube.YoutubeProvider()
     onevid = yt.download_youtube_video('https://youtube.com/watch?v=DqHMh8nqCPw') # 24-72 seconds typical
     print(onevid)
     assert len(onevid) == 2
@@ -34,4 +36,5 @@ def test_youtube():
     print("All tests completed")
 
 if __name__ == "__main__":
-    test_youtube()
+    test_youtube1()
+    test_youtube2()
