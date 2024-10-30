@@ -1,5 +1,6 @@
 ﻿using ClassTranscribeDatabase;
 using ClassTranscribeDatabase.Models;
+using ClassTranscribeServer.Utils;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -23,16 +24,17 @@ namespace ClassTranscribeServer.Controllers
         private readonly WakeDownloader _wakeDownloader;
         private readonly CaptionQueries _captionQueries;
         private readonly SubParser parser = new SubParser();
-
+        private readonly UserUtils _userUtils;
         private ILogger<CaptionsController> _logger;
 
         public CaptionsController(WakeDownloader wakeDownloader,
             CTDbContext context,
-            CaptionQueries captionQueries,
+            CaptionQueries captionQueries, UserUtils userUtils,
             ILogger<CaptionsController> logger) : base(context, logger)
         {
             _captionQueries = captionQueries;
             _wakeDownloader = wakeDownloader;
+            _userUtils = userUtils;
             _logger = logger;
         }
 
@@ -92,15 +94,25 @@ namespace ClassTranscribeServer.Controllers
 
         // POST: api/Captions
         [HttpPost]
+        [Authorize]
         public async Task<ActionResult<Caption>> PostCaption(Caption modifiedCaption)
         {
             // This endpoint should handle deletion as well, which is represented by posting a caption
             // with the empty string as text.
             _logger.LogInformation("DEBUG Id: {Id}, Text: {Text}, Begin: {Begin}, End: {End}", modifiedCaption.Id, modifiedCaption.Text, modifiedCaption.Begin, modifiedCaption.End);
+
+            // This endpoint should be accessible only for people who are logged in
+            var user = await _userUtils.GetUser(User);
+            if (user == null)
+            {
+                return Unauthorized();
+            }
+
             if (modifiedCaption == null || modifiedCaption.Id == null)
             {
                 return BadRequest("modifiedCaption.Id not present");
             }
+
             Caption oldCaption = await _context.Captions.FindAsync(modifiedCaption.Id);
             if (oldCaption == null)
             {
@@ -113,7 +125,9 @@ namespace ClassTranscribeServer.Controllers
                 Index = oldCaption.Index,
                 CaptionType = oldCaption.CaptionType,
                 Text = modifiedCaption.Text,
-                TranscriptionId = oldCaption.TranscriptionId
+                TranscriptionId = oldCaption.TranscriptionId,
+                LastUpdatedBy = user.Id,
+                CreatedBy = oldCaption.CreatedBy
             };
             _context.Captions.Add(newCaption);
             await _context.SaveChangesAsync();
@@ -122,12 +136,23 @@ namespace ClassTranscribeServer.Controllers
 
         // POST: api/Captions/Add
         [HttpPost("Add")]
+        [Authorize]
         public async Task<ActionResult<Caption>> AddCaption(Caption newCaption)
         {
-            if (newCaption == null) {
+            // This endpoint should be accessible only for people who are logged in
+            var user = await _userUtils.GetUser(User);
+            if (user == null)
+            {
+                return Unauthorized();
+            }
+
+            if (newCaption == null)
+            {
                 return BadRequest("newCaption not present");
             }
+
             var allCaptions = await _context.Captions.Where(c => c.TranscriptionId == newCaption.TranscriptionId).ToListAsync();
+
             // Every new caption must have a unique index to avoid conflicts with existing indices.
             var newIndex = allCaptions.Max(c => c.Index) + 1;
 
@@ -138,7 +163,9 @@ namespace ClassTranscribeServer.Controllers
                 Index = newIndex,
                 CaptionType = newCaption.CaptionType,
                 Text = newCaption.Text,
-                TranscriptionId = newCaption.TranscriptionId
+                TranscriptionId = newCaption.TranscriptionId,
+                LastUpdatedBy = user.Id,
+                CreatedBy = user.Id
             };
             _context.Captions.Add(addedCaption);
             await _context.SaveChangesAsync();
