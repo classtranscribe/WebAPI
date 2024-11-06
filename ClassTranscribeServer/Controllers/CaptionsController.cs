@@ -25,7 +25,6 @@ namespace ClassTranscribeServer.Controllers
         private readonly CaptionQueries _captionQueries;
         private readonly SubParser parser = new SubParser();
         private readonly UserUtils _userUtils;
-        private ILogger<CaptionsController> _logger;
 
         public CaptionsController(WakeDownloader wakeDownloader,
             CTDbContext context,
@@ -35,7 +34,6 @@ namespace ClassTranscribeServer.Controllers
             _captionQueries = captionQueries;
             _wakeDownloader = wakeDownloader;
             _userUtils = userUtils;
-            _logger = logger;
         }
 
         // GET: api/Captions/ByTranscription/5
@@ -99,7 +97,6 @@ namespace ClassTranscribeServer.Controllers
         {
             // This endpoint should handle deletion as well, which is represented by posting a caption
             // with the empty string as text.
-            _logger.LogInformation("DEBUG Id: {Id}, Text: {Text}, Begin: {Begin}, End: {End}", modifiedCaption.Id, modifiedCaption.Text, modifiedCaption.Begin, modifiedCaption.End);
 
             // This endpoint should be accessible only for people who are logged in
             var user = await _userUtils.GetUser(User);
