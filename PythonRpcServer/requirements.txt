@@ -32,8 +32,9 @@ wcwidth==0.2.13
 
 # Not versioned
 numpy
-pytube     # if not available, use the tar.gz package (see Dockerfile)
-
+# No longer maintained pytube     # if not available, use the tar.gz package (see Dockerfile)
+yt-dlp
+#Always get latest
 
 # protobuf version 3.18.3 causes  NotImplementedError("To be implemented") in PythonRpcServer/mediaprovider.py
 # Likely need to coordinate updating the C# version too

@@ -12,6 +12,9 @@ from youtube import YoutubeProvider
 from echo import EchoProvider
 from kaltura import KalturaProvider
 from mediaprovider import InvalidPlaylistInfoException
+from transcribe import transcribe_audio
+
+import json
 import hasher 
 import ffmpeg
 # import phrasehinter
@@ -41,6 +44,18 @@ def LogWorker(logId, worker):
 
 
 class PythonServerServicer(ct_pb2_grpc.PythonServerServicer):
+    # Transcribe it into a json string from the transcribe text
+    # Make it returns a json string
+    # change name to TranscribeRPC
+    # def CaptionRPC(self, request, context):
+    #     #See CaptionRequest
+    #     print( f"CaptionRPC({request.logId};{request.refId};{request.filePath};{request.phraseHints};{request.courseHints};{request.outputLanguages})")
+    #     kalturaprovider = KalturaProvider()
+    #     result = LogWorker(f"CaptionRPC({request.filePath})", lambda: kalturaprovider.getCaptions(request.refId))
+    #     return  ct_pb2.JsonString(json = result)
+
+
+
     def GetScenesRPC(self, request, context):
         raise NotImplementedError('Implementation now in pyapi')
 #        res = scenedetector.find_scenes(request.filePath)
@@ -113,6 +128,23 @@ class PythonServerServicer(ct_pb2_grpc.PythonServerServicer):
     def GetMediaInfoRPC(self, request, context):
         result = LogWorker(f"GetMediaInfo({request.filePath})", lambda: ffmpeg.getMediaInfo(request.filePath))
         return  ct_pb2.JsonString(json = result)
+    
+    
+    def TranscribeAudioRPC(self, request, context):
+        print(f"TranscribeAudioRPC({request.logId};{request.filePath})")
+        try:
+            logging.info(f"Starting transcription for file: {request.filePath}")
+            transcription_result = LogWorker(
+                f"TranscribeAudioRPC({request.filePath})",
+                lambda: transcribe_audio(request.filePath, request.testing)
+            )
+            logging.info(f"Transcription completed successfully for: {request.filePath}")
+            return ct_pb2.JsonString(json=json.dumps(transcription_result))
+
+        except Exception as e:
+            context.set_code(grpc.StatusCode.INTERNAL)
+            context.set_details(f"Transcription failed: {str(e)}")
+            return ct_pb2.JsonString(json=json.dumps({"error": str(e)}))
 
 def serve():
     print("Python RPC Server Starting")
@@ -120,7 +152,7 @@ def serve():
     # Until we can ensure no timeouts on remote services, the default here is set to a conservative low number
     # This is to ensure we can still make progress even if every python tasks tries to use all cpu cores.
     max_workers=int(os.getenv('NUM_PYTHON_WORKERS', 3))
-    print(f"max_workers={max_workers}")
+    print(f"max_workers={max_workers}. Starting up grpc server...")
 
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=max_workers))
     

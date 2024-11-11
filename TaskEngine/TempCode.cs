@@ -24,7 +24,7 @@ namespace TaskEngine
         private readonly PythonCrawlerTask _pythonCrawlerTask;
         private readonly ProcessVideoTask _processVideoTask;
         // private readonly GenerateVTTFileTask _generateVTTFileTask;
-        private readonly TranscriptionTask _transcriptionTask;
+        private readonly LocalTranscriptionTask _transcriptionTask;
         private readonly ConvertVideoToWavTask _convertVideoToWavTask;
         private readonly DownloadMediaTask _downloadMediaTask;
         private readonly DownloadPlaylistInfoTask _downloadPlaylistInfoTask;
@@ -34,7 +34,7 @@ namespace TaskEngine
 
         public TempCode(CTDbContext c, CreateBoxTokenTask createBoxTokenTask, //UpdateBoxTokenTask updateBoxTokenTask,
             SceneDetectionTask ePubGeneratorTask, ProcessVideoTask processVideoTask,
-            TranscriptionTask transcriptionTask, ConvertVideoToWavTask convertVideoToWavTask, DownloadMediaTask downloadMediaTask,
+            LocalTranscriptionTask localTranscriptionTask, ConvertVideoToWavTask convertVideoToWavTask, DownloadMediaTask downloadMediaTask,
             DownloadPlaylistInfoTask downloadPlaylistInfoTask, QueueAwakerTask queueAwakerTask,
             CleanUpElasticIndexTask cleanUpElasticIndexTask, RpcClient rpcClient,
             PythonCrawlerTask pythonCrawlerTask)
@@ -45,7 +45,7 @@ namespace TaskEngine
             _sceneDetectionTask = ePubGeneratorTask;
             _processVideoTask = processVideoTask;
             // _generateVTTFileTask = generateVTTFileTask;
-            _transcriptionTask = transcriptionTask;
+            _transcriptionTask = localTranscriptionTask;
             _convertVideoToWavTask = convertVideoToWavTask;
             _downloadMediaTask = downloadMediaTask;
             _downloadPlaylistInfoTask = downloadPlaylistInfoTask;

@@ -104,7 +104,7 @@ namespace ClassTranscribeServer
         {
             JObject msg = new JObject
             {
-                { "Type", TaskType.TranscribeVideo.ToString() },
+                { "Type", TaskType.LocalTranscribeVideo.ToString() },
                 { "videoOrMediaId", videoOrMediaId },
                 { "DeleteExisting", deleteExisting }
             };
