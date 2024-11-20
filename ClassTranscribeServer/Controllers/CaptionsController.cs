@@ -166,7 +166,7 @@ namespace ClassTranscribeServer.Controllers
             };
             _context.Captions.Add(addedCaption);
             await _context.SaveChangesAsync();
-            return newCaption;
+            return addedCaption;
         }
 
         // POST: api/Captions/UpVote
