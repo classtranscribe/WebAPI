@@ -21,11 +21,15 @@ namespace UnitTests.ClassTranscribeServer.ControllerTests
         public CaptionsControllerTest(GlobalFixture fixture) : base(fixture)
         {
             _controller = new CaptionsController(
-                (WakeDownloader) fixture._serviceProvider.GetService(typeof(WakeDownloader)),
+                (WakeDownloader)fixture._serviceProvider.GetService(typeof(WakeDownloader)),
                 _context,
                 new CaptionQueries(_context),
+                _userUtils,
                 null
-            );
+            )
+            {
+                ControllerContext = fixture._controllerContext
+            };
         }
 
         [Fact]
@@ -146,7 +150,7 @@ namespace UnitTests.ClassTranscribeServer.ControllerTests
                 Text = "foo bar",
                 CaptionType = CaptionType.TextCaption
             };
-
+            _context.Users.Add(new ApplicationUser { Id = TestGlobals.TEST_USER_ID });
             _context.Captions.Add(caption);
             _context.SaveChanges();
 
@@ -162,6 +166,9 @@ namespace UnitTests.ClassTranscribeServer.ControllerTests
         [Fact]
         public async Task Post_Caption_Fail()
         {
+            _context.Users.Add(new ApplicationUser { Id = TestGlobals.TEST_USER_ID });
+            _context.SaveChanges();
+
             var result = await _controller.PostCaption(null);
             Assert.IsType<BadRequestObjectResult>(result.Result);
 
@@ -320,7 +327,7 @@ namespace UnitTests.ClassTranscribeServer.ControllerTests
         public async Task Search_In_Offering()
         {
             var video = new Video { Id = "789" };
-   
+
             var transcriptions = new List<Transcription>()
             {
                 new Transcription
@@ -359,9 +366,9 @@ namespace UnitTests.ClassTranscribeServer.ControllerTests
             };
             var course = new Course { Id = "cid1" };
             var offering = new Offering { Id = "oid8" };
-            var CourseOffering = new CourseOffering { Id = "2123000", CourseId = "cid1", OfferingId = "oid8"};
-            var playlist = new Playlist { Id = "2456" , OfferingId = offering.Id, Name = "Playlist 1"};
-            var media = new Media { Id = "2678", PlaylistId = playlist.Id , VideoId = video.Id, Name = "Media 1"};
+            var CourseOffering = new CourseOffering { Id = "2123000", CourseId = "cid1", OfferingId = "oid8" };
+            var playlist = new Playlist { Id = "2456", OfferingId = offering.Id, Name = "Playlist 1" };
+            var media = new Media { Id = "2678", PlaylistId = playlist.Id, VideoId = video.Id, Name = "Media 1" };
             _context.Courses.Add(course);
             _context.Offerings.Add(offering);
             _context.CourseOfferings.Add(CourseOffering);
@@ -379,23 +386,24 @@ namespace UnitTests.ClassTranscribeServer.ControllerTests
             var onlyEnglishResults = await _controller.SearchInOffering(offering.Id, "fortran");
             Assert.Single(onlyEnglishResults.Value);
 
-            var bothResults = await _controller.SearchInOffering(offering.Id, "fortran","");
-            
+            var bothResults = await _controller.SearchInOffering(offering.Id, "fortran", "");
+
             List<SearchedCaptionDTO> bothResultList = bothResults.Value.ToList();
             Assert.Equal(captions.Count, bothResultList.Count());
-            for (int i = 0; i < captions.Count; i++) {
+            for (int i = 0; i < captions.Count; i++)
+            {
                 Assert.Equal(captions[i].Text, bothResultList[i].Caption.Text);
-                Assert.Equal(transcriptions[i].Language, bothResultList[i].Language );
+                Assert.Equal(transcriptions[i].Language, bothResultList[i].Language);
             }
 
             var oneFrenchResult = await _controller.SearchInOffering(offering.Id, "fortran", "fr");
-            
+
             Assert.Single(oneFrenchResult.Value);
-            var c = oneFrenchResult.Value.First(); 
-            Assert.Equal( captions[1].Text, c.Caption.Text);
+            var c = oneFrenchResult.Value.First();
+            Assert.Equal(captions[1].Text, c.Caption.Text);
             Assert.Null(c.Caption.Transcription);
-            
-            Assert.Equal(media.Id, c.MediaId );
+
+            Assert.Equal(media.Id, c.MediaId);
             Assert.Equal(playlist.Id, c.PlaylistId);
             Assert.Equal(media.Name, c.MediaName);
             Assert.Equal(playlist.Name, c.PlaylistName);

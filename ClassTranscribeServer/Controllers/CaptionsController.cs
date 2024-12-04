@@ -1,5 +1,6 @@
 ﻿using ClassTranscribeDatabase;
 using ClassTranscribeDatabase.Models;
+using ClassTranscribeServer.Utils;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -23,14 +24,16 @@ namespace ClassTranscribeServer.Controllers
         private readonly WakeDownloader _wakeDownloader;
         private readonly CaptionQueries _captionQueries;
         private readonly SubParser parser = new SubParser();
+        private readonly UserUtils _userUtils;
 
         public CaptionsController(WakeDownloader wakeDownloader,
             CTDbContext context,
-            CaptionQueries captionQueries,
+            CaptionQueries captionQueries, UserUtils userUtils,
             ILogger<CaptionsController> logger) : base(context, logger)
         {
             _captionQueries = captionQueries;
             _wakeDownloader = wakeDownloader;
+            _userUtils = userUtils;
         }
 
         // GET: api/Captions/ByTranscription/5
@@ -72,6 +75,9 @@ namespace ClassTranscribeServer.Controllers
         [HttpGet]
         public async Task<ActionResult<Caption>> GetCaption(string transcriptionId, int index)
         {
+            // Note here that captions are effectively "stacked" on top of all other captions with the
+            // same transcription Id and Index.
+            // Then, getting a caption only returns the top caption of the stack with the newest creation date.
             var captions = await _context.Captions.Where(c => c.TranscriptionId == transcriptionId && c.Index == index)
                 .OrderByDescending(c => c.CreatedAt).ToListAsync();
             if (captions == null || captions.Count == 0)
@@ -86,12 +92,24 @@ namespace ClassTranscribeServer.Controllers
 
         // POST: api/Captions
         [HttpPost]
+        [Authorize]
         public async Task<ActionResult<Caption>> PostCaption(Caption modifiedCaption)
         {
+            // This endpoint should handle deletion as well, which is represented by posting a caption
+            // with the empty string as text.
+
+            // This endpoint should be accessible only for people who are logged in
+            var user = await _userUtils.GetUser(User);
+            if (user == null)
+            {
+                return Unauthorized();
+            }
+
             if (modifiedCaption == null || modifiedCaption.Id == null)
             {
                 return BadRequest("modifiedCaption.Id not present");
             }
+
             Caption oldCaption = await _context.Captions.FindAsync(modifiedCaption.Id);
             if (oldCaption == null)
             {
@@ -99,17 +117,56 @@ namespace ClassTranscribeServer.Controllers
             }
             Caption newCaption = new Caption
             {
-                Begin = oldCaption.Begin,
-                End = oldCaption.End,
+                Begin = modifiedCaption.Begin,
+                End = modifiedCaption.End,
                 Index = oldCaption.Index,
                 CaptionType = oldCaption.CaptionType,
                 Text = modifiedCaption.Text,
-                TranscriptionId = oldCaption.TranscriptionId
+                TranscriptionId = oldCaption.TranscriptionId,
+                LastUpdatedBy = user.Id,
+                CreatedBy = oldCaption.CreatedBy
             };
             _context.Captions.Add(newCaption);
             await _context.SaveChangesAsync();
-            // nope _wakeDownloader.UpdateVTTFile(oldCaption.TranscriptionId);
             return newCaption;
+        }
+
+        // POST: api/Captions/Add
+        [HttpPost("Add")]
+        [Authorize]
+        public async Task<ActionResult<Caption>> AddCaption(Caption newCaption)
+        {
+            // This endpoint should be accessible only for people who are logged in
+            var user = await _userUtils.GetUser(User);
+            if (user == null)
+            {
+                return Unauthorized();
+            }
+
+            if (newCaption == null)
+            {
+                return BadRequest("newCaption not present");
+            }
+
+            var allCaptions = await _context.Captions.Where(c => c.TranscriptionId == newCaption.TranscriptionId).ToListAsync();
+
+            // Every new caption must have a unique index to avoid conflicts with existing indices.
+            var newIndex = allCaptions.Max(c => c.Index) + 1;
+
+            Caption addedCaption = new Caption
+            {
+                Begin = newCaption.Begin,
+                End = newCaption.End,
+                Index = newIndex,
+                CaptionType = newCaption.CaptionType,
+                Text = newCaption.Text,
+                TranscriptionId = newCaption.TranscriptionId,
+                LastUpdatedBy = user.Id,
+                CreatedBy = user.Id
+            };
+            _context.Captions.Add(addedCaption);
+            await _context.SaveChangesAsync();
+            return addedCaption;
         }
 
         // POST: api/Captions/UpVote
