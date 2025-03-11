@@ -46,7 +46,6 @@ namespace ClassTranscribeServer.Controllers
     public List<EPubSceneData> GetSceneData(JArray scenes, List<Caption> captions, List<Caption> descriptions)
     {
       var sorted_descriptions = descriptions.OrderBy(c => c.Begin);
-      // _logger.LogInformation($"GetSceneData(), {string.Join(", ", sorted_descriptions.Select(d => d.Text))}");
       var chapters = new List<EPubSceneData>();
       var nextStart = new TimeSpan(0);
 
@@ -105,18 +104,14 @@ namespace ClassTranscribeServer.Controllers
     [Authorize]
     public async Task<ActionResult<List<EPubSceneData>>> GetEpubData(string mediaId, string language)
     {
-      _logger.LogInformation($"GetEpubData({mediaId},{language}) starting");
       var media = _context.Medias.Find(mediaId);
       Video video = await _context.Videos.FindAsync(media.VideoId);
-      // _logger.LogInformation($"GetEpubData({mediaId},{language}) video found. SceneData:{video.SceneObjectDataId}.");
 
       if (!video.HasSceneObjectData())
       {
-        _logger.LogInformation($"GetEpubData({mediaId}) - Early return - no SceneObjectData");
         return NotFound();
       }
       TextData data = await _context.TextData.FindAsync(video.SceneObjectDataId);
-      // _logger.LogInformation($"GetEpubData({mediaId},{language}) getting scenedata as JArray");
       JArray sceneArray = data.GetAsJSON()["Scenes"] as JArray;
 
       EPub epub = new EPub
@@ -132,13 +127,11 @@ namespace ClassTranscribeServer.Controllers
       {
         const string LEGACYSOURCEINTERNALREF = "ClassTranscribe/Azure"; // We should only ask for captions from this
                                                                         // source if the other has no entries
-        captions = await _captionQueries.GetCaptionsAsync(media.VideoId, SOURCEINTERNALREF, epub.Language);
+        captions = await _captionQueries.GetCaptionsAsync(media.VideoId, LEGACYSOURCEINTERNALREF, epub.Language);
       }
       var descriptions = await _captionQueries.GetDescriptionsAsync(media.VideoId, epub.Language);
-      // _logger.LogInformation($"GetEpubData({mediaId}) - returning combined SceneData");
 
       var sd = GetSceneData(sceneArray, captions, descriptions);
-      // _logger.LogInformation($"GetEpubData returned scenes: ({string.Join("|", sd.Select(s => s.Text))})");
       return sd;
 
     }
@@ -181,7 +174,6 @@ namespace ClassTranscribeServer.Controllers
       {
         return NotFound();
       }
-      _logger.LogInformation($"!GetEpub, epub string {string.Join("||", ePub.Chapters)}");
 
       return ePub;
     }
@@ -263,7 +255,6 @@ namespace ClassTranscribeServer.Controllers
       {
         return BadRequest("The following fields may not be empty: title, filename, language, author, publisher, sourceId");
       }
-      _logger.LogInformation($"!PutEpub, epub string {string.Join("||", ePub.Chapters)}");
 
       _context.Entry(ePub).State = EntityState.Modified;
 
@@ -306,8 +297,6 @@ namespace ClassTranscribeServer.Controllers
       {
         return BadRequest("The following fields may not be empty: title, filename, language, author, publisher, sourceId");
       }
-
-      _logger.LogInformation($"!PostEpub, epub string {string.Join("||", ePub.Chapters)}");
 
       _context.EPubs.Add(ePub);
       await _context.SaveChangesAsync();
