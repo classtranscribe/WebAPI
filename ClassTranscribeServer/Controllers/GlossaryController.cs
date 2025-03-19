@@ -185,6 +185,23 @@ namespace ClassTranscribeServer.Controllers
             return glossaries;
         }
 
+        /// <summary>
+        /// Gets all glossaries from an offering
+        /// </summary>
+        [HttpGet("ByOffering")]
+        public async Task<ActionResult<IEnumerable<Glossary>>> GetGlossaryByOffering(string offeringId) 
+        {
+
+            var glossaries = await _context.Glossaries.Where(c => c.OfferingId == offeringId).OrderBy(c => c.Id).ToListAsync();
+        
+            if (glossaries == null || glossaries.)
+            {
+                return NotFound();
+            }
+
+            return glossaries;
+        }
+
         private bool GlossaryExists(string id)
         {
             return _context.Glossaries.Any(e => e.Id == id);
