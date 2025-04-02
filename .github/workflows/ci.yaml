@@ -19,7 +19,7 @@ jobs:
         with:
           dotnet-version: '8.0.x' # SDK Version to use; x will use the latest version of the channel
 
-      - uses: actions/cache@v2
+      - uses: actions/cache@v4
         with:
           path: ~/.nuget/packages
           key: ${{ runner.os }}-nuget-${{ hashFiles('**/packages.lock.json') }}
