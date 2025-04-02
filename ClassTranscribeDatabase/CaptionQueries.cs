@@ -25,8 +25,28 @@ namespace ClassTranscribeDatabase
         {
             try
             {
-                var transcriptionId = _context.Transcriptions.Where(t => t.Language == language && t.VideoId == videoId && t.SourceInternalRef== sourceInternalRef 
+                var transcriptionId = _context.Transcriptions.Where(t => t.Language == language && t.VideoId == videoId && t.SourceInternalRef == sourceInternalRef
                 && t.TranscriptionType == TranscriptionType.Caption).First().Id;
+                return await GetCaptionsAsync(transcriptionId);
+            }
+            catch (System.InvalidOperationException)
+            {
+                // If Transcriptions do not exist then First() will throw InvalidOperationException
+
+                return new List<Caption>();
+            }
+        }
+
+        /// <summary>
+        /// Get the text descriptions for a given videoId
+        /// </summary>
+        /// <param name="language">Language of the captions to fetch.</param>
+        public async Task<List<Caption>> GetDescriptionsAsync(string videoId, string language) // = "en-US"
+        {
+            try
+            {
+                var transcriptionId = _context.Transcriptions.Where(t => t.Language == language && t.VideoId == videoId
+                && t.TranscriptionType == TranscriptionType.TextDescription).First().Id;
                 return await GetCaptionsAsync(transcriptionId);
             }
             catch (System.InvalidOperationException)
