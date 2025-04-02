@@ -6,8 +6,11 @@
         apt-get install -y curl gcc g++ make libglib2.0-0 libsm6 libxext6 libxrender-dev ffmpeg git
     
     WORKDIR /whisper.cpp
-    RUN git clone https://github.com/ggerganov/whisper.cpp . && make
-    RUN bash ./models/download-ggml-model.sh base.en
+	# RUN git clone https://github.com/ggerganov/whisper.cpp . && make
+    RUN git clone https://github.com/ggerganov/whisper.cpp . && \
+    git checkout 021eef1 && \
+    make
+	RUN bash ./models/download-ggml-model.sh base.en
     RUN bash ./models/download-ggml-model.sh tiny.en
     RUN bash ./models/download-ggml-model.sh large-v3
     
