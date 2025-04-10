@@ -17,3 +17,5 @@ RUN git clone https://github.com/ggml-org/whisper.cpp . && \
 RUN bash ./models/download-ggml-model.sh base.en
 RUN bash ./models/download-ggml-model.sh tiny.en
 RUN bash ./models/download-ggml-model.sh large-v3
+
+

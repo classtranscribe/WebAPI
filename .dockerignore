@@ -19,3 +19,4 @@
 **/values.dev.yaml
 **/.toolstarget
 **/node_modules
+whisper.cpp
