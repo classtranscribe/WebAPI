@@ -15,7 +15,7 @@ RUN git clone https://github.com/ggml-org/whisper.cpp . && \
     cmake --build build --parallel $(nproc)
 RUN bash ./models/download-ggml-model.sh base.en
 RUN bash ./models/download-ggml-model.sh tiny.en
-# RUN bash ./models/download-ggml-model.sh large-v3
+RUN bash ./models/download-ggml-model.sh large-v3
 
 # ------------------------------
 # Stage 2: Build Python Dependencies
