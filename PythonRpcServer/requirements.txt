@@ -1,21 +1,14 @@
-# 2024-1-17 Removed Pygments,python-genutils and ipython 
-# Also removed jedi. why autocomplete?? jedi==0.19.1
-#Why? prompt-toolkit==3.0.43
-
-#Did not try updating (maybe nexttime)
-#protobuf==3.15.0 #4.25.2 
-protobuf==4.25.2 
-
-#Floowing Updated to latest 2024-1-17:
-certifi==2024.7.4
+# 2025-4-30
+protobuf
+certifi==2025.4.26
 backcall==0.2.0
 chardet==5.2.0
-click==8.1.7
-decorator==5.1.1
+click==8.1.8
+decorator==5.2.1
 ffmpy==0.3.1
-grpcio==1.60.0
-grpcio-tools==1.60.0
-idna==3.7
+grpcio
+grpcio-tools
+idna==3.10
 KalturaApiClient==19.3.0
 lxml==5.1.0
 parso==0.8.3
@@ -29,11 +22,45 @@ tqdm==4.66.3
 traitlets==4.3.3
 urllib3==2.2.2
 wcwidth==0.2.13
-
-# Not versioned
 numpy
-# No longer maintained pytube     # if not available, use the tar.gz package (see Dockerfile)
 yt-dlp
+
+# 2024-1-17 Removed Pygments,python-genutils and ipython 
+# Also removed jedi. why autocomplete?? jedi==0.19.1
+#Why? prompt-toolkit==3.0.43
+
+#Did not try updating (maybe nexttime)
+#protobuf==3.15.0 #4.25.2 
+# protobuf==4.25.2 
+
+# #Floowing Updated to latest 2024-1-17:
+# certifi==2024.7.4
+# backcall==0.2.0
+# chardet==5.2.0
+# click==8.1.7
+# decorator==5.1.1
+# ffmpy==0.3.1
+# grpcio==1.60.0
+# grpcio-tools==1.60.0
+# idna==3.7
+# KalturaApiClient==19.3.0
+# lxml==5.1.0
+# parso==0.8.3
+# pexpect==4.9.0
+# pickleshare==0.7.5
+# ptyprocess==0.7.0
+# requests==2.32.2
+# requests-toolbelt==1.0.0
+# six==1.16.0
+# tqdm==4.66.3
+# traitlets==4.3.3
+# urllib3==2.2.2
+# wcwidth==0.2.13
+
+# # Not versioned
+# numpy
+# # No longer maintained pytube     # if not available, use the tar.gz package (see Dockerfile)
+# yt-dlp
 #Always get latest
 
 # protobuf version 3.18.3 causes  NotImplementedError("To be implemented") in PythonRpcServer/mediaprovider.py
