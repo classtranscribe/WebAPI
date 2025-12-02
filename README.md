@@ -1,6 +1,6 @@
 ## WebAPI
 
-This repository provides the source code primary API endpoint of the ClassTranscribe Server. Copyright (C) University of Illinois, USA. 2019-2022
+This repository provides the source code primary API endpoint of the ClassTranscribe Server. Copyright (C) University of Illinois, USA. 2019-2025
 
 The source code in this repository is licensed [here](https://github.com/classtranscribe/WebAPI/blob/staging/LICENSE). Please email angrave at Illinois if you are interested in alternative licenses of this code and related intellectual property.
 
