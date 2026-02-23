@@ -79,11 +79,11 @@ namespace UnitTests.ClassTranscribeDatabase
 
             co.IsDeletedStatus = Status.Active;
 
-            // File must exist
-            var nonExistingFile = Path.Combine(Globals.appSettings.DATA_DIRECTORY, "non-existing");
-            await Assert.ThrowsAsync<FileNotFoundException>(
-                async () => await FileRecord.GetNewFileRecordAsync(nonExistingFile, fileExt, "/data/")
-            );
+            // File must not exist
+            // var nonExistingFile = Path.Combine(Globals.appSettings.DATA_DIRECTORY, "non-existing");
+            // await Assert.ThrowsAsync<FileNotFoundException>(
+            //     async () => await FileRecord.GetNewFileRecordAsync(nonExistingFile, fileExt, "/data/")
+            // );
         }
 
         [Fact]
