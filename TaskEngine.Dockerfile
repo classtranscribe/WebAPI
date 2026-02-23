@@ -1,4 +1,5 @@
-FROM mcr.microsoft.com/dotnet/sdk:8.0-bookworm-slim as build
+#FROM mcr.microsoft.com/dotnet/sdk:8.0-bookworm-slim as build
+FROM mcr.microsoft.com/dotnet/sdk:10.0-noble AS build
 # See https://mcr.microsoft.com/en-us/product/dotnet/sdk/tags
 #See more comments in API.Dockerfile
 # RUN ls
@@ -24,15 +25,16 @@ COPY ./TaskEngine ./TaskEngine
 WORKDIR /src/TaskEngine
 RUN dotnet publish TaskEngine.csproj -c Release -o /app --no-restore
 
-#FROM mcr.microsoft.com/dotnet/aspnet:8.0-bookworm-slim as publish_base
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 as publish_base
+#old FROM mcr.microsoft.com/dotnet/aspnet:8.0 as publish_base
+FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS publish_base
 # https://hub.docker.com/_/microsoft-dotnet-aspnet/
 
 # force AMD64 build here: the ssl1.1.1 workaround below assumes amd64
 # Install prerequisites for Azure Speech Services: build-essential libssl-dev ca-certificates libasound2 wget
 # See https://docs.microsoft.com/en-us/azure/cognitive-services/speech-service/quickstarts/setup-platform
+# 10.0 libasound2 replaced with libasound2t64
 
-RUN apt-get update && apt-get install -y  build-essential libssl-dev ca-certificates libasound2 wget && \
+RUN apt-get update && apt-get install -y  build-essential libssl-dev ca-certificates libasound2t64 wget && \
 apt-get install -y netcat-traditional && apt-get -q update
 
 # Microsoft 8.0 issue: https://github.com/Azure-Samples/cognitive-services-speech-sdk/issues/2204
@@ -45,7 +47,7 @@ RUN wget http://archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.0g-2
 RUN dpkg -i libssl1.1_1.1.0g-2ubuntu4_amd64.deb
 
 
-FROM publish_base as publish
+FROM publish_base AS publish
 WORKDIR /
 COPY --from=build /wait-for .
 WORKDIR /app
