@@ -12,9 +12,9 @@
 #
 
 
-#FROM mcr.microsoft.com/dotnet/sdk:8.0-bookworm-slim-amd64 as build
-#FROM mcr.microsoft.com/dotnet/sdk:8.0-bookworm-slim AS build
-FROM mcr.microsoft.com/dotnet/sdk:10.0-noble AS build
+##nope FROM mcr.microsoft.com/dotnet/sdk:8.0-bookworm-slim-amd64 as build
+FROM mcr.microsoft.com/dotnet/sdk:8.0-bookworm-slim AS build
+#not yet FROM mcr.microsoft.com/dotnet/sdk:10.0-noble AS build
 # See https://mcr.microsoft.com/en-us/product/dotnet/sdk/tags
 
 # Running the AMD64 version is of the SDK is broken
