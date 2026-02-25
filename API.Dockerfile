@@ -13,8 +13,8 @@
 
 
 #FROM mcr.microsoft.com/dotnet/sdk:8.0-bookworm-slim-amd64 as build
-#FROM mcr.microsoft.com/dotnet/sdk:8.0-bookworm-slim AS build
-FROM mcr.microsoft.com/dotnet/sdk:10.0-noble AS build
+FROM mcr.microsoft.com/dotnet/sdk:8.0-bookworm-slim AS build
+#notyet FROM mcr.microsoft.com/dotnet/sdk:10.0-noble AS build
 # See https://mcr.microsoft.com/en-us/product/dotnet/sdk/tags
 
 # Running the AMD64 version is of the SDK is broken
@@ -42,8 +42,8 @@ COPY ./ClassTranscribeDatabase ./ClassTranscribeDatabase
 WORKDIR /src/ClassTranscribeServer
 RUN dotnet publish ClassTranscribeServer.csproj -c Release -o /app --no-restore
 
-FROM mcr.microsoft.com/dotnet/aspnet:10.0-noble AS publish_base
-#FROM mcr.microsoft.com/dotnet/aspnet:8.0-bookworm-slim as publish_base
+#notyet FROM mcr.microsoft.com/dotnet/aspnet:10.0-noble AS publish_base
+FROM mcr.microsoft.com/dotnet/aspnet:8.0-bookworm-slim as publish_base
 # FROM mcr.microsoft.com/dotnet/aspnet:7.0.14-bookworm-slim as publish_base
 
 # FROM mcr.microsoft.com/dotnet/core/aspnet:3.1.3-bionic as publish_base
