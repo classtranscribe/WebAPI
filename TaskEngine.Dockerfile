@@ -1,5 +1,5 @@
-#FROM mcr.microsoft.com/dotnet/sdk:8.0-bookworm-slim as build
-FROM mcr.microsoft.com/dotnet/sdk:10.0-noble AS build
+FROM mcr.microsoft.com/dotnet/sdk:8.0-bookworm-slim as build
+# notyet FROM mcr.microsoft.com/dotnet/sdk:10.0-noble AS build
 # See https://mcr.microsoft.com/en-us/product/dotnet/sdk/tags
 #See more comments in API.Dockerfile
 # RUN ls
@@ -25,8 +25,8 @@ COPY ./TaskEngine ./TaskEngine
 WORKDIR /src/TaskEngine
 RUN dotnet publish TaskEngine.csproj -c Release -o /app --no-restore
 
-#old FROM mcr.microsoft.com/dotnet/aspnet:8.0 as publish_base
-FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS publish_base
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 as publish_base
+#not yet FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS publish_base
 # https://hub.docker.com/_/microsoft-dotnet-aspnet/
 
 # force AMD64 build here: the ssl1.1.1 workaround below assumes amd64
