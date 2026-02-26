@@ -12,9 +12,7 @@
 #
 
 
-#FROM mcr.microsoft.com/dotnet/sdk:8.0-bookworm-slim-amd64 as build
-FROM mcr.microsoft.com/dotnet/sdk:8.0-bookworm-slim AS build
-#notyet FROM mcr.microsoft.com/dotnet/sdk:10.0-noble AS build
+FROM mcr.microsoft.com/dotnet/sdk:10.0-noble AS build
 # See https://mcr.microsoft.com/en-us/product/dotnet/sdk/tags
 
 # Running the AMD64 version is of the SDK is broken
@@ -26,6 +24,7 @@ WORKDIR /
 RUN git clone https://github.com/eficode/wait-for.git
 
 WORKDIR /src
+COPY ./Directory.Build.props ./
 COPY ./ClassTranscribeDatabase/ClassTranscribeDatabase.csproj ./ClassTranscribeDatabase/ClassTranscribeDatabase.csproj
 # Did not help ENV DOTNET_NUGET_SIGNATURE_VERIFICATION=false
 # Add --verbosity normal|diagnostic
@@ -42,12 +41,14 @@ COPY ./ClassTranscribeDatabase ./ClassTranscribeDatabase
 WORKDIR /src/ClassTranscribeServer
 RUN dotnet publish ClassTranscribeServer.csproj -c Release -o /app --no-restore
 
-#Not yet FROM mcr.microsoft.com/dotnet/aspnet:10.0-noble AS publish_base
-FROM mcr.microsoft.com/dotnet/aspnet:8.0-bookworm-slim as publish_base
-# FROM mcr.microsoft.com/dotnet/aspnet:7.0.14-bookworm-slim as publish_base
+FROM mcr.microsoft.com/dotnet/aspnet:10.0-noble AS publish_base
 
-# FROM mcr.microsoft.com/dotnet/core/aspnet:3.1.3-bionic as publish_base
-RUN apt-get -q update && apt-get -qy install netcat-traditional
+# Install libasound2t64 and create a symlink to map it to the legacy filename expected by the Speech SDK.
+# This ensures native binaries searching for libasound.so.2 can resolve the dependency on Ubuntu 24.04.
+RUN apt-get -q update && \
+    apt-get install -y libasound2t64 netcat-traditional && \
+    ln -s /usr/lib/x86_64-linux-gnu/libasound.so.2 /usr/lib/libasound.so.2 && \
+    apt-get -q update
 
 FROM publish_base AS publish
 WORKDIR /
