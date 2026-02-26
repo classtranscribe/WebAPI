@@ -8,10 +8,10 @@ else
     BASE="http://security.ubuntu.com/ubuntu/pool/main/o/openssl/"
 fi
 
-wget $BASE/libssl1.1_1.1.1f-1ubuntu2.20_${ARCH}.deb
-wget $BASE/libssl-dev_1.1.1f-1ubuntu2.20_${ARCH}.deb 
-dpkg -i libssl1.1_1.1.1f-1ubuntu2.20_${ARCH}.deb 
-dpkg -i libssl-dev_1.1.1f-1ubuntu2.20_${ARCH}.deb
-rm libssl1.1_1.1.1f-1ubuntu2.20_${ARCH}.deb libssl-dev_1.1.1f-1ubuntu2.20_${ARCH}.deb
+wget $BASE/libssl1.1_1.1.1f-1ubuntu2.24_${ARCH}.deb
+wget $BASE/libssl-dev_1.1.1f-1ubuntu2.24_${ARCH}.deb 
+dpkg -i libssl1.1_1.1.1f-1ubuntu2.24_${ARCH}.deb 
+dpkg -i libssl-dev_1.1.1f-1ubuntu2.24_${ARCH}.deb
+rm libssl1.1_1.1.1f-1ubuntu2.24_${ARCH}.deb libssl-dev_1.1.1f-1ubuntu2.24_${ARCH}.deb
 
 
