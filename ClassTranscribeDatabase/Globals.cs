@@ -95,6 +95,11 @@
         public string LLAVA_LOG_STREAMS { get; set; } = "out,err";
         public string LLAVA_USESHELL { get; set; } = "";
 
+        // LLM settings for glossary term extraction
+        public string OPENAI_API_KEY { get; set; } = "sk_T4ld54OZufjf51kAw1ufF8KzKLVgJmf2Pi1SwwPrJBk";
+        public string OPENAI_API_ENDPOINT { get; set; } = "https://lumen.ncsa.illinois.edu/v1/chat/completions";
+        public string OPENAI_MODEL { get; set; } = "qwen3-coder-next";
+
     }
 
     /// <summary>

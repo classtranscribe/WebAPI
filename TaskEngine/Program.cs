@@ -92,6 +92,7 @@ namespace TaskEngine
                 .AddSingleton<PythonCrawlerTask>()
                 .AddSingleton<DescribeVideoTask>()
                 .AddSingleton<DescribeImageTask>()
+                .AddSingleton<ExtractGlossaryTask>()
                // .AddSingleton<UpdateBoxTokenTask>()
                 .AddSingleton<CreateBoxTokenTask>()
                 .AddSingleton<BuildElasticIndexTask>()
@@ -203,6 +204,7 @@ namespace TaskEngine
             // Descriptions
             _serviceProvider.GetService<DescribeVideoTask>().Consume(concurrent_describe_videos);
             _serviceProvider.GetService<DescribeImageTask>().Consume(concurrent_describe_images);
+            _serviceProvider.GetService<ExtractGlossaryTask>().Consume(NO_CONCURRENCY);
 
             // SceneDetection now handled by native Python
             //    See https://github.com/classtranscribe/pyapi

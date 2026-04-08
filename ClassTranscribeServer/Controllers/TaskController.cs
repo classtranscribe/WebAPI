@@ -4,11 +4,14 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
 using static ClassTranscribeDatabase.CommonUtils;
@@ -249,6 +252,106 @@ namespace ClassTranscribeServer.Controllers
              }
              // old version - 
              return NotFound();
+        }
+
+        /// <summary>
+        /// Extracts glossary terms from a video's captions and OCR using an LLM.
+        /// Stores results in GlossaryDataId + GlossaryTimestampId for the Watch page popup.
+        /// Pass force=true to regenerate even if a glossary already exists.
+        /// </summary>
+        [HttpPost("ExtractGlossary")]
+        public async Task<ActionResult> ExtractGlossary(string videoId, bool force = false)
+        {
+            if (string.IsNullOrEmpty(videoId)) return BadRequest("videoId is required");
+
+            var apiKey = Globals.appSettings.OPENAI_API_KEY;
+            if (string.IsNullOrWhiteSpace(apiKey))
+                return StatusCode(503, "OPENAI_API_KEY is not configured on the server");
+
+            Video video = await _context.Videos.FindAsync(videoId);
+            if (video == null) return NotFound($"Video {videoId} not found");
+            if (video.HasGlossaryData() && !force)
+                return Ok(new { message = "Glossary already exists. Pass force=true to regenerate.", videoId });
+
+            var captions = await _context.Captions
+                .Where(c => c.Transcription.VideoId == videoId && c.Transcription.TranscriptionType == TranscriptionType.Caption)
+                .OrderBy(c => c.Begin).ToListAsync();
+            if (captions.Count == 0) return BadRequest($"No captions for video {videoId}. Complete transcription first.");
+
+            var captionSb = new StringBuilder();
+            foreach (var cap in captions) captionSb.AppendLine($"[{cap.Begin.TotalSeconds:F1}s] {cap.Text}");
+            var captionText = captionSb.ToString();
+            if (captionText.Length > 14000) captionText = captionText.Substring(0, 14000);
+
+            var ocrText = "";
+            if (video.HasSceneObjectData())
+            {
+                try
+                {
+                    var sd = await _context.TextData.FindAsync(video.SceneObjectDataId);
+                    if (sd?.Text != null)
+                    {
+                        var ocrSb = new StringBuilder();
+                        foreach (var scene in JToken.Parse(sd.Text))
+                        {
+                            var raw = scene["raw_text"]?.ToString()?.Trim();
+                            if (!string.IsNullOrWhiteSpace(raw)) ocrSb.AppendLine(raw);
+                        }
+                        ocrText = ocrSb.ToString();
+                        if (ocrText.Length > 4000) ocrText = ocrText.Substring(0, 4000);
+                    }
+                }
+                catch (Exception ex) { GetLogger().LogWarning(ex, $"{videoId}: OCR parse failed"); }
+            }
+
+            const string systemPrompt =
+                "You are an expert teaching assistant for university courses. " +
+                "Identify the most important domain-specific concepts from the provided lecture material. " +
+                "\nRules:" +
+                "\n- Only include terms central to understanding the subject (algorithms, mathematical concepts, scientific principles, technical methods, key theories)." +
+                "\n- Do NOT include common words, filler phrases, instructor names, or trivial terms." +
+                "\n- For each term write a concise definition (1-3 sentences) grounded in how it is used in THIS lecture." +
+                "\n- Set timestamp_seconds to the float seconds where the term first meaningfully appears. Use 0 if only in OCR." +
+                "\n- Set source to \"transcript\", \"ocr\", or \"both\"." +
+                "\n- Return ONLY a valid JSON array. No markdown fences, no commentary." +
+                "\n- Each element must have exactly: term, definition, timestamp_seconds, source.";
+
+            var userContent = new StringBuilder();
+            userContent.AppendLine("=== LECTURE TRANSCRIPT (timestamps in seconds) ===");
+            userContent.AppendLine(captionText);
+            if (!string.IsNullOrWhiteSpace(ocrText)) { userContent.AppendLine("\n=== SLIDE / IMAGE TEXT (OCR) ==="); userContent.AppendLine(ocrText); }
+
+            using var http = new HttpClient();
+            http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
+            var llmBody = new { model = Globals.appSettings.OPENAI_MODEL, messages = new[] { new { role = "system", content = systemPrompt }, new { role = "user", content = userContent.ToString() } }, temperature = 0.1 };
+            var httpContent = new StringContent(JsonConvert.SerializeObject(llmBody), Encoding.UTF8, "application/json");
+            var response = await http.PostAsync(Globals.appSettings.OPENAI_API_ENDPOINT, httpContent);
+            var responseBody = await response.Content.ReadAsStringAsync();
+            if (!response.IsSuccessStatusCode) { GetLogger().LogError($"ExtractGlossary({videoId}): {(int)response.StatusCode} {responseBody}"); return StatusCode(502, $"LLM API error: {response.StatusCode}"); }
+
+            var rawContent = JObject.Parse(responseBody)["choices"]?[0]?["message"]?["content"]?.ToString()?.Trim() ?? "[]";
+            JArray terms;
+            try { terms = JArray.Parse(rawContent); }
+            catch (JsonException) { return StatusCode(502, "LLM returned non-JSON response"); }
+
+            var (glossaryDoc, timestampDoc) = TaskEngine.Tasks.ExtractGlossaryTask.BuildGlossaryDocs(terms, video.Duration?.TotalSeconds ?? 99999);
+
+            async Task Upsert(string existingId, string text, Action<string> setId)
+            {
+                if (!string.IsNullOrEmpty(existingId)) { var td = await _context.TextData.FindAsync(existingId); if (td != null) { td.Text = text; return; } }
+                var newTd = new TextData { Text = text };
+                _context.TextData.Add(newTd);
+                await _context.SaveChangesAsync();
+                setId(newTd.Id);
+            }
+
+            await Upsert(video.GlossaryDataId,      glossaryDoc.ToString(Formatting.None),  id => video.GlossaryDataId      = id);
+            await Upsert(video.GlossaryTimestampId, timestampDoc.ToString(Formatting.None), id => video.GlossaryTimestampId = id);
+            _context.Update(video);
+            await _context.SaveChangesAsync();
+
+            GetLogger().LogInformation($"ExtractGlossary({videoId}): stored {terms.Count} terms");
+            return Ok(new { videoId, termCount = terms.Count });
         }
     }
 }

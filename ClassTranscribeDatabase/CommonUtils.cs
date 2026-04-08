@@ -1,4 +1,4 @@
-﻿﻿using ClassTranscribeDatabase.Models;
+﻿using ClassTranscribeDatabase.Models;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -41,7 +41,8 @@ namespace ClassTranscribeDatabase
             DescribeVideo = 20,
             DescribeImage = 21,
             AzureTranscribeVideo = 22,
-            LocalTranscribeVideo = 23
+            LocalTranscribeVideo = 23,
+            ExtractGlossaryTerms = 24
 
         }
 

@@ -1,4 +1,5 @@
 ﻿using ClassTranscribeDatabase;
+using ClassTranscribeDatabase.Models;
 using ClassTranscribeDatabase.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -35,6 +36,7 @@ namespace TaskEngine.Tasks
         private readonly SlackLogger _slackLogger;
         private readonly DescribeVideoTask _describeVideoTask;
         // private readonly DescribeImageTask _describeImageTask;
+        private readonly ExtractGlossaryTask _extractGlossaryTask;
         public QueueAwakerTask() { }
 
         public QueueAwakerTask(RabbitMQConnection rabbitMQ, DownloadPlaylistInfoTask downloadPlaylistInfoTask,
@@ -47,6 +49,7 @@ namespace TaskEngine.Tasks
             BuildElasticIndexTask buildElasticIndexTask, CleanUpElasticIndexTask cleanUpElasticIndexTask,
             
             DescribeVideoTask describeVideoTask,// DescribeImageTask describeImageTask,ExampleTask exampleTask,
+            ExtractGlossaryTask extractGlossaryTask,
             ILogger<QueueAwakerTask> logger, SlackLogger slackLogger)
             : base(rabbitMQ, TaskType.QueueAwaker, logger)
         {
@@ -65,6 +68,7 @@ namespace TaskEngine.Tasks
             _describeVideoTask = describeVideoTask;
             // _describeImageTask = describeImageTask;
             // _exampleTask = exampleTask;
+            _extractGlossaryTask = extractGlossaryTask;
             _slackLogger = slackLogger;
         }
 
@@ -154,6 +158,7 @@ namespace TaskEngine.Tasks
             List<String> todoTranscriptions;
             List<String> todoDownloads;
             List<String> todoSceneDetection;
+            List<String> todoGlossary;
             using (var context = CTDbContext.CreateDbContext())
             {
                 // Most tasks are created directly from within a task when it normally completed. 
@@ -218,6 +223,13 @@ namespace TaskEngine.Tasks
                 todoDownloads = await context.Medias.AsNoTracking().Where(
                     m => m.Video == null && m.CreatedAt < tooRecentCutoff
                     ).OrderByDescending(t => t.CreatedAt).Select(e => e.Id).ToListAsync();
+
+                // Videos with captions but no glossary yet
+                var maxGlossary = 20;
+                todoGlossary = await context.Videos.AsNoTracking().Where(
+                    v => v.GlossaryDataId == null && v.Medias.Any() && v.CreatedAt < tooRecentCutoff
+                      && v.Transcriptions.Any(t => t.TranscriptionType == TranscriptionType.Caption && t.Captions.Any())
+                    ).OrderByDescending(v => v.CreatedAt).Take(maxGlossary).Select(v => v.Id).ToListAsync();
             }
             // We have a list of outstanding tasks
             // However some of these may already be in progress
@@ -240,8 +252,11 @@ namespace TaskEngine.Tasks
             ClientActiveTasks currentDownloads = _transcriptionTask.GetCurrentTasks();
             todoDownloads.RemoveAll(e => currentDownloads.Contains(e));
 
+            ClientActiveTasks currentGlossary = _extractGlossaryTask.GetCurrentTasks();
+            todoGlossary.RemoveAll(e => currentGlossary.Contains(e));
+
             GetLogger().LogInformation($"Current In progress  todoProcessVideos={currentProcessVideos.Count},currentTranscription={currentTranscription.Count},currentDownloads={currentDownloads.Count} counts after filtering");
-            GetLogger().LogInformation($"Found todoProcessVideos={todoProcessVideos.Count},todoTranscriptions={todoTranscriptions.Count},todoDownloads={todoDownloads.Count} counts after filtering");
+            GetLogger().LogInformation($"Found todoProcessVideos={todoProcessVideos.Count},todoTranscriptions={todoTranscriptions.Count},todoDownloads={todoDownloads.Count},todoGlossary={todoGlossary.Count} counts after filtering");
 
 
             // Now we have a list of new things we want to do
@@ -256,6 +271,9 @@ namespace TaskEngine.Tasks
 
             // GetLogger().LogInformation($"Publishing todoVTTs ({String.Join(",", todoVTTs)})");
             // todoVTTs.ForEach(t => _generateVTTFileTask.Publish(t));
+
+            GetLogger().LogInformation($"Publishing todoGlossary ({String.Join(",", todoGlossary)})");
+            todoGlossary.ForEach(v => _extractGlossaryTask.Publish(v));
 
             GetLogger().LogInformation($"Publishing todoTranscriptions ({String.Join(",", todoTranscriptions)})");
 
