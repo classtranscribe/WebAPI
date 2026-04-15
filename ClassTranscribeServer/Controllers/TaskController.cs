@@ -1,4 +1,4 @@
-﻿using ClassTranscribeDatabase;
+using ClassTranscribeDatabase;
 using ClassTranscribeDatabase.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -254,6 +254,29 @@ namespace ClassTranscribeServer.Controllers
              return NotFound();
         }
 
+        private static (JObject glossaryDoc, JObject timestampDoc) BuildGlossaryDocs(JArray terms, double videoDuration)
+        {
+            var glossaryArray = new JArray();
+            var timestampDict = new JObject();
+            for (int i = 0; i < terms.Count; i++)
+            {
+                var t = terms[i];
+                string tm = t["term"]?.ToString() ?? "";
+                string df = t["definition"]?.ToString() ?? "";
+                string sr = t["source"]?.ToString() ?? "transcript";
+                double st = t["timestamp_seconds"]?.Value<double>() ?? 0;
+                double nx = (i + 1 < terms.Count) ? (terms[i + 1]["timestamp_seconds"]?.Value<double>() ?? st + 90) : st + 90;
+                double en = Math.Min(nx, videoDuration);
+                if (string.IsNullOrWhiteSpace(tm)) continue;
+                glossaryArray.Add(new JArray(tm, df, "", sr, "", "", ""));
+                timestampDict[tm] = new JArray(
+                    TimeSpan.FromSeconds(st).ToString(@"hh\:mm\:ss"),
+                    TimeSpan.FromSeconds(en).ToString(@"hh\:mm\:ss")
+                );
+            }
+            return (new JObject { ["Glossary"] = glossaryArray }, new JObject { ["glossaryTimestamp"] = timestampDict });
+        }
+
         /// <summary>
         /// Extracts glossary terms from a video's captions and OCR using an LLM.
         /// Stores results in GlossaryDataId + GlossaryTimestampId for the Watch page popup.
@@ -301,7 +324,7 @@ namespace ClassTranscribeServer.Controllers
                         if (ocrText.Length > 4000) ocrText = ocrText.Substring(0, 4000);
                     }
                 }
-                catch (Exception ex) { GetLogger().LogWarning(ex, $"{videoId}: OCR parse failed"); }
+                catch (Exception ex) { _logger.LogWarning(ex, $"{videoId}: OCR parse failed"); }
             }
 
             const string systemPrompt =
@@ -327,14 +350,14 @@ namespace ClassTranscribeServer.Controllers
             var httpContent = new StringContent(JsonConvert.SerializeObject(llmBody), Encoding.UTF8, "application/json");
             var response = await http.PostAsync(Globals.appSettings.OPENAI_API_ENDPOINT, httpContent);
             var responseBody = await response.Content.ReadAsStringAsync();
-            if (!response.IsSuccessStatusCode) { GetLogger().LogError($"ExtractGlossary({videoId}): {(int)response.StatusCode} {responseBody}"); return StatusCode(502, $"LLM API error: {response.StatusCode}"); }
+            if (!response.IsSuccessStatusCode) { _logger.LogError($"ExtractGlossary({videoId}): {(int)response.StatusCode} {responseBody}"); return StatusCode(502, $"LLM API error: {response.StatusCode}"); }
 
             var rawContent = JObject.Parse(responseBody)["choices"]?[0]?["message"]?["content"]?.ToString()?.Trim() ?? "[]";
             JArray terms;
             try { terms = JArray.Parse(rawContent); }
             catch (JsonException) { return StatusCode(502, "LLM returned non-JSON response"); }
 
-            var (glossaryDoc, timestampDoc) = TaskEngine.Tasks.ExtractGlossaryTask.BuildGlossaryDocs(terms, video.Duration?.TotalSeconds ?? 99999);
+            var (glossaryDoc, timestampDoc) = BuildGlossaryDocs(terms, video.Duration?.TotalSeconds ?? 99999);
 
             async Task Upsert(string existingId, string text, Action<string> setId)
             {
@@ -350,7 +373,7 @@ namespace ClassTranscribeServer.Controllers
             _context.Update(video);
             await _context.SaveChangesAsync();
 
-            GetLogger().LogInformation($"ExtractGlossary({videoId}): stored {terms.Count} terms");
+            _logger.LogInformation($"ExtractGlossary({videoId}): stored {terms.Count} terms");
             return Ok(new { videoId, termCount = terms.Count });
         }
     }

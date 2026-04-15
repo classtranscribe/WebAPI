@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using ClassTranscribeDatabase;
 using ClassTranscribeDatabase.Models;
+using ClassTranscribeDatabase.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
