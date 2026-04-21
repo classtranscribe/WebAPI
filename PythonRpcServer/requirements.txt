@@ -10,7 +10,7 @@ grpcio
 grpcio-tools
 idna==3.10
 KalturaApiClient==19.3.0
-lxml==5.1.0
+lxml==6.1.0
 parso==0.8.3
 pexpect==4.9.0
 pickleshare==0.7.5
@@ -44,7 +44,7 @@ yt-dlp
 # grpcio-tools==1.60.0
 # idna==3.7
 # KalturaApiClient==19.3.0
-# lxml==5.1.0
+# lxml==6.1.0
 # parso==0.8.3
 # pexpect==4.9.0
 # pickleshare==0.7.5
