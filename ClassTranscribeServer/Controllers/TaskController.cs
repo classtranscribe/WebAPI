@@ -254,20 +254,49 @@ namespace ClassTranscribeServer.Controllers
              return NotFound();
         }
 
-        private static (JObject glossaryDoc, JObject timestampDoc) BuildGlossaryDocs(JArray terms, double videoDuration)
+        private static double FindTermTimestamp(string term, List<Caption> captions)
+        {
+            if (string.IsNullOrWhiteSpace(term) || captions == null) return 0;
+            var lower = term.ToLowerInvariant();
+            foreach (var cap in captions)
+                if (cap.Text != null && cap.Text.ToLowerInvariant().Contains(lower))
+                    return cap.Begin.TotalSeconds;
+            return 0;
+        }
+
+        private static bool IsValidTermsArray(JArray arr)
+        {
+            if (arr.Count == 0) return false;
+            var validSources = new HashSet<string> { "transcript", "ocr", "both" };
+            foreach (var t in arr)
+            {
+                if (!(t is JObject obj)) return false;
+                if (string.IsNullOrWhiteSpace(obj["term"]?.ToString())) return false;
+                if (string.IsNullOrWhiteSpace(obj["definition"]?.ToString())) return false;
+                var src = obj["source"]?.ToString();
+                if (src != null && !validSources.Contains(src)) return false;
+            }
+            return true;
+        }
+
+        private static (JObject glossaryDoc, JObject timestampDoc) BuildGlossaryDocs(JArray terms, double videoDuration, List<Caption> captions)
         {
             var glossaryArray = new JArray();
             var timestampDict = new JObject();
+            var starts = new double[terms.Count];
+            for (int i = 0; i < terms.Count; i++)
+                starts[i] = FindTermTimestamp(terms[i]["term"]?.ToString() ?? "", captions);
+
             for (int i = 0; i < terms.Count; i++)
             {
-                var t = terms[i];
+                var t     = terms[i];
                 string tm = t["term"]?.ToString() ?? "";
                 string df = t["definition"]?.ToString() ?? "";
                 string sr = t["source"]?.ToString() ?? "transcript";
-                double st = t["timestamp_seconds"]?.Value<double>() ?? 0;
-                double nx = (i + 1 < terms.Count) ? (terms[i + 1]["timestamp_seconds"]?.Value<double>() ?? st + 90) : st + 90;
-                double en = Math.Min(nx, videoDuration);
                 if (string.IsNullOrWhiteSpace(tm)) continue;
+                double st = starts[i];
+                double nx = (i + 1 < terms.Count && starts[i + 1] > st) ? starts[i + 1] : st + 90;
+                double en = Math.Min(nx, videoDuration);
                 glossaryArray.Add(new JArray(tm, df, "", sr, "", "", ""));
                 timestampDict[tm] = new JArray(
                     TimeSpan.FromSeconds(st).ToString(@"hh\:mm\:ss"),
@@ -327,37 +356,36 @@ namespace ClassTranscribeServer.Controllers
                 catch (Exception ex) { _logger.LogWarning(ex, $"{videoId}: OCR parse failed"); }
             }
 
-            const string systemPrompt =
-                "You are an expert teaching assistant for university courses. " +
-                "Identify the most important domain-specific concepts from the provided lecture material. " +
-                "\nRules:" +
-                "\n- Only include terms central to understanding the subject (algorithms, mathematical concepts, scientific principles, technical methods, key theories)." +
-                "\n- Do NOT include common words, filler phrases, instructor names, or trivial terms." +
-                "\n- For each term write a concise definition (1-3 sentences) grounded in how it is used in THIS lecture." +
-                "\n- Set timestamp_seconds to the float seconds where the term first meaningfully appears. Use 0 if only in OCR." +
-                "\n- Set source to \"transcript\", \"ocr\", or \"both\"." +
-                "\n- Return ONLY a valid JSON array. No markdown fences, no commentary." +
-                "\n- Each element must have exactly: term, definition, timestamp_seconds, source.";
-
             var userContent = new StringBuilder();
             userContent.AppendLine("=== LECTURE TRANSCRIPT (timestamps in seconds) ===");
             userContent.AppendLine(captionText);
             if (!string.IsNullOrWhiteSpace(ocrText)) { userContent.AppendLine("\n=== SLIDE / IMAGE TEXT (OCR) ==="); userContent.AppendLine(ocrText); }
 
+            const int MAX_RETRIES = 3;
+            JArray terms = null;
             using var http = new HttpClient();
             http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
-            var llmBody = new { model = Globals.appSettings.OPENAI_MODEL, messages = new[] { new { role = "system", content = systemPrompt }, new { role = "user", content = userContent.ToString() } }, temperature = 0.1 };
-            var httpContent = new StringContent(JsonConvert.SerializeObject(llmBody), Encoding.UTF8, "application/json");
-            var response = await http.PostAsync(Globals.appSettings.OPENAI_API_ENDPOINT, httpContent);
-            var responseBody = await response.Content.ReadAsStringAsync();
-            if (!response.IsSuccessStatusCode) { _logger.LogError($"ExtractGlossary({videoId}): {(int)response.StatusCode} {responseBody}"); return StatusCode(502, $"LLM API error: {response.StatusCode}"); }
+            for (int attempt = 1; attempt <= MAX_RETRIES; attempt++)
+            {
+                var llmBody = new { model = Globals.appSettings.OPENAI_MODEL, messages = new[] { new { role = "system", content = Globals.appSettings.GLOSSARY_SYSTEM_PROMPT }, new { role = "user", content = userContent.ToString() } }, temperature = 0.1 };
+                var httpContent = new StringContent(JsonConvert.SerializeObject(llmBody), Encoding.UTF8, "application/json");
+                var response = await http.PostAsync(Globals.appSettings.OPENAI_API_ENDPOINT, httpContent);
+                var responseBody = await response.Content.ReadAsStringAsync();
+                if (!response.IsSuccessStatusCode) { _logger.LogError($"ExtractGlossary({videoId}): {(int)response.StatusCode} attempt {attempt}: {responseBody}"); if (attempt == MAX_RETRIES) return StatusCode(502, $"LLM API error: {response.StatusCode}"); continue; }
 
-            var rawContent = JObject.Parse(responseBody)["choices"]?[0]?["message"]?["content"]?.ToString()?.Trim() ?? "[]";
-            JArray terms;
-            try { terms = JArray.Parse(rawContent); }
-            catch (JsonException) { return StatusCode(502, "LLM returned non-JSON response"); }
+                var rawContent = JObject.Parse(responseBody)["choices"]?[0]?["message"]?["content"]?.ToString()?.Trim() ?? "[]";
+                try
+                {
+                    var parsed = JArray.Parse(rawContent);
+                    if (IsValidTermsArray(parsed)) { terms = parsed; break; }
+                    _logger.LogWarning($"ExtractGlossary({videoId}): attempt {attempt}: JSON schema invalid, retrying");
+                }
+                catch (JsonException ex) { _logger.LogWarning(ex, $"ExtractGlossary({videoId}): attempt {attempt}: invalid JSON from LLM, retrying"); }
+            }
 
-            var (glossaryDoc, timestampDoc) = BuildGlossaryDocs(terms, video.Duration?.TotalSeconds ?? 99999);
+            if (terms == null) return StatusCode(502, "LLM failed to return valid glossary JSON after retries");
+
+            var (glossaryDoc, timestampDoc) = BuildGlossaryDocs(terms, video.Duration?.TotalSeconds ?? 99999, captions);
 
             async Task Upsert(string existingId, string text, Action<string> setId)
             {

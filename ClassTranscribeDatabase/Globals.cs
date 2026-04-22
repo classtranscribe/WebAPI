@@ -96,9 +96,19 @@
         public string LLAVA_USESHELL { get; set; } = "";
 
         // LLM settings for glossary term extraction
-        public string OPENAI_API_KEY { get; set; } = "sk_T4ld54OZufjf51kAw1ufF8KzKLVgJmf2Pi1SwwPrJBk";
+        public string OPENAI_API_KEY { get; set; } = "";
         public string OPENAI_API_ENDPOINT { get; set; } = "https://lumen.ncsa.illinois.edu/v1/chat/completions";
         public string OPENAI_MODEL { get; set; } = "qwen3-coder-next";
+        public string GLOSSARY_SYSTEM_PROMPT { get; set; } =
+            "You are an expert teaching assistant for university courses. " +
+            "Identify the most important domain-specific concepts from the provided lecture material. " +
+            "\nRules:" +
+            "\n- Only include terms central to understanding the subject (algorithms, mathematical concepts, scientific principles, technical methods, key theories)." +
+            "\n- Do NOT include common words, filler phrases, instructor names, or trivial terms." +
+            "\n- For each term write a concise definition (1-3 sentences) grounded in how it is used in THIS lecture." +
+            "\n- Set source to \"transcript\", \"ocr\", or \"both\"." +
+            "\n- Return ONLY a valid JSON array. No markdown fences, no commentary." +
+            "\n- Each element must have exactly three fields: term (string), definition (string), source (string).";
 
     }
 
