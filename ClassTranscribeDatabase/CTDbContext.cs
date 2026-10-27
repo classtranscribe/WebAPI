@@ -193,6 +193,22 @@ namespace ClassTranscribeDatabase
         }
 
         /// <summary>
+        /// All DateTimes are stored as UTC in "timestamp without time zone" columns.
+        /// Npgsql 8 (legacy timestamp mode) read these back as DateTimeKind.Utc, so the JSON included a trailing 'Z'.
+        /// Npgsql 9+ reads them as DateTimeKind.Unspecified, so we restore the Utc kind here to keep the API output unchanged.
+        /// </summary>
+        protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
+        {
+            configurationBuilder.Properties<DateTime>().HaveConversion<UtcDateTimeConverter>();
+            configurationBuilder.Properties<DateTime?>().HaveConversion<UtcDateTimeConverter>();
+        }
+
+        private class UtcDateTimeConverter : Microsoft.EntityFrameworkCore.Storage.ValueConversion.ValueConverter<DateTime, DateTime>
+        {
+            public UtcDateTimeConverter() : base(v => v, v => DateTime.SpecifyKind(v, DateTimeKind.Utc)) { }
+        }
+
+        /// <summary>
         /// These are additional modifications made in setting up the various tables of the database.
         /// Things like many-to-many relationships and queryfilters and alternative keys are defined here.
         /// These options are defined using the fluentAPI,
