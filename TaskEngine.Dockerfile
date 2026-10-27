@@ -29,7 +29,6 @@ RUN dotnet publish TaskEngine.csproj -c Release -o /app --no-restore
 FROM mcr.microsoft.com/dotnet/aspnet:10.0-noble AS publish_base
 # https://hub.docker.com/_/microsoft-dotnet-aspnet/
 
-# force AMD64 build here: the ssl1.1.1 workaround below assumes amd64
 # Install prerequisites for Azure Speech Services: build-essential libssl-dev ca-certificates libasound2 wget
 # See https://docs.microsoft.com/en-us/azure/cognitive-services/speech-service/quickstarts/setup-platform
 # 10.0 libasound2 replaced with libasound2t64
